@@ -1,0 +1,49 @@
+import 'package:powersync/powersync.dart';
+
+/// Mirrors [infra/budgets] Postgres tables. PowerSync adds `id` automatically.
+const Schema budgetsSchema = Schema([
+  Table('accounts', [
+    Column.text('external_id'),
+    Column.text('name'),
+    Column.text('currency'),
+    Column.integer('balance_cents'),
+    Column.integer('balance_as_of'),
+    Column.text('conn_id'),
+    Column.text('conn_name'),
+    Column.integer('last_synced_at'),
+    Column.text('status'),
+    Column.text('status_message'),
+  ]),
+  Table('categories', [
+    Column.text('name'),
+    Column.integer('sort_order'),
+    Column.integer('archived'),
+    Column.text('color_token'),
+  ]),
+  Table('transactions', [
+    Column.text('account_id'),
+    Column.text('external_id'),
+    Column.integer('posted_at'),
+    Column.integer('amount_cents'),
+    Column.text('raw_description'),
+    Column.text('normalized_merchant'),
+    Column.integer('pending'),
+    Column.text('user_category_id'),
+    Column.text('suggested_category_id'),
+  ]),
+  Table('category_budgets', [
+    Column.text('category_id'),
+    Column.text('year_month'),
+    Column.integer('amount_cents'),
+  ]),
+  Table('categorization_rules', [
+    Column.text('match_type'),
+    Column.text('pattern'),
+    Column.text('category_id'),
+    Column.integer('priority'),
+  ]),
+  Table('sync_state', [
+    Column.text('key'),
+    Column.text('value'),
+  ]),
+]);
