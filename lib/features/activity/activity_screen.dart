@@ -2,6 +2,7 @@ import 'package:budgets/domain/account.dart';
 import 'package:budgets/domain/categorizer.dart';
 import 'package:budgets/domain/category.dart';
 import 'package:budgets/domain/transaction.dart';
+import 'package:budgets/features/activity/activity_search.dart';
 import 'package:budgets/features/activity/recategorize_sheet.dart';
 import 'package:budgets/features/activity/suggest_categories_sheet.dart';
 import 'package:budgets/providers/budgets_providers.dart';
@@ -71,14 +72,29 @@ class ActivityScreen extends ConsumerWidget {
   }
 }
 
-class _ActivityBody extends ConsumerWidget {
+class _ActivityBody extends ConsumerStatefulWidget {
   const _ActivityBody({required this.transactions});
 
   final List<BankTransaction> transactions;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    if (transactions.isEmpty) return _buildEmptyState(ref);
+  ConsumerState<_ActivityBody> createState() => _ActivityBodyState();
+}
+
+class _ActivityBodyState extends ConsumerState<_ActivityBody> {
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
+  bool _hideRuleMatched = true;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.transactions.isEmpty) return _buildEmptyState();
 
     final accounts = ref.watch(accountsMapProvider).asData?.value ?? {};
     final categories = {
@@ -91,10 +107,149 @@ class _ActivityBody extends ConsumerWidget {
         ref.watch(categorizationRulesProvider).asData?.value ??
             const <CategorizationRule>[];
 
-    return _buildTransactionList(ref, accounts, categories, rules);
+    final hasSearch = _searchQuery.trim().isNotEmpty;
+    final searchMatches = [
+      for (final transaction in widget.transactions)
+        if (activityMatchesSearch(
+          transaction: transaction,
+          query: _searchQuery,
+          account: accounts[transaction.accountId],
+          category: categories[transaction.effectiveCategoryId],
+        ))
+          transaction,
+    ];
+    final visibleTransactions = _hideRuleMatched
+        ? [
+            for (final transaction in searchMatches)
+              if (Categorizer.explainingRule(transaction, rules) == null)
+                transaction,
+          ]
+        : searchMatches;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildStickySearchAndFilter(
+          searchMatchCount: searchMatches.length,
+          visibleCount: visibleTransactions.length,
+        ),
+        Expanded(
+          child: CustomScrollView(
+            slivers: [
+              CupertinoSliverRefreshControl(
+                onRefresh: () => ActivityScreen._refresh(ref),
+              ),
+              if (visibleTransactions.isEmpty)
+                _buildNoResultsSliver(
+                  hasSearch: hasSearch,
+                  searchMatchCount: searchMatches.length,
+                )
+              else
+                _buildTransactionListSliver(
+                  visibleTransactions: visibleTransactions,
+                  accounts: accounts,
+                  categories: categories,
+                  rules: rules,
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
-  Widget _buildEmptyState(WidgetRef ref) {
+  Widget _buildStickySearchAndFilter({
+    required int searchMatchCount,
+    required int visibleCount,
+  }) {
+    return ColoredBox(
+      color: AppColors.backgroundDepth1,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.lg,
+          AppSpacing.lg,
+          AppSpacing.sm,
+        ),
+        child: Column(
+          children: [
+            CupertinoSearchTextField(
+              controller: _searchController,
+              placeholder: 'Search description, category, account…',
+              onChanged: (query) => setState(() => _searchQuery = query),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            _RuleMatchFilterToggle(
+              hideRuleMatched: _hideRuleMatched,
+              hiddenCount: searchMatchCount - visibleCount,
+              visibleCount: visibleCount,
+              onChanged: (hideRuleMatched) {
+                setState(() => _hideRuleMatched = hideRuleMatched);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNoResultsSliver({
+    required bool hasSearch,
+    required int searchMatchCount,
+  }) {
+    final message = hasSearch && searchMatchCount == 0
+        ? 'No transactions match this search.'
+        : hasSearch
+            ? 'No unmatched transactions for this search. '
+                'Turn off “Hide rule-matched” to see more.'
+            : 'All loaded transactions match a rule. '
+                'Turn off the filter to see them.';
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      sliver: SliverToBoxAdapter(
+        child: AppCard(
+          child: Text(message, style: AppText.body.medium),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTransactionListSliver({
+    required List<BankTransaction> visibleTransactions,
+    required Map<String, Account> accounts,
+    required Map<String, SpendCategory> categories,
+    required List<CategorizationRule> rules,
+  }) {
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        0,
+        AppSpacing.lg,
+        AppSpacing.lg,
+      ),
+      sliver: SliverList.separated(
+        itemCount: visibleTransactions.length,
+        separatorBuilder: (context, index) =>
+            const SizedBox(height: AppSpacing.sm),
+        itemBuilder: (context, index) {
+          final transaction = visibleTransactions[index];
+          return _TransactionRow(
+            transaction: transaction,
+            account: accounts[transaction.accountId],
+            category: categories[transaction.effectiveCategoryId],
+            matchedRule: Categorizer.explainingRule(transaction, rules),
+            onTap: () => RecategorizeSheet.show(
+              context,
+              ref: ref,
+              transaction: transaction,
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
     final connected =
         ref.watch(connectionStatusProvider).asData?.value.isConnected ?? false;
     return ListView(
@@ -111,41 +266,53 @@ class _ActivityBody extends ConsumerWidget {
       ],
     );
   }
+}
 
-  Widget _buildTransactionList(
-    WidgetRef ref,
-    Map<String, Account> accounts,
-    Map<String, SpendCategory> categories,
-    List<CategorizationRule> rules,
-  ) {
-    return CustomScrollView(
-      slivers: [
-        CupertinoSliverRefreshControl(
-          onRefresh: () => ActivityScreen._refresh(ref),
-        ),
-        SliverPadding(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          sliver: SliverList.separated(
-            itemCount: transactions.length,
-            separatorBuilder: (context, index) =>
-                const SizedBox(height: AppSpacing.sm),
-            itemBuilder: (context, index) {
-              final transaction = transactions[index];
-              return _TransactionRow(
-                transaction: transaction,
-                account: accounts[transaction.accountId],
-                category: categories[transaction.effectiveCategoryId],
-                matchedRule: Categorizer.explainingRule(transaction, rules),
-                onTap: () => RecategorizeSheet.show(
-                  context,
-                  ref: ref,
-                  transaction: transaction,
+class _RuleMatchFilterToggle extends StatelessWidget {
+  const _RuleMatchFilterToggle({
+    required this.hideRuleMatched,
+    required this.hiddenCount,
+    required this.visibleCount,
+    required this.onChanged,
+  });
+
+  final bool hideRuleMatched;
+  final int hiddenCount;
+  final int visibleCount;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Hide rule-matched',
+                  style: AppText.body.medium.semibold,
                 ),
-              );
-            },
+                Text(
+                  hideRuleMatched
+                      ? '$visibleCount shown · $hiddenCount hidden'
+                      : 'Showing all loaded transactions',
+                  style: AppText.body.small,
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+          CupertinoSwitch(
+            value: hideRuleMatched,
+            onChanged: onChanged,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -214,16 +381,11 @@ class _TransactionRow extends StatelessWidget {
   }
 
   List<String> get _subtitleParts {
-    final transactionType = transaction.transactionType?.trim();
     return [
       if (account != null) account!.name,
       DateFormat.MMMd().format(transaction.postedAt.toLocal()),
       if (transaction.pending) 'Pending',
       if (transaction.excluded) 'Excluded',
-      if (transactionType != null &&
-          transactionType.isNotEmpty &&
-          transactionType.toLowerCase() != 'regular')
-        transactionType,
       if (transaction.recurringSeries != null)
         'Recurring: ${transaction.recurringSeries}',
       category?.name ?? 'Uncategorized',

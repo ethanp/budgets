@@ -1,10 +1,13 @@
 import 'package:budgets/domain/month_summary.dart';
+import 'package:budgets/domain/special_category.dart';
 import 'package:budgets/domain/transaction.dart';
+import 'package:budgets/features/trends/category_trend_series_factory.dart';
 import 'package:budgets/services/sqlite/accounts_repository.dart';
 import 'package:budgets/services/sqlite/categories_repository.dart';
 import 'package:budgets/services/sqlite/sync_state_store.dart';
 import 'package:budgets/services/sqlite/transactions_repository.dart';
 import 'package:budgets/util/merchant_normalize.dart';
+import 'package:ethan_utils/ethan_utils.dart';
 
 class BudgetMonth {
   BudgetMonth({
@@ -39,20 +42,47 @@ class BudgetMonth {
     final monthOutflows = _outflowByCategory(
       await _transactionsRepository.listForMonth(yearMonth),
     );
-    final avg30DayOutflows = _outflowByCategory(
-      await _transactionsRepository.listPostedInLastDays(30),
+    final trailingYearOutflows = _outflowByCategory(
+      await _transactionsRepository.listPostedInLastDays(
+        CategoryTrendSeriesFactory.rollingDays,
+      ),
     );
+    final observedDays = _observedTrailingDays();
 
-    return categories
-        .map(
-          (category) => CategoryMonthRow(
+    return [
+      for (final category in categories)
+        if (!SpecialCategory.isSpecialId(category.id))
+          CategoryMonthRow(
             categoryId: category.id,
             categoryName: category.name,
-            avg30DaySpendCents: avg30DayOutflows[category.id] ?? 0,
+            annualizedSpendCents: CategoryTrendSeriesFactory
+                .annualizePartialWindow(
+                  windowTotalCents:
+                      (trailingYearOutflows[category.id] ?? 0).toDouble(),
+                  observedDays: observedDays,
+                )
+                .round(),
             spentCents: monthOutflows[category.id] ?? 0,
           ),
-        )
-        .toList();
+    ];
+  }
+
+  /// Calendar days on or after [chartHistoryStart] inside the trailing window.
+  static int _observedTrailingDays() {
+    final today = DateTime.now().startOfDay;
+    final historyFloor =
+        CategoryTrendSeriesFactory.chartHistoryStart.startOfDay;
+    final windowFloor = today.shiftedByDays(
+      -(CategoryTrendSeriesFactory.rollingDays - 1),
+    );
+    final effectiveFloor =
+        windowFloor.isBefore(historyFloor) ? historyFloor : windowFloor;
+    final observedDays = today.difference(effectiveFloor).inDays + 1;
+    if (observedDays < 1) return 1;
+    if (observedDays > CategoryTrendSeriesFactory.rollingDays) {
+      return CategoryTrendSeriesFactory.rollingDays;
+    }
+    return observedDays;
   }
 
   String currentYearMonth() => yearMonthKey(DateTime.now());

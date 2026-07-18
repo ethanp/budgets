@@ -7,7 +7,8 @@ class CategoryTrendPoint {
 
   final DateTime date;
 
-  /// Trailing 30-day spend total ending on [date].
+  /// Trailing-year spend ending on [date], scaled up if fewer than 365
+  /// observed days exist yet (partial first year).
   final double rollingCents;
 
   /// Heavily smoothed version of [rollingCents] for the trendline.

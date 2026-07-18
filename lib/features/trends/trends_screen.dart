@@ -65,9 +65,12 @@ class TrendsScreen extends ConsumerWidget {
           CategoryTrendChart(
             title: 'Income · Spending · Transfer',
             subtitle:
-                'Smoothed trailing 30-day · fill = percentile · '
+                'Trailing year · fill = percentile · '
                 'double-tap legend to solo',
             seriesList: bundle.cashFlows,
+            initiallyHiddenSeriesIds: const {
+              CategoryTrendSeriesFactory.transferSeriesId,
+            },
           ),
       ],
     );

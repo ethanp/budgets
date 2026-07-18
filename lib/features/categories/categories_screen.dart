@@ -1,5 +1,6 @@
 import 'package:budgets/domain/category.dart';
 import 'package:budgets/domain/month_summary.dart';
+import 'package:budgets/domain/special_category.dart';
 import 'package:budgets/features/categories/category_editor_sheet.dart';
 import 'package:budgets/providers/budgets_providers.dart';
 import 'package:budgets/theme/app_theme.dart';
@@ -74,13 +75,22 @@ class CategoriesScreen extends ConsumerWidget {
       for (final row in rowsAsync.asData?.value ?? <CategoryMonthRow>[])
         row.categoryId: row,
     };
+    final spendCategories = [
+      for (final category in categories)
+        if (!SpecialCategory.isSpecialId(category.id)) category,
+    ];
+    final specialCategories = [
+      for (final category in categories)
+        if (SpecialCategory.isSpecialId(category.id)) category,
+    ];
+    final listedCategories = [...spendCategories, ...specialCategories];
     return ListView.separated(
       padding: const EdgeInsets.all(AppSpacing.lg),
-      itemCount: categories.length,
+      itemCount: listedCategories.length,
       separatorBuilder: (context, index) =>
           const SizedBox(height: AppSpacing.sm),
       itemBuilder: (context, index) {
-        final category = categories[index];
+        final category = listedCategories[index];
         final row = rowsById[category.id];
         return _CategoryListTile(
           category: category,
@@ -141,7 +151,7 @@ class _CategoryListTile extends StatelessWidget {
         child: Row(
           children: [
             Expanded(child: _categoryDetails()),
-            _avg30DayLabel(),
+            _annualPaceLabel(),
             const SizedBox(width: AppSpacing.sm),
             const Icon(
               CupertinoIcons.chevron_right,
@@ -155,31 +165,37 @@ class _CategoryListTile extends StatelessWidget {
   }
 
   Widget _categoryDetails() {
+    final isSpecial = SpecialCategory.isSpecialId(category.id);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(category.name, style: AppText.body.large.semibold),
         Text(
-          row == null
-              ? 'Tap to edit'
-              : 'This month ${formatCents(row!.spentCents)}',
+          isSpecial
+              ? 'Built-in · cash flow'
+              : row == null
+                  ? 'Tap to edit'
+                  : 'This month ${formatCents(row!.spentCents)}',
           style: AppText.body.small,
         ),
       ],
     );
   }
 
-  Widget _avg30DayLabel() {
+  Widget _annualPaceLabel() {
+    if (SpecialCategory.isSpecialId(category.id)) {
+      return const SizedBox.shrink();
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Text(
-          row == null || row!.avg30DaySpendCents == 0
+          row == null || row!.annualizedSpendCents == 0
               ? '—'
-              : formatCents(row!.avg30DaySpendCents),
+              : formatCents(row!.annualizedSpendCents),
           style: AppText.body.medium.semibold,
         ),
-        Text('30-day avg', style: AppText.body.small),
+        Text('/ yr', style: AppText.body.small),
       ],
     );
   }

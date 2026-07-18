@@ -1,4 +1,5 @@
 import 'package:budgets/domain/category.dart';
+import 'package:budgets/domain/special_category.dart';
 import 'package:budgets/providers/budgets_providers.dart';
 import 'package:budgets/services/sqlite/categories_repository.dart';
 import 'package:budgets/theme/app_theme.dart';
@@ -37,6 +38,9 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
 
   bool get _isEditing => widget.category != null;
 
+  bool get _isSpecial =>
+      SpecialCategory.isSpecialId(widget.category?.id);
+
   @override
   void initState() {
     super.initState();
@@ -72,16 +76,18 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
           children: [
             _sheetHeader(),
             const SizedBox(height: AppSpacing.md),
-            _nameField(),
-            if (_error != null) ...[
-              const SizedBox(height: AppSpacing.sm),
-              _errorMessage(),
-            ],
-            const SizedBox(height: AppSpacing.md),
-            _primaryAction(),
-            if (_isEditing) ...[
-              const SizedBox(height: AppSpacing.sm),
-              _mergeAction(),
+            if (_isSpecial) _specialCategoryBody() else ...[
+              _nameField(),
+              if (_error != null) ...[
+                const SizedBox(height: AppSpacing.sm),
+                _errorMessage(),
+              ],
+              const SizedBox(height: AppSpacing.md),
+              _primaryAction(),
+              if (_isEditing) ...[
+                const SizedBox(height: AppSpacing.sm),
+                _mergeAction(),
+              ],
             ],
           ],
         ),
@@ -91,8 +97,36 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
 
   Widget _sheetHeader() {
     return Text(
-      _isEditing ? 'Edit category' : 'New category',
+      _isSpecial
+          ? 'Built-in category'
+          : _isEditing
+              ? 'Edit category'
+              : 'New category',
       style: AppText.headline.small,
+    );
+  }
+
+  Widget _specialCategoryBody() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          widget.category!.name,
+          style: AppText.body.large.semibold,
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Text(
+          'This is a built-in cash-flow category. '
+          'It cannot be renamed or deleted. '
+          'Use it when categorizing income or transfers.',
+          style: AppText.body.small,
+        ),
+        const SizedBox(height: AppSpacing.md),
+        CupertinoButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Done'),
+        ),
+      ],
     );
   }
 

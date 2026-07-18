@@ -6,7 +6,7 @@ This is a personal app (not a product). The repo is public-safe: bank Access URL
 
 ## What it does
 
-- **See whether a category is drifting up or down** — smoothed trailing 30-day spend lines (total + per category) so long-term shape is readable, not drowned in daily noise.
+- **See whether a category is drifting up or down** — smoothed trailing-year spend lines (total + per category) so long-term shape is readable, not drowned in daily noise.
 - **Keep history categorized without babysitting every swipe** — assign a merchant once, add “contains” rules, merge duplicate categories, and optionally let the home-server LLM suggest labels for unknowns.
 - **Pull in real bank activity** — connect via SimpleFIN for ongoing sync, or load past exports (Copilot CSV / generic CSV) when you need history a bank connection doesn’t cover.
 - **Use the same picture on Mac and iPhone** — local PowerSync store syncs to home-server Postgres so categorization and trends stay shared across devices.
@@ -31,7 +31,7 @@ SimpleFIN Bridge ──HTTP──► App (claim + /accounts)
 2. Set `POWERSYNC_JWT_SECRET` + `SERVER_HOST_LAN` in `.env` (required), then run the app.
 3. In **Settings → Connect**, paste the Setup Token. The app claims an Access URL (`https://user:pass@…/simplefin`), saves it to keychain, and you should also put it in `.env` as `SIMPLEFIN_ACCESS_URL` so it survives reinstall.
 4. Sync (or import) loads transactions into PowerSync. Categorization uses sticky merchant → category memory plus explicit rules.
-5. Trends charts roll categorized outflows into smoothed trailing 30-day spend lines. Changes upload via PostgREST and download on other devices.
+5. Trends charts roll categorized outflows into a trailing 365-day window and smooth for readable lines. Changes upload via PostgREST and download on other devices.
 
 ## Code layout
 

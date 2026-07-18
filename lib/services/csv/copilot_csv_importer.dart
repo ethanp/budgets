@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:budgets/domain/account.dart';
+import 'package:budgets/domain/special_category.dart';
 import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/services/csv/copilot_category_map.dart';
 import 'package:budgets/services/sqlite/accounts_repository.dart';
@@ -156,15 +157,15 @@ class CopilotCsvImporter {
     String accountId,
     _CopilotImportSession session,
   ) async {
-    final type = parsed.transactionType?.trim().toLowerCase() ?? '';
-    final budgetsCategoryName = switch (type) {
-      'internal transfer' || 'transfer' => 'Transfer',
-      'income' => 'Income',
-      _ => budgetsCategoryNameForCopilot(parsed.categoryText),
-    };
-    final categoryId = budgetsCategoryName == null
+    final specialFromType =
+        SpecialCategory.fromTransactionType(parsed.transactionType);
+    final budgetsCategoryName = specialFromType != null
         ? null
-        : session.categoryIdByName[budgetsCategoryName.toLowerCase()];
+        : budgetsCategoryNameForCopilot(parsed.categoryText);
+    final categoryId = specialFromType?.id ??
+        (budgetsCategoryName == null
+            ? null
+            : session.categoryIdByName[budgetsCategoryName.toLowerCase()]);
 
     await _transactionsRepository.upsertTransaction(
       BankTransaction(
@@ -178,6 +179,7 @@ class CopilotCsvImporter {
         pending: parsed.pending,
         userCategoryId: categoryId,
         note: parsed.note,
+        // Kept as import provenance only; runtime identity is the category.
         transactionType: parsed.transactionType,
         excluded: parsed.excluded,
         recurringSeries: parsed.recurringSeries,
@@ -403,11 +405,6 @@ class _ParsedCopilotRow {
         amountText: amountText,
         accountName: accountName,
         accountMask: accountMask,
-        status: status,
-        note: noteText,
-        type: typeText,
-        excluded: excluded,
-        recurringSeries: recurringText,
       ),
       postedAt: DateTime.parse(dateText),
       // Copilot: expenses positive / income negative. Budgets: outflow negative.
@@ -416,29 +413,21 @@ class _ParsedCopilotRow {
     );
   }
 
+  /// Stable across pending→posted / note edits. Name is included so true
+  /// same-day twins stay distinct; mutable Copilot fields are omitted.
   static String _stableExternalId({
     required String dateText,
     required String name,
     required String amountText,
     required String accountName,
     required String accountMask,
-    required String status,
-    required String note,
-    required String type,
-    required bool excluded,
-    required String recurringSeries,
   }) {
     final material = [
       dateText,
-      name,
+      name.trim().toLowerCase(),
       amountText,
       accountName,
       accountMask,
-      status,
-      note,
-      type,
-      excluded ? '1' : '0',
-      recurringSeries,
     ].join('|');
     return 'copilot:${base64Url.encode(utf8.encode(material))}';
   }

@@ -16,6 +16,15 @@ String formatCentsCompact(int cents) {
   return formatCents(cents);
 }
 
+/// Whole dollars only (no cents). Compact thousands when ≥ $1k.
+String formatCentsWholeDollars(int cents) {
+  final dollars = (cents / 100).round();
+  if (dollars.abs() >= 1000) {
+    return formatAxisCents(dollars * 100);
+  }
+  return NumberFormat.currency(symbol: '\$', decimalDigits: 0).format(dollars);
+}
+
 /// Axis tick labels: whole dollars / compact thousands, no noisy cents.
 String formatAxisCents(num cents) {
   final dollars = cents / 100;

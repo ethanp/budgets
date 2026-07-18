@@ -2,6 +2,7 @@ import 'package:budgets/domain/account.dart';
 import 'package:budgets/domain/budget_month.dart';
 import 'package:budgets/domain/categorizer.dart';
 import 'package:budgets/domain/category.dart';
+import 'package:budgets/domain/copilot_simplefin_deduper.dart';
 import 'package:budgets/domain/month_summary.dart';
 import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/domain/transaction_ingest.dart';
@@ -77,6 +78,16 @@ final categorizerProvider = FutureProvider<Categorizer>((ref) async {
   );
 });
 
+final copilotSimplefinDeduperProvider =
+    FutureProvider<CopilotSimplefinDeduper>((ref) async {
+  return CopilotSimplefinDeduper(
+    accountsRepository: await ref.watch(accountsRepositoryProvider.future),
+    transactionsRepository: await ref.watch(
+      transactionsRepositoryProvider.future,
+    ),
+  );
+});
+
 final budgetMonthProvider = FutureProvider<BudgetMonth>((ref) async {
   return BudgetMonth(
     accountsRepository: await ref.watch(accountsRepositoryProvider.future),
@@ -134,7 +145,7 @@ final transactionsListProvider = FutureProvider<List<BankTransaction>>((
 ) async {
   ref.watch(dataRevisionProvider);
   final repository = await ref.watch(transactionsRepositoryProvider.future);
-  return repository.listAll(limit: 500);
+  return repository.listAll();
 });
 
 final accountsMapProvider = FutureProvider<Map<String, Account>>((ref) async {
@@ -172,6 +183,8 @@ final currentYearMonthProvider = Provider<String>((ref) {
 });
 
 final categoryTrendsProvider = FutureProvider<TrendsChartBundle>((ref) async {
+  // Keep across tab switches; rebuilds when [dataRevisionProvider] bumps.
+  ref.keepAlive();
   ref.watch(dataRevisionProvider);
   final transactionsRepository =
       await ref.watch(transactionsRepositoryProvider.future);

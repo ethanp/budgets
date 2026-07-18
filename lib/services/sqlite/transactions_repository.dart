@@ -143,6 +143,13 @@ class TransactionsRepository {
     );
   }
 
+  Future<void> deleteTransaction(String transactionId) async {
+    await _powerSync.execute(
+      'DELETE FROM transactions WHERE id = ?',
+      [transactionId],
+    );
+  }
+
   Future<MonthSummary> monthSummary({
     required String yearMonth,
     required Map<String, String> accountNames,

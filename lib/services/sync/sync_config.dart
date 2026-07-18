@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:budgets/domain/special_category.dart';
 import 'package:budgets/services/sync/powersync_schema.dart';
+import 'package:budgets/services/sync/special_category_startup.dart';
 import 'package:ethan_sync/ethan_sync.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -62,7 +64,11 @@ SyncConfig buildBudgetsSyncConfig(SharedPreferences preferences) {
       strategy: TieredBatchUploadStrategy(dependencies: _fkDependencies),
       conflictColumns: _conflictColumns,
     ),
-    startupHooks: [_requireJwtSecret, _seedDefaultCategoriesIfNeeded],
+    startupHooks: [
+      _requireJwtSecret,
+      _seedDefaultCategoriesIfNeeded,
+      ensureSpecialCategoriesMigrated,
+    ],
     onSyncError: (message) => _log.warn(message),
   );
 }
@@ -123,7 +129,7 @@ Future<void> _seedDefaultCategoriesIfNeeded(PowerSyncDatabase database) async {
   final count = _asInt(countRow?['c']);
   if (count > 0) return;
 
-  const defaults = [
+  const spendDefaults = [
     'Groceries',
     'Dining',
     'Transport',
@@ -133,12 +139,10 @@ Future<void> _seedDefaultCategoriesIfNeeded(PowerSyncDatabase database) async {
     'Shopping',
     'Health',
     'Travel',
-    'Income',
-    'Transfer',
     'Other',
   ];
-  for (var index = 0; index < defaults.length; index++) {
-    final name = defaults[index];
+  for (var index = 0; index < spendDefaults.length; index++) {
+    final name = spendDefaults[index];
     await database.upsert('categories', {
       'id': 'cat_${name.toLowerCase()}',
       'name': name,
@@ -147,7 +151,19 @@ Future<void> _seedDefaultCategoriesIfNeeded(PowerSyncDatabase database) async {
       'color_token': null,
     });
   }
-  _log.log('Seeded ${defaults.length} default categories');
+  for (final special in SpecialCategory.values) {
+    await database.upsert('categories', {
+      'id': special.id,
+      'name': special.name,
+      'sort_order': special.sortOrder,
+      'archived': 0,
+      'color_token': null,
+    });
+  }
+  _log.log(
+    'Seeded ${spendDefaults.length + SpecialCategory.values.length} '
+    'default categories',
+  );
 }
 
 int _asInt(Object? value) {

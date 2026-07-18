@@ -33,19 +33,53 @@ class Categorizer {
     }
   }
 
-  /// First rule that both matches [transaction] and explains its effective category.
+  /// Best matching rule: higher priority, then longer pattern, then exact over contains.
+  static CategorizationRule? bestMatchingRule(
+    BankTransaction transaction,
+    List<CategorizationRule> rules,
+  ) {
+    CategorizationRule? bestRule;
+    for (final rule in rules) {
+      if (!ruleMatches(transaction, rule)) continue;
+      if (bestRule == null || _isBetterRule(rule, bestRule)) {
+        bestRule = rule;
+      }
+    }
+    return bestRule;
+  }
+
+  static bool _isBetterRule(
+    CategorizationRule candidate,
+    CategorizationRule incumbent,
+  ) {
+    if (candidate.priority != incumbent.priority) {
+      return candidate.priority > incumbent.priority;
+    }
+    final candidateLength = candidate.pattern.trim().length;
+    final incumbentLength = incumbent.pattern.trim().length;
+    if (candidateLength != incumbentLength) {
+      return candidateLength > incumbentLength;
+    }
+    if (candidate.matchType != incumbent.matchType) {
+      return candidate.matchType == RuleMatchType.merchantExact;
+    }
+    return candidate.pattern.toLowerCase().compareTo(
+          incumbent.pattern.toLowerCase(),
+        ) <
+        0;
+  }
+
+  /// Rule that both matches [transaction] and explains its effective category.
   static CategorizationRule? explainingRule(
     BankTransaction transaction,
     List<CategorizationRule> rules,
   ) {
     final effectiveCategoryId = transaction.effectiveCategoryId;
     if (effectiveCategoryId == null) return null;
-    for (final rule in rules) {
-      if (rule.categoryId != effectiveCategoryId) continue;
-      if (!ruleMatches(transaction, rule)) continue;
-      return rule;
-    }
-    return null;
+    final matchingRule = bestMatchingRule(transaction, rules);
+    if (matchingRule == null) return null;
+    if (matchingRule.categoryId != effectiveCategoryId) return null;
+    return matchingRule;
   }
 
   Future<String?> resolveCategoryId(BankTransaction transaction) async {
@@ -54,9 +88,8 @@ class Categorizer {
     }
 
     final rules = await _categoriesRepository.listRules();
-    for (final rule in rules) {
-      if (ruleMatches(transaction, rule)) return rule.categoryId;
-    }
+    final matchingRule = bestMatchingRule(transaction, rules);
+    if (matchingRule != null) return matchingRule.categoryId;
 
     return transaction.suggestedCategoryId;
   }
@@ -92,18 +125,44 @@ class Categorizer {
   Future<List<BankTransaction>> transactionsMatchingContains(
     String pattern,
   ) async {
+    final normalizedPattern = pattern.trim();
     final probe = CategorizationRule(
       id: 'probe',
       matchType: RuleMatchType.merchantContains,
-      pattern: pattern.trim(),
+      pattern: normalizedPattern,
       categoryId: 'probe',
       priority: 0,
     );
     final transactions = await _transactionsRepository.listAll();
+    final existingRules = await _categoriesRepository.listRules();
     return [
       for (final transaction in transactions)
-        if (ruleMatches(transaction, probe)) transaction,
+        if (ruleMatches(transaction, probe) &&
+            !coveredByLongerRule(
+              transaction: transaction,
+              existingRules: existingRules,
+              proposedPattern: normalizedPattern,
+            ))
+          transaction,
     ];
+  }
+
+  /// True when a longer existing rule already matches [transaction].
+  ///
+  /// Used so “apply rule to existing” does not overwrite more-specific rules
+  /// (e.g. proposing `kroger` should skip txs already matched by `kroger fuel`).
+  static bool coveredByLongerRule({
+    required BankTransaction transaction,
+    required List<CategorizationRule> existingRules,
+    required String proposedPattern,
+  }) {
+    final proposedLength = proposedPattern.trim().length;
+    if (proposedLength == 0) return false;
+    for (final rule in existingRules) {
+      if (!ruleMatches(transaction, rule)) continue;
+      if (rule.pattern.trim().length > proposedLength) return true;
+    }
+    return false;
   }
 
   /// Upserts a case-insensitive contains rule for [pattern] → [categoryId].
@@ -171,18 +230,13 @@ class Categorizer {
     for (final transaction in transactions) {
       if (transaction.userCategoryId != null) continue;
 
-      String? matchedCategoryId;
-      for (final rule in rules) {
-        if (!ruleMatches(transaction, rule)) continue;
-        matchedCategoryId = rule.categoryId;
-        break;
-      }
-      if (matchedCategoryId == null) continue;
-      if (matchedCategoryId == transaction.suggestedCategoryId) continue;
+      final matchingRule = bestMatchingRule(transaction, rules);
+      if (matchingRule == null) continue;
+      if (matchingRule.categoryId == transaction.suggestedCategoryId) continue;
 
       await _transactionsRepository.setSuggestedCategory(
         transactionId: transaction.id,
-        categoryId: matchedCategoryId,
+        categoryId: matchingRule.categoryId,
       );
     }
   }

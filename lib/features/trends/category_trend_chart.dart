@@ -1,6 +1,9 @@
+import 'dart:math' as math;
+
 import 'package:budgets/features/trends/category_trend_painter.dart';
 import 'package:budgets/features/trends/category_trend_point.dart';
 import 'package:budgets/features/trends/category_trend_series.dart';
+import 'package:budgets/features/trends/category_trend_series_factory.dart';
 import 'package:budgets/theme/app_theme.dart';
 import 'package:budgets/util/money_format.dart';
 import 'package:flutter/cupertino.dart';
@@ -13,7 +16,7 @@ class CategoryTrendChart extends StatefulWidget {
     required this.title,
     required this.seriesList,
     this.subtitle =
-        'Smoothed trailing 30-day · tap legend to show/hide · double-tap to solo',
+        'Trailing year · tap legend to show/hide · double-tap to solo',
     this.initiallyHiddenSeriesIds = const {},
   });
 
@@ -109,7 +112,7 @@ class _CategoryTrendChartState extends State<CategoryTrendChart> {
       final point = _nearestPoint(series.points, hoverDate);
       final amount = point == null
           ? '—'
-          : formatCentsCompact(point.smoothedCents.round());
+          : formatCentsWholeDollars(point.smoothedCents.round());
       return '${series.name} $amount';
     }).join(' · ');
 
@@ -121,33 +124,146 @@ class _CategoryTrendChartState extends State<CategoryTrendChart> {
     );
   }
 
+  /// Meta series (All / Other / Uncategorized) in a separated column; remaining
+  /// categories fill column-major top→bottom, then left→right.
   Widget _legend() {
-    return Wrap(
-      spacing: AppSpacing.md,
-      runSpacing: AppSpacing.sm,
+    final seriesList = widget.seriesList;
+    if (seriesList.isEmpty) return const SizedBox.shrink();
+
+    final metaSeries = [
+      for (final series in seriesList)
+        if (_isMetaLegendSeries(series)) series,
+    ];
+    final rankedSeries = [
+      for (final series in seriesList)
+        if (!_isMetaLegendSeries(series)) series,
+    ];
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        for (final series in widget.seriesList) _legendChip(series),
+        if (metaSeries.isNotEmpty) ...[
+          _metaLegendColumn(metaSeries),
+          if (rankedSeries.isNotEmpty) ...[
+            const SizedBox(width: AppSpacing.md),
+            _legendColumnDivider(),
+            const SizedBox(width: AppSpacing.md),
+          ],
+        ],
+        if (rankedSeries.isNotEmpty)
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) => _columnMajorLegend(
+                seriesList: rankedSeries,
+                maxWidth: constraints.maxWidth,
+              ),
+            ),
+          ),
       ],
     );
   }
 
-  Widget _legendChip(CategoryTrendSeries series) {
+  bool _isMetaLegendSeries(CategoryTrendSeries series) {
+    if (series.id == CategoryTrendSeriesFactory.allSpendSeriesId) return true;
+    if (series.id == CategoryTrendSeriesFactory.uncategorizedSeriesId) {
+      return true;
+    }
+    return series.id == 'cat_other' || series.name.toLowerCase() == 'other';
+  }
+
+  Widget _metaLegendColumn(List<CategoryTrendSeries> metaSeries) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundDepth3.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        border: Border.all(color: AppColors.borderDepth1.withValues(alpha: 0.7)),
+      ),
+      child: IntrinsicWidth(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (var index = 0; index < metaSeries.length; index++) ...[
+              if (index > 0) const SizedBox(height: AppSpacing.sm),
+              _legendChip(metaSeries[index], expandLabel: false),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _legendColumnDivider() {
+    return Container(
+      width: 1,
+      height: 72,
+      color: AppColors.borderDepth1.withValues(alpha: 0.8),
+    );
+  }
+
+  Widget _columnMajorLegend({
+    required List<CategoryTrendSeries> seriesList,
+    required double maxWidth,
+  }) {
+    const minColumnWidth = 148.0;
+    const columnGap = AppSpacing.md;
+    final columnCount = math.max(
+      1,
+      ((maxWidth + columnGap) / (minColumnWidth + columnGap)).floor(),
+    );
+    final rowCount = (seriesList.length + columnCount - 1) ~/ columnCount;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (var columnIndex = 0; columnIndex < columnCount; columnIndex++) ...[
+          if (columnIndex > 0) const SizedBox(width: columnGap),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (var rowIndex = 0; rowIndex < rowCount; rowIndex++)
+                  if (columnIndex * rowCount + rowIndex < seriesList.length) ...[
+                    if (rowIndex > 0) const SizedBox(height: AppSpacing.sm),
+                    _legendChip(
+                      seriesList[columnIndex * rowCount + rowIndex],
+                    ),
+                  ],
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _legendChip(
+    CategoryTrendSeries series, {
+    bool expandLabel = true,
+  }) {
     final isHidden = _hiddenSeriesIds.contains(series.id);
+    final label = Text(
+      '${series.name} · '
+      '${formatCentsWholeDollars(series.latestSmoothedCents.round())} / yr',
+      style: isHidden
+          ? AppText.body.small.copyWith(color: AppColors.textColor4)
+          : AppText.body.small,
+      maxLines: 1,
+      softWrap: false,
+      overflow: expandLabel ? TextOverflow.ellipsis : TextOverflow.visible,
+    );
     return GestureDetector(
       onTap: () => _toggleSeries(series.id),
       onDoubleTap: () => _soloSeries(series.id),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize: expandLabel ? MainAxisSize.max : MainAxisSize.min,
         children: [
           _legendSwatch(series, isHidden),
           const SizedBox(width: AppSpacing.xs),
-          Text(
-            '${series.name} · '
-            '${formatCentsCompact(series.latestSmoothedCents.round())}',
-            style: isHidden
-                ? AppText.body.small.copyWith(color: AppColors.textColor4)
-                : AppText.body.small,
-          ),
+          if (expandLabel) Expanded(child: label) else label,
         ],
       ),
     );

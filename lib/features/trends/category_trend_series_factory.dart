@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:budgets/domain/category.dart';
+import 'package:budgets/domain/special_category.dart';
 import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/features/trends/category_trend_point.dart';
 import 'package:budgets/features/trends/category_trend_series.dart';
@@ -8,7 +9,7 @@ import 'package:budgets/features/trends/trends_chart_bundle.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/cupertino.dart';
 
-/// Builds smoothed trailing-30-day trendlines for category spend and cash flows.
+/// Builds smoothed trailing-year trendlines for category spend and cash flows.
 class CategoryTrendSeriesFactory {
   const CategoryTrendSeriesFactory();
 
@@ -25,13 +26,23 @@ class CategoryTrendSeriesFactory {
   static const spendingLineColor = Color(0xFFE76F51);
   static const transferLineColor = Color(0xFF7B8CDE);
 
-  static const _rollingDays = 30;
-  static const _smoothingHalfWindow = 14;
+  static const rollingDays = 365;
+  static const _smoothingHalfWindow = 21;
   static const _smoothingPasses = 3;
   static const _minMeaningfulCents = 100.0;
 
   /// History before this date is incomplete enough to distort long-term trends.
   static final chartHistoryStart = DateTime(2021, 3, 1);
+
+  /// Scale a partial trailing window up to a full-year pace.
+  static double annualizePartialWindow({
+    required double windowTotalCents,
+    required int observedDays,
+  }) {
+    if (observedDays <= 0) return 0;
+    if (observedDays >= rollingDays) return windowTotalCents;
+    return windowTotalCents * rollingDays / observedDays;
+  }
 
   /// Ten high-chroma hues spaced around the wheel for dark backgrounds.
   /// Avoids dark red / gray reserved for All / Uncategorized.
@@ -61,14 +72,7 @@ class CategoryTrendSeriesFactory {
               !transaction.postedAt.isBefore(historyStart),
         )
         .toList();
-    final categoryById = {
-      for (final category in categories) category.id: category,
-    };
-    final flowCategoryIds = {
-      for (final category in categories)
-        if (_isIncomeCategory(category) || _isTransferCategory(category))
-          category.id,
-    };
+    final flowCategoryIds = SpecialCategory.ids;
 
     final spendMaps = _categorySpendMaps(
       transactions: inRangeTransactions,
@@ -76,7 +80,6 @@ class CategoryTrendSeriesFactory {
     );
     final cashFlowMaps = _cashFlowMaps(
       transactions: inRangeTransactions,
-      categoryById: categoryById,
     );
 
     final earliestSpend = _earliestDate([
@@ -102,10 +105,12 @@ class CategoryTrendSeriesFactory {
         categories: categories,
         flowCategoryIds: flowCategoryIds,
         chartDates: chartDates,
+        historyFloor: chartStart,
       ),
       cashFlows: _buildCashFlowSeries(
         cashFlowMaps: cashFlowMaps,
         chartDates: chartDates,
+        historyFloor: chartStart,
       ),
     );
   }
@@ -115,20 +120,22 @@ class CategoryTrendSeriesFactory {
     required List<SpendCategory> categories,
     required Set<String> flowCategoryIds,
     required List<DateTime> chartDates,
+    required DateTime historyFloor,
   }) {
     if (spendMaps.totalByDay.isEmpty) return [];
 
-    final series = <CategoryTrendSeries>[
-      _seriesForDailyMap(
-        id: allSpendSeriesId,
-        name: 'All spending',
-        lineColor: allSpendLineColor,
-        dotted: true,
-        dailySpendCents: spendMaps.totalByDay,
-        chartDates: chartDates,
-      ),
-    ];
+    final allSpendSeries = _seriesForDailyMap(
+      id: allSpendSeriesId,
+      name: 'All spending',
+      lineColor: allSpendLineColor,
+      dotted: true,
+      dailySpendCents: spendMaps.totalByDay,
+      chartDates: chartDates,
+      historyFloor: historyFloor,
+    );
 
+    final rankedCategorySeries = <CategoryTrendSeries>[];
+    CategoryTrendSeries? otherSeries;
     var paletteIndex = 0;
     final representedCategoryIds = <String>{};
 
@@ -143,12 +150,23 @@ class CategoryTrendSeriesFactory {
         lineColor: _palette[paletteIndex % _palette.length],
         dailySpendCents: dailySpendCents,
         chartDates: chartDates,
+        historyFloor: historyFloor,
       );
       if (!_hasMeaningfulTrend(categorySeries)) continue;
-      series.add(categorySeries);
       representedCategoryIds.add(category.id);
       paletteIndex++;
+
+      if (_isOtherCategory(category)) {
+        otherSeries = categorySeries;
+      } else {
+        rankedCategorySeries.add(categorySeries);
+      }
     }
+
+    rankedCategorySeries.sort(
+      (left, right) =>
+          right.latestSmoothedCents.compareTo(left.latestSmoothedCents),
+    );
 
     final uncategorizedDaily = <DateTime, double>{};
     _mergeDailyMaps(uncategorizedDaily, spendMaps.uncategorizedByDay);
@@ -158,25 +176,36 @@ class CategoryTrendSeriesFactory {
       _mergeDailyMaps(uncategorizedDaily, entry.value);
     }
 
+    CategoryTrendSeries? uncategorizedSeries;
     if (uncategorizedDaily.isNotEmpty) {
-      final uncategorizedSeries = _seriesForDailyMap(
+      final built = _seriesForDailyMap(
         id: uncategorizedSeriesId,
         name: 'Uncategorized',
         lineColor: uncategorizedLineColor,
         dailySpendCents: uncategorizedDaily,
         chartDates: chartDates,
+        historyFloor: historyFloor,
       );
-      if (_hasMeaningfulTrend(uncategorizedSeries)) {
-        series.add(uncategorizedSeries);
+      if (_hasMeaningfulTrend(built)) {
+        uncategorizedSeries = built;
       }
     }
 
-    return series;
+    return [
+      allSpendSeries,
+      ...rankedCategorySeries,
+      ?otherSeries,
+      ?uncategorizedSeries,
+    ];
   }
+
+  bool _isOtherCategory(SpendCategory category) =>
+      category.id == 'cat_other' || category.name.toLowerCase() == 'other';
 
   List<CategoryTrendSeries> _buildCashFlowSeries({
     required _CashFlowMaps cashFlowMaps,
     required List<DateTime> chartDates,
+    required DateTime historyFloor,
   }) {
     final series = <CategoryTrendSeries>[
       _seriesForDailyMap(
@@ -186,6 +215,7 @@ class CategoryTrendSeriesFactory {
         percentileAreaFill: true,
         dailySpendCents: cashFlowMaps.incomeByDay,
         chartDates: chartDates,
+        historyFloor: historyFloor,
       ),
       _seriesForDailyMap(
         id: spendingSeriesId,
@@ -194,6 +224,7 @@ class CategoryTrendSeriesFactory {
         percentileAreaFill: true,
         dailySpendCents: cashFlowMaps.spendingByDay,
         chartDates: chartDates,
+        historyFloor: historyFloor,
       ),
       _seriesForDailyMap(
         id: transferSeriesId,
@@ -201,6 +232,7 @@ class CategoryTrendSeriesFactory {
         lineColor: transferLineColor,
         dailySpendCents: cashFlowMaps.transferByDay,
         chartDates: chartDates,
+        historyFloor: historyFloor,
       ),
     ];
     return series.where(_hasMeaningfulTrend).toList();
@@ -212,15 +244,14 @@ class CategoryTrendSeriesFactory {
     required Color lineColor,
     required Map<DateTime, double> dailySpendCents,
     required List<DateTime> chartDates,
+    required DateTime historyFloor,
     bool dotted = false,
     bool percentileAreaFill = false,
   }) {
-    final rawPoints = chartDates.mapL(
-      (chartDate) => CategoryTrendPoint(
-        date: chartDate,
-        rollingCents: _rollingTotal(chartDate, dailySpendCents),
-        smoothedCents: 0,
-      ),
+    final rawPoints = _annualizedTrailingPoints(
+      chartDates: chartDates,
+      dailySpendCents: dailySpendCents,
+      historyFloor: historyFloor,
     );
     return CategoryTrendSeries(
       id: id,
@@ -230,6 +261,52 @@ class CategoryTrendSeriesFactory {
       percentileAreaFill: percentileAreaFill,
       points: _smoothedPoints(rawPoints),
     );
+  }
+
+  /// O(n) trailing-year totals via prefix sums (contiguous [chartDates]).
+  List<CategoryTrendPoint> _annualizedTrailingPoints({
+    required List<DateTime> chartDates,
+    required Map<DateTime, double> dailySpendCents,
+    required DateTime historyFloor,
+  }) {
+    if (chartDates.isEmpty) return const [];
+
+    final dayCount = chartDates.length;
+    final prefixSums = List<double>.filled(dayCount + 1, 0);
+    for (var dayIndex = 0; dayIndex < dayCount; dayIndex++) {
+      prefixSums[dayIndex + 1] = prefixSums[dayIndex] +
+          (dailySpendCents[chartDates[dayIndex]] ?? 0);
+    }
+
+    var historyStartIndex = 0;
+    while (historyStartIndex < dayCount &&
+        chartDates[historyStartIndex].isBefore(historyFloor)) {
+      historyStartIndex++;
+    }
+
+    return List.generate(dayCount, (dayIndex) {
+      if (dayIndex < historyStartIndex) {
+        return CategoryTrendPoint(
+          date: chartDates[dayIndex],
+          rollingCents: 0,
+          smoothedCents: 0,
+        );
+      }
+      final windowStart = math.max(
+        historyStartIndex,
+        dayIndex - rollingDays + 1,
+      );
+      final observedDays = dayIndex - windowStart + 1;
+      final windowTotal = prefixSums[dayIndex + 1] - prefixSums[windowStart];
+      return CategoryTrendPoint(
+        date: chartDates[dayIndex],
+        rollingCents: annualizePartialWindow(
+          windowTotalCents: windowTotal,
+          observedDays: observedDays,
+        ),
+        smoothedCents: 0,
+      );
+    });
   }
 
   _CategorySpendMaps _categorySpendMaps({
@@ -280,7 +357,6 @@ class CategoryTrendSeriesFactory {
 
   _CashFlowMaps _cashFlowMaps({
     required List<BankTransaction> transactions,
-    required Map<String, SpendCategory> categoryById,
   }) {
     final incomeByDay = <DateTime, double>{};
     final spendingByDay = <DateTime, double>{};
@@ -291,11 +367,10 @@ class CategoryTrendSeriesFactory {
 
       final day = transaction.postedAt.startOfDay;
       final magnitudeCents = transaction.amountCents.abs().toDouble();
-      final category = categoryById[transaction.effectiveCategoryId];
+      final categoryId = transaction.effectiveCategoryId;
 
-      // Copilot marks transfers/income as excluded with a type, often with no
-      // category — still count them on the matching cash-flow line.
-      if (_isTransferTransaction(transaction, category)) {
+      // Special categories count even when Copilot marked them excluded.
+      if (SpecialCategory.isTransferId(categoryId)) {
         transferByDay.update(
           day,
           (priorCents) => priorCents + magnitudeCents,
@@ -304,7 +379,7 @@ class CategoryTrendSeriesFactory {
         continue;
       }
 
-      if (_isIncomeTransaction(transaction, category)) {
+      if (SpecialCategory.isIncomeId(categoryId)) {
         incomeByDay.update(
           day,
           (priorCents) => priorCents + magnitudeCents,
@@ -348,31 +423,6 @@ class CategoryTrendSeriesFactory {
     return false;
   }
 
-  bool _isIncomeCategory(SpendCategory category) =>
-      category.name.toLowerCase() == 'income' || category.id == 'cat_income';
-
-  bool _isTransferCategory(SpendCategory category) =>
-      category.name.toLowerCase() == 'transfer' ||
-      category.id == 'cat_transfer';
-
-  bool _isTransferTransaction(
-    BankTransaction transaction,
-    SpendCategory? category,
-  ) {
-    if (category != null && _isTransferCategory(category)) return true;
-    final type = transaction.transactionType?.trim().toLowerCase() ?? '';
-    return type == 'internal transfer' || type == 'transfer';
-  }
-
-  bool _isIncomeTransaction(
-    BankTransaction transaction,
-    SpendCategory? category,
-  ) {
-    if (category != null && _isIncomeCategory(category)) return true;
-    final type = transaction.transactionType?.trim().toLowerCase() ?? '';
-    return type == 'income';
-  }
-
   void _mergeDailyMaps(
     Map<DateTime, double> into,
     Map<DateTime, double> from,
@@ -405,14 +455,6 @@ class CategoryTrendSeriesFactory {
     );
   }
 
-  double _rollingTotal(DateTime date, Map<DateTime, double> dailySpendCents) {
-    var rollingTotal = 0.0;
-    for (var dayOffset = 0; dayOffset < _rollingDays; dayOffset++) {
-      rollingTotal += dailySpendCents[date.shiftedByDays(-dayOffset)] ?? 0;
-    }
-    return rollingTotal;
-  }
-
   List<CategoryTrendPoint> _smoothedPoints(List<CategoryTrendPoint> rawPoints) {
     var smoothedValues = rawPoints.mapL((point) => point.rollingCents);
     for (var pass = 0; pass < _smoothingPasses; pass++) {
@@ -427,19 +469,20 @@ class CategoryTrendSeriesFactory {
     );
   }
 
-  List<double> _centeredMovingAverage(List<double> values) =>
-      List.generate(values.length, (index) => _windowAverage(values, index));
-
-  double _windowAverage(List<double> values, int index) {
-    final firstIndex = math.max(0, index - _smoothingHalfWindow);
-    final lastIndex = math.min(values.length - 1, index + _smoothingHalfWindow);
-    var total = 0.0;
-    for (var neighborIndex = firstIndex;
-        neighborIndex <= lastIndex;
-        neighborIndex++) {
-      total += values[neighborIndex];
+  /// O(n) centered moving average via prefix sums.
+  List<double> _centeredMovingAverage(List<double> values) {
+    if (values.isEmpty) return const [];
+    final prefixSums = List<double>.filled(values.length + 1, 0);
+    for (var index = 0; index < values.length; index++) {
+      prefixSums[index + 1] = prefixSums[index] + values[index];
     }
-    return total / (lastIndex - firstIndex + 1);
+    return List.generate(values.length, (index) {
+      final firstIndex = math.max(0, index - _smoothingHalfWindow);
+      final lastIndex =
+          math.min(values.length - 1, index + _smoothingHalfWindow);
+      return (prefixSums[lastIndex + 1] - prefixSums[firstIndex]) /
+          (lastIndex - firstIndex + 1);
+    });
   }
 }
 

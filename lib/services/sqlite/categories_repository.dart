@@ -1,4 +1,5 @@
 import 'package:budgets/domain/category.dart';
+import 'package:budgets/domain/special_category.dart';
 import 'package:ethan_sync/ethan_sync.dart';
 import 'package:powersync/powersync.dart';
 import 'package:uuid/uuid.dart';
@@ -42,6 +43,11 @@ class CategoriesRepository {
     if (trimmedName.isEmpty) {
       throw ArgumentError('Category name is required.');
     }
+    if (SpecialCategory.isReservedName(trimmedName)) {
+      throw ArgumentError(
+        '"$trimmedName" is a built-in category and cannot be recreated.',
+      );
+    }
     final active = await listActive();
     var nextSortOrder = 0;
     for (final category in active) {
@@ -63,9 +69,17 @@ class CategoriesRepository {
     required String categoryId,
     required String name,
   }) async {
+    if (SpecialCategory.isSpecialId(categoryId)) {
+      throw StateError('Built-in categories cannot be renamed.');
+    }
     final trimmedName = name.trim();
     if (trimmedName.isEmpty) {
       throw ArgumentError('Category name is required.');
+    }
+    if (SpecialCategory.isReservedName(trimmedName)) {
+      throw ArgumentError(
+        '"$trimmedName" is reserved for a built-in category.',
+      );
     }
     final row = await _powerSync.getOptional(
       'SELECT * FROM categories WHERE id = ? LIMIT 1',
@@ -95,6 +109,9 @@ class CategoriesRepository {
   }) async {
     if (fromCategoryId == intoCategoryId) {
       throw ArgumentError('Cannot merge a category into itself.');
+    }
+    if (SpecialCategory.isSpecialId(fromCategoryId)) {
+      throw StateError('Built-in categories cannot be merged away.');
     }
     await _ensureCategoriesExist(fromCategoryId, intoCategoryId);
     await _moveTransactionsAndRules(
