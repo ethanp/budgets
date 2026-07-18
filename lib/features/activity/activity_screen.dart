@@ -1,4 +1,5 @@
 import 'package:budgets/domain/account.dart';
+import 'package:budgets/domain/categorizer.dart';
 import 'package:budgets/domain/category.dart';
 import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/features/activity/recategorize_sheet.dart';
@@ -19,6 +20,7 @@ class ActivityScreen extends ConsumerWidget {
     final transactionsAsync = ref.watch(transactionsListProvider);
     final accountsAsync = ref.watch(accountsMapProvider);
     final categoriesAsync = ref.watch(categoriesListProvider);
+    final rulesAsync = ref.watch(categorizationRulesProvider);
     final connectionAsync = ref.watch(connectionStatusProvider);
 
     return CupertinoPageScaffold(
@@ -48,7 +50,8 @@ class ActivityScreen extends ConsumerWidget {
           ),
           data: (transactions) {
             if (transactions.isEmpty) {
-              final connected = connectionAsync.asData?.value.isConnected ?? false;
+              final connected =
+                  connectionAsync.asData?.value.isConnected ?? false;
               return ListView(
                 padding: const EdgeInsets.all(AppSpacing.lg),
                 children: [
@@ -70,6 +73,7 @@ class ActivityScreen extends ConsumerWidget {
                   in categoriesAsync.asData?.value ?? <SpendCategory>[])
                 category.id: category,
             };
+            final rules = rulesAsync.asData?.value ?? const <CategorizationRule>[];
 
             return CustomScrollView(
               slivers: [
@@ -84,10 +88,15 @@ class ActivityScreen extends ConsumerWidget {
                         const SizedBox(height: AppSpacing.sm),
                     itemBuilder: (context, index) {
                       final transaction = transactions[index];
+                      final matchedRule = Categorizer.explainingRule(
+                        transaction,
+                        rules,
+                      );
                       return _TransactionRow(
                         transaction: transaction,
                         account: accounts[transaction.accountId],
                         category: categories[transaction.effectiveCategoryId],
+                        matchedRule: matchedRule,
                         onTap: () => RecategorizeSheet.show(
                           context,
                           ref: ref,
@@ -114,6 +123,8 @@ class ActivityScreen extends ConsumerWidget {
     }
     final ingest = await ref.read(transactionIngestProvider.future);
     await ingest.pullAndUpsert();
+    final categorizer = await ref.read(categorizerProvider.future);
+    await categorizer.applyRulesToUncategorized();
     ref.read(dataRevisionProvider.notifier).bump();
   }
 }
@@ -123,12 +134,14 @@ class _TransactionRow extends StatelessWidget {
     required this.transaction,
     required this.account,
     required this.category,
+    required this.matchedRule,
     required this.onTap,
   });
 
   final BankTransaction transaction;
   final Account? account;
   final SpendCategory? category;
+  final CategorizationRule? matchedRule;
   final VoidCallback onTap;
 
   @override
@@ -157,14 +170,18 @@ class _TransactionRow extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
-                    [
-                      if (account != null) account!.name,
-                      DateFormat.MMMd().format(transaction.postedAt.toLocal()),
-                      if (transaction.pending) 'Pending',
-                      category?.name ?? 'Uncategorized',
-                    ].join(' · '),
+                    _subtitleParts.join(' · '),
                     style: AppText.body.small,
                   ),
+                  if (matchedRule != null) ...[
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      'Rule: contains “${matchedRule!.pattern}”',
+                      style: AppText.body.small.copyWith(
+                        color: AppColors.accentPrimary,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -174,5 +191,14 @@ class _TransactionRow extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  List<String> get _subtitleParts {
+    return [
+      if (account != null) account!.name,
+      DateFormat.MMMd().format(transaction.postedAt.toLocal()),
+      if (transaction.pending) 'Pending',
+      category?.name ?? 'Uncategorized',
+    ];
   }
 }

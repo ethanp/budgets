@@ -1,5 +1,6 @@
 import 'package:budgets/domain/category.dart';
 import 'package:budgets/domain/month_summary.dart';
+import 'package:budgets/features/categories/category_editor_sheet.dart';
 import 'package:budgets/providers/budgets_providers.dart';
 import 'package:budgets/theme/app_theme.dart';
 import 'package:budgets/util/money_format.dart';
@@ -17,8 +18,17 @@ class CategoriesScreen extends ConsumerWidget {
     final rowsAsync = ref.watch(categoryMonthRowsProvider(yearMonth));
 
     return CupertinoPageScaffold(
-      navigationBar: const CupertinoNavigationBar(
-        middle: Text('Categories'),
+      navigationBar: CupertinoNavigationBar(
+        middle: const Text('Categories'),
+        trailing: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: () => CategoryEditorSheet.show(
+            context,
+            ref: ref,
+            yearMonth: yearMonth,
+          ),
+          child: const Icon(CupertinoIcons.add),
+        ),
       ),
       child: SafeArea(
         child: categoriesAsync.when(
@@ -27,6 +37,9 @@ class CategoriesScreen extends ConsumerWidget {
             child: Text('$error', style: AppText.body.medium.error),
           ),
           data: (categories) {
+            if (categories.isEmpty) {
+              return _buildEmptyState(context, ref, yearMonth);
+            }
             final rowsById = {
               for (final row in rowsAsync.asData?.value ?? <CategoryMonthRow>[])
                 row.categoryId: row,
@@ -39,43 +52,15 @@ class CategoriesScreen extends ConsumerWidget {
               itemBuilder: (context, index) {
                 final category = categories[index];
                 final row = rowsById[category.id];
-                return GestureDetector(
-                  onTap: () => _editBudget(
+                return _CategoryListTile(
+                  category: category,
+                  row: row,
+                  onTap: () => CategoryEditorSheet.show(
                     context,
-                    ref,
+                    ref: ref,
                     category: category,
                     yearMonth: yearMonth,
                     currentBudgetCents: row?.budgetCents ?? 0,
-                  ),
-                  child: AppCard(
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                category.name,
-                                style: AppText.body.large.semibold,
-                              ),
-                              Text(
-                                row == null
-                                    ? 'Tap to set budget'
-                                    : 'Spent ${formatCents(row.spentCents)}',
-                                style: AppText.body.small,
-                              ),
-                            ],
-                          ),
-                        ),
-                        Text(
-                          row == null || row.budgetCents == 0
-                              ? 'No budget'
-                              : formatCents(row.budgetCents),
-                          style: AppText.body.medium.semibold,
-                        ),
-                      ],
-                    ),
                   ),
                 );
               },
@@ -86,83 +71,88 @@ class CategoriesScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _editBudget(
+  Widget _buildEmptyState(
     BuildContext context,
-    WidgetRef ref, {
-    required SpendCategory category,
-    required String yearMonth,
-    required int currentBudgetCents,
-  }) async {
-    final controller = TextEditingController(
-      text: currentBudgetCents == 0
-          ? ''
-          : (currentBudgetCents / 100).toStringAsFixed(2),
+    WidgetRef ref,
+    String yearMonth,
+  ) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('No categories yet', style: AppText.headline.small),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Add categories to budget and organize spending.',
+              style: AppText.body.medium,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            CupertinoButton.filled(
+              onPressed: () => CategoryEditorSheet.show(
+                context,
+                ref: ref,
+                yearMonth: yearMonth,
+              ),
+              child: const Text('Add category'),
+            ),
+          ],
+        ),
+      ),
     );
+  }
+}
 
-    await showCupertinoModalPopup<void>(
-      context: context,
-      builder: (sheetContext) {
-        return Container(
-          padding: EdgeInsets.only(
-            left: AppSpacing.lg,
-            right: AppSpacing.lg,
-            top: AppSpacing.lg,
-            bottom: MediaQuery.viewInsetsOf(sheetContext).bottom + AppSpacing.lg,
-          ),
-          decoration: const BoxDecoration(
-            color: AppColors.backgroundDepth2,
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(AppRadius.lg),
-            ),
-          ),
-          child: SafeArea(
-            top: false,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  '${category.name} budget',
-                  style: AppText.headline.small,
-                ),
-                const SizedBox(height: AppSpacing.md),
-                CupertinoTextField(
-                  controller: controller,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
+class _CategoryListTile extends StatelessWidget {
+  const _CategoryListTile({
+    required this.category,
+    required this.row,
+    required this.onTap,
+  });
+
+  final SpendCategory category;
+  final CategoryMonthRow? row;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AppCard(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(category.name, style: AppText.body.large.semibold),
+                  Text(
+                    row == null
+                        ? 'Tap to edit'
+                        : 'Spent ${formatCents(row!.spentCents)}',
+                    style: AppText.body.small,
                   ),
-                  placeholder: 'Monthly amount',
-                  prefix: const Padding(
-                    padding: EdgeInsets.only(left: AppSpacing.md),
-                    child: Text('\$'),
-                  ),
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  style: AppText.body.large.primary,
-                ),
-                const SizedBox(height: AppSpacing.md),
-                CupertinoButton.filled(
-                  onPressed: () async {
-                    final dollars = double.tryParse(controller.text.trim()) ?? 0;
-                    final repository =
-                        await ref.read(categoriesRepositoryProvider.future);
-                    await repository.setBudget(
-                      categoryId: category.id,
-                      yearMonth: yearMonth,
-                      amountCents: (dollars * 100).round(),
-                    );
-                    ref.read(dataRevisionProvider.notifier).bump();
-                    if (sheetContext.mounted) {
-                      Navigator.of(sheetContext).pop();
-                    }
-                  },
-                  child: const Text('Save'),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        );
-      },
+            Text(
+              row == null || row!.budgetCents == 0
+                  ? 'No budget'
+                  : formatCents(row!.budgetCents),
+              style: AppText.body.medium.semibold,
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            const Icon(
+              CupertinoIcons.chevron_right,
+              size: 16,
+              color: AppColors.textColor4,
+            ),
+          ],
+        ),
+      ),
     );
-    controller.dispose();
   }
 }

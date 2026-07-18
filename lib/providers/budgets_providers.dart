@@ -167,6 +167,13 @@ final categoriesListProvider = FutureProvider<List<SpendCategory>>((ref) async {
   return repository.listActive();
 });
 
+final categorizationRulesProvider =
+    FutureProvider<List<CategorizationRule>>((ref) async {
+  ref.watch(dataRevisionProvider);
+  final repository = await ref.watch(categoriesRepositoryProvider.future);
+  return repository.listRules();
+});
+
 final currentYearMonthProvider = Provider<String>((ref) {
   return yearMonthKey(DateTime.now());
 });

@@ -262,6 +262,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
+  Future<void> _applyCategoryRules() async {
+    final categorizer = await ref.read(categorizerProvider.future);
+    await categorizer.applyRulesToUncategorized();
+  }
+
   Future<void> _connect() async {
     setState(() {
       _busy = true;
@@ -270,6 +275,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     try {
       final ingest = await ref.read(transactionIngestProvider.future);
       final result = await ingest.claimAndPull(_tokenController.text);
+      await _applyCategoryRules();
       _tokenController.clear();
       ref.read(dataRevisionProvider.notifier).bump();
       final accessUrl = result.claimedAccessUrl;
@@ -320,6 +326,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     try {
       final ingest = await ref.read(transactionIngestProvider.future);
       await ingest.pullAndUpsert();
+      await _applyCategoryRules();
       ref.read(dataRevisionProvider.notifier).bump();
     } on SimpleFinFetchException catch (error) {
       setState(() => _actionError = error.message);
@@ -338,6 +345,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     try {
       final ingest = await ref.read(transactionIngestProvider.future);
       final result = await ingest.pullAndUpsert(fullHistory: true);
+      await _applyCategoryRules();
       ref.read(dataRevisionProvider.notifier).bump();
       if (mounted && result.errors.isNotEmpty) {
         setState(

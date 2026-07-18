@@ -37,6 +37,122 @@ class CategoriesRepository {
     });
   }
 
+  Future<SpendCategory> createCategory({required String name}) async {
+    final trimmedName = name.trim();
+    if (trimmedName.isEmpty) {
+      throw ArgumentError('Category name is required.');
+    }
+    final active = await listActive();
+    var nextSortOrder = 0;
+    for (final category in active) {
+      if (category.sortOrder >= nextSortOrder) {
+        nextSortOrder = category.sortOrder + 1;
+      }
+    }
+    final category = SpendCategory(
+      id: _uuid.v4(),
+      name: trimmedName,
+      sortOrder: nextSortOrder,
+      archived: false,
+    );
+    await upsertCategory(category);
+    return category;
+  }
+
+  Future<void> renameCategory({
+    required String categoryId,
+    required String name,
+  }) async {
+    final trimmedName = name.trim();
+    if (trimmedName.isEmpty) {
+      throw ArgumentError('Category name is required.');
+    }
+    final row = await _powerSync.getOptional(
+      'SELECT * FROM categories WHERE id = ? LIMIT 1',
+      [categoryId],
+    );
+    if (row == null) {
+      throw StateError('Category not found.');
+    }
+    final existing = _categoryFromRow(row);
+    await upsertCategory(
+      SpendCategory(
+        id: existing.id,
+        name: trimmedName,
+        sortOrder: existing.sortOrder,
+        archived: existing.archived,
+        colorToken: existing.colorToken,
+      ),
+    );
+  }
+
+  /// Move all spend/rules/budgets from [fromCategoryId] into [intoCategoryId],
+  /// then hard-delete the source category. Use when retiring a duplicate
+  /// (e.g. "Dining" → "Restaurants").
+  Future<void> mergeCategoryInto({
+    required String fromCategoryId,
+    required String intoCategoryId,
+  }) async {
+    if (fromCategoryId == intoCategoryId) {
+      throw ArgumentError('Cannot merge a category into itself.');
+    }
+    final fromRow = await _powerSync.getOptional(
+      'SELECT id FROM categories WHERE id = ? LIMIT 1',
+      [fromCategoryId],
+    );
+    final intoRow = await _powerSync.getOptional(
+      'SELECT id FROM categories WHERE id = ? LIMIT 1',
+      [intoCategoryId],
+    );
+    if (fromRow == null || intoRow == null) {
+      throw StateError('Both categories must exist to merge.');
+    }
+
+    await _powerSync.execute(
+      'UPDATE transactions SET user_category_id = ? WHERE user_category_id = ?',
+      [intoCategoryId, fromCategoryId],
+    );
+    await _powerSync.execute(
+      '''
+      UPDATE transactions
+      SET suggested_category_id = ?
+      WHERE suggested_category_id = ?
+      ''',
+      [intoCategoryId, fromCategoryId],
+    );
+    await _powerSync.execute(
+      'UPDATE categorization_rules SET category_id = ? WHERE category_id = ?',
+      [intoCategoryId, fromCategoryId],
+    );
+
+    final sourceBudgets = await _powerSync.getAll(
+      'SELECT * FROM category_budgets WHERE category_id = ?',
+      [fromCategoryId],
+    );
+    for (final budgetRow in sourceBudgets) {
+      final yearMonth = budgetRow['year_month'] as String;
+      final sourceAmountCents = _asInt(budgetRow['amount_cents']);
+      final targetBudget = await budgetFor(
+        categoryId: intoCategoryId,
+        yearMonth: yearMonth,
+      );
+      await setBudget(
+        categoryId: intoCategoryId,
+        yearMonth: yearMonth,
+        amountCents: (targetBudget?.amountCents ?? 0) + sourceAmountCents,
+      );
+    }
+
+    await _powerSync.execute(
+      'DELETE FROM category_budgets WHERE category_id = ?',
+      [fromCategoryId],
+    );
+    await _powerSync.execute(
+      'DELETE FROM categories WHERE id = ?',
+      [fromCategoryId],
+    );
+  }
+
   Future<CategoryBudget?> budgetFor({
     required String categoryId,
     required String yearMonth,

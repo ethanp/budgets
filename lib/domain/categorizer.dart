@@ -15,24 +15,47 @@ class Categorizer {
   final TransactionsRepository _transactionsRepository;
   final _uuid = const Uuid();
 
+  /// Case-insensitive match of [rule] against the transaction description.
+  static bool ruleMatches(BankTransaction transaction, CategorizationRule rule) {
+    final haystack = [
+      transaction.rawDescription,
+      transaction.normalizedMerchant,
+    ].join('\n').toLowerCase();
+    final pattern = rule.pattern.trim().toLowerCase();
+    if (pattern.isEmpty) return false;
+
+    switch (rule.matchType) {
+      case RuleMatchType.merchantExact:
+        return transaction.normalizedMerchant.toLowerCase() == pattern ||
+            transaction.rawDescription.trim().toLowerCase() == pattern;
+      case RuleMatchType.merchantContains:
+        return haystack.contains(pattern);
+    }
+  }
+
+  /// First rule that both matches [transaction] and explains its effective category.
+  static CategorizationRule? explainingRule(
+    BankTransaction transaction,
+    List<CategorizationRule> rules,
+  ) {
+    final effectiveCategoryId = transaction.effectiveCategoryId;
+    if (effectiveCategoryId == null) return null;
+    for (final rule in rules) {
+      if (rule.categoryId != effectiveCategoryId) continue;
+      if (!ruleMatches(transaction, rule)) continue;
+      return rule;
+    }
+    return null;
+  }
+
   Future<String?> resolveCategoryId(BankTransaction transaction) async {
     if (transaction.userCategoryId != null) {
       return transaction.userCategoryId;
     }
 
-    final merchant = transaction.normalizedMerchant;
     final rules = await _categoriesRepository.listRules();
     for (final rule in rules) {
-      switch (rule.matchType) {
-        case RuleMatchType.merchantExact:
-          if (merchant == rule.pattern.toUpperCase()) {
-            return rule.categoryId;
-          }
-        case RuleMatchType.merchantContains:
-          if (merchant.contains(rule.pattern.toUpperCase())) {
-            return rule.categoryId;
-          }
-      }
+      if (ruleMatches(transaction, rule)) return rule.categoryId;
     }
 
     return transaction.suggestedCategoryId;
@@ -41,8 +64,8 @@ class Categorizer {
   Future<void> assignUserCategory({
     required String transactionId,
     required String categoryId,
-    required String merchantPattern,
     required bool createRule,
+    String? containsPattern,
   }) async {
     await _transactionsRepository.setUserCategory(
       transactionId: transactionId,
@@ -50,11 +73,41 @@ class Categorizer {
     );
     if (!createRule) return;
 
+    final pattern = containsPattern?.trim() ?? '';
+    if (pattern.isEmpty) {
+      throw ArgumentError('Rule pattern is required when creating a rule.');
+    }
+
+    await _upsertContainsRule(pattern: pattern, categoryId: categoryId);
+    await applyRulesToUncategorized();
+  }
+
+  Future<void> _upsertContainsRule({
+    required String pattern,
+    required String categoryId,
+  }) async {
+    final normalizedPattern = pattern.trim().toLowerCase();
+    final rules = await _categoriesRepository.listRules();
+    for (final rule in rules) {
+      if (rule.matchType != RuleMatchType.merchantContains) continue;
+      if (rule.pattern.trim().toLowerCase() != normalizedPattern) continue;
+      await _categoriesRepository.upsertRule(
+        CategorizationRule(
+          id: rule.id,
+          matchType: RuleMatchType.merchantContains,
+          pattern: normalizedPattern,
+          categoryId: categoryId,
+          priority: rule.priority,
+        ),
+      );
+      return;
+    }
+
     await _categoriesRepository.upsertRule(
       CategorizationRule(
         id: _uuid.v4(),
         matchType: RuleMatchType.merchantContains,
-        pattern: merchantPattern.toUpperCase(),
+        pattern: normalizedPattern,
         categoryId: categoryId,
         priority: 10,
       ),
@@ -63,15 +116,22 @@ class Categorizer {
 
   Future<void> applyRulesToUncategorized() async {
     final transactions = await _transactionsRepository.listAll();
+    final rules = await _categoriesRepository.listRules();
     for (final transaction in transactions) {
       if (transaction.userCategoryId != null) continue;
-      final resolved = await resolveCategoryId(transaction);
-      if (resolved == null || resolved == transaction.suggestedCategoryId) {
-        continue;
+
+      String? matchedCategoryId;
+      for (final rule in rules) {
+        if (!ruleMatches(transaction, rule)) continue;
+        matchedCategoryId = rule.categoryId;
+        break;
       }
+      if (matchedCategoryId == null) continue;
+      if (matchedCategoryId == transaction.suggestedCategoryId) continue;
+
       await _transactionsRepository.setSuggestedCategory(
         transactionId: transaction.id,
-        categoryId: resolved,
+        categoryId: matchedCategoryId,
       );
     }
   }
