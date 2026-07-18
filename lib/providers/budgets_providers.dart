@@ -5,6 +5,8 @@ import 'package:budgets/domain/category.dart';
 import 'package:budgets/domain/month_summary.dart';
 import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/domain/transaction_ingest.dart';
+import 'package:budgets/features/trends/category_trend_series_factory.dart';
+import 'package:budgets/features/trends/trends_chart_bundle.dart';
 import 'package:budgets/services/simplefin/simplefin_access_store.dart';
 import 'package:budgets/services/simplefin/simplefin_client.dart';
 import 'package:budgets/services/simplefin/simplefin_models.dart';
@@ -142,15 +144,6 @@ final accountsMapProvider = FutureProvider<Map<String, Account>>((ref) async {
   return {for (final account in accounts) account.id: account};
 });
 
-final monthSummaryProvider = FutureProvider.family<MonthSummary, String>((
-  ref,
-  yearMonth,
-) async {
-  ref.watch(dataRevisionProvider);
-  final budgetMonth = await ref.watch(budgetMonthProvider.future);
-  return budgetMonth.snapshot(yearMonth);
-});
-
 final categoryMonthRowsProvider =
     FutureProvider.family<List<CategoryMonthRow>, String>((
   ref,
@@ -176,4 +169,16 @@ final categorizationRulesProvider =
 
 final currentYearMonthProvider = Provider<String>((ref) {
   return yearMonthKey(DateTime.now());
+});
+
+final categoryTrendsProvider = FutureProvider<TrendsChartBundle>((ref) async {
+  ref.watch(dataRevisionProvider);
+  final transactionsRepository =
+      await ref.watch(transactionsRepositoryProvider.future);
+  final categoriesRepository =
+      await ref.watch(categoriesRepositoryProvider.future);
+  return const CategoryTrendSeriesFactory().build(
+    transactions: await transactionsRepository.listAll(),
+    categories: await categoriesRepository.listActive(),
+  );
 });

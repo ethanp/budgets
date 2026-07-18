@@ -156,8 +156,12 @@ class CopilotCsvImporter {
     String accountId,
     _CopilotImportSession session,
   ) async {
-    final budgetsCategoryName =
-        budgetsCategoryNameForCopilot(parsed.categoryText);
+    final type = parsed.transactionType?.trim().toLowerCase() ?? '';
+    final budgetsCategoryName = switch (type) {
+      'internal transfer' || 'transfer' => 'Transfer',
+      'income' => 'Income',
+      _ => budgetsCategoryNameForCopilot(parsed.categoryText),
+    };
     final categoryId = budgetsCategoryName == null
         ? null
         : session.categoryIdByName[budgetsCategoryName.toLowerCase()];

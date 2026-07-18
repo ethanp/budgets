@@ -24,10 +24,13 @@ class SimpleFinClient {
   Future<Uri> claimAccessUrl(String setupToken) async {
     final claimUrl = _decodeClaimUrl(setupToken);
     _logger.log('Claim POST ${_redactUri(claimUrl)}');
+    final response = await _postClaim(claimUrl);
+    return _accessUrlFromClaimResponse(response);
+  }
 
-    late final http.Response response;
+  Future<http.Response> _postClaim(Uri claimUrl) async {
     try {
-      response = await _httpClient.post(
+      return await _httpClient.post(
         claimUrl,
         headers: const {'Content-Length': '0'},
       );
@@ -35,17 +38,40 @@ class SimpleFinClient {
       _logger.error('Claim request failed', error, stackTrace);
       rethrow;
     }
-    return _accessUrlFromClaimResponse(response);
   }
 
   Uri _accessUrlFromClaimResponse(http.Response response) {
     final accessUrlText = response.body.trim();
     final parsedAccessUrl = Uri.tryParse(accessUrlText);
-    _logger.log(
-      'Claim response HTTP ${response.statusCode}, '
-      'body=${parsedAccessUrl != null && parsedAccessUrl.scheme == 'https' ? _redactUri(parsedAccessUrl) : _truncate(accessUrlText)}',
-    );
+    _logClaimResponse(response, accessUrlText, parsedAccessUrl);
 
+    final accessUrl = _requireClaimAccessUrl(response, parsedAccessUrl);
+    _logger.log(
+      'Claimed Access URL host=${accessUrl.host} '
+      'path=${accessUrl.path} hasUserInfo=${accessUrl.userInfo.isNotEmpty}',
+    );
+    return accessUrl;
+  }
+
+  void _logClaimResponse(
+    http.Response response,
+    String accessUrlText,
+    Uri? parsedAccessUrl,
+  ) {
+    final bodySummary = parsedAccessUrl != null &&
+            parsedAccessUrl.scheme == 'https'
+        ? _redactUri(parsedAccessUrl)
+        : _truncate(accessUrlText);
+    _logger.log(
+      'Claim response HTTP ${response.statusCode}, body=$bodySummary',
+    );
+  }
+
+  /// Throws for non-success claim responses or a non-HTTPS Access URL.
+  Uri _requireClaimAccessUrl(
+    http.Response response,
+    Uri? parsedAccessUrl,
+  ) {
     if (response.statusCode == 403) {
       throw SimpleFinClaimException(
         'Token invalid or already claimed — revoke in SimpleFIN and create a new one.',
@@ -59,15 +85,10 @@ class SimpleFinClient {
         statusCode: response.statusCode,
       );
     }
-
     if (parsedAccessUrl == null || parsedAccessUrl.scheme != 'https') {
       _logger.warn('Claim returned non-HTTPS Access URL');
       throw SimpleFinClaimException('SimpleFIN returned an invalid Access URL.');
     }
-    _logger.log(
-      'Claimed Access URL host=${parsedAccessUrl.host} '
-      'path=${parsedAccessUrl.path} hasUserInfo=${parsedAccessUrl.userInfo.isNotEmpty}',
-    );
     return parsedAccessUrl;
   }
 
@@ -82,13 +103,7 @@ class SimpleFinClient {
     }
 
     final window = _clampedFetchWindow(start: start, end: end);
-    if (window.startUnix != null && window.endUnix != null) {
-      final spanSeconds = window.endUnix! - window.startUnix!;
-      _logger.log(
-        'Fetch window startUnix=${window.startUnix} endUnix=${window.endUnix} '
-        'spanSeconds=$spanSeconds spanDays≈${spanSeconds / 86400}',
-      );
-    }
+    _logFetchWindow(window);
 
     final requestUrl = _accountsRequestUrl(
       accessUrl: accessUrl,
@@ -100,6 +115,15 @@ class SimpleFinClient {
       requestUrl: requestUrl,
     );
     return _accountSetFromResponse(response);
+  }
+
+  void _logFetchWindow(_FetchWindow window) {
+    if (window.startUnix == null || window.endUnix == null) return;
+    final spanSeconds = window.endUnix! - window.startUnix!;
+    _logger.log(
+      'Fetch window startUnix=${window.startUnix} endUnix=${window.endUnix} '
+      'spanSeconds=$spanSeconds spanDays≈${spanSeconds / 86400}',
+    );
   }
 
   _FetchWindow _clampedFetchWindow({DateTime? start, DateTime? end}) {
@@ -146,15 +170,10 @@ class SimpleFinClient {
     required Uri accessUrl,
     required Uri requestUrl,
   }) async {
-    final headers = <String, String>{};
-    final basicAuth = _basicAuthHeader(accessUrl);
-    if (basicAuth != null) {
-      headers['Authorization'] = basicAuth;
-    } else {
-      _logger.warn('Access URL has no userInfo; request may be unauthorized');
-    }
-
-    _logger.log('GET ${_redactUri(requestUrl)} auth=${basicAuth != null}');
+    final headers = _accountsRequestHeaders(accessUrl);
+    _logger.log(
+      'GET ${_redactUri(requestUrl)} auth=${headers.containsKey('Authorization')}',
+    );
 
     try {
       return await _httpClient.get(requestUrl, headers: headers);
@@ -164,12 +183,32 @@ class SimpleFinClient {
     }
   }
 
+  Map<String, String> _accountsRequestHeaders(Uri accessUrl) {
+    final basicAuth = _basicAuthHeader(accessUrl);
+    if (basicAuth == null) {
+      _logger.warn('Access URL has no userInfo; request may be unauthorized');
+      return const {};
+    }
+    return {'Authorization': basicAuth};
+  }
+
   SimpleFinAccountSet _accountSetFromResponse(http.Response response) {
+    _logFetchResponse(response);
+    final decoded = _requireAccountSetJson(response);
+    _warnIfNonSuccessAccountSet(response);
+    return _parsedAccountSetWithLogs(decoded);
+  }
+
+  void _logFetchResponse(http.Response response) {
     _logger.log(
       'Fetch response HTTP ${response.statusCode}, '
       'bytes=${response.bodyBytes.length}, body=${_truncate(response.body)}',
     );
+  }
 
+  /// Hard failures (auth/billing/non-JSON). Soft non-200 with a JSON Account
+  /// Set body is allowed — beta-bridge returns 400 + errlist for warnings.
+  Map<String, dynamic> _requireAccountSetJson(http.Response response) {
     if (response.statusCode == 403) {
       throw SimpleFinFetchException(
         'SimpleFIN access revoked or invalid. Re-link your bank. '
@@ -192,15 +231,17 @@ class SimpleFinClient {
         statusCode: response.statusCode,
       );
     }
+    return decoded;
+  }
 
-    // beta-bridge may return HTTP 400 with a normal Account Set + errlist
-    // (e.g. date-range warning, no connections). Prefer surfacing errlist.
-    if (response.statusCode != 200) {
-      _logger.warn(
-        'Non-200 Account Set HTTP ${response.statusCode}; parsing body anyway',
-      );
-    }
+  void _warnIfNonSuccessAccountSet(http.Response response) {
+    if (response.statusCode == 200) return;
+    _logger.warn(
+      'Non-200 Account Set HTTP ${response.statusCode}; parsing body anyway',
+    );
+  }
 
+  SimpleFinAccountSet _parsedAccountSetWithLogs(Map<String, dynamic> decoded) {
     final accountSet = parseAccountSet(decoded);
     _logger.log(
       'Parsed accounts=${accountSet.accounts.length} '
@@ -267,33 +308,37 @@ class SimpleFinClient {
 
   Uri _decodeClaimUrl(String setupToken) {
     final cleaned = _cleanPastedToken(setupToken);
+    _logSetupToken(cleaned);
+    if (cleaned.isEmpty) {
+      throw SimpleFinClaimException('Paste a SimpleFIN Setup Token.');
+    }
+    if (cleaned.startsWith('https://')) {
+      return _requireHttpsClaimUrl(cleaned);
+    }
+    return _claimUrlFromBase64Token(cleaned);
+  }
+
+  void _logSetupToken(String cleaned) {
     _logger.log(
       'Decode Setup Token chars=${cleaned.length} '
       'prefix=${cleaned.length > 8 ? cleaned.substring(0, 8) : cleaned}',
     );
-    if (cleaned.isEmpty) {
-      throw SimpleFinClaimException('Paste a SimpleFIN Setup Token.');
-    }
+  }
 
-    if (cleaned.startsWith('https://')) {
-      final claimUrl = Uri.tryParse(cleaned);
-      if (claimUrl == null || claimUrl.scheme != 'https') {
-        throw SimpleFinClaimException('Claim URL must use HTTPS.');
-      }
-      _logger.log('Setup Token was already an HTTPS URL');
-      return claimUrl;
+  Uri _requireHttpsClaimUrl(String cleaned) {
+    final claimUrl = Uri.tryParse(cleaned);
+    if (claimUrl == null || claimUrl.scheme != 'https') {
+      throw SimpleFinClaimException('Claim URL must use HTTPS.');
     }
+    _logger.log('Setup Token was already an HTTPS URL');
+    return claimUrl;
+  }
 
+  Uri _claimUrlFromBase64Token(String cleaned) {
     try {
-      final decoded = utf8.decode(_decodeBase64Flexible(cleaned));
-      final claimUrl = Uri.parse(decoded.trim());
-      if (claimUrl.scheme != 'https') {
-        throw SimpleFinClaimException(
-          'Decoded token is not an HTTPS claim URL (got ${claimUrl.scheme}).',
-        );
-      }
-      _logger.log('Decoded claim URL ${_redactUri(claimUrl)}');
-      return claimUrl;
+      return _parseDecodedClaimUrl(
+        utf8.decode(_decodeBase64Flexible(cleaned)),
+      );
     } on SimpleFinClaimException {
       rethrow;
     } catch (error) {
@@ -303,6 +348,17 @@ class SimpleFinClient {
         '(base64, often starts with aHR0). Error: $error',
       );
     }
+  }
+
+  Uri _parseDecodedClaimUrl(String decoded) {
+    final claimUrl = Uri.parse(decoded.trim());
+    if (claimUrl.scheme != 'https') {
+      throw SimpleFinClaimException(
+        'Decoded token is not an HTTPS claim URL (got ${claimUrl.scheme}).',
+      );
+    }
+    _logger.log('Decoded claim URL ${_redactUri(claimUrl)}');
+    return claimUrl;
   }
 
   static List<int> _decodeBase64Flexible(String value) {

@@ -1,7 +1,7 @@
 import 'package:budgets/features/activity/activity_screen.dart';
 import 'package:budgets/features/categories/categories_screen.dart';
-import 'package:budgets/features/month/month_screen.dart';
 import 'package:budgets/features/settings/settings_screen.dart';
+import 'package:budgets/features/trends/trends_screen.dart';
 import 'package:flutter/cupertino.dart';
 
 class MainTab {
@@ -22,8 +22,8 @@ class MainTab {
 const mainTabs = <MainTab>[
   MainTab(
     icon: CupertinoIcons.chart_bar,
-    label: 'Month',
-    screen: MonthScreen(),
+    label: 'Trends',
+    screen: TrendsScreen(),
   ),
   MainTab(
     icon: CupertinoIcons.list_bullet,

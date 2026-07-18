@@ -15,3 +15,26 @@ String formatCentsCompact(int cents) {
   }
   return formatCents(cents);
 }
+
+/// Axis tick labels: whole dollars / compact thousands, no noisy cents.
+String formatAxisCents(num cents) {
+  final dollars = cents / 100;
+  if (dollars.abs() >= 1000) {
+    final thousands = dollars / 1000;
+    if ((thousands - thousands.round()).abs() < 0.001) {
+      return '\$${thousands.round()}k';
+    }
+    final oneDecimal = (thousands * 10).round() / 10;
+    if ((oneDecimal * 10).round() % 10 == 0) {
+      return '\$${oneDecimal.round()}k';
+    }
+    return '\$${oneDecimal.toStringAsFixed(1)}k';
+  }
+  if (dollars.abs() >= 100) {
+    return '\$${dollars.round()}';
+  }
+  if ((dollars - dollars.round()).abs() < 0.01) {
+    return '\$${dollars.round()}';
+  }
+  return '\$${dollars.toStringAsFixed(dollars.abs() < 10 ? 1 : 0)}';
+}

@@ -13,7 +13,8 @@ class MonthSummary {
   final List<AccountSpendRow> accountSpend;
   final DateTime? lastSyncedAt;
 
-  int get netCents => inflowCents + outflowCents;
+  /// Outflow is a positive spend total, so net is income minus spent.
+  int get netCents => inflowCents - outflowCents;
 }
 
 class AccountSpendRow {
