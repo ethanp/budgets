@@ -30,6 +30,7 @@ const _fkDependencies = <String, Set<String>>{
   'accounts': {},
   'categories': {},
   'sync_state': {},
+  'life_events': {},
   'transactions': {'accounts', 'categories'},
   'categorization_rules': {'categories'},
 };

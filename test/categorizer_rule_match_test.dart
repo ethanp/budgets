@@ -64,7 +64,7 @@ void main() {
     });
   });
 
-  group('Categorizer.coveredByLongerRule', () {
+  group('Categorizer.coveredByBetterExistingRule', () {
     final fuelRule = CategorizationRule(
       id: 'fuel',
       matchType: RuleMatchType.merchantContains,
@@ -72,13 +72,20 @@ void main() {
       categoryId: 'transport',
       priority: 10,
     );
+    final groceryProposed = CategorizationRule(
+      id: '_proposed_',
+      matchType: RuleMatchType.merchantContains,
+      pattern: 'kroger',
+      categoryId: '_proposed_',
+      priority: 10,
+    );
 
     test('skips fuel txn when proposing shorter kroger pattern', () {
       expect(
-        Categorizer.coveredByLongerRule(
+        Categorizer.coveredByBetterExistingRule(
           transaction: _txn(merchant: 'KROGER FUEL'),
           existingRules: [fuelRule],
-          proposedPattern: 'kroger',
+          proposedRule: groceryProposed,
         ),
         isTrue,
       );
@@ -86,23 +93,66 @@ void main() {
 
     test('keeps plain kroger txn for shorter pattern', () {
       expect(
-        Categorizer.coveredByLongerRule(
+        Categorizer.coveredByBetterExistingRule(
           transaction: _txn(merchant: 'KROGER'),
           existingRules: [fuelRule],
-          proposedPattern: 'kroger',
+          proposedRule: groceryProposed,
         ),
         isFalse,
       );
     });
 
-    test('does not skip when proposed pattern is at least as long', () {
+    test('does not treat same-pattern existing rule as covering', () {
+      final existingGrocery = CategorizationRule(
+        id: 'grocery',
+        matchType: RuleMatchType.merchantContains,
+        pattern: 'kroger',
+        categoryId: 'groceries',
+        priority: 10,
+      );
       expect(
-        Categorizer.coveredByLongerRule(
-          transaction: _txn(merchant: 'KROGER FUEL'),
-          existingRules: [fuelRule],
-          proposedPattern: 'kroger fuel',
+        Categorizer.coveredByBetterExistingRule(
+          transaction: _txn(merchant: 'KROGER'),
+          existingRules: [existingGrocery, fuelRule],
+          proposedRule: groceryProposed,
         ),
         isFalse,
+      );
+    });
+
+    test('still skips fuel when same-pattern grocery rule already exists', () {
+      final existingGrocery = CategorizationRule(
+        id: 'grocery',
+        matchType: RuleMatchType.merchantContains,
+        pattern: 'kroger',
+        categoryId: 'groceries',
+        priority: 10,
+      );
+      expect(
+        Categorizer.coveredByBetterExistingRule(
+          transaction: _txn(merchant: 'KROGER FUEL'),
+          existingRules: [existingGrocery, fuelRule],
+          proposedRule: groceryProposed,
+        ),
+        isTrue,
+      );
+    });
+
+    test('skips when higher-priority shorter rule already wins', () {
+      final priorityFuel = CategorizationRule(
+        id: 'fuel-priority',
+        matchType: RuleMatchType.merchantContains,
+        pattern: 'fuel',
+        categoryId: 'transport',
+        priority: 50,
+      );
+      expect(
+        Categorizer.coveredByBetterExistingRule(
+          transaction: _txn(merchant: 'KROGER FUEL'),
+          existingRules: [priorityFuel],
+          proposedRule: groceryProposed,
+        ),
+        isTrue,
       );
     });
   });

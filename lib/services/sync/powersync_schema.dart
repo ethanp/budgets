@@ -42,6 +42,11 @@ const Schema budgetsSchema = Schema([
     Column.text('category_id'),
     Column.integer('priority'),
   ]),
+  Table('life_events', [
+    Column.text('title'),
+    Column.integer('occurred_on'),
+    Column.text('note'),
+  ]),
   Table('sync_state', [
     Column.text('key'),
     Column.text('value'),

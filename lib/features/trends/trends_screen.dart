@@ -1,3 +1,4 @@
+import 'package:budgets/domain/life_event.dart';
 import 'package:budgets/features/trends/category_trend_chart.dart';
 import 'package:budgets/features/trends/category_trend_series_factory.dart';
 import 'package:budgets/features/trends/trends_chart_bundle.dart';
@@ -13,6 +14,7 @@ class TrendsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final trendsAsync = ref.watch(categoryTrendsProvider);
+    final lifeEventsAsync = ref.watch(lifeEventsProvider);
 
     return CupertinoPageScaffold(
       navigationBar: const CupertinoNavigationBar(
@@ -28,13 +30,16 @@ class TrendsScreen extends ConsumerWidget {
               child: Text('$error', style: AppText.body.medium.error),
             ),
           ),
-          data: _trendsBody,
+          data: (bundle) => _trendsBody(
+            bundle,
+            lifeEventsAsync.asData?.value ?? const <LifeEvent>[],
+          ),
         ),
       ),
     );
   }
 
-  Widget _trendsBody(TrendsChartBundle bundle) {
+  Widget _trendsBody(TrendsChartBundle bundle, List<LifeEvent> lifeEvents) {
     if (bundle.isEmpty) {
       return Center(
         child: Padding(
@@ -55,6 +60,7 @@ class TrendsScreen extends ConsumerWidget {
           CategoryTrendChart(
             title: 'Category spend',
             seriesList: bundle.categorySpend,
+            lifeEvents: lifeEvents,
             initiallyHiddenSeriesIds: const {
               CategoryTrendSeriesFactory.allSpendSeriesId,
             },
@@ -68,6 +74,7 @@ class TrendsScreen extends ConsumerWidget {
                 'Trailing year · fill = percentile · '
                 'double-tap legend to solo',
             seriesList: bundle.cashFlows,
+            lifeEvents: lifeEvents,
             initiallyHiddenSeriesIds: const {
               CategoryTrendSeriesFactory.transferSeriesId,
             },

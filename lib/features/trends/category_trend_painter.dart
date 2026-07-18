@@ -1,22 +1,28 @@
 import 'dart:math' as math;
 
+import 'package:budgets/domain/life_event.dart';
 import 'package:budgets/features/trends/category_trend_point.dart';
 import 'package:budgets/features/trends/category_trend_series.dart';
 import 'package:budgets/features/trends/chart_date_layout.dart';
 import 'package:budgets/theme/app_theme.dart';
 import 'package:budgets/util/money_format.dart';
+import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/cupertino.dart';
 
 class CategoryTrendPainter extends CustomPainter {
   CategoryTrendPainter({
     required this.seriesList,
+    this.lifeEvents = const [],
     this.hoverPosition,
   });
 
   static const leftPadding = 40.0;
   static const rightPadding = 12.0;
+  static const _labelOverlapPx = 14.0;
+  static const _labelStackStep = 12.0;
 
   final List<CategoryTrendSeries> seriesList;
+  final List<LifeEvent> lifeEvents;
   final Offset? hoverPosition;
 
   @override
@@ -36,6 +42,7 @@ class CategoryTrendPainter extends CustomPainter {
     for (final series in drawableSeries) {
       _drawSeriesLine(canvas, layout, scale, series);
     }
+    _drawLifeEventMarkers(canvas, layout);
     _drawHoverMarker(canvas, layout, scale, drawableSeries);
     _drawAxisLabels(canvas, layout, scale);
   }
@@ -254,6 +261,111 @@ class CategoryTrendPainter extends CustomPainter {
     }
   }
 
+  void _drawLifeEventMarkers(Canvas canvas, ChartDateLayout layout) {
+    final markersInRange = [
+      for (final lifeEvent in lifeEvents)
+        if (!lifeEvent.occurredOn.isBefore(layout.minDate.startOfDay) &&
+            !lifeEvent.occurredOn.isAfter(layout.maxDate.startOfDay))
+          lifeEvent,
+    ]..sort(
+        (firstEvent, secondEvent) =>
+            firstEvent.occurredOn.compareTo(secondEvent.occurredOn),
+      );
+    if (markersInRange.isEmpty) return;
+
+    final linePaint = Paint()
+      ..color = AppColors.accentSecondary.withValues(alpha: 0.55)
+      ..strokeWidth = 1.25;
+    final stackLaneByIndex = _labelStackLanes(markersInRange, layout);
+
+    for (var markerIndex = 0;
+        markerIndex < markersInRange.length;
+        markerIndex++) {
+      final lifeEvent = markersInRange[markerIndex];
+      final markerX = layout.xForDate(lifeEvent.occurredOn.startOfDay);
+      _drawDashedVertical(
+        canvas,
+        Offset(markerX, layout.top),
+        Offset(markerX, layout.bottom),
+        linePaint,
+      );
+
+      final textPainter = TextPainter(
+        text: TextSpan(
+          text: lifeEvent.title,
+          style: const TextStyle(
+            color: AppColors.accentSecondary,
+            fontSize: 9,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+        maxLines: 1,
+        ellipsis: '…',
+      )..layout(maxWidth: 96);
+
+      final labelX = (markerX + 3).clamp(
+        layout.left,
+        layout.right - textPainter.width,
+      );
+      final labelY =
+          layout.top + 2 + stackLaneByIndex[markerIndex] * _labelStackStep;
+      textPainter.paint(canvas, Offset(labelX, labelY));
+    }
+  }
+
+  List<int> _labelStackLanes(
+    List<LifeEvent> markersInRange,
+    ChartDateLayout layout,
+  ) {
+    final lanes = List<int>.filled(markersInRange.length, 0);
+    final lastXByLane = <int, double>{};
+    for (var markerIndex = 0;
+        markerIndex < markersInRange.length;
+        markerIndex++) {
+      final markerX =
+          layout.xForDate(markersInRange[markerIndex].occurredOn.startOfDay);
+      var lane = 0;
+      while (true) {
+        final previousX = lastXByLane[lane];
+        if (previousX == null || markerX - previousX >= _labelOverlapPx) {
+          lanes[markerIndex] = lane;
+          lastXByLane[lane] = markerX;
+          break;
+        }
+        lane++;
+      }
+    }
+    return lanes;
+  }
+
+  void _drawDashedVertical(
+    Canvas canvas,
+    Offset start,
+    Offset end,
+    Paint paint,
+  ) {
+    const dashLength = 4.0;
+    const gapLength = 3.0;
+    final height = end.dy - start.dy;
+    if (height <= 0) return;
+    var drawn = 0.0;
+    var drawingDash = true;
+    while (drawn < height) {
+      final step = drawingDash ? dashLength : gapLength;
+      final next = math.min(drawn + step, height);
+      if (drawingDash) {
+        canvas.drawLine(
+          Offset(start.dx, start.dy + drawn),
+          Offset(start.dx, start.dy + next),
+          paint,
+        );
+      }
+      drawn = next;
+      drawingDash = !drawingDash;
+    }
+  }
+
   void _drawHoverMarker(
     Canvas canvas,
     ChartDateLayout layout,
@@ -331,6 +443,7 @@ class CategoryTrendPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CategoryTrendPainter oldDelegate) =>
       seriesList != oldDelegate.seriesList ||
+      lifeEvents != oldDelegate.lifeEvents ||
       hoverPosition != oldDelegate.hoverPosition;
 }
 

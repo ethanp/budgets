@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:budgets/domain/life_event.dart';
 import 'package:budgets/features/trends/category_trend_painter.dart';
 import 'package:budgets/features/trends/category_trend_point.dart';
 import 'package:budgets/features/trends/category_trend_series.dart';
@@ -15,6 +16,7 @@ class CategoryTrendChart extends StatefulWidget {
     super.key,
     required this.title,
     required this.seriesList,
+    this.lifeEvents = const [],
     this.subtitle =
         'Trailing year · tap legend to show/hide · double-tap to solo',
     this.initiallyHiddenSeriesIds = const {},
@@ -23,6 +25,7 @@ class CategoryTrendChart extends StatefulWidget {
   final String title;
   final String subtitle;
   final List<CategoryTrendSeries> seriesList;
+  final List<LifeEvent> lifeEvents;
   final Set<String> initiallyHiddenSeriesIds;
 
   @override
@@ -90,6 +93,7 @@ class _CategoryTrendChartState extends State<CategoryTrendChart> {
               size: Size(constraints.maxWidth, constraints.maxHeight),
               painter: CategoryTrendPainter(
                 seriesList: _visibleSeries,
+                lifeEvents: widget.lifeEvents,
                 hoverPosition: _hoverPosition,
               ),
             ),

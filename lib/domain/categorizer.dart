@@ -126,43 +126,56 @@ class Categorizer {
     String pattern,
   ) async {
     final normalizedPattern = pattern.trim();
-    final probe = CategorizationRule(
-      id: 'probe',
+    final proposedRule = CategorizationRule(
+      id: '_proposed_',
       matchType: RuleMatchType.merchantContains,
       pattern: normalizedPattern,
-      categoryId: 'probe',
-      priority: 0,
+      categoryId: '_proposed_',
+      // Match priority used by [_upsertContainsRule] for new contains rules.
+      priority: 10,
     );
     final transactions = await _transactionsRepository.listAll();
     final existingRules = await _categoriesRepository.listRules();
     return [
       for (final transaction in transactions)
-        if (ruleMatches(transaction, probe) &&
-            !coveredByLongerRule(
+        if (ruleMatches(transaction, proposedRule) &&
+            !coveredByBetterExistingRule(
               transaction: transaction,
               existingRules: existingRules,
-              proposedPattern: normalizedPattern,
+              proposedRule: proposedRule,
             ))
           transaction,
     ];
   }
 
-  /// True when a longer existing rule already matches [transaction].
+  /// True when a competing existing rule would beat [proposedRule].
   ///
-  /// Used so “apply rule to existing” does not overwrite more-specific rules
-  /// (e.g. proposing `kroger` should skip txs already matched by `kroger fuel`).
-  static bool coveredByLongerRule({
+  /// Used so “apply rule to existing” does not overwrite a more-specific (or
+  /// otherwise better) rule that already matches — e.g. proposing `kroger`
+  /// skips txs where `kroger fuel` already wins. An existing rule with the
+  /// same pattern is ignored (upsert / re-apply of that rule).
+  static bool coveredByBetterExistingRule({
     required BankTransaction transaction,
     required List<CategorizationRule> existingRules,
-    required String proposedPattern,
+    required CategorizationRule proposedRule,
   }) {
-    final proposedLength = proposedPattern.trim().length;
-    if (proposedLength == 0) return false;
-    for (final rule in existingRules) {
-      if (!ruleMatches(transaction, rule)) continue;
-      if (rule.pattern.trim().length > proposedLength) return true;
-    }
-    return false;
+    if (!ruleMatches(transaction, proposedRule)) return false;
+    final competingRules = [
+      for (final rule in existingRules)
+        if (!_sameContainsPattern(rule, proposedRule)) rule,
+      proposedRule,
+    ];
+    final winner = bestMatchingRule(transaction, competingRules);
+    return winner?.id != proposedRule.id;
+  }
+
+  static bool _sameContainsPattern(
+    CategorizationRule rule,
+    CategorizationRule proposedRule,
+  ) {
+    if (rule.matchType != proposedRule.matchType) return false;
+    return rule.pattern.trim().toLowerCase() ==
+        proposedRule.pattern.trim().toLowerCase();
   }
 
   /// Upserts a case-insensitive contains rule for [pattern] → [categoryId].
