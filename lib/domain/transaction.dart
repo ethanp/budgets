@@ -10,6 +10,11 @@ class BankTransaction {
     required this.pending,
     this.userCategoryId,
     this.suggestedCategoryId,
+    this.note,
+    this.transactionType,
+    this.excluded = false,
+    this.recurringSeries,
+    this.importedAt,
   });
 
   final String id;
@@ -22,6 +27,12 @@ class BankTransaction {
   final bool pending;
   final String? userCategoryId;
   final String? suggestedCategoryId;
+  final String? note;
+  final String? transactionType;
+  final bool excluded;
+  final String? recurringSeries;
+  /// When first written into Budgets (import or sync). Stable across re-upserts.
+  final DateTime? importedAt;
 
   String? get effectiveCategoryId =>
       userCategoryId ?? suggestedCategoryId;

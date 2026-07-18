@@ -2,12 +2,14 @@ import 'package:budgets/services/simplefin/simplefin_access_store.dart';
 import 'package:budgets/services/simplefin/simplefin_client.dart';
 import 'package:budgets/services/simplefin/simplefin_models.dart';
 import 'package:budgets/domain/account.dart';
+import 'package:budgets/features/settings/copilot_import_tile.dart';
 import 'package:budgets/features/settings/csv_import_sheet.dart';
 import 'package:budgets/features/settings/sync_status_tile.dart';
 import 'package:budgets/providers/budgets_providers.dart';
 import 'package:budgets/theme/app_theme.dart';
 import 'package:budgets/util/money_format.dart';
 import 'package:budgets/widgets/app_card.dart';
+import 'package:budgets/widgets/sync_status_nav_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show SelectableText;
 import 'package:flutter/services.dart';
@@ -39,6 +41,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     return CupertinoPageScaffold(
       navigationBar: const CupertinoNavigationBar(
+        leading: SyncStatusNavButton(),
         middle: Text('Settings'),
       ),
       child: SafeArea(
@@ -60,40 +63,50 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             const SizedBox(height: AppSpacing.lg),
             const SyncStatusTile(),
             const SizedBox(height: AppSpacing.lg),
-            AppCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Import', style: AppText.headline.small),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    'CSV escape hatch when a bank connection is broken.',
-                    style: AppText.body.medium,
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  CupertinoButton.filled(
-                    onPressed: () => CsvImportSheet.show(context),
-                    child: const Text('Import CSV'),
-                  ),
-                ],
-              ),
-            ),
+            const CopilotImportTile(),
             const SizedBox(height: AppSpacing.lg),
-            AppCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('About', style: AppText.headline.small),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    'Budgets — personal category budgeting with SimpleFIN.',
-                    style: AppText.body.medium,
-                  ),
-                ],
-              ),
-            ),
+            _csvEscapeHatchCard(),
+            const SizedBox(height: AppSpacing.lg),
+            _aboutCard(),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _csvEscapeHatchCard() {
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Import', style: AppText.headline.small),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            'Generic CSV escape hatch when a bank connection is broken.',
+            style: AppText.body.medium,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          CupertinoButton.filled(
+            onPressed: () => CsvImportSheet.show(context),
+            child: const Text('Import CSV'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _aboutCard() {
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('About', style: AppText.headline.small),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            'Budgets — personal spending by category with SimpleFIN.',
+            style: AppText.body.medium,
+          ),
+        ],
       ),
     );
   }
@@ -131,10 +144,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           if (_actionError != null) ...[
             const SizedBox(height: AppSpacing.sm),
-            SelectableText(
-              _actionError!,
-              style: AppText.body.small.error,
-            ),
+            SelectableText(_actionError!, style: AppText.body.small.error),
           ],
           const SizedBox(height: AppSpacing.md),
           CupertinoButton.filled(
@@ -193,41 +203,48 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ],
           if (_actionError != null) ...[
             const SizedBox(height: AppSpacing.sm),
-            SelectableText(
-              _actionError!,
-              style: AppText.body.small.error,
-            ),
+            SelectableText(_actionError!, style: AppText.body.small.error),
           ],
           const SizedBox(height: AppSpacing.md),
-          Row(
-            children: [
-              CupertinoButton.filled(
-                onPressed: _busy ? null : _refresh,
-                child: _busy
-                    ? const CupertinoActivityIndicator()
-                    : const Text('Refresh now'),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              CupertinoButton(
-                onPressed: _busy ? null : _disconnect,
-                child: Text('Disconnect', style: AppText.body.medium.error),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          CupertinoButton(
-            onPressed: _busy ? null : _refreshFullHistory,
-            child: Text(
-              'Refresh full history',
-              style: AppText.body.medium,
-            ),
-          ),
+          _connectionActions(),
         ],
       ),
     );
   }
 
+  Widget _connectionActions() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            CupertinoButton.filled(
+              onPressed: _busy ? null : _refresh,
+              child: _busy
+                  ? const CupertinoActivityIndicator()
+                  : const Text('Refresh now'),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            CupertinoButton(
+              onPressed: _busy ? null : _disconnect,
+              child: Text('Disconnect', style: AppText.body.medium.error),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        CupertinoButton(
+          onPressed: _busy ? null : _refreshFullHistory,
+          child: Text(
+            'Refresh full history',
+            style: AppText.body.medium,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _accountRow(Account account) {
+    final needsRelink = account.status == AccountStatus.needsRelink;
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: Row(
@@ -238,10 +255,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               children: [
                 Text(account.name, style: AppText.body.large.semibold),
                 Text(
-                  account.status == AccountStatus.needsRelink
-                      ? 'Needs re-link'
-                      : account.status.name,
-                  style: account.status == AccountStatus.needsRelink
+                  needsRelink ? 'Needs re-link' : account.status.name,
+                  style: needsRelink
                       ? AppText.body.small.warning
                       : AppText.body.small,
                 ),
@@ -267,21 +282,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     await categorizer.applyRulesToUncategorized();
   }
 
-  Future<void> _connect() async {
+  Future<void> _runBusyAction(Future<void> Function() action) async {
     setState(() {
       _busy = true;
       _actionError = null;
     });
     try {
-      final ingest = await ref.read(transactionIngestProvider.future);
-      final result = await ingest.claimAndPull(_tokenController.text);
-      await _applyCategoryRules();
-      _tokenController.clear();
-      ref.read(dataRevisionProvider.notifier).bump();
-      final accessUrl = result.claimedAccessUrl;
-      if (accessUrl != null && mounted) {
-        await _promptPersistAccessUrl(accessUrl);
-      }
+      await action();
     } on SimpleFinClaimException catch (error) {
       setState(() => _actionError = error.message);
     } on SimpleFinFetchException catch (error) {
@@ -293,6 +300,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
+  Future<void> _connect() async {
+    await _runBusyAction(() async {
+      final ingest = await ref.read(transactionIngestProvider.future);
+      final result = await ingest.claimAndPull(_tokenController.text);
+      await _applyCategoryRules();
+      _tokenController.clear();
+      ref.read(dataRevisionProvider.notifier).bump();
+      final accessUrl = result.claimedAccessUrl;
+      if (accessUrl != null && mounted) {
+        await _promptPersistAccessUrl(accessUrl);
+      }
+    });
+  }
+
   Future<void> _promptPersistAccessUrl(Uri accessUrl) async {
     await Clipboard.setData(ClipboardData(text: accessUrl.toString()));
     if (!mounted) return;
@@ -300,49 +321,35 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       context: context,
       builder: (dialogContext) {
         return CupertinoAlertDialog(
-        title: const Text('Save Access URL to .env'),
-        content: const Text(
-          'Setup Tokens are one-time. The Access URL was copied to the clipboard.\n\n'
-          'Add this line to budgets/.env so reconnects survive reinstall:\n\n'
-          '${SimpleFinAccessStore.envAccessUrlKey}=<paste>\n\n'
-          'Then hot-restart or rebuild the app.',
-        ),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('OK'),
+          title: const Text('Save Access URL to .env'),
+          content: const Text(
+            'Setup Tokens are one-time. The Access URL was copied to the clipboard.\n\n'
+            'Add this line to budgets/.env so reconnects survive reinstall:\n\n'
+            '${SimpleFinAccessStore.envAccessUrlKey}=<paste>\n\n'
+            'Then hot-restart or rebuild the app.',
           ),
-        ],
-      );
+          actions: [
+            CupertinoDialogAction(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        );
       },
     );
   }
 
   Future<void> _refresh() async {
-    setState(() {
-      _busy = true;
-      _actionError = null;
-    });
-    try {
+    await _runBusyAction(() async {
       final ingest = await ref.read(transactionIngestProvider.future);
       await ingest.pullAndUpsert();
       await _applyCategoryRules();
       ref.read(dataRevisionProvider.notifier).bump();
-    } on SimpleFinFetchException catch (error) {
-      setState(() => _actionError = error.message);
-    } catch (error) {
-      setState(() => _actionError = '$error');
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
+    });
   }
 
   Future<void> _refreshFullHistory() async {
-    setState(() {
-      _busy = true;
-      _actionError = null;
-    });
-    try {
+    await _runBusyAction(() async {
       final ingest = await ref.read(transactionIngestProvider.future);
       final result = await ingest.pullAndUpsert(fullHistory: true);
       await _applyCategoryRules();
@@ -354,21 +361,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               '${result.errors.length} bridge warning(s).',
         );
       }
-    } on SimpleFinFetchException catch (error) {
-      setState(() => _actionError = error.message);
-    } catch (error) {
-      setState(() => _actionError = '$error');
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
+    });
   }
 
   Future<void> _disconnect() async {
-    setState(() {
-      _busy = true;
-      _actionError = null;
-    });
-    try {
+    await _runBusyAction(() async {
       final fromEnv =
           ref.read(simpleFinAccessStoreProvider).isConfiguredInEnv;
       if (fromEnv) {
@@ -382,11 +379,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       final ingest = await ref.read(transactionIngestProvider.future);
       await ingest.disconnect(wipeLocalData: true);
       ref.read(dataRevisionProvider.notifier).bump();
-    } catch (error) {
-      setState(() => _actionError = '$error');
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
+    });
   }
 
   String _formatRelative(DateTime time) {

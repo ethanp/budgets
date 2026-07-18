@@ -52,6 +52,19 @@ class LlmCategorySuggester {
       for (final category in categories) category.name.toLowerCase(): category,
     };
 
+    final merchants = await _uncategorizedMerchants(limit: limit);
+    if (merchants.isEmpty) return const [];
+
+    final response = await _requestCategorySuggestions(
+      categories: categories,
+      merchants: merchants,
+    );
+    _ensureSuccessfulChatResponse(response);
+
+    return _parseSuggestions(response.body, categoryByName);
+  }
+
+  Future<List<String>> _uncategorizedMerchants({required int limit}) async {
     final merchants = <String>{};
     for (final transaction
         in await _transactionsRepository.listAll(limit: 500)) {
@@ -60,19 +73,26 @@ class LlmCategorySuggester {
       merchants.add(transaction.normalizedMerchant);
       if (merchants.length >= limit) break;
     }
-    if (merchants.isEmpty) return const [];
+    return merchants.toList();
+  }
 
-    final response = await _postChatCompletions([
+  Future<http.Response> _requestCategorySuggestions({
+    required List<SpendCategory> categories,
+    required List<String> merchants,
+  }) {
+    return _postChatCompletions([
       {'role': 'system', 'content': _prompt.buildSystemPrompt()},
       {
         'role': 'user',
         'content': _prompt.buildUserPrompt(
           categoryNames: categories.map((category) => category.name).toList(),
-          merchants: merchants.toList(),
+          merchants: merchants,
         ),
       },
     ]);
+  }
 
+  void _ensureSuccessfulChatResponse(http.Response response) {
     if (response.statusCode == 429) throw RateLimitedException();
     if (response.statusCode == 401) {
       throw LlmException('LLM authentication failed.');
@@ -82,8 +102,6 @@ class LlmCategorySuggester {
         'Category suggestion failed (${response.statusCode}).',
       );
     }
-
-    return _parseSuggestions(response.body, categoryByName);
   }
 
   Future<void> applySuggestions(List<CategorySuggestion> suggestions) async {

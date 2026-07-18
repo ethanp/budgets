@@ -29,7 +29,6 @@ const _fkDependencies = <String, Set<String>>{
   'categories': {},
   'sync_state': {},
   'transactions': {'accounts', 'categories'},
-  'category_budgets': {'categories'},
   'categorization_rules': {'categories'},
 };
 
@@ -37,7 +36,6 @@ const _fkDependencies = <String, Set<String>>{
 const _conflictColumns = <String, String>{
   'accounts': 'external_id',
   'transactions': 'account_id,external_id',
-  'category_budgets': 'category_id,year_month',
   'sync_state': 'key',
 };
 

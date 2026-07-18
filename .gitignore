@@ -19,6 +19,10 @@ migrate_working_dir/
 *.db
 budgets.db
 
+# Personal bank/transaction exports (never commit)
+assets/imports/*.csv
+!assets/imports/.gitkeep
+
 # IntelliJ related
 *.iml
 *.ipr

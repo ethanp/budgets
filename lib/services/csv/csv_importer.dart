@@ -23,6 +23,18 @@ class CsvImportResult {
   final String accountName;
 }
 
+class _CsvColumnIndices {
+  const _CsvColumnIndices({
+    required this.date,
+    required this.amount,
+    required this.description,
+  });
+
+  final int date;
+  final int amount;
+  final int description;
+}
+
 class CsvImporter {
   CsvImporter({
     required AccountsRepository accountsRepository,
@@ -39,14 +51,30 @@ class CsvImporter {
     required File file,
     required String accountName,
   }) async {
-    final text = await file.readAsString();
+    final rows = _parseCsvRows(await file.readAsString());
+    final columns = _requireColumnIndices(rows.first);
+    final accountId = await _ensureCsvAccount(accountName: accountName);
+    final importedCount = await _importDataRows(
+      rows: rows,
+      columns: columns,
+      accountId: accountId,
+    );
+
+    _logger.log('Imported $importedCount rows into $accountName');
+    return CsvImportResult(importedCount: importedCount, accountName: accountName);
+  }
+
+  List<List<dynamic>> _parseCsvRows(String text) {
     final rows = const CsvToListConverter(eol: '\n', shouldParseNumbers: false)
         .convert(text);
     if (rows.isEmpty) {
       throw StateError('CSV is empty.');
     }
+    return rows;
+  }
 
-    final headers = rows.first
+  _CsvColumnIndices _requireColumnIndices(List<dynamic> headerRow) {
+    final headers = headerRow
         .map((cell) => cell.toString().trim().toLowerCase())
         .toList();
     final dateIndex = _headerIndex(headers, const ['date', 'posted', 'trans date']);
@@ -62,11 +90,18 @@ class CsvImporter {
       );
     }
 
+    return _CsvColumnIndices(
+      date: dateIndex,
+      amount: amountIndex,
+      description: descriptionIndex,
+    );
+  }
+
+  Future<String> _ensureCsvAccount({required String accountName}) async {
     final externalAccountId = 'csv:${accountName.toLowerCase()}';
     final existing =
         await _accountsRepository.findByExternalId(externalAccountId);
     final accountId = existing?.id ?? _uuid.v4();
-    final now = DateTime.now();
     await _accountsRepository.upsertAccount(
       Account(
         id: accountId,
@@ -74,44 +109,61 @@ class CsvImporter {
         name: accountName,
         currency: 'USD',
         balanceCents: existing?.balanceCents ?? 0,
-        lastSyncedAt: now,
+        lastSyncedAt: DateTime.now(),
         status: AccountStatus.ok,
         statusMessage: 'Imported from CSV',
       ),
     );
+    return accountId;
+  }
 
+  Future<int> _importDataRows({
+    required List<List<dynamic>> rows,
+    required _CsvColumnIndices columns,
+    required String accountId,
+  }) async {
     var imported = 0;
     for (var rowIndex = 1; rowIndex < rows.length; rowIndex++) {
       final row = rows[rowIndex];
-      if (row.length <= descriptionIndex) continue;
-      final description = row[descriptionIndex].toString().trim();
-      final amountText = row[amountIndex].toString().trim();
-      final dateText = row[dateIndex].toString().trim();
-      if (description.isEmpty && amountText.isEmpty) continue;
+      if (row.length <= columns.description) continue;
 
-      final amountCents = _parseAmountCents(amountText);
-      final postedAt = _parseDate(dateText);
-      final externalId = base64Url.encode(
-        utf8.encode('$dateText|$amountText|$description|$rowIndex'),
-      );
+      final description = row[columns.description].toString().trim();
+      final amountText = row[columns.amount].toString().trim();
+      final dateText = row[columns.date].toString().trim();
+      if (description.isEmpty && amountText.isEmpty) continue;
 
       await _transactionsRepository.upsertTransaction(
         BankTransaction(
           id: _uuid.v4(),
           accountId: accountId,
-          externalId: externalId,
-          postedAt: postedAt,
-          amountCents: amountCents,
+          externalId: _externalIdForRow(
+            dateText: dateText,
+            amountText: amountText,
+            description: description,
+            rowIndex: rowIndex,
+          ),
+          postedAt: _parseDate(dateText),
+          amountCents: _parseAmountCents(amountText),
           rawDescription: description,
           normalizedMerchant: normalizeMerchant(description),
           pending: false,
+          importedAt: DateTime.now(),
         ),
       );
       imported += 1;
     }
+    return imported;
+  }
 
-    _logger.log('Imported $imported rows into $accountName');
-    return CsvImportResult(importedCount: imported, accountName: accountName);
+  static String _externalIdForRow({
+    required String dateText,
+    required String amountText,
+    required String description,
+    required int rowIndex,
+  }) {
+    return base64Url.encode(
+      utf8.encode('$dateText|$amountText|$description|$rowIndex'),
+    );
   }
 
   static int? _headerIndex(List<String> headers, List<String> candidates) {

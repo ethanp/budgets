@@ -62,27 +62,35 @@ class _CsvImportSheetState extends ConsumerState<CsvImportSheet> {
                 style: AppText.body.small,
               ),
               const SizedBox(height: AppSpacing.md),
-              CupertinoTextField(
-                controller: _accountController,
-                placeholder: 'Account name',
-                padding: const EdgeInsets.all(AppSpacing.md),
-                style: AppText.body.large.primary,
-              ),
+              _buildAccountField(),
               if (_message != null) ...[
                 const SizedBox(height: AppSpacing.sm),
                 Text(_message!, style: AppText.body.small),
               ],
               const SizedBox(height: AppSpacing.md),
-              CupertinoButton.filled(
-                onPressed: _busy ? null : _pickAndImport,
-                child: _busy
-                    ? const CupertinoActivityIndicator()
-                    : const Text('Choose file'),
-              ),
+              _buildChooseFileButton(),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildAccountField() {
+    return CupertinoTextField(
+      controller: _accountController,
+      placeholder: 'Account name',
+      padding: const EdgeInsets.all(AppSpacing.md),
+      style: AppText.body.large.primary,
+    );
+  }
+
+  Widget _buildChooseFileButton() {
+    return CupertinoButton.filled(
+      onPressed: _busy ? null : _pickAndImport,
+      child: _busy
+          ? const CupertinoActivityIndicator()
+          : const Text('Choose file'),
     );
   }
 
@@ -92,27 +100,12 @@ class _CsvImportSheetState extends ConsumerState<CsvImportSheet> {
       _message = null;
     });
     try {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: const ['csv', 'txt'],
-      );
-      final path = result?.files.single.path;
+      final path = await _pickCsvPath();
       if (path == null) {
         setState(() => _message = 'No file selected.');
         return;
       }
-
-      final importer = CsvImporter(
-        accountsRepository: await ref.read(accountsRepositoryProvider.future),
-        transactionsRepository:
-            await ref.read(transactionsRepositoryProvider.future),
-      );
-      final importResult = await importer.importFile(
-        file: File(path),
-        accountName: _accountController.text.trim().isEmpty
-            ? 'CSV Import'
-            : _accountController.text.trim(),
-      );
+      final importResult = await _importCsvFile(path);
       ref.read(dataRevisionProvider.notifier).bump();
       setState(() {
         _message =
@@ -123,5 +116,27 @@ class _CsvImportSheetState extends ConsumerState<CsvImportSheet> {
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+  }
+
+  Future<String?> _pickCsvPath() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: const ['csv', 'txt'],
+    );
+    return result?.files.single.path;
+  }
+
+  Future<CsvImportResult> _importCsvFile(String path) async {
+    final importer = CsvImporter(
+      accountsRepository: await ref.read(accountsRepositoryProvider.future),
+      transactionsRepository:
+          await ref.read(transactionsRepositoryProvider.future),
+    );
+    return importer.importFile(
+      file: File(path),
+      accountName: _accountController.text.trim().isEmpty
+          ? 'CSV Import'
+          : _accountController.text.trim(),
+    );
   }
 }

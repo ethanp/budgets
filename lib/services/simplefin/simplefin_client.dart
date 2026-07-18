@@ -8,6 +8,13 @@ const _logger = ELogger('SimpleFinClient');
 
 const simpleFinCreateUrl = 'https://bridge.simplefin.org/simplefin/create';
 
+class _FetchWindow {
+  const _FetchWindow({this.startUnix, this.endUnix});
+
+  final int? startUnix;
+  final int? endUnix;
+}
+
 class SimpleFinClient {
   SimpleFinClient({http.Client? httpClient})
       : _httpClient = httpClient ?? http.Client();
@@ -18,7 +25,7 @@ class SimpleFinClient {
     final claimUrl = _decodeClaimUrl(setupToken);
     _logger.log('Claim POST ${_redactUri(claimUrl)}');
 
-    final http.Response response;
+    late final http.Response response;
     try {
       response = await _httpClient.post(
         claimUrl,
@@ -28,7 +35,10 @@ class SimpleFinClient {
       _logger.error('Claim request failed', error, stackTrace);
       rethrow;
     }
+    return _accessUrlFromClaimResponse(response);
+  }
 
+  Uri _accessUrlFromClaimResponse(http.Response response) {
     final accessUrlText = response.body.trim();
     final parsedAccessUrl = Uri.tryParse(accessUrlText);
     _logger.log(
@@ -71,11 +81,35 @@ class SimpleFinClient {
       throw SimpleFinFetchException('Access URL must use HTTPS.');
     }
 
+    final window = _clampedFetchWindow(start: start, end: end);
+    if (window.startUnix != null && window.endUnix != null) {
+      final spanSeconds = window.endUnix! - window.startUnix!;
+      _logger.log(
+        'Fetch window startUnix=${window.startUnix} endUnix=${window.endUnix} '
+        'spanSeconds=$spanSeconds spanDays≈${spanSeconds / 86400}',
+      );
+    }
+
+    final requestUrl = _accountsRequestUrl(
+      accessUrl: accessUrl,
+      window: window,
+      pending: pending,
+    );
+    final response = await _getAccountsResponse(
+      accessUrl: accessUrl,
+      requestUrl: requestUrl,
+    );
+    return _accountSetFromResponse(response);
+  }
+
+  _FetchWindow _clampedFetchWindow({DateTime? start, DateTime? end}) {
     // beta-bridge: "exceeds recommended range of 45 days" for spans >= 45d.
     const maxSpanSeconds = 44 * 24 * 60 * 60;
     var startUnix = start == null ? null : start.millisecondsSinceEpoch ~/ 1000;
     final endUnix = end == null ? null : end.millisecondsSinceEpoch ~/ 1000;
-    if (startUnix != null && endUnix != null && endUnix - startUnix > maxSpanSeconds) {
+    if (startUnix != null &&
+        endUnix != null &&
+        endUnix - startUnix > maxSpanSeconds) {
       final clampedStartUnix = endUnix - maxSpanSeconds;
       _logger.warn(
         'Clamping start-date from $startUnix to $clampedStartUnix '
@@ -83,31 +117,35 @@ class SimpleFinClient {
       );
       startUnix = clampedStartUnix;
     }
+    return _FetchWindow(startUnix: startUnix, endUnix: endUnix);
+  }
 
+  Uri _accountsRequestUrl({
+    required Uri accessUrl,
+    required _FetchWindow window,
+    required bool pending,
+  }) {
     final queryParameters = <String, String>{
       'version': '2',
       if (pending) 'pending': '1',
-      if (startUnix != null) 'start-date': '$startUnix',
-      if (endUnix != null) 'end-date': '$endUnix',
+      if (window.startUnix != null) 'start-date': '${window.startUnix}',
+      if (window.endUnix != null) 'end-date': '${window.endUnix}',
     };
 
-    if (startUnix != null && endUnix != null) {
-      final spanSeconds = endUnix - startUnix;
-      _logger.log(
-        'Fetch window startUnix=$startUnix endUnix=$endUnix '
-        'spanSeconds=$spanSeconds spanDays≈${spanSeconds / 86400}',
-      );
-    }
-
     final accountsPath = _joinPath(accessUrl.path, 'accounts');
-    final requestUrl = Uri(
+    return Uri(
       scheme: accessUrl.scheme,
       host: accessUrl.host,
       port: accessUrl.hasPort ? accessUrl.port : null,
       path: accountsPath,
       queryParameters: queryParameters,
     );
+  }
 
+  Future<http.Response> _getAccountsResponse({
+    required Uri accessUrl,
+    required Uri requestUrl,
+  }) async {
     final headers = <String, String>{};
     final basicAuth = _basicAuthHeader(accessUrl);
     if (basicAuth != null) {
@@ -118,14 +156,15 @@ class SimpleFinClient {
 
     _logger.log('GET ${_redactUri(requestUrl)} auth=${basicAuth != null}');
 
-    final http.Response response;
     try {
-      response = await _httpClient.get(requestUrl, headers: headers);
+      return await _httpClient.get(requestUrl, headers: headers);
     } catch (error, stackTrace) {
       _logger.error('Fetch request failed', error, stackTrace);
       rethrow;
     }
+  }
 
+  SimpleFinAccountSet _accountSetFromResponse(http.Response response) {
     _logger.log(
       'Fetch response HTTP ${response.statusCode}, '
       'bytes=${response.bodyBytes.length}, body=${_truncate(response.body)}',

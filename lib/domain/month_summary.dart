@@ -32,18 +32,24 @@ class CategoryMonthRow {
   const CategoryMonthRow({
     required this.categoryId,
     required this.categoryName,
-    required this.budgetCents,
+    required this.avg30DaySpendCents,
     required this.spentCents,
   });
 
   final String categoryId;
   final String categoryName;
-  final int budgetCents;
+
+  /// Total outflow in the rolling last 30 days.
+  final int avg30DaySpendCents;
+
+  /// Calendar-month outflow for the selected year-month.
   final int spentCents;
 
-  int get remainingCents => budgetCents - spentCents;
+  /// Positive when month spend is under the 30-day total; negative when over.
+  int get vsAvgCents => avg30DaySpendCents - spentCents;
+
   double get progress {
-    if (budgetCents <= 0) return spentCents > 0 ? 1 : 0;
-    return (spentCents / budgetCents).clamp(0, 2);
+    if (avg30DaySpendCents <= 0) return spentCents > 0 ? 1 : 0;
+    return (spentCents / avg30DaySpendCents).clamp(0, 2);
   }
 }

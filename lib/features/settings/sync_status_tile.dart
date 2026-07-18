@@ -28,7 +28,6 @@ class SyncStatusTile extends ConsumerWidget {
 
     final phase = ref.watch(syncPhaseProvider);
     final offline = ref.watch(isOfflineProvider);
-
     return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

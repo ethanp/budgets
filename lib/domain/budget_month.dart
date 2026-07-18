@@ -1,4 +1,5 @@
 import 'package:budgets/domain/month_summary.dart';
+import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/services/sqlite/accounts_repository.dart';
 import 'package:budgets/services/sqlite/categories_repository.dart';
 import 'package:budgets/services/sqlite/sync_state_store.dart';
@@ -35,35 +36,42 @@ class BudgetMonth {
 
   Future<List<CategoryMonthRow>> categoryRows(String yearMonth) async {
     final categories = await _categoriesRepository.listActive();
-    final budgets = {
-      for (final budget
-          in await _categoriesRepository.budgetsForMonth(yearMonth))
-        budget.categoryId: budget.amountCents,
-    };
-    final spentByCategory = <String, int>{};
-    for (final transaction
-        in await _transactionsRepository.listForMonth(yearMonth)) {
-      if (!transaction.isOutflow) continue;
-      final categoryId = transaction.effectiveCategoryId;
-      if (categoryId == null) continue;
-      spentByCategory.update(
-        categoryId,
-        (value) => value + -transaction.amountCents,
-        ifAbsent: () => -transaction.amountCents,
-      );
-    }
+    final monthOutflows = _outflowByCategory(
+      await _transactionsRepository.listForMonth(yearMonth),
+    );
+    final avg30DayOutflows = _outflowByCategory(
+      await _transactionsRepository.listPostedInLastDays(30),
+    );
 
     return categories
         .map(
           (category) => CategoryMonthRow(
             categoryId: category.id,
             categoryName: category.name,
-            budgetCents: budgets[category.id] ?? 0,
-            spentCents: spentByCategory[category.id] ?? 0,
+            avg30DaySpendCents: avg30DayOutflows[category.id] ?? 0,
+            spentCents: monthOutflows[category.id] ?? 0,
           ),
         )
         .toList();
   }
 
   String currentYearMonth() => yearMonthKey(DateTime.now());
+
+  static Map<String, int> _outflowByCategory(
+    List<BankTransaction> transactions,
+  ) {
+    final spentByCategory = <String, int>{};
+    for (final transaction in transactions) {
+      if (transaction.excluded) continue;
+      if (!transaction.isOutflow) continue;
+      final categoryId = transaction.effectiveCategoryId;
+      if (categoryId == null) continue;
+      spentByCategory.update(
+        categoryId,
+        (priorSpendCents) => priorSpendCents + -transaction.amountCents,
+        ifAbsent: () => -transaction.amountCents,
+      );
+    }
+    return spentByCategory;
+  }
 }

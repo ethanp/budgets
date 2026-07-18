@@ -9,9 +9,10 @@ This is a personal app (not a product). The repo is public-safe: bank Access URL
 - **Bank sync (SimpleFIN)** — Claim a one-time Setup Token once; the app stores the claimed Access URL and pulls accounts + transactions (max ~44-day windows per SimpleFIN beta limits). Incremental pulls use the last successful sync time; **Settings → Refresh full history** walks back ~2 years.
 - **Month** — Dashboard of spend vs budget for the selected month, by category.
 - **Activity** — Transaction list; assign categories and optional case-insensitive “contains” rules (e.g. `bbq` → Dining).
-- **Categories** — CRUD for categories (create / rename / merge-into-then-delete) plus monthly budgets (defaults seeded on first launch).
+- **Categories** — CRUD for categories (create / rename / merge-into-then-delete) with rolling 30-day avg spend (defaults seeded on first launch).
 - **Settings** — Connect / refresh SimpleFIN, force-refresh history, CSV import, ethan_sync status, optional LLM suggestions.
-- **CSV import** — Manual fallback when a bank is not on SimpleFIN.
+- **Copilot import** — Bundled Copilot Money export at `assets/imports/copilot_transactions.csv` (replace + re-import anytime).
+- **CSV import** — Generic fallback when a bank is not on SimpleFIN.
 - **LLM suggestions (optional)** — Home-server `llm-proxy` suggests categories for uncategorized merchants.
 - **Multi-device sync** — `ethan_sync` / PowerSync is the local store and syncs to home-server Postgres (ports **8083** / **3006**).
 

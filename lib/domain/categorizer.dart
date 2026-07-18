@@ -66,6 +66,7 @@ class Categorizer {
     required String categoryId,
     required bool createRule,
     String? containsPattern,
+    Set<String> alsoApplyToTransactionIds = const {},
   }) async {
     await _transactionsRepository.setUserCategory(
       transactionId: transactionId,
@@ -79,7 +80,57 @@ class Categorizer {
     }
 
     await _upsertContainsRule(pattern: pattern, categoryId: categoryId);
-    await applyRulesToUncategorized();
+    for (final otherTransactionId in alsoApplyToTransactionIds) {
+      if (otherTransactionId == transactionId) continue;
+      await _transactionsRepository.setUserCategory(
+        transactionId: otherTransactionId,
+        categoryId: categoryId,
+      );
+    }
+  }
+
+  Future<List<BankTransaction>> transactionsMatchingContains(
+    String pattern,
+  ) async {
+    final probe = CategorizationRule(
+      id: 'probe',
+      matchType: RuleMatchType.merchantContains,
+      pattern: pattern.trim(),
+      categoryId: 'probe',
+      priority: 0,
+    );
+    final transactions = await _transactionsRepository.listAll();
+    return [
+      for (final transaction in transactions)
+        if (ruleMatches(transaction, probe)) transaction,
+    ];
+  }
+
+  /// Upserts a case-insensitive contains rule for [pattern] → [categoryId].
+  Future<void> ensureContainsRule({
+    required String pattern,
+    required String categoryId,
+  }) =>
+      _upsertContainsRule(pattern: pattern, categoryId: categoryId);
+
+  Future<void> applyCategoryToTransactions({
+    required String categoryId,
+    required Iterable<String> transactionIds,
+    required bool asUserCategory,
+  }) async {
+    for (final transactionId in transactionIds) {
+      if (asUserCategory) {
+        await _transactionsRepository.setUserCategory(
+          transactionId: transactionId,
+          categoryId: categoryId,
+        );
+      } else {
+        await _transactionsRepository.setSuggestedCategory(
+          transactionId: transactionId,
+          categoryId: categoryId,
+        );
+      }
+    }
   }
 
   Future<void> _upsertContainsRule({

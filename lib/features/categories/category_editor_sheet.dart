@@ -1,36 +1,27 @@
 import 'package:budgets/domain/category.dart';
 import 'package:budgets/providers/budgets_providers.dart';
+import 'package:budgets/services/sqlite/categories_repository.dart';
 import 'package:budgets/theme/app_theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Create or edit a category (name + optional monthly budget).
+/// Create or edit a category name.
 class CategoryEditorSheet extends ConsumerStatefulWidget {
   const CategoryEditorSheet({
     super.key,
     this.category,
-    required this.yearMonth,
-    this.currentBudgetCents = 0,
   });
 
   final SpendCategory? category;
-  final String yearMonth;
-  final int currentBudgetCents;
 
   static Future<void> show(
     BuildContext context, {
     required WidgetRef ref,
     SpendCategory? category,
-    required String yearMonth,
-    int currentBudgetCents = 0,
   }) {
     return showCupertinoModalPopup<void>(
       context: context,
-      builder: (_) => CategoryEditorSheet(
-        category: category,
-        yearMonth: yearMonth,
-        currentBudgetCents: currentBudgetCents,
-      ),
+      builder: (_) => CategoryEditorSheet(category: category),
     );
   }
 
@@ -41,7 +32,6 @@ class CategoryEditorSheet extends ConsumerStatefulWidget {
 
 class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
   late final TextEditingController _nameController;
-  late final TextEditingController _budgetController;
   bool _busy = false;
   String? _error;
 
@@ -51,17 +41,11 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.category?.name ?? '');
-    _budgetController = TextEditingController(
-      text: widget.currentBudgetCents == 0
-          ? ''
-          : (widget.currentBudgetCents / 100).toStringAsFixed(2),
-    );
   }
 
   @override
   void dispose() {
     _nameController.dispose();
-    _budgetController.dispose();
     super.dispose();
   }
 
@@ -86,53 +70,61 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              _isEditing ? 'Edit category' : 'New category',
-              style: AppText.headline.small,
-            ),
+            _sheetHeader(),
             const SizedBox(height: AppSpacing.md),
-            CupertinoTextField(
-              controller: _nameController,
-              autofocus: !_isEditing,
-              placeholder: 'Name',
-              padding: const EdgeInsets.all(AppSpacing.md),
-              style: AppText.body.large.primary,
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            CupertinoTextField(
-              controller: _budgetController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              placeholder: 'Monthly budget (optional)',
-              prefix: const Padding(
-                padding: EdgeInsets.only(left: AppSpacing.md),
-                child: Text('\$'),
-              ),
-              padding: const EdgeInsets.all(AppSpacing.md),
-              style: AppText.body.large.primary,
-            ),
+            _nameField(),
             if (_error != null) ...[
               const SizedBox(height: AppSpacing.sm),
-              Text(_error!, style: AppText.body.small.error),
+              _errorMessage(),
             ],
             const SizedBox(height: AppSpacing.md),
-            CupertinoButton.filled(
-              onPressed: _busy ? null : _save,
-              child: _busy
-                  ? const CupertinoActivityIndicator()
-                  : Text(_isEditing ? 'Save' : 'Create'),
-            ),
+            _primaryAction(),
             if (_isEditing) ...[
               const SizedBox(height: AppSpacing.sm),
-              CupertinoButton(
-                onPressed: _busy ? null : _startMergeAndDelete,
-                child: Text(
-                  'Merge into…',
-                  style: AppText.body.medium.error,
-                ),
-              ),
+              _mergeAction(),
             ],
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _sheetHeader() {
+    return Text(
+      _isEditing ? 'Edit category' : 'New category',
+      style: AppText.headline.small,
+    );
+  }
+
+  Widget _nameField() {
+    return CupertinoTextField(
+      controller: _nameController,
+      autofocus: !_isEditing,
+      placeholder: 'Name',
+      padding: const EdgeInsets.all(AppSpacing.md),
+      style: AppText.body.large.primary,
+    );
+  }
+
+  Widget _errorMessage() {
+    return Text(_error!, style: AppText.body.small.error);
+  }
+
+  Widget _primaryAction() {
+    return CupertinoButton.filled(
+      onPressed: _busy ? null : _save,
+      child: _busy
+          ? const CupertinoActivityIndicator()
+          : Text(_isEditing ? 'Save' : 'Create'),
+    );
+  }
+
+  Widget _mergeAction() {
+    return CupertinoButton(
+      onPressed: _busy ? null : _startMergeAndDelete,
+      child: Text(
+        'Merge into…',
+        style: AppText.body.medium.error,
       ),
     );
   }
@@ -151,31 +143,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
 
     try {
       final repository = await ref.read(categoriesRepositoryProvider.future);
-      final dollars = double.tryParse(_budgetController.text.trim()) ?? 0;
-      final amountCents = (dollars * 100).round();
-
-      if (_isEditing) {
-        final category = widget.category!;
-        await repository.renameCategory(
-          categoryId: category.id,
-          name: name,
-        );
-        await repository.setBudget(
-          categoryId: category.id,
-          yearMonth: widget.yearMonth,
-          amountCents: amountCents,
-        );
-      } else {
-        final created = await repository.createCategory(name: name);
-        if (amountCents > 0) {
-          await repository.setBudget(
-            categoryId: created.id,
-            yearMonth: widget.yearMonth,
-            amountCents: amountCents,
-          );
-        }
-      }
-
+      await _persistCategory(repository, name);
       ref.read(dataRevisionProvider.notifier).bump();
       if (mounted) Navigator.of(context).pop();
     } catch (error) {
@@ -183,6 +151,20 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+  }
+
+  Future<void> _persistCategory(
+    CategoriesRepository repository,
+    String name,
+  ) async {
+    if (_isEditing) {
+      await repository.renameCategory(
+        categoryId: widget.category!.id,
+        name: name,
+      );
+      return;
+    }
+    await repository.createCategory(name: name);
   }
 
   Future<void> _startMergeAndDelete() async {
@@ -204,60 +186,80 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
 
     await showCupertinoModalPopup<void>(
       context: context,
-      builder: (pickerContext) {
-        return Container(
-          height: 420,
-          decoration: const BoxDecoration(
-            color: AppColors.backgroundDepth2,
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(AppRadius.lg),
+      builder: (pickerContext) => _mergeTargetPicker(
+        pickerContext,
+        category,
+        mergeTargets,
+      ),
+    );
+  }
+
+  Widget _mergeTargetPicker(
+    BuildContext pickerContext,
+    SpendCategory category,
+    List<SpendCategory> mergeTargets,
+  ) {
+    return Container(
+      height: 420,
+      decoration: const BoxDecoration(
+        color: AppColors.backgroundDepth2,
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppRadius.lg),
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _mergePickerHeader(category),
+            Expanded(
+              child: _mergeTargetList(pickerContext, mergeTargets),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _mergePickerHeader(SpendCategory category) {
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Merge ${category.name} into…', style: AppText.headline.small),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            'Transactions and rules move to the target. '
+            'Then "${category.name}" is removed.',
+            style: AppText.body.small,
           ),
-          child: SafeArea(
-            top: false,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Merge ${category.name} into…',
-                          style: AppText.headline.small),
-                      const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        'Transactions, rules, and budgets move to the target. '
-                        'Then "${category.name}" is removed.',
-                        style: AppText.body.small,
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: mergeTargets.length,
-                    itemBuilder: (context, index) {
-                      final target = mergeTargets[index];
-                      return CupertinoButton(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.lg,
-                          vertical: AppSpacing.md,
-                        ),
-                        onPressed: () {
-                          Navigator.of(pickerContext).pop();
-                          _confirmMerge(target);
-                        },
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(target.name, style: AppText.body.large),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _mergeTargetList(
+    BuildContext pickerContext,
+    List<SpendCategory> mergeTargets,
+  ) {
+    return ListView.builder(
+      itemCount: mergeTargets.length,
+      itemBuilder: (context, index) {
+        final target = mergeTargets[index];
+        return CupertinoButton(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.md,
+          ),
+          onPressed: () {
+            Navigator.of(pickerContext).pop();
+            _confirmMerge(target);
+          },
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(target.name, style: AppText.body.large),
           ),
         );
       },
@@ -268,30 +270,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
     final category = widget.category;
     if (category == null) return;
 
-    final shouldMerge = await showCupertinoDialog<bool>(
-      context: context,
-      builder: (dialogContext) {
-        return CupertinoAlertDialog(
-          title: Text('Merge ${category.name} into ${target.name}?'),
-          content: Text(
-            'All transactions and rules for ${category.name} become '
-            '${target.name}. Monthly budgets are added together. '
-            '${category.name} is then deleted.',
-          ),
-          actions: [
-            CupertinoDialogAction(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Cancel'),
-            ),
-            CupertinoDialogAction(
-              isDestructiveAction: true,
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('Merge & delete'),
-            ),
-          ],
-        );
-      },
-    );
+    final shouldMerge = await _mergeConfirmationDialog(category, target);
     if (shouldMerge != true || !mounted) return;
 
     setState(() {
@@ -311,5 +290,34 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+  }
+
+  Future<bool?> _mergeConfirmationDialog(
+    SpendCategory category,
+    SpendCategory target,
+  ) {
+    return showCupertinoDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return CupertinoAlertDialog(
+          title: Text('Merge ${category.name} into ${target.name}?'),
+          content: Text(
+            'All transactions and rules for ${category.name} become '
+            '${target.name}. ${category.name} is then deleted.',
+          ),
+          actions: [
+            CupertinoDialogAction(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancel'),
+            ),
+            CupertinoDialogAction(
+              isDestructiveAction: true,
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Merge & delete'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

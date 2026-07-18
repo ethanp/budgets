@@ -1,4 +1,6 @@
+import 'package:budgets/domain/category.dart';
 import 'package:budgets/domain/transaction.dart';
+import 'package:budgets/features/activity/rule_impact_confirm_sheet.dart';
 import 'package:budgets/providers/budgets_providers.dart';
 import 'package:budgets/theme/app_theme.dart';
 import 'package:flutter/cupertino.dart';
@@ -43,13 +45,14 @@ class _RecategorizeSheetState extends ConsumerState<RecategorizeSheet> {
     super.dispose();
   }
 
+  String get _description => widget.transaction.rawDescription.isEmpty
+      ? widget.transaction.normalizedMerchant
+      : widget.transaction.rawDescription;
+
   @override
   Widget build(BuildContext context) {
     final categoriesAsync = ref.watch(categoriesListProvider);
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
-    final description = widget.transaction.rawDescription.isEmpty
-        ? widget.transaction.normalizedMerchant
-        : widget.transaction.rawDescription;
 
     return Container(
       padding: EdgeInsets.only(bottom: bottomInset),
@@ -68,118 +71,172 @@ class _RecategorizeSheetState extends ConsumerState<RecategorizeSheet> {
             padding: const EdgeInsets.all(AppSpacing.lg),
             child: Text('$error', style: AppText.body.medium.error),
           ),
-          data: (categories) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Categorize', style: AppText.headline.small),
-                      const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        description,
-                        style: AppText.body.small,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      Row(
-                        children: [
-                          CupertinoSwitch(
-                            value: _createRule,
-                            onChanged: (value) =>
-                                setState(() => _createRule = value),
-                          ),
-                          const SizedBox(width: AppSpacing.sm),
-                          Expanded(
-                            child: Text(
-                              'Also create a rule',
-                              style: AppText.body.medium,
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (_createRule) ...[
-                        const SizedBox(height: AppSpacing.sm),
-                        Text(
-                          'If description contains (ignore case)',
-                          style: AppText.body.small,
-                        ),
-                        const SizedBox(height: AppSpacing.xs),
-                        CupertinoTextField(
-                          controller: _patternController,
-                          placeholder: 'e.g. bbq',
-                          padding: const EdgeInsets.all(AppSpacing.md),
-                          style: AppText.body.large.primary,
-                        ),
-                        const SizedBox(height: AppSpacing.xs),
-                        const Text(
-                          'Example: "bbq" → Dining matches “Franklin BBQ Austin”.',
-                          style: AppText.caption,
-                        ),
-                      ],
-                      if (_error != null) ...[
-                        const SizedBox(height: AppSpacing.sm),
-                        Text(_error!, style: AppText.body.small.error),
-                      ],
-                    ],
-                  ),
-                ),
-                SizedBox(
-                  height: 280,
-                  child: ListView.builder(
-                    itemCount: categories.length,
-                    itemBuilder: (context, index) {
-                      final category = categories[index];
-                      return CupertinoButton(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.lg,
-                          vertical: AppSpacing.md,
-                        ),
-                        onPressed: () => _assign(category.id),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            category.name,
-                            style: AppText.body.large,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            );
-          },
+          data: _buildContent,
         ),
       ),
     );
   }
 
-  Future<void> _assign(String categoryId) async {
-    if (_createRule && _patternController.text.trim().isEmpty) {
-      setState(() => _error = 'Enter a contains pattern, or turn the rule off.');
-      return;
-    }
+  Widget _buildContent(List<SpendCategory> categories) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _buildForm(),
+        _buildCategoryList(categories),
+      ],
+    );
+  }
+
+  Widget _buildForm() {
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Categorize', style: AppText.headline.small),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            _description,
+            style: AppText.body.small,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          _buildCreateRuleToggle(),
+          if (_createRule) ...[
+            const SizedBox(height: AppSpacing.sm),
+            _buildPatternFields(),
+          ],
+          if (_error != null) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(_error!, style: AppText.body.small.error),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCreateRuleToggle() {
+    return Row(
+      children: [
+        CupertinoSwitch(
+          value: _createRule,
+          onChanged: (value) => setState(() => _createRule = value),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Text('Also create a rule', style: AppText.body.medium),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPatternFields() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'If description contains (ignore case)',
+          style: AppText.body.small,
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        CupertinoTextField(
+          controller: _patternController,
+          placeholder: 'e.g. bbq',
+          padding: const EdgeInsets.all(AppSpacing.md),
+          style: AppText.body.large.primary,
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        const Text(
+          'Example: "bbq" → Dining matches “Franklin BBQ Austin”.',
+          style: AppText.caption,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCategoryList(List<SpendCategory> categories) {
+    return SizedBox(
+      height: 280,
+      child: ListView.builder(
+        itemCount: categories.length,
+        itemBuilder: (context, index) {
+          final category = categories[index];
+          return CupertinoButton(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg,
+              vertical: AppSpacing.md,
+            ),
+            onPressed: () => _assign(category),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(category.name, style: AppText.body.large),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _assign(SpendCategory category) async {
+    if (!_validateRuleInput()) return;
 
     setState(() => _error = null);
     try {
-      final categorizer = await ref.read(categorizerProvider.future);
-      await categorizer.assignUserCategory(
-        transactionId: widget.transaction.id,
-        categoryId: categoryId,
-        createRule: _createRule,
-        containsPattern:
-            _createRule ? _patternController.text.trim() : null,
+      final alsoApplyToTransactionIds = _createRule
+          ? await _confirmRuleImpact(category)
+          : <String>{};
+      if (_createRule && alsoApplyToTransactionIds == null) return;
+
+      await _persistAssignment(
+        category.id,
+        alsoApplyToTransactionIds ?? const {},
       );
-      ref.read(dataRevisionProvider.notifier).bump();
       if (mounted) Navigator.of(context).pop();
     } catch (error) {
       setState(() => _error = '$error');
     }
+  }
+
+  bool _validateRuleInput() {
+    if (!_createRule || _patternController.text.trim().isNotEmpty) return true;
+    setState(() => _error = 'Enter a contains pattern, or turn the rule off.');
+    return false;
+  }
+
+  /// Null means the user cancelled the confirm sheet.
+  Future<Set<String>?> _confirmRuleImpact(SpendCategory category) async {
+    final categorizer = await ref.read(categorizerProvider.future);
+    final pattern = _patternController.text.trim();
+    final matches = await categorizer.transactionsMatchingContains(pattern);
+    if (!mounted) return null;
+
+    return RuleImpactConfirmSheet.show(
+      context,
+      groups: [
+        RuleImpactGroup(
+          pattern: pattern,
+          categoryId: category.id,
+          categoryName: category.name,
+          transactions: matches,
+        ),
+      ],
+    );
+  }
+
+  Future<void> _persistAssignment(
+    String categoryId,
+    Set<String> alsoApplyToTransactionIds,
+  ) async {
+    final categorizer = await ref.read(categorizerProvider.future);
+    await categorizer.assignUserCategory(
+      transactionId: widget.transaction.id,
+      categoryId: categoryId,
+      createRule: _createRule,
+      containsPattern: _createRule ? _patternController.text.trim() : null,
+      alsoApplyToTransactionIds: alsoApplyToTransactionIds,
+    );
+    ref.read(dataRevisionProvider.notifier).bump();
   }
 
   /// Prefill with a compact token from the txn name so users can trim to e.g. bbq.

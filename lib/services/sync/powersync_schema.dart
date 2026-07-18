@@ -30,11 +30,11 @@ const Schema budgetsSchema = Schema([
     Column.integer('pending'),
     Column.text('user_category_id'),
     Column.text('suggested_category_id'),
-  ]),
-  Table('category_budgets', [
-    Column.text('category_id'),
-    Column.text('year_month'),
-    Column.integer('amount_cents'),
+    Column.text('note'),
+    Column.text('transaction_type'),
+    Column.integer('excluded'),
+    Column.text('recurring_series'),
+    Column.integer('imported_at'),
   ]),
   Table('categorization_rules', [
     Column.text('match_type'),

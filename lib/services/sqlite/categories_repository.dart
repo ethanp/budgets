@@ -86,7 +86,7 @@ class CategoriesRepository {
     );
   }
 
-  /// Move all spend/rules/budgets from [fromCategoryId] into [intoCategoryId],
+  /// Move all spend/rules from [fromCategoryId] into [intoCategoryId],
   /// then hard-delete the source category. Use when retiring a duplicate
   /// (e.g. "Dining" → "Restaurants").
   Future<void> mergeCategoryInto({
@@ -96,6 +96,21 @@ class CategoriesRepository {
     if (fromCategoryId == intoCategoryId) {
       throw ArgumentError('Cannot merge a category into itself.');
     }
+    await _ensureCategoriesExist(fromCategoryId, intoCategoryId);
+    await _moveTransactionsAndRules(
+      fromCategoryId: fromCategoryId,
+      intoCategoryId: intoCategoryId,
+    );
+    await _powerSync.execute(
+      'DELETE FROM categories WHERE id = ?',
+      [fromCategoryId],
+    );
+  }
+
+  Future<void> _ensureCategoriesExist(
+    String fromCategoryId,
+    String intoCategoryId,
+  ) async {
     final fromRow = await _powerSync.getOptional(
       'SELECT id FROM categories WHERE id = ? LIMIT 1',
       [fromCategoryId],
@@ -107,7 +122,12 @@ class CategoriesRepository {
     if (fromRow == null || intoRow == null) {
       throw StateError('Both categories must exist to merge.');
     }
+  }
 
+  Future<void> _moveTransactionsAndRules({
+    required String fromCategoryId,
+    required String intoCategoryId,
+  }) async {
     await _powerSync.execute(
       'UPDATE transactions SET user_category_id = ? WHERE user_category_id = ?',
       [intoCategoryId, fromCategoryId],
@@ -124,75 +144,6 @@ class CategoriesRepository {
       'UPDATE categorization_rules SET category_id = ? WHERE category_id = ?',
       [intoCategoryId, fromCategoryId],
     );
-
-    final sourceBudgets = await _powerSync.getAll(
-      'SELECT * FROM category_budgets WHERE category_id = ?',
-      [fromCategoryId],
-    );
-    for (final budgetRow in sourceBudgets) {
-      final yearMonth = budgetRow['year_month'] as String;
-      final sourceAmountCents = _asInt(budgetRow['amount_cents']);
-      final targetBudget = await budgetFor(
-        categoryId: intoCategoryId,
-        yearMonth: yearMonth,
-      );
-      await setBudget(
-        categoryId: intoCategoryId,
-        yearMonth: yearMonth,
-        amountCents: (targetBudget?.amountCents ?? 0) + sourceAmountCents,
-      );
-    }
-
-    await _powerSync.execute(
-      'DELETE FROM category_budgets WHERE category_id = ?',
-      [fromCategoryId],
-    );
-    await _powerSync.execute(
-      'DELETE FROM categories WHERE id = ?',
-      [fromCategoryId],
-    );
-  }
-
-  Future<CategoryBudget?> budgetFor({
-    required String categoryId,
-    required String yearMonth,
-  }) async {
-    final row = await _powerSync.getOptional(
-      '''
-      SELECT * FROM category_budgets
-      WHERE category_id = ? AND year_month = ?
-      LIMIT 1
-      ''',
-      [categoryId, yearMonth],
-    );
-    if (row == null) return null;
-    return _budgetFromRow(row);
-  }
-
-  Future<List<CategoryBudget>> budgetsForMonth(String yearMonth) async {
-    final rows = await _powerSync.getAll(
-      'SELECT * FROM category_budgets WHERE year_month = ?',
-      [yearMonth],
-    );
-    return rows.map(_budgetFromRow).toList();
-  }
-
-  Future<void> setBudget({
-    required String categoryId,
-    required String yearMonth,
-    required int amountCents,
-  }) async {
-    final existing = await budgetFor(
-      categoryId: categoryId,
-      yearMonth: yearMonth,
-    );
-    final id = existing?.id ?? _uuid.v4();
-    await _powerSync.upsert('category_budgets', {
-      'id': id,
-      'category_id': categoryId,
-      'year_month': yearMonth,
-      'amount_cents': amountCents,
-    });
   }
 
   Future<List<CategorizationRule>> listRules() async {
@@ -226,15 +177,6 @@ class CategoriesRepository {
       sortOrder: _asInt(row['sort_order']),
       archived: _asInt(row['archived']) == 1,
       colorToken: row['color_token'] as String?,
-    );
-  }
-
-  static CategoryBudget _budgetFromRow(dynamic row) {
-    return CategoryBudget(
-      id: row['id'] as String,
-      categoryId: row['category_id'] as String,
-      yearMonth: row['year_month'] as String,
-      amountCents: _asInt(row['amount_cents']),
     );
   }
 

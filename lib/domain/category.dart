@@ -14,20 +14,6 @@ class SpendCategory {
   final String? colorToken;
 }
 
-class CategoryBudget {
-  const CategoryBudget({
-    required this.id,
-    required this.categoryId,
-    required this.yearMonth,
-    required this.amountCents,
-  });
-
-  final String id;
-  final String categoryId;
-  final String yearMonth;
-  final int amountCents;
-}
-
 class CategorizationRule {
   const CategorizationRule({
     required this.id,
