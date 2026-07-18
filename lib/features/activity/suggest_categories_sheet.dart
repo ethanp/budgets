@@ -1,5 +1,5 @@
-import 'package:budgets/data/llm/llm_category_suggester.dart';
-import 'package:budgets/data/llm/llm_errors.dart';
+import 'package:budgets/services/llm/llm_category_suggester.dart';
+import 'package:budgets/services/llm/llm_errors.dart';
 import 'package:budgets/providers/budgets_providers.dart';
 import 'package:budgets/providers/llm_providers.dart';
 import 'package:budgets/theme/app_theme.dart';

@@ -1,6 +1,6 @@
 import 'package:budgets/domain/month_summary.dart';
 import 'package:budgets/domain/transaction.dart';
-import 'package:budgets/data/sqlite/budgets_database.dart';
+import 'package:budgets/services/sqlite/budgets_database.dart';
 import 'package:budgets/util/merchant_normalize.dart';
 import 'package:sqlite3/sqlite3.dart';
 

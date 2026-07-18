@@ -31,6 +31,18 @@ SimpleFIN Bridge ──HTTP──► App (claim + /accounts)
                     optional: llm-proxy
 ```
 
+## Code layout
+
+| Dir | Role |
+|-----|------|
+| `features/shell/` | `CupertinoApp` + tab shell |
+| `features/*/` | Per-tab UI (Month, Activity, Categories, Settings) |
+| `domain/` | Models + use cases (ingest, categorize, month rollup) |
+| `services/` | SimpleFIN, SQLite, CSV, LLM, optional PowerSync |
+| `providers/` | Riverpod wiring |
+| `theme/` | Cupertino theme tokens (not the root app widget) |
+| `widgets/`, `util/` | Shared UI/helpers |
+
 1. You buy SimpleFIN Bridge (~$15/yr) and create a Setup Token in their UI.
 2. In **Settings → Connect**, paste the Setup Token. The app claims it for an Access URL (`https://user:pass@…/simplefin`), saves that to keychain, and you should also put it in `.env` as `SIMPLEFIN_ACCESS_URL` so it survives reinstall.
 3. Sync pulls accounts and transactions into local SQLite. Categorization uses sticky merchant → category memory plus explicit rules.

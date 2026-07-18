@@ -1,5 +1,5 @@
-import 'package:budgets/data/sqlite/categories_repository.dart';
-import 'package:budgets/data/sqlite/transactions_repository.dart';
+import 'package:budgets/services/sqlite/categories_repository.dart';
+import 'package:budgets/services/sqlite/transactions_repository.dart';
 import 'package:budgets/domain/category.dart';
 import 'package:budgets/domain/transaction.dart';
 import 'package:uuid/uuid.dart';

@@ -1,4 +1,4 @@
-import 'package:budgets/services/backend/sync_config.dart';
+import 'package:budgets/services/sync/sync_config.dart';
 import 'package:budgets/theme/app_theme.dart';
 import 'package:budgets/widgets/app_card.dart';
 import 'package:ethan_sync/ethan_sync.dart';

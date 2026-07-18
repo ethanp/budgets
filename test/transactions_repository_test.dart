@@ -1,6 +1,6 @@
-import 'package:budgets/data/sqlite/accounts_repository.dart';
-import 'package:budgets/data/sqlite/budgets_database.dart';
-import 'package:budgets/data/sqlite/transactions_repository.dart';
+import 'package:budgets/services/sqlite/accounts_repository.dart';
+import 'package:budgets/services/sqlite/budgets_database.dart';
+import 'package:budgets/services/sqlite/transactions_repository.dart';
 import 'package:budgets/domain/account.dart';
 import 'package:budgets/domain/transaction.dart';
 import 'package:flutter_test/flutter_test.dart';

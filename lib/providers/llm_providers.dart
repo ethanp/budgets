@@ -1,6 +1,6 @@
-import 'package:budgets/data/llm/llm_category_suggester.dart';
+import 'package:budgets/services/llm/llm_category_suggester.dart';
 import 'package:budgets/providers/budgets_providers.dart';
-import 'package:budgets/services/backend/sync_config.dart';
+import 'package:budgets/services/sync/sync_config.dart';
 import 'package:ethan_sync/ethan_sync.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

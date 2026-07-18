@@ -1,5 +1,5 @@
-import 'package:budgets/app/app.dart';
-import 'package:budgets/services/backend/sync_config.dart';
+import 'package:budgets/features/shell/budgets_app.dart';
+import 'package:budgets/services/sync/sync_config.dart';
 import 'package:ethan_sync/ethan_sync.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/widgets.dart';

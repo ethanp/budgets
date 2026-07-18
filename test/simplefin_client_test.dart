@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:budgets/data/simplefin/simplefin_client.dart';
+import 'package:budgets/services/simplefin/simplefin_client.dart';
 import 'package:budgets/util/merchant_normalize.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;

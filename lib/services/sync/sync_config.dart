@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:budgets/services/powersync/powersync_schema.dart';
+import 'package:budgets/services/sync/powersync_schema.dart';
 import 'package:ethan_sync/ethan_sync.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';

@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:budgets/data/simplefin/simplefin_models.dart';
-import 'package:budgets/data/sqlite/budgets_database.dart';
+import 'package:budgets/services/simplefin/simplefin_models.dart';
+import 'package:budgets/services/sqlite/budgets_database.dart';
 
 class SyncStateStore {
   SyncStateStore(this._budgetsDatabase);

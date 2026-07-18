@@ -1,7 +1,7 @@
-import 'package:budgets/data/sqlite/accounts_repository.dart';
-import 'package:budgets/data/sqlite/categories_repository.dart';
-import 'package:budgets/data/sqlite/sync_state_store.dart';
-import 'package:budgets/data/sqlite/transactions_repository.dart';
+import 'package:budgets/services/sqlite/accounts_repository.dart';
+import 'package:budgets/services/sqlite/categories_repository.dart';
+import 'package:budgets/services/sqlite/sync_state_store.dart';
+import 'package:budgets/services/sqlite/transactions_repository.dart';
 import 'package:budgets/domain/month_summary.dart';
 import 'package:budgets/util/merchant_normalize.dart';
 

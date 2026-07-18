@@ -1,4 +1,4 @@
-import 'package:budgets/screens/main_tab_screen.dart';
+import 'package:budgets/features/shell/main_tab_screen.dart';
 import 'package:budgets/theme/app_theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show DefaultMaterialLocalizations;

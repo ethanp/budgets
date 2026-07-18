@@ -1,5 +1,5 @@
 import 'package:budgets/domain/account.dart';
-import 'package:budgets/data/sqlite/budgets_database.dart';
+import 'package:budgets/services/sqlite/budgets_database.dart';
 import 'package:sqlite3/sqlite3.dart';
 
 class AccountsRepository {
