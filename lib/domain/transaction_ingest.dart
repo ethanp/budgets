@@ -1,11 +1,11 @@
+import 'package:budgets/domain/account.dart';
+import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/services/simplefin/simplefin_access_store.dart';
 import 'package:budgets/services/simplefin/simplefin_client.dart';
 import 'package:budgets/services/simplefin/simplefin_models.dart';
 import 'package:budgets/services/sqlite/accounts_repository.dart';
 import 'package:budgets/services/sqlite/sync_state_store.dart';
 import 'package:budgets/services/sqlite/transactions_repository.dart';
-import 'package:budgets/domain/account.dart';
-import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/util/merchant_normalize.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:uuid/uuid.dart';
@@ -67,7 +67,7 @@ class TransactionIngest {
     }
 
     final now = DateTime.now().toUtc();
-    final lastPull = _syncStateStore.lastSuccessfulPullAt();
+    final lastPull = await _syncStateStore.lastSuccessfulPullAt();
     var transactionCount = 0;
     final aggregatedErrors = <SimpleFinError>[];
     // beta-bridge rejects ranges of 45+ days ("exceeds recommended range of 45").
@@ -77,6 +77,10 @@ class TransactionIngest {
       'pullAndUpsert fullHistory=$fullHistory '
       'lastPull=$lastPull fromEnv=${_accessStore.isConfiguredInEnv}',
     );
+
+    if (fullHistory) {
+      await _syncStateStore.clearLastSuccessfulPullAt();
+    }
 
     if (fullHistory || lastPull == null) {
       var windowEnd = now;
@@ -117,10 +121,10 @@ class TransactionIngest {
       aggregatedErrors.addAll(result.errors);
     }
 
-    _syncStateStore.setLastSuccessfulPullAt(now);
-    _syncStateStore.setLastErrors(aggregatedErrors);
+    await _syncStateStore.setLastSuccessfulPullAt(now);
+    await _syncStateStore.setLastErrors(aggregatedErrors);
 
-    final accounts = _accountsRepository.listAccounts();
+    final accounts = await _accountsRepository.listAccounts();
     _logger.log(
       'Ingested ${accounts.length} accounts, $transactionCount transactions, '
       '${aggregatedErrors.length} bridge errors',
@@ -135,9 +139,9 @@ class TransactionIngest {
 
   Future<void> disconnect({required bool wipeLocalData}) async {
     await _accessStore.clear();
-    _syncStateStore.clear();
+    await _syncStateStore.clear();
     if (wipeLocalData) {
-      _accountsRepository.deleteAll();
+      await _accountsRepository.deleteAll();
     }
   }
 
@@ -169,7 +173,7 @@ class TransactionIngest {
 
     for (final remoteAccount in accountSet.accounts) {
       final existing =
-          _accountsRepository.findByExternalId(remoteAccount.id);
+          await _accountsRepository.findByExternalId(remoteAccount.id);
       final localId = existing?.id ?? _uuid.v4();
       final needsRelink = authErrors.any(
         (error) => error.connId == null || error.connId == remoteAccount.connId,
@@ -194,7 +198,7 @@ class TransactionIngest {
             ? 'Authentication required — re-link in SimpleFIN'
             : null,
       );
-      _accountsRepository.upsertAccount(account);
+      await _accountsRepository.upsertAccount(account);
 
       for (final remoteTransaction in remoteAccount.transactions) {
         final postedSeconds = remoteTransaction.posted;
@@ -211,7 +215,7 @@ class TransactionIngest {
           normalizedMerchant: normalizeMerchant(remoteTransaction.description),
           pending: remoteTransaction.pending || postedSeconds == 0,
         );
-        _transactionsRepository.upsertTransaction(transaction);
+        await _transactionsRepository.upsertTransaction(transaction);
         transactionCount += 1;
       }
     }

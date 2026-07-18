@@ -1,28 +1,36 @@
 import 'dart:convert';
 
 import 'package:budgets/services/simplefin/simplefin_models.dart';
-import 'package:budgets/services/sqlite/budgets_database.dart';
+import 'package:ethan_sync/ethan_sync.dart';
+import 'package:powersync/powersync.dart';
 
 class SyncStateStore {
-  SyncStateStore(this._budgetsDatabase);
+  SyncStateStore(this._powerSync);
 
-  final BudgetsDatabase _budgetsDatabase;
+  final PowerSyncDatabase _powerSync;
 
   static const lastSuccessfulPullKey = 'last_successful_pull_at';
   static const lastErrlistKey = 'last_errlist_json';
 
-  DateTime? lastSuccessfulPullAt() {
-    final value = _read(lastSuccessfulPullKey);
+  Future<DateTime?> lastSuccessfulPullAt() async {
+    final value = await _read(lastSuccessfulPullKey);
     if (value == null) return null;
     return DateTime.tryParse(value);
   }
 
-  void setLastSuccessfulPullAt(DateTime time) {
-    _write(lastSuccessfulPullKey, time.toIso8601String());
+  Future<void> setLastSuccessfulPullAt(DateTime time) async {
+    await _write(lastSuccessfulPullKey, time.toIso8601String());
   }
 
-  List<SimpleFinError> lastErrors() {
-    final value = _read(lastErrlistKey);
+  Future<void> clearLastSuccessfulPullAt() async {
+    await _powerSync.execute(
+      'DELETE FROM sync_state WHERE key = ?',
+      [lastSuccessfulPullKey],
+    );
+  }
+
+  Future<List<SimpleFinError>> lastErrors() async {
+    final value = await _read(lastErrlistKey);
     if (value == null || value.isEmpty) return const [];
     final decoded = jsonDecode(value);
     if (decoded is! List) return const [];
@@ -32,7 +40,7 @@ class SyncStateStore {
         .toList();
   }
 
-  void setLastErrors(List<SimpleFinError> errors) {
+  Future<void> setLastErrors(List<SimpleFinError> errors) async {
     final payload = jsonEncode(
       errors
           .map(
@@ -45,29 +53,28 @@ class SyncStateStore {
           )
           .toList(),
     );
-    _write(lastErrlistKey, payload);
+    await _write(lastErrlistKey, payload);
   }
 
-  void clear() {
-    _budgetsDatabase.database.execute('DELETE FROM sync_state');
+  Future<void> clear() async {
+    await _powerSync.execute('DELETE FROM sync_state');
   }
 
-  String? _read(String key) {
-    final rows = _budgetsDatabase.database.select(
+  Future<String?> _read(String key) async {
+    final row = await _powerSync.getOptional(
       'SELECT value FROM sync_state WHERE key = ? LIMIT 1',
       [key],
     );
-    if (rows.isEmpty) return null;
-    return rows.first['value'] as String?;
+    if (row == null) return null;
+    return row['value'] as String?;
   }
 
-  void _write(String key, String value) {
-    _budgetsDatabase.database.execute(
-      '''
-      INSERT INTO sync_state (key, value) VALUES (?, ?)
-      ON CONFLICT(key) DO UPDATE SET value = excluded.value
-      ''',
-      [key, value],
-    );
+  Future<void> _write(String key, String value) async {
+    // Stable id == key so reinstalls merge on conflictColumns.key.
+    await _powerSync.upsert('sync_state', {
+      'id': key,
+      'key': key,
+      'value': value,
+    });
   }
 }

@@ -1,26 +1,20 @@
+import 'package:budgets/domain/account.dart';
 import 'package:budgets/domain/budget_month.dart';
 import 'package:budgets/domain/categorizer.dart';
+import 'package:budgets/domain/category.dart';
+import 'package:budgets/domain/month_summary.dart';
+import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/domain/transaction_ingest.dart';
 import 'package:budgets/services/simplefin/simplefin_access_store.dart';
 import 'package:budgets/services/simplefin/simplefin_client.dart';
 import 'package:budgets/services/simplefin/simplefin_models.dart';
 import 'package:budgets/services/sqlite/accounts_repository.dart';
-import 'package:budgets/services/sqlite/budgets_database.dart';
 import 'package:budgets/services/sqlite/categories_repository.dart';
 import 'package:budgets/services/sqlite/sync_state_store.dart';
 import 'package:budgets/services/sqlite/transactions_repository.dart';
-import 'package:budgets/domain/account.dart';
-import 'package:budgets/domain/category.dart';
-import 'package:budgets/domain/month_summary.dart';
-import 'package:budgets/domain/transaction.dart';
+import 'package:budgets/services/sync/powersync_database_provider.dart';
 import 'package:budgets/util/merchant_normalize.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-final budgetsDatabaseProvider = FutureProvider<BudgetsDatabase>((ref) async {
-  final database = await BudgetsDatabase.open();
-  ref.onDispose(database.close);
-  return database;
-});
 
 final simpleFinClientProvider = Provider<SimpleFinClient>((ref) {
   final client = SimpleFinClient();
@@ -35,26 +29,26 @@ final simpleFinAccessStoreProvider = Provider<SimpleFinAccessStore>((ref) {
 final accountsRepositoryProvider = FutureProvider<AccountsRepository>((
   ref,
 ) async {
-  final database = await ref.watch(budgetsDatabaseProvider.future);
+  final database = await ref.watch(powerSyncDatabaseProvider.future);
   return AccountsRepository(database);
 });
 
 final transactionsRepositoryProvider = FutureProvider<TransactionsRepository>((
   ref,
 ) async {
-  final database = await ref.watch(budgetsDatabaseProvider.future);
+  final database = await ref.watch(powerSyncDatabaseProvider.future);
   return TransactionsRepository(database);
 });
 
 final categoriesRepositoryProvider = FutureProvider<CategoriesRepository>((
   ref,
 ) async {
-  final database = await ref.watch(budgetsDatabaseProvider.future);
+  final database = await ref.watch(powerSyncDatabaseProvider.future);
   return CategoriesRepository(database);
 });
 
 final syncStateStoreProvider = FutureProvider<SyncStateStore>((ref) async {
-  final database = await ref.watch(budgetsDatabaseProvider.future);
+  final database = await ref.watch(powerSyncDatabaseProvider.future);
   return SyncStateStore(database);
 });
 
@@ -127,9 +121,9 @@ final connectionStatusProvider = FutureProvider<ConnectionStatus>((ref) async {
   return ConnectionStatus(
     isConnected: await accessStore.isConnected,
     fromEnv: accessStore.isConfiguredInEnv,
-    accounts: accountsRepository.listAccounts(),
-    errors: syncStateStore.lastErrors(),
-    lastSyncedAt: syncStateStore.lastSuccessfulPullAt(),
+    accounts: await accountsRepository.listAccounts(),
+    errors: await syncStateStore.lastErrors(),
+    lastSyncedAt: await syncStateStore.lastSuccessfulPullAt(),
   );
 });
 
@@ -144,7 +138,7 @@ final transactionsListProvider = FutureProvider<List<BankTransaction>>((
 final accountsMapProvider = FutureProvider<Map<String, Account>>((ref) async {
   ref.watch(dataRevisionProvider);
   final repository = await ref.watch(accountsRepositoryProvider.future);
-  final accounts = repository.listAccounts();
+  final accounts = await repository.listAccounts();
   return {for (final account in accounts) account.id: account};
 });
 

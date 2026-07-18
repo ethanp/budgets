@@ -145,7 +145,7 @@ class CategoriesScreen extends ConsumerWidget {
                     final dollars = double.tryParse(controller.text.trim()) ?? 0;
                     final repository =
                         await ref.read(categoriesRepositoryProvider.future);
-                    repository.setBudget(
+                    await repository.setBudget(
                       categoryId: category.id,
                       yearMonth: yearMonth,
                       amountCents: (dollars * 100).round(),

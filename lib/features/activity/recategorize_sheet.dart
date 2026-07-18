@@ -119,13 +119,13 @@ class _RecategorizeSheetState extends ConsumerState<RecategorizeSheet> {
 
   Future<void> _assign(String categoryId) async {
     final categorizer = await ref.read(categorizerProvider.future);
-    categorizer.assignUserCategory(
+    await categorizer.assignUserCategory(
       transactionId: widget.transaction.id,
       categoryId: categoryId,
       merchantPattern: widget.transaction.normalizedMerchant,
       createRule: _createRule,
     );
-    categorizer.applyRulesToUncategorized();
+    await categorizer.applyRulesToUncategorized();
     ref.read(dataRevisionProvider.notifier).bump();
     if (mounted) Navigator.of(context).pop();
   }

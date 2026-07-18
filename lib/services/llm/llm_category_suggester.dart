@@ -47,13 +47,14 @@ class LlmCategorySuggester {
   Future<List<CategorySuggestion>> suggestForUncategorized({
     int limit = 40,
   }) async {
-    final categories = _categoriesRepository.listActive();
+    final categories = await _categoriesRepository.listActive();
     final categoryByName = {
       for (final category in categories) category.name.toLowerCase(): category,
     };
 
     final merchants = <String>{};
-    for (final transaction in _transactionsRepository.listAll(limit: 500)) {
+    for (final transaction
+        in await _transactionsRepository.listAll(limit: 500)) {
       if (transaction.effectiveCategoryId != null) continue;
       if (transaction.normalizedMerchant.isEmpty) continue;
       merchants.add(transaction.normalizedMerchant);
@@ -90,11 +91,12 @@ class LlmCategorySuggester {
       for (final suggestion in suggestions)
         suggestion.merchant.toUpperCase(): suggestion,
     };
-    for (final transaction in _transactionsRepository.listAll(limit: 500)) {
+    for (final transaction
+        in await _transactionsRepository.listAll(limit: 500)) {
       if (transaction.userCategoryId != null) continue;
       final suggestion = byMerchant[transaction.normalizedMerchant];
       if (suggestion == null) continue;
-      _transactionsRepository.setSuggestedCategory(
+      await _transactionsRepository.setSuggestedCategory(
         transactionId: transaction.id,
         categoryId: suggestion.categoryId,
       );

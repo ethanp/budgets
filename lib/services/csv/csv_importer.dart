@@ -63,10 +63,11 @@ class CsvImporter {
     }
 
     final externalAccountId = 'csv:${accountName.toLowerCase()}';
-    final existing = _accountsRepository.findByExternalId(externalAccountId);
+    final existing =
+        await _accountsRepository.findByExternalId(externalAccountId);
     final accountId = existing?.id ?? _uuid.v4();
     final now = DateTime.now();
-    _accountsRepository.upsertAccount(
+    await _accountsRepository.upsertAccount(
       Account(
         id: accountId,
         externalId: externalAccountId,
@@ -94,7 +95,7 @@ class CsvImporter {
         utf8.encode('$dateText|$amountText|$description|$rowIndex'),
       );
 
-      _transactionsRepository.upsertTransaction(
+      await _transactionsRepository.upsertTransaction(
         BankTransaction(
           id: _uuid.v4(),
           accountId: accountId,

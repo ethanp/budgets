@@ -1,7 +1,7 @@
-import 'package:budgets/services/sqlite/categories_repository.dart';
-import 'package:budgets/services/sqlite/transactions_repository.dart';
 import 'package:budgets/domain/category.dart';
 import 'package:budgets/domain/transaction.dart';
+import 'package:budgets/services/sqlite/categories_repository.dart';
+import 'package:budgets/services/sqlite/transactions_repository.dart';
 import 'package:uuid/uuid.dart';
 
 class Categorizer {
@@ -15,13 +15,13 @@ class Categorizer {
   final TransactionsRepository _transactionsRepository;
   final _uuid = const Uuid();
 
-  String? resolveCategoryId(BankTransaction transaction) {
+  Future<String?> resolveCategoryId(BankTransaction transaction) async {
     if (transaction.userCategoryId != null) {
       return transaction.userCategoryId;
     }
 
     final merchant = transaction.normalizedMerchant;
-    final rules = _categoriesRepository.listRules();
+    final rules = await _categoriesRepository.listRules();
     for (final rule in rules) {
       switch (rule.matchType) {
         case RuleMatchType.merchantExact:
@@ -38,19 +38,19 @@ class Categorizer {
     return transaction.suggestedCategoryId;
   }
 
-  void assignUserCategory({
+  Future<void> assignUserCategory({
     required String transactionId,
     required String categoryId,
     required String merchantPattern,
     required bool createRule,
-  }) {
-    _transactionsRepository.setUserCategory(
+  }) async {
+    await _transactionsRepository.setUserCategory(
       transactionId: transactionId,
       categoryId: categoryId,
     );
     if (!createRule) return;
 
-    _categoriesRepository.upsertRule(
+    await _categoriesRepository.upsertRule(
       CategorizationRule(
         id: _uuid.v4(),
         matchType: RuleMatchType.merchantContains,
@@ -61,15 +61,15 @@ class Categorizer {
     );
   }
 
-  void applyRulesToUncategorized() {
-    final transactions = _transactionsRepository.listAll();
+  Future<void> applyRulesToUncategorized() async {
+    final transactions = await _transactionsRepository.listAll();
     for (final transaction in transactions) {
       if (transaction.userCategoryId != null) continue;
-      final resolved = resolveCategoryId(transaction);
+      final resolved = await resolveCategoryId(transaction);
       if (resolved == null || resolved == transaction.suggestedCategoryId) {
         continue;
       }
-      _transactionsRepository.setSuggestedCategory(
+      await _transactionsRepository.setSuggestedCategory(
         transactionId: transaction.id,
         categoryId: resolved,
       );

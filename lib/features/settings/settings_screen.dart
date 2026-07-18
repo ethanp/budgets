@@ -214,6 +214,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ],
           ),
+          const SizedBox(height: AppSpacing.sm),
+          CupertinoButton(
+            onPressed: _busy ? null : _refreshFullHistory,
+            child: Text(
+              'Refresh full history',
+              style: AppText.body.medium,
+            ),
+          ),
         ],
       ),
     );
@@ -313,6 +321,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       final ingest = await ref.read(transactionIngestProvider.future);
       await ingest.pullAndUpsert();
       ref.read(dataRevisionProvider.notifier).bump();
+    } on SimpleFinFetchException catch (error) {
+      setState(() => _actionError = error.message);
+    } catch (error) {
+      setState(() => _actionError = '$error');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _refreshFullHistory() async {
+    setState(() {
+      _busy = true;
+      _actionError = null;
+    });
+    try {
+      final ingest = await ref.read(transactionIngestProvider.future);
+      final result = await ingest.pullAndUpsert(fullHistory: true);
+      ref.read(dataRevisionProvider.notifier).bump();
+      if (mounted && result.errors.isNotEmpty) {
+        setState(
+          () => _actionError =
+              'Pulled ${result.transactionCount} txs; '
+              '${result.errors.length} bridge warning(s).',
+        );
+      }
     } on SimpleFinFetchException catch (error) {
       setState(() => _actionError = error.message);
     } catch (error) {

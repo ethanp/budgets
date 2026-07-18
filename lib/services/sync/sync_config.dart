@@ -23,6 +23,24 @@ bool budgetsSyncConfigured() {
   return secret.isNotEmpty && lan.isNotEmpty;
 }
 
+/// FK graph for upload ordering (table → tables it references).
+const _fkDependencies = <String, Set<String>>{
+  'accounts': {},
+  'categories': {},
+  'sync_state': {},
+  'transactions': {'accounts', 'categories'},
+  'category_budgets': {'categories'},
+  'categorization_rules': {'categories'},
+};
+
+/// Non-PK unique constraints for PostgREST `on_conflict`.
+const _conflictColumns = <String, String>{
+  'accounts': 'external_id',
+  'transactions': 'account_id,external_id',
+  'category_budgets': 'category_id,year_month',
+  'sync_state': 'key',
+};
+
 SyncConfig buildBudgetsSyncConfig(SharedPreferences preferences) {
   return SyncConfig(
     hostResolution: HostResolutionSettings(
@@ -43,9 +61,10 @@ SyncConfig buildBudgetsSyncConfig(SharedPreferences preferences) {
     schema: budgetsSchema,
     databasePath: () => _resolveDatabasePath(preferences),
     upload: UploadSettings(
-      strategy: CoalescingBatchUploadStrategy(),
+      strategy: TieredBatchUploadStrategy(dependencies: _fkDependencies),
+      conflictColumns: _conflictColumns,
     ),
-    startupHooks: [_requireJwtSecret],
+    startupHooks: [_requireJwtSecret, _seedDefaultCategoriesIfNeeded],
     onSyncError: (message) => _log.warn(message),
   );
 }
@@ -97,4 +116,45 @@ Future<void> _requireJwtSecret(PowerSyncDatabase database) async {
   if (_jwtSecret().isEmpty) {
     throw StateError('Missing POWERSYNC_JWT_SECRET in .env');
   }
+}
+
+Future<void> _seedDefaultCategoriesIfNeeded(PowerSyncDatabase database) async {
+  final countRow = await database.getOptional(
+    'SELECT COUNT(*) AS c FROM categories',
+  );
+  final count = _asInt(countRow?['c']);
+  if (count > 0) return;
+
+  const defaults = [
+    'Groceries',
+    'Dining',
+    'Transport',
+    'Housing',
+    'Utilities',
+    'Entertainment',
+    'Shopping',
+    'Health',
+    'Travel',
+    'Income',
+    'Transfer',
+    'Other',
+  ];
+  for (var index = 0; index < defaults.length; index++) {
+    final name = defaults[index];
+    await database.upsert('categories', {
+      'id': 'cat_${name.toLowerCase()}',
+      'name': name,
+      'sort_order': index,
+      'archived': 0,
+      'color_token': null,
+    });
+  }
+  _log.log('Seeded ${defaults.length} default categories');
+}
+
+int _asInt(Object? value) {
+  if (value == null) return 0;
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  return int.parse(value.toString());
 }

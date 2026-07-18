@@ -1,62 +1,47 @@
 import 'package:budgets/domain/category.dart';
-import 'package:budgets/services/sqlite/budgets_database.dart';
-import 'package:sqlite3/sqlite3.dart';
+import 'package:ethan_sync/ethan_sync.dart';
+import 'package:powersync/powersync.dart';
 import 'package:uuid/uuid.dart';
 
 class CategoriesRepository {
-  CategoriesRepository(this._budgetsDatabase);
+  CategoriesRepository(this._powerSync);
 
-  final BudgetsDatabase _budgetsDatabase;
+  final PowerSyncDatabase _powerSync;
   final _uuid = const Uuid();
 
-  Database get _database => _budgetsDatabase.database;
-
-  List<SpendCategory> listActive() {
-    return _database
-        .select(
-          '''
-          SELECT * FROM categories
-          WHERE archived = 0
-          ORDER BY sort_order ASC, name COLLATE NOCASE
-          ''',
-        )
-        .map(_categoryFromRow)
-        .toList();
-  }
-
-  List<SpendCategory> listAll() {
-    return _database
-        .select('SELECT * FROM categories ORDER BY sort_order ASC')
-        .map(_categoryFromRow)
-        .toList();
-  }
-
-  void upsertCategory(SpendCategory category) {
-    _database.execute(
+  Future<List<SpendCategory>> listActive() async {
+    final rows = await _powerSync.getAll(
       '''
-      INSERT INTO categories (id, name, sort_order, archived, color_token)
-      VALUES (?, ?, ?, ?, ?)
-      ON CONFLICT(id) DO UPDATE SET
-        name = excluded.name,
-        sort_order = excluded.sort_order,
-        archived = excluded.archived,
-        color_token = excluded.color_token
+      SELECT * FROM categories
+      WHERE archived = 0
+      ORDER BY sort_order ASC, name COLLATE NOCASE
       ''',
-      [
-        category.id,
-        category.name,
-        category.sortOrder,
-        category.archived ? 1 : 0,
-        category.colorToken,
-      ],
     );
+    return rows.map(_categoryFromRow).toList();
   }
 
-  CategoryBudget? budgetFor({
+  Future<List<SpendCategory>> listAll() async {
+    final rows = await _powerSync.getAll(
+      'SELECT * FROM categories ORDER BY sort_order ASC',
+    );
+    return rows.map(_categoryFromRow).toList();
+  }
+
+  Future<void> upsertCategory(SpendCategory category) async {
+    await _powerSync.upsert('categories', {
+      'id': category.id,
+      'name': category.name,
+      'sort_order': category.sortOrder,
+      'archived': category.archived ? 1 : 0,
+      'color_token': category.colorToken,
+    });
+  }
+
+  Future<CategoryBudget?> budgetFor({
     required String categoryId,
     required String yearMonth,
-  }) {
-    final rows = _database.select(
+  }) async {
+    final row = await _powerSync.getOptional(
       '''
       SELECT * FROM category_budgets
       WHERE category_id = ? AND year_month = ?
@@ -64,102 +49,92 @@ class CategoriesRepository {
       ''',
       [categoryId, yearMonth],
     );
-    if (rows.isEmpty) return null;
-    return _budgetFromRow(rows.first);
+    if (row == null) return null;
+    return _budgetFromRow(row);
   }
 
-  List<CategoryBudget> budgetsForMonth(String yearMonth) {
-    return _database
-        .select(
-          'SELECT * FROM category_budgets WHERE year_month = ?',
-          [yearMonth],
-        )
-        .map(_budgetFromRow)
-        .toList();
+  Future<List<CategoryBudget>> budgetsForMonth(String yearMonth) async {
+    final rows = await _powerSync.getAll(
+      'SELECT * FROM category_budgets WHERE year_month = ?',
+      [yearMonth],
+    );
+    return rows.map(_budgetFromRow).toList();
   }
 
-  void setBudget({
+  Future<void> setBudget({
     required String categoryId,
     required String yearMonth,
     required int amountCents,
-  }) {
-    final existing = budgetFor(categoryId: categoryId, yearMonth: yearMonth);
+  }) async {
+    final existing = await budgetFor(
+      categoryId: categoryId,
+      yearMonth: yearMonth,
+    );
     final id = existing?.id ?? _uuid.v4();
-    _database.execute(
-      '''
-      INSERT INTO category_budgets (id, category_id, year_month, amount_cents)
-      VALUES (?, ?, ?, ?)
-      ON CONFLICT(category_id, year_month) DO UPDATE SET
-        amount_cents = excluded.amount_cents
-      ''',
-      [id, categoryId, yearMonth, amountCents],
+    await _powerSync.upsert('category_budgets', {
+      'id': id,
+      'category_id': categoryId,
+      'year_month': yearMonth,
+      'amount_cents': amountCents,
+    });
+  }
+
+  Future<List<CategorizationRule>> listRules() async {
+    final rows = await _powerSync.getAll(
+      'SELECT * FROM categorization_rules ORDER BY priority DESC, pattern',
     );
+    return rows.map(_ruleFromRow).toList();
   }
 
-  List<CategorizationRule> listRules() {
-    return _database
-        .select(
-          'SELECT * FROM categorization_rules ORDER BY priority DESC, pattern',
-        )
-        .map(_ruleFromRow)
-        .toList();
+  Future<void> upsertRule(CategorizationRule rule) async {
+    await _powerSync.upsert('categorization_rules', {
+      'id': rule.id,
+      'match_type': rule.matchType.storageValue,
+      'pattern': rule.pattern,
+      'category_id': rule.categoryId,
+      'priority': rule.priority,
+    });
   }
 
-  void upsertRule(CategorizationRule rule) {
-    _database.execute(
-      '''
-      INSERT INTO categorization_rules
-        (id, match_type, pattern, category_id, priority)
-      VALUES (?, ?, ?, ?, ?)
-      ON CONFLICT(id) DO UPDATE SET
-        match_type = excluded.match_type,
-        pattern = excluded.pattern,
-        category_id = excluded.category_id,
-        priority = excluded.priority
-      ''',
-      [
-        rule.id,
-        rule.matchType.storageValue,
-        rule.pattern,
-        rule.categoryId,
-        rule.priority,
-      ],
-    );
-  }
-
-  void deleteRule(String ruleId) {
-    _database.execute(
+  Future<void> deleteRule(String ruleId) async {
+    await _powerSync.execute(
       'DELETE FROM categorization_rules WHERE id = ?',
       [ruleId],
     );
   }
 
-  static SpendCategory _categoryFromRow(Row row) {
+  static SpendCategory _categoryFromRow(dynamic row) {
     return SpendCategory(
       id: row['id'] as String,
       name: row['name'] as String,
-      sortOrder: row['sort_order'] as int,
-      archived: (row['archived'] as int) == 1,
+      sortOrder: _asInt(row['sort_order']),
+      archived: _asInt(row['archived']) == 1,
       colorToken: row['color_token'] as String?,
     );
   }
 
-  static CategoryBudget _budgetFromRow(Row row) {
+  static CategoryBudget _budgetFromRow(dynamic row) {
     return CategoryBudget(
       id: row['id'] as String,
       categoryId: row['category_id'] as String,
       yearMonth: row['year_month'] as String,
-      amountCents: row['amount_cents'] as int,
+      amountCents: _asInt(row['amount_cents']),
     );
   }
 
-  static CategorizationRule _ruleFromRow(Row row) {
+  static CategorizationRule _ruleFromRow(dynamic row) {
     return CategorizationRule(
       id: row['id'] as String,
       matchType: RuleMatchType.fromStorage(row['match_type'] as String),
       pattern: row['pattern'] as String,
       categoryId: row['category_id'] as String,
-      priority: row['priority'] as int,
+      priority: _asInt(row['priority']),
     );
+  }
+
+  static int _asInt(Object? value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.parse('$value');
   }
 }

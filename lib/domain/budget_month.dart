@@ -1,8 +1,8 @@
+import 'package:budgets/domain/month_summary.dart';
 import 'package:budgets/services/sqlite/accounts_repository.dart';
 import 'package:budgets/services/sqlite/categories_repository.dart';
 import 'package:budgets/services/sqlite/sync_state_store.dart';
 import 'package:budgets/services/sqlite/transactions_repository.dart';
-import 'package:budgets/domain/month_summary.dart';
 import 'package:budgets/util/merchant_normalize.dart';
 
 class BudgetMonth {
@@ -21,27 +21,28 @@ class BudgetMonth {
   final CategoriesRepository _categoriesRepository;
   final SyncStateStore _syncStateStore;
 
-  MonthSummary snapshot(String yearMonth) {
-    final accounts = _accountsRepository.listAccounts();
+  Future<MonthSummary> snapshot(String yearMonth) async {
+    final accounts = await _accountsRepository.listAccounts();
     final names = {
       for (final account in accounts) account.id: account.name,
     };
     return _transactionsRepository.monthSummary(
       yearMonth: yearMonth,
       accountNames: names,
-      lastSyncedAt: _syncStateStore.lastSuccessfulPullAt(),
+      lastSyncedAt: await _syncStateStore.lastSuccessfulPullAt(),
     );
   }
 
-  List<CategoryMonthRow> categoryRows(String yearMonth) {
-    final categories = _categoriesRepository.listActive();
+  Future<List<CategoryMonthRow>> categoryRows(String yearMonth) async {
+    final categories = await _categoriesRepository.listActive();
     final budgets = {
-      for (final budget in _categoriesRepository.budgetsForMonth(yearMonth))
+      for (final budget
+          in await _categoriesRepository.budgetsForMonth(yearMonth))
         budget.categoryId: budget.amountCents,
     };
     final spentByCategory = <String, int>{};
     for (final transaction
-        in _transactionsRepository.listForMonth(yearMonth)) {
+        in await _transactionsRepository.listForMonth(yearMonth)) {
       if (!transaction.isOutflow) continue;
       final categoryId = transaction.effectiveCategoryId;
       if (categoryId == null) continue;
