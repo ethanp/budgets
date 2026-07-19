@@ -69,11 +69,11 @@ final lifeEventsProvider = FutureProvider<List<LifeEvent>>((ref) async {
   return repository.listNewestFirst();
 });
 
-final homebaseRepositoryProvider = FutureProvider<ChainStaysRepository>((
+final housingRepositoryProvider = FutureProvider<ChainStaysRepository>((
   ref,
 ) async {
   final database = await ref.watch(powerSyncDatabaseProvider.future);
-  return ChainStaysRepository(database, tableName: 'homebase_stays');
+  return ChainStaysRepository(database, tableName: 'housing_stays');
 });
 
 final jobRepositoryProvider = FutureProvider<ChainStaysRepository>((ref) async {
@@ -81,9 +81,9 @@ final jobRepositoryProvider = FutureProvider<ChainStaysRepository>((ref) async {
   return ChainStaysRepository(database, tableName: 'job_stays');
 });
 
-final homebaseChainProvider = FutureProvider<StayChain>((ref) async {
+final housingChainProvider = FutureProvider<StayChain>((ref) async {
   ref.watch(dataRevisionProvider);
-  final repository = await ref.watch(homebaseRepositoryProvider.future);
+  final repository = await ref.watch(housingRepositoryProvider.future);
   return repository.loadChain();
 });
 
@@ -165,6 +165,19 @@ class TrendSpendRateNotifier extends Notifier<TrendSpendRate> {
   TrendSpendRate build() => TrendSpendRate.perYear;
 
   void setRate(TrendSpendRate rate) => state = rate;
+}
+
+/// Whether Housing/Job era gradient fills are drawn on Trends charts.
+final showChainEraFillsProvider =
+    NotifierProvider<ShowChainEraFillsNotifier, bool>(
+  ShowChainEraFillsNotifier.new,
+);
+
+class ShowChainEraFillsNotifier extends Notifier<bool> {
+  @override
+  bool build() => true;
+
+  void toggle() => state = !state;
 }
 
 class ConnectionStatus {

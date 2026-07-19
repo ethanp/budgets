@@ -16,7 +16,7 @@ class TrendsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final trendsAsync = ref.watch(categoryTrendsProvider);
     final lifeEventsAsync = ref.watch(lifeEventsProvider);
-    final homebaseAsync = ref.watch(homebaseChainProvider);
+    final housingAsync = ref.watch(housingChainProvider);
     final jobAsync = ref.watch(jobChainProvider);
 
     return CupertinoPageScaffold(
@@ -36,7 +36,7 @@ class TrendsScreen extends ConsumerWidget {
           data: (bundle) => _trendsBody(
             bundle,
             lifeEvents: lifeEventsAsync.asData?.value ?? const <LifeEvent>[],
-            homebaseChain: homebaseAsync.asData?.value,
+            housingChain: housingAsync.asData?.value,
             jobChain: jobAsync.asData?.value,
           ),
         ),
@@ -47,7 +47,7 @@ class TrendsScreen extends ConsumerWidget {
   Widget _trendsBody(
     TrendsChartBundle bundle, {
     required List<LifeEvent> lifeEvents,
-    required StayChain? homebaseChain,
+    required StayChain? housingChain,
     required StayChain? jobChain,
   }) {
     if (bundle.isEmpty) {
@@ -71,7 +71,7 @@ class TrendsScreen extends ConsumerWidget {
             title: 'Category spend',
             seriesList: bundle.categorySpend,
             lifeEvents: lifeEvents,
-            homebaseChain: homebaseChain,
+            housingChain: housingChain,
             jobChain: jobChain,
             showSpendRateToggle: true,
             useDistributionLegend: true,
@@ -83,13 +83,13 @@ class TrendsScreen extends ConsumerWidget {
           const SizedBox(height: AppSpacing.lg),
         if (bundle.cashFlows.isNotEmpty)
           CategoryTrendChart(
-            title: 'Income · Spending · Transfer',
+            title: 'Income · Spending · Savings',
             subtitle:
-                'Trailing year · fill = percentile · '
-                'double-tap legend to solo',
+                'Trailing year · Savings = Income − Spending · '
+                'fill = percentile · double-tap legend to solo',
             seriesList: bundle.cashFlows,
             lifeEvents: lifeEvents,
-            homebaseChain: homebaseChain,
+            housingChain: housingChain,
             jobChain: jobChain,
             showSpendRateToggle: bundle.categorySpend.isEmpty,
             initiallyHiddenSeriesIds: const {

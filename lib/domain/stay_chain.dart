@@ -5,48 +5,48 @@ import 'package:intl/intl.dart';
 
 /// Which life-chain timeline a stay belongs to.
 enum LifeChainKind {
-  homebase,
+  housing,
   job;
 
   String get screenTitle => switch (this) {
-        LifeChainKind.homebase => 'Homebase',
+        LifeChainKind.housing => 'Housing',
         LifeChainKind.job => 'Job',
       };
 
   String get emptyHeroCaption => switch (this) {
-        LifeChainKind.homebase => 'No homebase yet',
+        LifeChainKind.housing => 'No housing yet',
         LifeChainKind.job => 'No job yet',
       };
 
   String get currentCaption => switch (this) {
-        LifeChainKind.homebase => 'Home now',
+        LifeChainKind.housing => 'Current home',
         LifeChainKind.job => 'Current job',
       };
 
   String get addCta => switch (this) {
-        LifeChainKind.homebase => 'Add place',
+        LifeChainKind.housing => 'Add place',
         LifeChainKind.job => 'Add job',
       };
 
   String get labelPlaceholder => switch (this) {
-        LifeChainKind.homebase => 'Place name',
+        LifeChainKind.housing => 'Place name',
         LifeChainKind.job => 'Employer or role',
       };
 
   String get startDateLabel => switch (this) {
-        LifeChainKind.homebase => 'Moved in',
+        LifeChainKind.housing => 'Moved in',
         LifeChainKind.job => 'Started',
       };
 
   IconData get icon => switch (this) {
-        LifeChainKind.homebase => CupertinoIcons.house_fill,
+        LifeChainKind.housing => CupertinoIcons.house_fill,
         LifeChainKind.job => CupertinoIcons.briefcase_fill,
       };
 
   /// Base Trends band color for this chain (distinct from life-event gold).
   Color get trendBandColor => switch (this) {
-        LifeChainKind.homebase => AppColors.accentPrimary,
-        LifeChainKind.job => const Color(0xFF4CC9F0),
+        LifeChainKind.housing => AppColors.housing,
+        LifeChainKind.job => AppColors.success,
       };
 
   /// Mild per-era accent for labels/edges — same lightness family, tiny hue nudge.

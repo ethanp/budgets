@@ -1,3 +1,4 @@
+import 'package:budgets/domain/category.dart';
 import 'package:budgets/domain/special_category.dart';
 import 'package:budgets/theme/app_theme.dart';
 import 'package:flutter/cupertino.dart';
@@ -7,7 +8,7 @@ class CategoryColor {
   CategoryColor._();
 
   static const uncategorized = AppColors.textColor4;
-  static const housing = AppColors.accentPrimary;
+  static const housing = AppColors.housing;
   static const income = AppColors.success;
   static const transfer = AppColors.accentSecondary;
 
@@ -25,13 +26,19 @@ class CategoryColor {
     Color(0xFFF72585),
   ];
 
-  static Color forCategoryId(String? categoryId) {
+  static Color forCategoryId(String? categoryId, {String? categoryName}) {
+    if (SpecialCategory.isHousingId(categoryId) ||
+        SpecialCategory.isHousingName(categoryName)) {
+      return housing;
+    }
     if (categoryId == null || categoryId.isEmpty) return uncategorized;
-    if (SpecialCategory.isHousingId(categoryId)) return housing;
     if (SpecialCategory.isIncomeId(categoryId)) return income;
     if (SpecialCategory.isTransferId(categoryId)) return transfer;
     return palette[_stableIndex(categoryId) % palette.length];
   }
+
+  static Color forCategory(SpendCategory category) =>
+      forCategoryId(category.id, categoryName: category.name);
 
   static int _stableIndex(String categoryId) {
     var hash = 0;

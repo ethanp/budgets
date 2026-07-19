@@ -14,7 +14,7 @@ class LifeChainScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final chainAsync = switch (kind) {
-      LifeChainKind.homebase => ref.watch(homebaseChainProvider),
+      LifeChainKind.housing => ref.watch(housingChainProvider),
       LifeChainKind.job => ref.watch(jobChainProvider),
     };
 
@@ -55,7 +55,7 @@ class _ChainBody extends ConsumerWidget {
       ),
       children: [
         Text(
-          kind == LifeChainKind.homebase
+          kind == LifeChainKind.housing
               ? 'Where you’ve lived — a path of places over time.'
               : 'Where you’ve worked — a path of roles over time.',
           style: AppText.body.medium.copyWith(color: AppColors.textColor3),

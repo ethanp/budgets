@@ -7,6 +7,7 @@ import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/features/trends/category_trend_point.dart';
 import 'package:budgets/features/trends/category_trend_series.dart';
 import 'package:budgets/features/trends/trends_chart_bundle.dart';
+import 'package:budgets/theme/app_theme.dart';
 import 'package:budgets/util/category_color.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/cupertino.dart';
@@ -20,7 +21,13 @@ class CategoryTrendSeriesFactory {
   static const incomeSeriesId = '__income__';
   static const spendingSeriesId = '__spending__';
   static const transferSeriesId = '__transfer__';
+  static const savingsSeriesId = '__savings__';
+  /// Trailing-year income × [housingIncomeShareCap] — housing affordability guide.
+  static const housingAffordabilitySeriesId = '__housing_30__';
   static const groupSeriesIdPrefix = 'group:';
+
+  /// Common rule of thumb: housing ≤ this share of income (bank income ≈ net).
+  static const housingIncomeShareCap = 0.30;
 
   static String groupSeriesId(String groupId) => '$groupSeriesIdPrefix$groupId';
 
@@ -28,8 +35,15 @@ class CategoryTrendSeriesFactory {
   static const allSpendLineColor = Color(0xFF8B1E2D);
   static const uncategorizedLineColor = Color(0xFF9AA0A6);
   static const incomeLineColor = Color(0xFF3FB37F);
-  static const spendingLineColor = Color(0xFFE76F51);
+  static const spendingLineColor = AppColors.housing;
   static const transferLineColor = Color(0xFF7B8CDE);
+  static const savingsLineColor = Color(0xFF56CCF2);
+  /// Housing tinted toward red — distinct from solid Housing and gold categories.
+  static final housingAffordabilityLineColor = Color.lerp(
+        AppColors.housing,
+        const Color(0xFFE53935),
+        0.3,
+      )!;
 
   static const rollingDays = 365;
   static const _smoothingHalfWindow = 21;
@@ -108,6 +122,7 @@ class CategoryTrendSeriesFactory {
     return TrendsChartBundle(
       categorySpend: _buildCategorySpendSeries(
         spendMaps: spendMaps,
+        incomeByDay: cashFlowMaps.incomeByDay,
         categories: categories,
         groups: groups,
         flowCategoryIds: flowCategoryIds,
@@ -124,6 +139,7 @@ class CategoryTrendSeriesFactory {
 
   List<CategoryTrendSeries> _buildCategorySpendSeries({
     required _CategorySpendMaps spendMaps,
+    required Map<DateTime, double> incomeByDay,
     required List<SpendCategory> categories,
     required List<CategoryGroup> groups,
     required Set<String> flowCategoryIds,
@@ -141,6 +157,26 @@ class CategoryTrendSeriesFactory {
       chartDates: chartDates,
       historyFloor: historyFloor,
     );
+
+    CategoryTrendSeries? housingAffordabilitySeries;
+    if (incomeByDay.isNotEmpty) {
+      final affordabilityDaily = {
+        for (final entry in incomeByDay.entries)
+          entry.key: entry.value * housingIncomeShareCap,
+      };
+      final built = _seriesForDailyMap(
+        id: housingAffordabilitySeriesId,
+        name: '30% of income',
+        lineColor: housingAffordabilityLineColor,
+        guide: true,
+        dailySpendCents: affordabilityDaily,
+        chartDates: chartDates,
+        historyFloor: historyFloor,
+      );
+      if (_hasMeaningfulTrend(built)) {
+        housingAffordabilitySeries = built;
+      }
+    }
 
     final groupsById = {for (final group in groups) group.id: group};
     final membersByGroupId = <String, List<SpendCategory>>{};
@@ -174,16 +210,20 @@ class CategoryTrendSeriesFactory {
       }
       if (groupDaily.isEmpty) continue;
 
+      final groupIsHousing =
+          members.any(SpecialCategory.isHousingCategory);
       final groupSeries = _seriesForDailyMap(
         id: groupSeriesId(group.id),
         name: group.name,
-        lineColor: _palette[paletteIndex % _palette.length],
+        lineColor: groupIsHousing
+            ? CategoryColor.housing
+            : _palette[paletteIndex % _palette.length],
         dailySpendCents: groupDaily,
         chartDates: chartDates,
         historyFloor: historyFloor,
       );
       if (!_hasMeaningfulTrend(groupSeries)) continue;
-      paletteIndex++;
+      if (!groupIsHousing) paletteIndex++;
       rankedSeries.add(groupSeries);
     }
 
@@ -191,7 +231,7 @@ class CategoryTrendSeriesFactory {
       final dailySpendCents = spendMaps.byCategoryId[category.id];
       if (dailySpendCents == null || dailySpendCents.isEmpty) continue;
 
-      final pinnedColor = SpecialCategory.isHousingId(category.id)
+      final pinnedColor = SpecialCategory.isHousingCategory(category)
           ? CategoryColor.housing
           : null;
       final categorySeries = _seriesForDailyMap(
@@ -243,6 +283,7 @@ class CategoryTrendSeriesFactory {
 
     return [
       allSpendSeries,
+      ?housingAffordabilitySeries,
       ...rankedSeries,
       ?otherSeries,
       ?uncategorizedSeries,
@@ -257,6 +298,10 @@ class CategoryTrendSeriesFactory {
     required List<DateTime> chartDates,
     required DateTime historyFloor,
   }) {
+    final savingsByDay = _dailySavingsMap(
+      incomeByDay: cashFlowMaps.incomeByDay,
+      spendingByDay: cashFlowMaps.spendingByDay,
+    );
     final series = <CategoryTrendSeries>[
       _seriesForDailyMap(
         id: incomeSeriesId,
@@ -277,6 +322,14 @@ class CategoryTrendSeriesFactory {
         historyFloor: historyFloor,
       ),
       _seriesForDailyMap(
+        id: savingsSeriesId,
+        name: 'Savings',
+        lineColor: savingsLineColor,
+        dailySpendCents: savingsByDay,
+        chartDates: chartDates,
+        historyFloor: historyFloor,
+      ),
+      _seriesForDailyMap(
         id: transferSeriesId,
         name: 'Transfer',
         lineColor: transferLineColor,
@@ -288,6 +341,17 @@ class CategoryTrendSeriesFactory {
     return series.where(_hasMeaningfulTrend).toList();
   }
 
+  Map<DateTime, double> _dailySavingsMap({
+    required Map<DateTime, double> incomeByDay,
+    required Map<DateTime, double> spendingByDay,
+  }) {
+    final days = {...incomeByDay.keys, ...spendingByDay.keys};
+    return {
+      for (final day in days)
+        day: (incomeByDay[day] ?? 0) - (spendingByDay[day] ?? 0),
+    };
+  }
+
   CategoryTrendSeries _seriesForDailyMap({
     required String id,
     required String name,
@@ -296,6 +360,7 @@ class CategoryTrendSeriesFactory {
     required List<DateTime> chartDates,
     required DateTime historyFloor,
     bool dotted = false,
+    bool guide = false,
     bool percentileAreaFill = false,
   }) {
     final rawPoints = _annualizedTrailingPoints(
@@ -308,6 +373,7 @@ class CategoryTrendSeriesFactory {
       name: name,
       lineColor: lineColor,
       dotted: dotted,
+      guide: guide,
       percentileAreaFill: percentileAreaFill,
       points: _smoothedPoints(rawPoints),
     );
@@ -465,8 +531,8 @@ class CategoryTrendSeriesFactory {
 
   bool _hasMeaningfulTrend(CategoryTrendSeries series) {
     for (final point in series.points) {
-      if (point.smoothedCents >= _minMeaningfulCents ||
-          point.rollingCents >= _minMeaningfulCents) {
+      if (point.smoothedCents.abs() >= _minMeaningfulCents ||
+          point.rollingCents.abs() >= _minMeaningfulCents) {
         return true;
       }
     }

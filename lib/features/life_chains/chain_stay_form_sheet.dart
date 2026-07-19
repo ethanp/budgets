@@ -181,8 +181,8 @@ class _ChainStayFormSheetState extends ConsumerState<ChainStayFormSheet> {
 
   Future<ChainStaysRepository> _repository() async {
     return switch (widget.kind) {
-      LifeChainKind.homebase =>
-        ref.read(homebaseRepositoryProvider.future),
+      LifeChainKind.housing =>
+        ref.read(housingRepositoryProvider.future),
       LifeChainKind.job => ref.read(jobRepositoryProvider.future),
     };
   }

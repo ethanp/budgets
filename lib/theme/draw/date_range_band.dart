@@ -4,7 +4,7 @@ import 'package:budgets/features/trends/chart_date_layout.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/painting.dart';
 
-/// Clipped date-range band for Trends overlays (life events, homebase, job).
+/// Clipped date-range band for Trends overlays (life events, housing, job).
 class DateRangeBandGeometry {
   const DateRangeBandGeometry({
     required this.leftX,
@@ -19,22 +19,13 @@ class DateRangeBandGeometry {
   final bool drawRightEdge;
 }
 
-/// Contrasting fill treatments for consecutive chain eras (same base hue).
+/// Vertical gradient treatments that bounce between consecutive chain eras.
 enum DateRangeBandFillStyle {
-  /// Even wash across the band.
-  wash,
-
   /// Stronger at the top, fading downward.
   fadeDown,
 
   /// Stronger at the bottom, fading upward.
   fadeUp,
-
-  /// Stronger on the left edge of the era.
-  fadeRight,
-
-  /// Soft mid-band veil (stronger through the vertical center).
-  midVeil,
 }
 
 /// Computes chart-clipped band geometry, or null when the range is empty.
@@ -84,23 +75,32 @@ void paintDateRangeBand(
   required Paint edgePaint,
   Paint? fillPaint,
   Color? fillColor,
-  DateRangeBandFillStyle fillStyle = DateRangeBandFillStyle.wash,
+  DateRangeBandFillStyle fillStyle = DateRangeBandFillStyle.fadeDown,
   double fillAlpha = 0.07,
+  double? fillTop,
+  double? fillBottom,
+  double? edgeTop,
+  double? edgeBottom,
 }) {
-  final bandRect = Rect.fromLTRB(
+  final resolvedFillTop = fillTop ?? layout.top;
+  final resolvedFillBottom = fillBottom ?? layout.bottom;
+  final resolvedEdgeTop = edgeTop ?? layout.top;
+  final resolvedEdgeBottom = edgeBottom ?? layout.bottom;
+
+  final fillRect = Rect.fromLTRB(
     geometry.leftX,
-    layout.top,
+    resolvedFillTop,
     geometry.rightX,
-    layout.bottom,
+    resolvedFillBottom,
   );
   if (fillPaint != null) {
-    canvas.drawRect(bandRect, fillPaint);
+    canvas.drawRect(fillRect, fillPaint);
   } else if (fillColor != null) {
     canvas.drawRect(
-      bandRect,
+      fillRect,
       _bandFillPaint(
         color: fillColor,
-        bandRect: bandRect,
+        bandRect: fillRect,
         style: fillStyle,
         alpha: fillAlpha,
       ),
@@ -108,15 +108,15 @@ void paintDateRangeBand(
   }
   if (geometry.drawLeftEdge) {
     canvas.drawLine(
-      Offset(geometry.leftX, layout.top),
-      Offset(geometry.leftX, layout.bottom),
+      Offset(geometry.leftX, resolvedEdgeTop),
+      Offset(geometry.leftX, resolvedEdgeBottom),
       edgePaint,
     );
   }
   if (geometry.drawRightEdge) {
     canvas.drawLine(
-      Offset(geometry.rightX, layout.top),
-      Offset(geometry.rightX, layout.bottom),
+      Offset(geometry.rightX, resolvedEdgeTop),
+      Offset(geometry.rightX, resolvedEdgeBottom),
       edgePaint,
     );
   }
@@ -129,36 +129,23 @@ Paint _bandFillPaint({
   required double alpha,
 }) {
   final peak = color.withValues(alpha: alpha);
-  final mist = color.withValues(alpha: alpha * 0.15);
   final clear = color.withValues(alpha: 0);
+  // Peak hugs the accent edge; clears by ~12% so most of the band is empty.
+  final edgeColors = [peak, clear, clear];
+  const stops = [0.0, 0.12, 1.0];
 
-  final Gradient gradient = switch (style) {
-    DateRangeBandFillStyle.wash => LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [peak, peak],
-      ),
+  final gradient = switch (style) {
     DateRangeBandFillStyle.fadeDown => LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [peak, clear],
+        colors: edgeColors,
+        stops: stops,
       ),
     DateRangeBandFillStyle.fadeUp => LinearGradient(
         begin: Alignment.bottomCenter,
         end: Alignment.topCenter,
-        colors: [peak, clear],
-      ),
-    DateRangeBandFillStyle.fadeRight => LinearGradient(
-        begin: Alignment.centerLeft,
-        end: Alignment.centerRight,
-        colors: [peak, mist, clear],
-        stops: const [0.0, 0.35, 1.0],
-      ),
-    DateRangeBandFillStyle.midVeil => LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [clear, peak, mist, clear],
-        stops: const [0.0, 0.35, 0.65, 1.0],
+        colors: edgeColors,
+        stops: stops,
       ),
   };
 

@@ -4,7 +4,7 @@ import 'package:ethan_utils/ethan_utils.dart';
 import 'package:powersync/powersync.dart';
 import 'package:uuid/uuid.dart';
 
-/// CRUD for a single stay-chain table (`homebase_stays` or `job_stays`).
+/// CRUD for a single stay-chain table (`housing_stays` or `job_stays`).
 class ChainStaysRepository {
   ChainStaysRepository(this._powerSync, {required this.tableName});
 

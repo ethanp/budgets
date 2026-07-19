@@ -1,0 +1,72 @@
+import 'package:budgets/domain/category.dart';
+import 'package:budgets/domain/special_category.dart';
+import 'package:budgets/domain/transaction.dart';
+import 'package:budgets/features/trends/category_trend_series_factory.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  test('category spend includes 30% of income affordability boundary', () {
+    final start = DateTime(2024, 1, 1);
+    final end = start.add(const Duration(days: 9));
+    final transactions = <BankTransaction>[
+      for (var dayOffset = 0; dayOffset < 10; dayOffset++) ...[
+        BankTransaction(
+          id: 'income$dayOffset',
+          accountId: 'a1',
+          externalId: 'i$dayOffset',
+          postedAt: start.add(Duration(days: dayOffset)),
+          amountCents: 10000,
+          rawDescription: 'Pay',
+          normalizedMerchant: 'PAY',
+          pending: false,
+          userCategoryId: SpecialCategory.income.id,
+        ),
+        BankTransaction(
+          id: 'housing$dayOffset',
+          accountId: 'a1',
+          externalId: 'h$dayOffset',
+          postedAt: start.add(Duration(days: dayOffset)),
+          amountCents: -2000,
+          rawDescription: 'Rent',
+          normalizedMerchant: 'RENT',
+          pending: false,
+          userCategoryId: SpecialCategory.housing.id,
+        ),
+      ],
+    ];
+
+    final bundle = const CategoryTrendSeriesFactory().build(
+      transactions: transactions,
+      categories: [
+        SpecialCategory.housing.asSpendCategory(),
+        SpecialCategory.income.asSpendCategory(),
+      ],
+      endDate: end,
+    );
+
+    final affordability = bundle.categorySpend.firstWhere(
+      (series) =>
+          series.id == CategoryTrendSeriesFactory.housingAffordabilitySeriesId,
+    );
+    final income = bundle.cashFlows.firstWhere(
+      (series) => series.id == CategoryTrendSeriesFactory.incomeSeriesId,
+    );
+
+    expect(affordability.guide, isTrue);
+    expect(affordability.dotted, isFalse);
+    expect(affordability.name, '30% of income');
+    expect(affordability.points.length, income.points.length);
+    for (var pointIndex = 0;
+        pointIndex < income.points.length;
+        pointIndex++) {
+      expect(
+        affordability.points[pointIndex].rollingCents,
+        closeTo(
+          income.points[pointIndex].rollingCents *
+              CategoryTrendSeriesFactory.housingIncomeShareCap,
+          0.01,
+        ),
+      );
+    }
+  });
+}

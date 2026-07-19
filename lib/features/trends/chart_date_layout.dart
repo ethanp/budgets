@@ -61,19 +61,10 @@ class ChartDateLayout {
     final spanDays = maxDate.difference(minDate).inDays;
     if (spanDays <= 0) return [minDate];
 
+    // Multi-month charts: calendar quarters (Jan / Apr / Jul / Oct).
+    if (spanDays > 90) return _quarterMonthTicks();
+
     final targetCount = math.max(3, (width / 70).round());
-
-    if (spanDays > 90) {
-      final monthStep = math.max(1, (spanDays / 30 / targetCount).ceil());
-      final ticks = <DateTime>[];
-      var cursor = DateTime(minDate.year, minDate.month + monthStep);
-      while (cursor.isBefore(maxDate)) {
-        ticks.add(cursor);
-        cursor = DateTime(cursor.year, cursor.month + monthStep);
-      }
-      return [minDate, ...ticks, maxDate];
-    }
-
     final stepDays = math.max(1, (spanDays / targetCount).round());
     final ticks = <DateTime>[minDate];
     var cursor = minDate.shiftedByDays(stepDays);
@@ -86,9 +77,26 @@ class ChartDateLayout {
     return ticks;
   }
 
-  void drawDateLabels(Canvas canvas, {Color? labelColor}) {
+  /// Firsts of Jan, Apr, Jul, Oct that fall inside the chart range.
+  List<DateTime> _quarterMonthTicks() {
+    final rangeStart = minDate.startOfDay;
+    final rangeEnd = maxDate.startOfDay;
+    final quarterStartMonth = ((rangeStart.month - 1) ~/ 3) * 3 + 1;
+    var cursor = DateTime(rangeStart.year, quarterStartMonth);
+    if (cursor.isBefore(rangeStart)) {
+      cursor = DateTime(cursor.year, cursor.month + 3);
+    }
+
+    final ticks = <DateTime>[];
+    while (!cursor.isAfter(rangeEnd)) {
+      ticks.add(cursor);
+      cursor = DateTime(cursor.year, cursor.month + 3);
+    }
+    return ticks;
+  }
+
+  void drawDateLabels(Canvas canvas, {required TextStyle labelStyle}) {
     final spanDays = maxDate.difference(minDate).inDays;
-    final color = labelColor ?? AppColors.textColor4;
 
     String formatLabel(DateTime date) {
       if (spanDays > 60) return _months[date.month];
@@ -97,10 +105,7 @@ class ChartDateLayout {
 
     for (final date in dateTicks()) {
       final textPainter = TextPainter(
-        text: TextSpan(
-          text: formatLabel(date),
-          style: TextStyle(color: color, fontSize: 10),
-        ),
+        text: TextSpan(text: formatLabel(date), style: labelStyle),
         textDirection: TextDirection.ltr,
       )..layout();
 
@@ -129,7 +134,12 @@ class ChartDateLayout {
     ];
   }
 
-  void drawYearBoundaries(Canvas canvas) {
+  /// Year grid lines span the plot; labels sit at [yearLabelY] (date lane).
+  void drawYearBoundaries(
+    Canvas canvas, {
+    required double yearLabelY,
+    required TextStyle labelStyle,
+  }) {
     final boundaryXs = yearBoundaryXs();
     if (boundaryXs.isEmpty) return;
 
@@ -149,15 +159,11 @@ class ChartDateLayout {
       final textPainter = TextPainter(
         text: TextSpan(
           text: '$year',
-          style: TextStyle(
-            color: AppColors.textColor4.withValues(alpha: 0.6),
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-          ),
+          style: labelStyle.copyWith(fontWeight: FontWeight.w600),
         ),
         textDirection: TextDirection.ltr,
       )..layout();
-      textPainter.paint(canvas, Offset(boundaryX + 4, top + 2));
+      textPainter.paint(canvas, Offset(boundaryX + 4, yearLabelY));
     }
   }
 }

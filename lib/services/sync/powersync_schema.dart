@@ -53,7 +53,7 @@ const Schema budgetsSchema = Schema([
     Column.integer('ended_on'),
     Column.text('note'),
   ]),
-  Table('homebase_stays', [
+  Table('housing_stays', [
     Column.text('label'),
     Column.integer('started_on'),
     Column.text('note'),

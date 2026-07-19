@@ -17,7 +17,7 @@ class LifeEventsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final lifeEventsAsync = ref.watch(lifeEventsProvider);
-    final homebaseAsync = ref.watch(homebaseChainProvider);
+    final housingAsync = ref.watch(housingChainProvider);
     final jobAsync = ref.watch(jobChainProvider);
 
     return CupertinoPageScaffold(
@@ -47,7 +47,7 @@ class LifeEventsScreen extends ConsumerWidget {
           },
           data: (lifeEvents) => _LifeEventsBody(
             lifeEvents: lifeEvents,
-            homebaseChain: homebaseAsync.asData?.value,
+            housingChain: housingAsync.asData?.value,
             jobChain: jobAsync.asData?.value,
           ),
         ),
@@ -59,12 +59,12 @@ class LifeEventsScreen extends ConsumerWidget {
 class _LifeEventsBody extends ConsumerWidget {
   const _LifeEventsBody({
     required this.lifeEvents,
-    required this.homebaseChain,
+    required this.housingChain,
     required this.jobChain,
   });
 
   final List<LifeEvent> lifeEvents;
-  final StayChain? homebaseChain;
+  final StayChain? housingChain;
   final StayChain? jobChain;
 
   @override
@@ -73,8 +73,8 @@ class _LifeEventsBody extends ConsumerWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
         _LifeChainHeroCard(
-          kind: LifeChainKind.homebase,
-          chain: homebaseChain,
+          kind: LifeChainKind.housing,
+          chain: housingChain,
         ),
         const SizedBox(height: AppSpacing.sm),
         _LifeChainHeroCard(

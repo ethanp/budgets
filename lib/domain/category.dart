@@ -1,3 +1,24 @@
+/// Category display name with case/whitespace-insensitive identity.
+class CategoryName {
+  const CategoryName(this.value);
+
+  final String value;
+
+  String get normalized => value.trim().toLowerCase();
+
+  bool matches(CategoryName other) => normalized == other.normalized;
+
+  @override
+  bool operator ==(Object other) =>
+      other is CategoryName && normalized == other.normalized;
+
+  @override
+  int get hashCode => normalized.hashCode;
+
+  @override
+  String toString() => value;
+}
+
 class SpendCategory {
   const SpendCategory({
     required this.id,

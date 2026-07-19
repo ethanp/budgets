@@ -33,7 +33,7 @@ const _fkDependencies = <String, Set<String>>{
   'categories': {'category_groups'},
   'sync_state': {},
   'life_events': {},
-  'homebase_stays': {},
+  'housing_stays': {},
   'job_stays': {},
   'transactions': {'accounts', 'categories'},
   'categorization_rules': {'categories'},

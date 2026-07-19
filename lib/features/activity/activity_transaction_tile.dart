@@ -26,7 +26,10 @@ class ActivityTransactionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final categoryColor = CategoryColor.forCategoryId(category?.id);
+    final categoryColor = CategoryColor.forCategoryId(
+      category?.id,
+      categoryName: category?.name,
+    );
 
     return GestureDetector(
       onTap: onTap,

@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
   static const backgroundDepth1 = Color(0xFF0E0E11);
@@ -17,6 +18,8 @@ class AppColors {
 
   static const accentPrimary = Color(0xFF2A9D8F);
   static const accentSecondary = Color(0xFFE9C46A);
+  /// Housing chain, Housing category, and Trends “Spending” series.
+  static const housing = Color(0xFFE76F51);
   static const success = Color(0xFF3FB37F);
   static const warning = Color(0xFFE9C46A);
   static const error = Color(0xFFE15A64);
@@ -38,6 +41,15 @@ class AppText {
     fontWeight: FontWeight.w600,
     color: AppColors.textColor1,
   );
+
+  /// Trends / chart tick labels — IBM Plex, brighter than muted UI captions.
+  static TextStyle get chartAxis => GoogleFonts.ibmPlexSans(
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+        color: AppColors.textColor2,
+        height: 1.1,
+        letterSpacing: 0.15,
+      );
 }
 
 class _BodyScale {

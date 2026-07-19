@@ -8,6 +8,7 @@ class CategoryTrendSeries {
     required this.lineColor,
     required this.points,
     this.dotted = false,
+    this.guide = false,
     this.percentileAreaFill = false,
   });
 
@@ -19,6 +20,9 @@ class CategoryTrendSeries {
 
   /// Total-spend overlay uses a dotted stroke so it reads apart from categories.
   final bool dotted;
+
+  /// Thin long-dash reference line (e.g. affordability threshold).
+  final bool guide;
 
   /// Fill under the line; opacity encodes each point's percentile in the series.
   final bool percentileAreaFill;

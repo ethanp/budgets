@@ -67,10 +67,10 @@ void main() {
   group('LifeChainKind.trendEraAccent', () {
     test('keeps similar lightness across eras', () {
       final baseLightness =
-          HSLColor.fromColor(LifeChainKind.homebase.trendBandColor).lightness;
+          HSLColor.fromColor(LifeChainKind.housing.trendBandColor).lightness;
       for (var eraIndex = 0; eraIndex < 5; eraIndex++) {
         final accentLightness = HSLColor.fromColor(
-          LifeChainKind.homebase.trendEraAccent(eraIndex),
+          LifeChainKind.housing.trendEraAccent(eraIndex),
         ).lightness;
         expect((accentLightness - baseLightness).abs(), lessThan(0.02));
       }
