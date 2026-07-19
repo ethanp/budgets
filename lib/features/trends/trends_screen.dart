@@ -1,4 +1,5 @@
 import 'package:budgets/domain/life_event.dart';
+import 'package:budgets/domain/stay_chain.dart';
 import 'package:budgets/features/trends/category_trend_chart.dart';
 import 'package:budgets/features/trends/category_trend_series_factory.dart';
 import 'package:budgets/features/trends/trends_chart_bundle.dart';
@@ -15,6 +16,8 @@ class TrendsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final trendsAsync = ref.watch(categoryTrendsProvider);
     final lifeEventsAsync = ref.watch(lifeEventsProvider);
+    final homebaseAsync = ref.watch(homebaseChainProvider);
+    final jobAsync = ref.watch(jobChainProvider);
 
     return CupertinoPageScaffold(
       navigationBar: const CupertinoNavigationBar(
@@ -32,14 +35,21 @@ class TrendsScreen extends ConsumerWidget {
           ),
           data: (bundle) => _trendsBody(
             bundle,
-            lifeEventsAsync.asData?.value ?? const <LifeEvent>[],
+            lifeEvents: lifeEventsAsync.asData?.value ?? const <LifeEvent>[],
+            homebaseChain: homebaseAsync.asData?.value,
+            jobChain: jobAsync.asData?.value,
           ),
         ),
       ),
     );
   }
 
-  Widget _trendsBody(TrendsChartBundle bundle, List<LifeEvent> lifeEvents) {
+  Widget _trendsBody(
+    TrendsChartBundle bundle, {
+    required List<LifeEvent> lifeEvents,
+    required StayChain? homebaseChain,
+    required StayChain? jobChain,
+  }) {
     if (bundle.isEmpty) {
       return Center(
         child: Padding(
@@ -61,6 +71,8 @@ class TrendsScreen extends ConsumerWidget {
             title: 'Category spend',
             seriesList: bundle.categorySpend,
             lifeEvents: lifeEvents,
+            homebaseChain: homebaseChain,
+            jobChain: jobChain,
             showSpendRateToggle: true,
             useDistributionLegend: true,
             initiallyHiddenSeriesIds: const {
@@ -77,6 +89,8 @@ class TrendsScreen extends ConsumerWidget {
                 'double-tap legend to solo',
             seriesList: bundle.cashFlows,
             lifeEvents: lifeEvents,
+            homebaseChain: homebaseChain,
+            jobChain: jobChain,
             showSpendRateToggle: bundle.categorySpend.isEmpty,
             initiallyHiddenSeriesIds: const {
               CategoryTrendSeriesFactory.transferSeriesId,

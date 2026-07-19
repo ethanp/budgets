@@ -1,7 +1,16 @@
 import 'package:budgets/domain/category.dart';
 
-/// Built-in cash-flow categories. Identity is the fixed id — not transaction type.
+/// Built-in categories with stable ids.
+///
+/// [income] / [transfer] are cash-flow (excluded from spend totals).
+/// [housing] is a built-in spend category (kept in spend Trends / month rows)
+/// so its color and future housing-specific behavior stay consistent.
 enum SpecialCategory {
+  housing(
+    id: 'cat_housing',
+    name: 'Housing',
+    sortOrder: 3,
+  ),
   income(
     id: 'cat_income',
     name: 'Income',
@@ -23,7 +32,10 @@ enum SpecialCategory {
   final String name;
   final int sortOrder;
 
-  static final ids = {income.id, transfer.id};
+  static final ids = {for (final special in values) special.id};
+
+  /// Income + Transfer only — excluded from spend series and month rows.
+  static final flowIds = {income.id, transfer.id};
 
   static final _idsByLowerName = {
     for (final special in values) special.name.toLowerCase(): special.id,
@@ -32,16 +44,21 @@ enum SpecialCategory {
   static bool isSpecialId(String? categoryId) =>
       categoryId != null && ids.contains(categoryId);
 
+  static bool isFlowId(String? categoryId) =>
+      categoryId != null && flowIds.contains(categoryId);
+
+  static bool isHousingId(String? categoryId) => categoryId == housing.id;
+
   static bool isIncomeId(String? categoryId) => categoryId == income.id;
 
   static bool isTransferId(String? categoryId) => categoryId == transfer.id;
 
-  static bool isFlowCategory(SpendCategory category) => isSpecialId(category.id);
+  static bool isFlowCategory(SpendCategory category) => isFlowId(category.id);
 
   static bool isReservedName(String name) =>
       _idsByLowerName.containsKey(name.trim().toLowerCase());
 
-  /// Maps Copilot / legacy `transaction_type` values onto a special category.
+  /// Maps Copilot / legacy `transaction_type` values onto a cash-flow category.
   static SpecialCategory? fromTransactionType(String? transactionType) {
     final type = transactionType?.trim().toLowerCase() ?? '';
     if (type == 'income') return income;

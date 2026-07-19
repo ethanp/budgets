@@ -2,6 +2,7 @@ import 'package:budgets/domain/category.dart';
 import 'package:budgets/domain/category_group.dart';
 import 'package:budgets/domain/special_category.dart';
 import 'package:ethan_sync/ethan_sync.dart';
+import 'package:ethan_utils/ethan_utils.dart';
 import 'package:powersync/powersync.dart';
 import 'package:uuid/uuid.dart';
 
@@ -256,45 +257,6 @@ class CategoriesRepository {
     });
   }
 
-  /// Ensures a lowest-priority contains rule for import defaults.
-  ///
-  /// Does not overwrite a stronger (higher-priority) rule for the same pattern.
-  Future<void> ensureDefaultImportContainsRule({
-    required String pattern,
-    required String categoryId,
-  }) async {
-    final normalizedPattern = pattern.trim().toLowerCase();
-    if (normalizedPattern.isEmpty) return;
-
-    final rules = await listRules();
-    for (final rule in rules) {
-      if (rule.matchType != RuleMatchType.merchantContains) continue;
-      if (rule.pattern.trim().toLowerCase() != normalizedPattern) continue;
-      if (rule.priority > CategorizationRule.defaultImportPriority) return;
-      if (rule.categoryId == categoryId) return;
-      await upsertRule(
-        CategorizationRule(
-          id: rule.id,
-          matchType: RuleMatchType.merchantContains,
-          pattern: normalizedPattern,
-          categoryId: categoryId,
-          priority: CategorizationRule.defaultImportPriority,
-        ),
-      );
-      return;
-    }
-
-    await upsertRule(
-      CategorizationRule(
-        id: _uuid.v4(),
-        matchType: RuleMatchType.merchantContains,
-        pattern: normalizedPattern,
-        categoryId: categoryId,
-        priority: CategorizationRule.defaultImportPriority,
-      ),
-    );
-  }
-
   Future<void> deleteRule(String ruleId) async {
     await _powerSync.execute(
       'DELETE FROM categorization_rules WHERE id = ?',
@@ -325,37 +287,34 @@ class CategoriesRepository {
   }
 
   static SpendCategory _categoryFromRow(dynamic row) {
+    final columns = (row as Map).cast<String, Object?>();
     return SpendCategory(
-      id: row['id'] as String,
-      name: row['name'] as String,
-      sortOrder: _asInt(row['sort_order']),
-      archived: _asInt(row['archived']) == 1,
-      colorToken: row['color_token'] as String?,
-      groupId: row['group_id'] as String?,
+      id: columns['id'] as String,
+      name: columns['name'] as String,
+      sortOrder: columns['sort_order'].asInt(),
+      archived: columns['archived'].asInt() == 1,
+      colorToken: columns['color_token'] as String?,
+      groupId: columns['group_id'] as String?,
     );
   }
 
   static CategoryGroup _groupFromRow(dynamic row) {
+    final columns = (row as Map).cast<String, Object?>();
     return CategoryGroup(
-      id: row['id'] as String,
-      name: row['name'] as String,
-      sortOrder: _asInt(row['sort_order']),
+      id: columns['id'] as String,
+      name: columns['name'] as String,
+      sortOrder: columns['sort_order'].asInt(),
     );
   }
 
   static CategorizationRule _ruleFromRow(dynamic row) {
+    final columns = (row as Map).cast<String, Object?>();
     return CategorizationRule(
-      id: row['id'] as String,
-      matchType: RuleMatchType.fromStorage(row['match_type'] as String),
-      pattern: row['pattern'] as String,
-      categoryId: row['category_id'] as String,
-      priority: _asInt(row['priority']),
+      id: columns['id'] as String,
+      matchType: RuleMatchType.fromStorage(columns['match_type'] as String),
+      pattern: columns['pattern'] as String,
+      categoryId: columns['category_id'] as String,
+      priority: columns['priority'].asInt(),
     );
-  }
-
-  static int _asInt(Object? value) {
-    if (value is int) return value;
-    if (value is num) return value.toInt();
-    return int.parse('$value');
   }
 }

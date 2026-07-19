@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:budgets/domain/life_event.dart';
+import 'package:budgets/domain/stay_chain.dart';
 import 'package:budgets/domain/trend_spend_rate.dart';
 import 'package:budgets/features/trends/category_trend_distribution.dart';
 import 'package:budgets/features/trends/category_trend_painter.dart';
@@ -23,6 +24,8 @@ class CategoryTrendChart extends ConsumerStatefulWidget {
     required this.title,
     required this.seriesList,
     this.lifeEvents = const [],
+    this.homebaseChain,
+    this.jobChain,
     this.subtitle =
         'Trailing year · tap legend to show/hide · double-tap to solo',
     this.initiallyHiddenSeriesIds = const {},
@@ -34,6 +37,8 @@ class CategoryTrendChart extends ConsumerStatefulWidget {
   final String subtitle;
   final List<CategoryTrendSeries> seriesList;
   final List<LifeEvent> lifeEvents;
+  final StayChain? homebaseChain;
+  final StayChain? jobChain;
   final Set<String> initiallyHiddenSeriesIds;
 
   /// When true, shows the shared yr/mo/day control (only one chart should).
@@ -142,6 +147,14 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
     return formatCentsWholeDollars(_spendRate.displayCents(annualizedCents));
   }
 
+  /// Trailing-year window total (not yr/mo/day rate).
+  String _pastYearTotalLabel(CategoryTrendSeries series) {
+    if (series.points.isEmpty) return '—';
+    final totalCents = series.points.last.rollingCents.round();
+    if (totalCents <= 0) return '—';
+    return formatCentsWholeDollars(totalCents);
+  }
+
   Widget _chartArea() {
     if (!_visibleSeries.any((series) => series.points.length >= 2)) {
       return const SizedBox(
@@ -167,6 +180,8 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
               painter: CategoryTrendPainter(
                 seriesList: _visibleSeries,
                 lifeEvents: widget.lifeEvents,
+                homebaseChain: widget.homebaseChain,
+                jobChain: widget.jobChain,
                 hoverPosition: _hoverPosition,
               ),
             ),
@@ -267,7 +282,7 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
     final scale = TrendValueScale.niceForMax(dataMaxCents);
 
     const whiskerHeight = 108.0;
-    const labelBlockHeight = 52.0;
+    const labelBlockHeight = 66.0;
     const columnWidth = 96.0;
     const axisWidth = 44.0;
     const columnGap = AppSpacing.sm;
@@ -445,6 +460,31 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
                       child: Text(
                         '1y',
                         style: periodLabelStyle,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    const Expanded(child: SizedBox.shrink()),
+                    Expanded(
+                      child: Text(
+                        _pastYearTotalLabel(series),
+                        style: isHidden
+                            ? AppText.caption.copyWith(
+                                color: AppColors.textColor4,
+                                fontSize: 10,
+                                height: 1.1,
+                              )
+                            : AppText.caption.copyWith(
+                                color: AppColors.textColor2,
+                                fontSize: 10,
+                                height: 1.1,
+                                fontWeight: FontWeight.w600,
+                              ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.center,
                       ),
                     ),

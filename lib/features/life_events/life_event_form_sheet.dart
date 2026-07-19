@@ -1,10 +1,13 @@
 import 'package:budgets/domain/life_event.dart';
 import 'package:budgets/providers/budgets_providers.dart';
 import 'package:budgets/theme/app_theme.dart';
+import 'package:budgets/widgets/app_date_picker.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+
+enum _LifeEventDateMode { day, range, ongoing }
 
 class LifeEventFormSheet extends ConsumerStatefulWidget {
   const LifeEventFormSheet({
@@ -32,7 +35,9 @@ class LifeEventFormSheet extends ConsumerStatefulWidget {
 class _LifeEventFormSheetState extends ConsumerState<LifeEventFormSheet> {
   late final TextEditingController _titleController;
   late final TextEditingController _noteController;
-  late DateTime _occurredOn;
+  late DateTime _startedOn;
+  late DateTime _endedOn;
+  late _LifeEventDateMode _dateMode;
   bool _busy = false;
   String? _error;
 
@@ -44,7 +49,17 @@ class _LifeEventFormSheetState extends ConsumerState<LifeEventFormSheet> {
     final existing = widget.lifeEvent;
     _titleController = TextEditingController(text: existing?.title ?? '');
     _noteController = TextEditingController(text: existing?.note ?? '');
-    _occurredOn = (existing?.occurredOn ?? DateTime.now()).startOfDay;
+    _startedOn = (existing?.startedOn ?? DateTime.now()).startOfDay;
+    _endedOn = (existing?.endedOn ?? _startedOn).startOfDay;
+    if (existing == null) {
+      _dateMode = _LifeEventDateMode.day;
+    } else if (existing.isOpenEnded) {
+      _dateMode = _LifeEventDateMode.ongoing;
+    } else if (existing.isClosedRange) {
+      _dateMode = _LifeEventDateMode.range;
+    } else {
+      _dateMode = _LifeEventDateMode.day;
+    }
   }
 
   @override
@@ -81,7 +96,21 @@ class _LifeEventFormSheetState extends ConsumerState<LifeEventFormSheet> {
               const SizedBox(height: AppSpacing.md),
               _titleField(),
               const SizedBox(height: AppSpacing.md),
-              _dateRow(),
+              _dateModeControl(),
+              const SizedBox(height: AppSpacing.md),
+              _dateRow(
+                label: _dateMode == _LifeEventDateMode.day ? 'Date' : 'Start',
+                date: _startedOn,
+                onTap: () => _pickDate(isStart: true),
+              ),
+              if (_dateMode == _LifeEventDateMode.range) ...[
+                const SizedBox(height: AppSpacing.sm),
+                _dateRow(
+                  label: 'End',
+                  date: _endedOn,
+                  onTap: () => _pickDate(isStart: false),
+                ),
+              ],
               const SizedBox(height: AppSpacing.md),
               _noteField(),
               if (_error != null) ...[
@@ -118,9 +147,43 @@ class _LifeEventFormSheetState extends ConsumerState<LifeEventFormSheet> {
     );
   }
 
-  Widget _dateRow() {
+  Widget _dateModeControl() {
+    return CupertinoSlidingSegmentedControl<_LifeEventDateMode>(
+      groupValue: _dateMode,
+      children: const {
+        _LifeEventDateMode.day: Padding(
+          padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+          child: Text('Day'),
+        ),
+        _LifeEventDateMode.range: Padding(
+          padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+          child: Text('Range'),
+        ),
+        _LifeEventDateMode.ongoing: Padding(
+          padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+          child: Text('Ongoing'),
+        ),
+      },
+      onValueChanged: (mode) {
+        if (mode == null) return;
+        setState(() {
+          _dateMode = mode;
+          if (mode == _LifeEventDateMode.range &&
+              _endedOn.isBefore(_startedOn)) {
+            _endedOn = _startedOn;
+          }
+        });
+      },
+    );
+  }
+
+  Widget _dateRow({
+    required String label,
+    required DateTime date,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
-      onTap: _pickDate,
+      onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
@@ -130,10 +193,10 @@ class _LifeEventFormSheetState extends ConsumerState<LifeEventFormSheet> {
         ),
         child: Row(
           children: [
-            Text('Date', style: AppText.body.medium),
+            Text(label, style: AppText.body.medium),
             const Spacer(),
             Text(
-              DateFormat.yMMMd().format(_occurredOn),
+              DateFormat.yMMMd().format(date),
               style: AppText.body.medium.semibold,
             ),
             const SizedBox(width: AppSpacing.sm),
@@ -175,49 +238,34 @@ class _LifeEventFormSheetState extends ConsumerState<LifeEventFormSheet> {
     );
   }
 
-  Future<void> _pickDate() async {
-    var draftDate = _occurredOn;
-    await showCupertinoModalPopup<void>(
-      context: context,
-      builder: (pickerContext) {
-        return Container(
-          height: 280,
-          decoration: const BoxDecoration(
-            color: AppColors.backgroundDepth2,
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(AppRadius.lg),
-            ),
-          ),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  CupertinoButton(
-                    onPressed: () => Navigator.of(pickerContext).pop(),
-                    child: const Text('Cancel'),
-                  ),
-                  CupertinoButton(
-                    onPressed: () {
-                      setState(() => _occurredOn = draftDate.startOfDay);
-                      Navigator.of(pickerContext).pop();
-                    },
-                    child: const Text('Done'),
-                  ),
-                ],
-              ),
-              Expanded(
-                child: CupertinoDatePicker(
-                  mode: CupertinoDatePickerMode.date,
-                  initialDateTime: _occurredOn,
-                  onDateTimeChanged: (date) => draftDate = date,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+  Future<void> _pickDate({required bool isStart}) async {
+    final picked = await pickAppDate(
+      context,
+      initialDate: isStart ? _startedOn : _endedOn,
+      minimumDate: isStart ? null : _startedOn,
     );
+    if (picked == null || !mounted) return;
+    setState(() {
+      if (isStart) {
+        _startedOn = picked;
+        if (_endedOn.isBefore(_startedOn)) {
+          _endedOn = _startedOn;
+        }
+      } else {
+        _endedOn = picked;
+      }
+    });
+  }
+
+  DateTime? get _endedOnForSave {
+    switch (_dateMode) {
+      case _LifeEventDateMode.day:
+        return _startedOn;
+      case _LifeEventDateMode.range:
+        return _endedOn.isBefore(_startedOn) ? _startedOn : _endedOn;
+      case _LifeEventDateMode.ongoing:
+        return null;
+    }
   }
 
   Future<void> _save() async {
@@ -239,14 +287,16 @@ class _LifeEventFormSheetState extends ConsumerState<LifeEventFormSheet> {
           LifeEvent(
             id: widget.lifeEvent!.id,
             title: title,
-            occurredOn: _occurredOn,
+            startedOn: _startedOn,
+            endedOn: _endedOnForSave,
             note: _noteController.text,
           ),
         );
       } else {
         await repository.create(
           title: title,
-          occurredOn: _occurredOn,
+          startedOn: _startedOn,
+          endedOn: _endedOnForSave,
           note: _noteController.text,
         );
       }

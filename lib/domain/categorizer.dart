@@ -7,11 +7,11 @@ import 'package:uuid/uuid.dart';
 
 class CopilotDefaultRuleMigrationResult {
   const CopilotDefaultRuleMigrationResult({
-    required this.rulesEnsured,
+    required this.defaultImportRulesDeleted,
     required this.transactionsReleased,
   });
 
-  final int rulesEnsured;
+  final int defaultImportRulesDeleted;
   final int transactionsReleased;
 }
 
@@ -43,20 +43,13 @@ class Categorizer {
 
   /// Case-insensitive match of [rule] against the transaction description.
   static bool ruleMatches(BankTransaction transaction, CategorizationRule rule) {
-    final haystack = [
-      transaction.rawDescription,
-      transaction.normalizedMerchant,
-    ].join('\n').toLowerCase();
     final pattern = rule.pattern.trim().toLowerCase();
     if (pattern.isEmpty) return false;
-
-    switch (rule.matchType) {
-      case RuleMatchType.merchantExact:
-        return transaction.normalizedMerchant.toLowerCase() == pattern ||
-            transaction.rawDescription.trim().toLowerCase() == pattern;
-      case RuleMatchType.merchantContains:
-        return haystack.contains(pattern);
-    }
+    return _ruleMatchesPrepared(
+      transaction,
+      matchType: rule.matchType,
+      pattern: pattern,
+    );
   }
 
   /// Best matching rule: higher priority, then longer pattern, then exact over contains.
@@ -64,35 +57,7 @@ class Categorizer {
     BankTransaction transaction,
     List<CategorizationRule> rules,
   ) {
-    CategorizationRule? bestRule;
-    for (final rule in rules) {
-      if (!ruleMatches(transaction, rule)) continue;
-      if (bestRule == null || _isBetterRule(rule, bestRule)) {
-        bestRule = rule;
-      }
-    }
-    return bestRule;
-  }
-
-  static bool _isBetterRule(
-    CategorizationRule candidate,
-    CategorizationRule incumbent,
-  ) {
-    if (candidate.priority != incumbent.priority) {
-      return candidate.priority > incumbent.priority;
-    }
-    final candidateLength = candidate.pattern.trim().length;
-    final incumbentLength = incumbent.pattern.trim().length;
-    if (candidateLength != incumbentLength) {
-      return candidateLength > incumbentLength;
-    }
-    if (candidate.matchType != incumbent.matchType) {
-      return candidate.matchType == RuleMatchType.merchantExact;
-    }
-    return candidate.pattern.toLowerCase().compareTo(
-          incumbent.pattern.toLowerCase(),
-        ) <
-        0;
+    return RuleMatchIndex(rules).bestMatchingRule(transaction);
   }
 
   /// Rule that both matches [transaction] and explains its effective category.
@@ -100,12 +65,23 @@ class Categorizer {
     BankTransaction transaction,
     List<CategorizationRule> rules,
   ) {
-    final effectiveCategoryId = transaction.effectiveCategoryId;
-    if (effectiveCategoryId == null) return null;
-    final matchingRule = bestMatchingRule(transaction, rules);
-    if (matchingRule == null) return null;
-    if (matchingRule.categoryId != effectiveCategoryId) return null;
-    return matchingRule;
+    return RuleMatchIndex(rules).explainingRule(transaction);
+  }
+
+  static bool _ruleMatchesPrepared(
+    BankTransaction transaction, {
+    required RuleMatchType matchType,
+    required String pattern,
+  }) {
+    final merchantLower = transaction.normalizedMerchant.toLowerCase();
+    final descriptionLower = transaction.rawDescription.trim().toLowerCase();
+    return RuleMatchIndex._preparedRuleMatches(
+      matchType: matchType,
+      pattern: pattern,
+      merchantLower: merchantLower,
+      descriptionLower: descriptionLower,
+      haystack: '$descriptionLower\n$merchantLower',
+    );
   }
 
   Future<String?> resolveCategoryId(BankTransaction transaction) async {
@@ -210,15 +186,6 @@ class Categorizer {
   }) =>
       _upsertContainsRule(pattern: pattern, categoryId: categoryId);
 
-  Future<void> ensureDefaultImportContainsRule({
-    required String pattern,
-    required String categoryId,
-  }) =>
-      _categoriesRepository.ensureDefaultImportContainsRule(
-        pattern: pattern,
-        categoryId: categoryId,
-      );
-
   Future<void> applyCategoryToTransactions({
     required String categoryId,
     required Iterable<String> transactionIds,
@@ -271,10 +238,12 @@ class Categorizer {
     );
   }
 
-  /// Turns Copilot-locked user categories into priority-0 merchant rules +
-  /// suggested categories so stronger rules can override later.
+  /// Releases Copilot user-locked categories to suggested (no merchant rules).
+  ///
+  /// Also deletes leftover priority-0 “default import” contains rules that were
+  /// incorrectly created from merchant names in earlier migrations/imports.
   Future<CopilotDefaultRuleMigrationResult>
-      migrateCopilotUserCategoriesToDefaultRules({
+      migrateCopilotUserCategoriesToSuggested({
     void Function(CopilotDefaultRuleMigrationProgress progress)? onProgress,
   }) async {
     final accounts = await _accountsRepository.listAccounts();
@@ -282,29 +251,22 @@ class Categorizer {
       for (final account in accounts)
         if (account.externalId.startsWith('copilot:')) account.id,
     };
-    if (copilotAccountIds.isEmpty) {
-      onProgress?.call(
-        const CopilotDefaultRuleMigrationProgress(completed: 0, total: 0),
-      );
-      return const CopilotDefaultRuleMigrationResult(
-        rulesEnsured: 0,
-        transactionsReleased: 0,
-      );
-    }
 
     final transactions = await _transactionsRepository.listAll();
-    // Include Income/Transfer: older Copilot imports locked those as user
-    // categories too; they need the same priority-0 merchant rules + release.
     final candidates = [
       for (final transaction in transactions)
         if (copilotAccountIds.contains(transaction.accountId) &&
-            transaction.userCategoryId != null &&
-            transaction.normalizedMerchant.trim().isNotEmpty)
+            transaction.userCategoryId != null)
           transaction,
     ];
 
-    final applyTotal = transactions.length;
-    final totalSteps = candidates.length + applyTotal;
+    final defaultImportRules = [
+      for (final rule in await _categoriesRepository.listRules())
+        if (rule.priority == CategorizationRule.defaultImportPriority) rule,
+    ];
+
+    final totalSteps =
+        candidates.length + defaultImportRules.length + transactions.length;
     void report(int completed) {
       onProgress?.call(
         CopilotDefaultRuleMigrationProgress(
@@ -316,39 +278,33 @@ class Categorizer {
 
     report(0);
 
-    final ruleKeysEnsured = <String>{};
     var transactionsReleased = 0;
     for (var index = 0; index < candidates.length; index++) {
       final transaction = candidates[index];
-      final categoryId = transaction.userCategoryId!;
-      final pattern = transaction.normalizedMerchant.trim();
-
-      final ruleKey = '${pattern.toLowerCase()}|$categoryId';
-      if (!ruleKeysEnsured.contains(ruleKey)) {
-        await ensureDefaultImportContainsRule(
-          pattern: pattern,
-          categoryId: categoryId,
-        );
-        ruleKeysEnsured.add(ruleKey);
-      }
-
       await _transactionsRepository.releaseUserCategoryToSuggested(
         transactionId: transaction.id,
-        categoryId: categoryId,
+        categoryId: transaction.userCategoryId!,
       );
       transactionsReleased++;
       report(index + 1);
     }
 
+    var defaultImportRulesDeleted = 0;
+    for (var index = 0; index < defaultImportRules.length; index++) {
+      await _categoriesRepository.deleteRule(defaultImportRules[index].id);
+      defaultImportRulesDeleted++;
+      report(candidates.length + index + 1);
+    }
+
     await applyRulesToUncategorized(
       onProgress: (completed, total) {
-        report(candidates.length + completed);
+        report(candidates.length + defaultImportRules.length + completed);
       },
     );
     report(totalSteps);
 
     return CopilotDefaultRuleMigrationResult(
-      rulesEnsured: ruleKeysEnsured.length,
+      defaultImportRulesDeleted: defaultImportRulesDeleted,
       transactionsReleased: transactionsReleased,
     );
   }
@@ -358,13 +314,14 @@ class Categorizer {
   }) async {
     final transactions = await _transactionsRepository.listAll();
     final rules = await _categoriesRepository.listRules();
+    final ruleMatchIndex = RuleMatchIndex(rules);
     final total = transactions.length;
     for (var index = 0; index < transactions.length; index++) {
       final transaction = transactions[index];
       onProgress?.call(index + 1, total);
       if (transaction.userCategoryId != null) continue;
 
-      final matchingRule = bestMatchingRule(transaction, rules);
+      final matchingRule = ruleMatchIndex.bestMatchingRule(transaction);
       if (matchingRule == null) continue;
       if (matchingRule.categoryId == transaction.suggestedCategoryId) continue;
 
@@ -374,4 +331,115 @@ class Categorizer {
       );
     }
   }
+}
+
+/// Pre-normalized rules for repeated matching without re-trimming patterns.
+class RuleMatchIndex {
+  RuleMatchIndex(List<CategorizationRule> rules)
+      : _preparedRules = _prepareRules(rules);
+
+  final List<_PreparedRule> _preparedRules;
+
+  CategorizationRule? bestMatchingRule(BankTransaction transaction) {
+    if (_preparedRules.isEmpty) return null;
+    final merchantLower = transaction.normalizedMerchant.toLowerCase();
+    final descriptionLower = transaction.rawDescription.trim().toLowerCase();
+    final haystack = '$descriptionLower\n$merchantLower';
+
+    _PreparedRule? bestPrepared;
+    for (final prepared in _preparedRules) {
+      if (!_preparedRuleMatches(
+        matchType: prepared.rule.matchType,
+        pattern: prepared.pattern,
+        merchantLower: merchantLower,
+        descriptionLower: descriptionLower,
+        haystack: haystack,
+      )) {
+        continue;
+      }
+      if (bestPrepared == null ||
+          _isBetterPreparedRule(prepared, bestPrepared)) {
+        bestPrepared = prepared;
+      }
+    }
+    return bestPrepared?.rule;
+  }
+
+  CategorizationRule? explainingRule(BankTransaction transaction) {
+    final effectiveCategoryId = transaction.effectiveCategoryId;
+    if (effectiveCategoryId == null) return null;
+    final matchingRule = bestMatchingRule(transaction);
+    if (matchingRule == null) return null;
+    if (matchingRule.categoryId != effectiveCategoryId) return null;
+    return matchingRule;
+  }
+
+  /// Explaining rule for each transaction (one shared prepared-rule list).
+  Map<String, CategorizationRule?> explainingRulesByTransactionId(
+    Iterable<BankTransaction> transactions,
+  ) {
+    return {
+      for (final transaction in transactions)
+        transaction.id: explainingRule(transaction),
+    };
+  }
+
+  static List<_PreparedRule> _prepareRules(List<CategorizationRule> rules) {
+    final preparedRules = <_PreparedRule>[];
+    for (final rule in rules) {
+      final pattern = rule.pattern.trim().toLowerCase();
+      if (pattern.isEmpty) continue;
+      preparedRules.add(
+        _PreparedRule(
+          rule: rule,
+          pattern: pattern,
+          patternLength: pattern.length,
+        ),
+      );
+    }
+    return preparedRules;
+  }
+
+  static bool _preparedRuleMatches({
+    required RuleMatchType matchType,
+    required String pattern,
+    required String merchantLower,
+    required String descriptionLower,
+    required String haystack,
+  }) {
+    switch (matchType) {
+      case RuleMatchType.merchantExact:
+        return merchantLower == pattern || descriptionLower == pattern;
+      case RuleMatchType.merchantContains:
+        return haystack.contains(pattern);
+    }
+  }
+
+  static bool _isBetterPreparedRule(
+    _PreparedRule candidate,
+    _PreparedRule incumbent,
+  ) {
+    if (candidate.rule.priority != incumbent.rule.priority) {
+      return candidate.rule.priority > incumbent.rule.priority;
+    }
+    if (candidate.patternLength != incumbent.patternLength) {
+      return candidate.patternLength > incumbent.patternLength;
+    }
+    if (candidate.rule.matchType != incumbent.rule.matchType) {
+      return candidate.rule.matchType == RuleMatchType.merchantExact;
+    }
+    return candidate.pattern.compareTo(incumbent.pattern) < 0;
+  }
+}
+
+class _PreparedRule {
+  const _PreparedRule({
+    required this.rule,
+    required this.pattern,
+    required this.patternLength,
+  });
+
+  final CategorizationRule rule;
+  final String pattern;
+  final int patternLength;
 }

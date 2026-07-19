@@ -120,16 +120,26 @@ class ChartDateLayout {
     canvas.drawLine(Offset(left, top), Offset(left, bottom), axisPaint);
   }
 
+  /// X positions of Jan-1 year boundaries drawn across a multi-year span.
+  List<double> yearBoundaryXs() {
+    if (minDate.year == maxDate.year) return const [];
+    return [
+      for (var year = minDate.year + 1; year <= maxDate.year; year++)
+        xForDate(DateTime(year)),
+    ];
+  }
+
   void drawYearBoundaries(Canvas canvas) {
-    if (minDate.year == maxDate.year) return;
+    final boundaryXs = yearBoundaryXs();
+    if (boundaryXs.isEmpty) return;
 
     final linePaint = Paint()
       ..color = AppColors.textColor4.withValues(alpha: 0.3)
       ..strokeWidth = 1;
 
-    for (var year = minDate.year + 1; year <= maxDate.year; year++) {
-      final jan1 = DateTime(year);
-      final boundaryX = xForDate(jan1);
+    for (var index = 0; index < boundaryXs.length; index++) {
+      final boundaryX = boundaryXs[index];
+      final year = minDate.year + 1 + index;
       canvas.drawLine(
         Offset(boundaryX, top),
         Offset(boundaryX, bottom),

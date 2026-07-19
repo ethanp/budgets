@@ -167,8 +167,9 @@ class CopilotCsvImporter {
         : session.categoryIdByName[budgetsCategoryName.toLowerCase()];
     final normalizedMerchant = normalizeMerchant(parsed.name);
 
-    // Income/Transfer and mapped spend categories become suggested + a
-    // priority-0 merchant rule so stronger rules can override later.
+    // Copilot category mapping becomes suggested only. User-created rules can
+    // still override via applyRules; we do not invent merchant-contains rules
+    // from the txn name (that mislabeled Activity as “Rule: contains …”).
     final defaultCategoryId = specialFromType?.id ?? mappedCategoryId;
     await _transactionsRepository.upsertTransaction(
       BankTransaction(
@@ -191,13 +192,6 @@ class CopilotCsvImporter {
       ),
       overwriteUserCategory: true,
     );
-
-    if (defaultCategoryId != null && normalizedMerchant.trim().isNotEmpty) {
-      await _categoriesRepository.ensureDefaultImportContainsRule(
-        pattern: normalizedMerchant,
-        categoryId: defaultCategoryId,
-      );
-    }
   }
 
   Future<Map<String, String>> _loadCategoryIdsByName() async {

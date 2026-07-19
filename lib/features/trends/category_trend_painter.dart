@@ -1,11 +1,13 @@
 import 'dart:math' as math;
 
 import 'package:budgets/domain/life_event.dart';
+import 'package:budgets/domain/stay_chain.dart';
 import 'package:budgets/features/trends/category_trend_point.dart';
 import 'package:budgets/features/trends/category_trend_series.dart';
 import 'package:budgets/features/trends/chart_date_layout.dart';
 import 'package:budgets/features/trends/trend_value_scale.dart';
 import 'package:budgets/theme/app_theme.dart';
+import 'package:budgets/theme/draw/date_range_band.dart';
 import 'package:budgets/util/money_format.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/cupertino.dart';
@@ -14,6 +16,8 @@ class CategoryTrendPainter extends CustomPainter {
   CategoryTrendPainter({
     required this.seriesList,
     this.lifeEvents = const [],
+    this.homebaseChain,
+    this.jobChain,
     this.hoverPosition,
   });
 
@@ -21,9 +25,13 @@ class CategoryTrendPainter extends CustomPainter {
   static const rightPadding = 12.0;
   static const _labelOverlapPx = 14.0;
   static const _labelStackStep = 12.0;
+  /// Year text sits at boundaryX+4 (~28px wide); keep band labels clear of it.
+  static const _yearLabelClearancePx = 36.0;
 
   final List<CategoryTrendSeries> seriesList;
   final List<LifeEvent> lifeEvents;
+  final StayChain? homebaseChain;
+  final StayChain? jobChain;
   final Offset? hoverPosition;
 
   @override
@@ -43,7 +51,52 @@ class CategoryTrendPainter extends CustomPainter {
     for (final series in drawableSeries) {
       _drawSeriesLine(canvas, layout, scale, series);
     }
-    _drawLifeEventMarkers(canvas, layout);
+
+    final chartMin = layout.minDate.startOfDay;
+    final chartMax = layout.maxDate.startOfDay;
+    final homebaseSegments = _visibleStaySegments(
+      homebaseChain,
+      chartMin: chartMin,
+      chartMax: chartMax,
+    );
+    final jobSegments = _visibleStaySegments(
+      jobChain,
+      chartMin: chartMin,
+      chartMax: chartMax,
+    );
+    final lifeEventsInRange = _visibleLifeEvents(
+      chartMin: chartMin,
+      chartMax: chartMax,
+    );
+    final laneByGroup = _overlayLabelLanes(
+      layout: layout,
+      homebaseSegments: homebaseSegments,
+      jobSegments: jobSegments,
+      lifeEvents: lifeEventsInRange,
+    );
+
+    _drawStayChainBands(
+      canvas,
+      layout,
+      kind: LifeChainKind.homebase,
+      chain: homebaseChain,
+      segments: homebaseSegments,
+      stackLanes: laneByGroup[_OverlayLabelGroup.homebase]!,
+    );
+    _drawStayChainBands(
+      canvas,
+      layout,
+      kind: LifeChainKind.job,
+      chain: jobChain,
+      segments: jobSegments,
+      stackLanes: laneByGroup[_OverlayLabelGroup.job]!,
+    );
+    _drawLifeEventMarkers(
+      canvas,
+      layout,
+      markersInRange: lifeEventsInRange,
+      stackLanes: laneByGroup[_OverlayLabelGroup.lifeEvent]!,
+    );
     _drawHoverMarker(canvas, layout, scale, drawableSeries);
     _drawAxisLabels(canvas, layout, scale);
   }
@@ -284,34 +337,244 @@ class CategoryTrendPainter extends CustomPainter {
     }
   }
 
-  void _drawLifeEventMarkers(Canvas canvas, ChartDateLayout layout) {
-    final markersInRange = [
+  List<ChainStaySegment> _visibleStaySegments(
+    StayChain? chain, {
+    required DateTime chartMin,
+    required DateTime chartMax,
+  }) {
+    if (chain == null || chain.isEmpty) return const [];
+    return [
+      for (final segment in chain.segments)
+        if (segment.intersectsChart(
+          chartMinDate: chartMin,
+          chartMaxDate: chartMax,
+        ))
+          segment,
+    ];
+  }
+
+  List<LifeEvent> _visibleLifeEvents({
+    required DateTime chartMin,
+    required DateTime chartMax,
+  }) {
+    return [
       for (final lifeEvent in lifeEvents)
-        if (!lifeEvent.occurredOn.isBefore(layout.minDate.startOfDay) &&
-            !lifeEvent.occurredOn.isAfter(layout.maxDate.startOfDay))
+        if (lifeEvent.intersectsChart(
+          chartMinDate: chartMin,
+          chartMaxDate: chartMax,
+        ))
           lifeEvent,
     ]..sort(
         (firstEvent, secondEvent) =>
-            firstEvent.occurredOn.compareTo(secondEvent.occurredOn),
+            firstEvent.startedOn.compareTo(secondEvent.startedOn),
       );
-    if (markersInRange.isEmpty) return;
+  }
 
+  Map<_OverlayLabelGroup, List<int>> _overlayLabelLanes({
+    required ChartDateLayout layout,
+    required List<ChainStaySegment> homebaseSegments,
+    required List<ChainStaySegment> jobSegments,
+    required List<LifeEvent> lifeEvents,
+  }) {
+    final slots = <_OverlayLabelSlot>[
+      for (var index = 0; index < homebaseSegments.length; index++)
+        _OverlayLabelSlot(
+          group: _OverlayLabelGroup.homebase,
+          index: index,
+          anchorX: dateRangeLabelAnchorX(
+            layout: layout,
+            rangeStart: homebaseSegments[index].rangeStart,
+          ),
+        ),
+      for (var index = 0; index < jobSegments.length; index++)
+        _OverlayLabelSlot(
+          group: _OverlayLabelGroup.job,
+          index: index,
+          anchorX: dateRangeLabelAnchorX(
+            layout: layout,
+            rangeStart: jobSegments[index].rangeStart,
+          ),
+        ),
+      for (var index = 0; index < lifeEvents.length; index++)
+        _OverlayLabelSlot(
+          group: _OverlayLabelGroup.lifeEvent,
+          index: index,
+          anchorX: dateRangeLabelAnchorX(
+            layout: layout,
+            rangeStart: lifeEvents[index].startedOn,
+          ),
+        ),
+    ]..sort((left, right) => left.anchorX.compareTo(right.anchorX));
+
+    final stackLanes = _labelStackLanes(
+      [for (final slot in slots) slot.anchorX],
+      reservedLane0AnchorXs: layout.yearBoundaryXs(),
+    );
+    final laneByGroup = {
+      _OverlayLabelGroup.homebase: List<int>.filled(homebaseSegments.length, 0),
+      _OverlayLabelGroup.job: List<int>.filled(jobSegments.length, 0),
+      _OverlayLabelGroup.lifeEvent: List<int>.filled(lifeEvents.length, 0),
+    };
+    for (var slotIndex = 0; slotIndex < slots.length; slotIndex++) {
+      final slot = slots[slotIndex];
+      laneByGroup[slot.group]![slot.index] = stackLanes[slotIndex];
+    }
+    return laneByGroup;
+  }
+
+  void _drawStayChainBands(
+    Canvas canvas,
+    ChartDateLayout layout, {
+    required LifeChainKind kind,
+    required StayChain? chain,
+    required List<ChainStaySegment> segments,
+    required List<int> stackLanes,
+  }) {
+    if (segments.isEmpty) return;
+    final chartMax = layout.maxDate.startOfDay;
+    final chainSegments = chain?.segments ?? const <ChainStaySegment>[];
+    final eraIndexByStayId = {
+      for (var eraIndex = 0; eraIndex < chainSegments.length; eraIndex++)
+        chainSegments[eraIndex].stay.id: eraIndex,
+    };
+
+    for (var index = 0; index < segments.length; index++) {
+      final segment = segments[index];
+      final eraIndex = eraIndexByStayId[segment.stay.id] ?? index;
+      final eraAccent = kind.trendEraAccent(eraIndex);
+      const fillStyles = DateRangeBandFillStyle.values;
+      final fillStyle = fillStyles[eraIndex % fillStyles.length];
+      final edgePaint = Paint()
+        ..color = eraAccent.withValues(alpha: 0.55)
+        ..strokeWidth = 1.25;
+
+      final geometry = dateRangeBandGeometry(
+        layout: layout,
+        rangeStart: segment.rangeStart,
+        rangeEnd: segment.effectiveEndOn(chartMax),
+        showLeftEdge: true,
+        showRightEdge: segment.rangeEnd != null,
+      );
+      if (geometry != null) {
+        paintDateRangeBand(
+          canvas,
+          layout: layout,
+          geometry: geometry,
+          edgePaint: edgePaint,
+          fillColor: eraAccent,
+          fillStyle: fillStyle,
+          fillAlpha: 0.08,
+        );
+      }
+
+      final labelAnchorX = dateRangeLabelAnchorX(
+        layout: layout,
+        rangeStart: segment.rangeStart,
+      );
+      final textPainter = TextPainter(
+        text: _stayChainLabelSpan(
+          kind: kind,
+          label: segment.stay.label,
+          color: eraAccent,
+        ),
+        textDirection: TextDirection.ltr,
+        maxLines: 1,
+        ellipsis: '…',
+      )..layout(maxWidth: 96);
+      final labelX = (labelAnchorX + 3).clamp(
+        layout.left,
+        layout.right - textPainter.width,
+      );
+      final labelY = layout.top + 2 + stackLanes[index] * _labelStackStep;
+      textPainter.paint(canvas, Offset(labelX, labelY));
+    }
+  }
+
+  TextSpan _stayChainLabelSpan({
+    required LifeChainKind kind,
+    required String label,
+    required Color color,
+  }) {
+    final labelStyle = TextStyle(
+      color: color,
+      fontSize: 9,
+      fontWeight: FontWeight.w600,
+      height: 1,
+    );
+    if (kind != LifeChainKind.homebase) {
+      return TextSpan(text: label, style: labelStyle);
+    }
+    const houseIcon = CupertinoIcons.house_fill;
+    return TextSpan(
+      children: [
+        TextSpan(
+          text: String.fromCharCode(houseIcon.codePoint),
+          style: TextStyle(
+            color: color,
+            fontSize: 8,
+            fontFamily: houseIcon.fontFamily,
+            package: houseIcon.fontPackage,
+            height: 1,
+          ),
+        ),
+        TextSpan(text: ' $label', style: labelStyle),
+      ],
+    );
+  }
+
+  void _drawLifeEventMarkers(
+    Canvas canvas,
+    ChartDateLayout layout, {
+    required List<LifeEvent> markersInRange,
+    required List<int> stackLanes,
+  }) {
+    if (markersInRange.isEmpty) return;
+    final chartMax = layout.maxDate.startOfDay;
+
+    final bandFillPaint = Paint()
+      ..color = AppColors.accentSecondary.withValues(alpha: 0.14)
+      ..style = PaintingStyle.fill;
+    final bandEdgePaint = Paint()
+      ..color = AppColors.accentSecondary.withValues(alpha: 0.4)
+      ..strokeWidth = 1;
     final linePaint = Paint()
       ..color = AppColors.accentSecondary.withValues(alpha: 0.55)
       ..strokeWidth = 1.25;
-    final stackLaneByIndex = _labelStackLanes(markersInRange, layout);
 
     for (var markerIndex = 0;
         markerIndex < markersInRange.length;
         markerIndex++) {
       final lifeEvent = markersInRange[markerIndex];
-      final markerX = layout.xForDate(lifeEvent.occurredOn.startOfDay);
-      _drawDashedVertical(
-        canvas,
-        Offset(markerX, layout.top),
-        Offset(markerX, layout.bottom),
-        linePaint,
+      final labelAnchorX = dateRangeLabelAnchorX(
+        layout: layout,
+        rangeStart: lifeEvent.startedOn,
       );
+
+      if (lifeEvent.isPoint) {
+        _drawDashedVertical(
+          canvas,
+          Offset(labelAnchorX, layout.top),
+          Offset(labelAnchorX, layout.bottom),
+          linePaint,
+        );
+      } else {
+        final geometry = dateRangeBandGeometry(
+          layout: layout,
+          rangeStart: lifeEvent.startedOn,
+          rangeEnd: lifeEvent.effectiveEndOn(chartMax),
+          showLeftEdge: true,
+          showRightEdge: lifeEvent.isClosedRange,
+        );
+        if (geometry != null) {
+          paintDateRangeBand(
+            canvas,
+            layout: layout,
+            geometry: geometry,
+            fillPaint: bandFillPaint,
+            edgePaint: bandEdgePaint,
+          );
+        }
+      }
 
       final textPainter = TextPainter(
         text: TextSpan(
@@ -327,31 +590,36 @@ class CategoryTrendPainter extends CustomPainter {
         ellipsis: '…',
       )..layout(maxWidth: 96);
 
-      final labelX = (markerX + 3).clamp(
+      final labelX = (labelAnchorX + 3).clamp(
         layout.left,
         layout.right - textPainter.width,
       );
       final labelY =
-          layout.top + 2 + stackLaneByIndex[markerIndex] * _labelStackStep;
+          layout.top + 2 + stackLanes[markerIndex] * _labelStackStep;
       textPainter.paint(canvas, Offset(labelX, labelY));
     }
   }
 
   List<int> _labelStackLanes(
-    List<LifeEvent> markersInRange,
-    ChartDateLayout layout,
-  ) {
-    final lanes = List<int>.filled(markersInRange.length, 0);
+    List<double> labelAnchorXs, {
+    List<double> reservedLane0AnchorXs = const [],
+  }) {
+    final lanes = List<int>.filled(labelAnchorXs.length, 0);
     final lastXByLane = <int, double>{};
     for (var markerIndex = 0;
-        markerIndex < markersInRange.length;
+        markerIndex < labelAnchorXs.length;
         markerIndex++) {
-      final markerX =
-          layout.xForDate(markersInRange[markerIndex].occurredOn.startOfDay);
+      final markerX = labelAnchorXs[markerIndex];
       var lane = 0;
       while (true) {
         final previousX = lastXByLane[lane];
-        if (previousX == null || markerX - previousX >= _labelOverlapPx) {
+        final overlapsPrevious =
+            previousX != null && markerX - previousX < _labelOverlapPx;
+        final overlapsYearLabel = lane == 0 &&
+            reservedLane0AnchorXs.any(
+              (yearX) => (markerX - yearX).abs() < _yearLabelClearancePx,
+            );
+        if (!overlapsPrevious && !overlapsYearLabel) {
           lanes[markerIndex] = lane;
           lastXByLane[lane] = markerX;
           break;
@@ -467,5 +735,21 @@ class CategoryTrendPainter extends CustomPainter {
   bool shouldRepaint(covariant CategoryTrendPainter oldDelegate) =>
       seriesList != oldDelegate.seriesList ||
       lifeEvents != oldDelegate.lifeEvents ||
+      homebaseChain != oldDelegate.homebaseChain ||
+      jobChain != oldDelegate.jobChain ||
       hoverPosition != oldDelegate.hoverPosition;
+}
+
+enum _OverlayLabelGroup { homebase, job, lifeEvent }
+
+class _OverlayLabelSlot {
+  const _OverlayLabelSlot({
+    required this.group,
+    required this.index,
+    required this.anchorX,
+  });
+
+  final _OverlayLabelGroup group;
+  final int index;
+  final double anchorX;
 }

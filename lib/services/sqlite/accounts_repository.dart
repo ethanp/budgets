@@ -1,5 +1,6 @@
 import 'package:budgets/domain/account.dart';
 import 'package:ethan_sync/ethan_sync.dart';
+import 'package:ethan_utils/ethan_utils.dart';
 import 'package:powersync/powersync.dart';
 
 class AccountsRepository {
@@ -47,34 +48,20 @@ class AccountsRepository {
   }
 
   static Account _fromRow(dynamic row) {
+    final columns = (row as Map).cast<String, Object?>();
     return Account(
-      id: row['id'] as String,
-      externalId: row['external_id'] as String,
-      name: row['name'] as String,
-      currency: row['currency'] as String,
-      balanceCents: _asInt(row['balance_cents']),
-      balanceAsOf: _dateFromMillis(_asIntOrNull(row['balance_as_of'])),
-      connId: row['conn_id'] as String?,
-      connName: row['conn_name'] as String?,
-      lastSyncedAt: _dateFromMillis(_asIntOrNull(row['last_synced_at'])),
-      status: AccountStatus.fromStorage(row['status'] as String),
-      statusMessage: row['status_message'] as String?,
+      id: columns['id'] as String,
+      externalId: columns['external_id'] as String,
+      name: columns['name'] as String,
+      currency: columns['currency'] as String,
+      balanceCents: columns['balance_cents'].asInt(),
+      balanceAsOf: columns['balance_as_of'].asIntOrNull().dateTimeFromMillis,
+      connId: columns['conn_id'] as String?,
+      connName: columns['conn_name'] as String?,
+      lastSyncedAt:
+          columns['last_synced_at'].asIntOrNull().dateTimeFromMillis,
+      status: AccountStatus.fromStorage(columns['status'] as String),
+      statusMessage: columns['status_message'] as String?,
     );
-  }
-
-  static DateTime? _dateFromMillis(int? millis) {
-    if (millis == null) return null;
-    return DateTime.fromMillisecondsSinceEpoch(millis);
-  }
-
-  static int _asInt(Object? value) {
-    if (value is int) return value;
-    if (value is num) return value.toInt();
-    return int.parse('$value');
-  }
-
-  static int? _asIntOrNull(Object? value) {
-    if (value == null) return null;
-    return _asInt(value);
   }
 }

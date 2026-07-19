@@ -82,18 +82,13 @@ class CopilotSimplefinDeduper {
       if (twin == null) continue;
       claimedSimplefinIds.add(twin.id);
 
-      if (transaction.userCategoryId != null &&
-          twin.effectiveCategoryId == null) {
-        await _transactionsRepository.setUserCategory(
-          transactionId: twin.id,
-          categoryId: transaction.userCategoryId,
-        );
-        categoriesCopied++;
-      } else if (transaction.suggestedCategoryId != null &&
-          twin.effectiveCategoryId == null) {
+      // Copilot provenance is always suggested — never a user lock on SimpleFIN.
+      final categoryToCopy =
+          transaction.userCategoryId ?? transaction.suggestedCategoryId;
+      if (categoryToCopy != null && twin.effectiveCategoryId == null) {
         await _transactionsRepository.setSuggestedCategory(
           transactionId: twin.id,
-          categoryId: transaction.suggestedCategoryId!,
+          categoryId: categoryToCopy,
         );
         categoriesCopied++;
       }

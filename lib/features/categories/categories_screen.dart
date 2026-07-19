@@ -104,11 +104,11 @@ class CategoriesScreen extends ConsumerWidget {
     };
     final spendCategories = [
       for (final category in categories)
-        if (!SpecialCategory.isSpecialId(category.id)) category,
+        if (!SpecialCategory.isFlowId(category.id)) category,
     ];
-    final specialCategories = [
+    final flowCategories = [
       for (final category in categories)
-        if (SpecialCategory.isSpecialId(category.id)) category,
+        if (SpecialCategory.isFlowId(category.id)) category,
     ];
 
     final groupsById = {for (final group in groups) group.id: group};
@@ -169,7 +169,7 @@ class CategoriesScreen extends ConsumerWidget {
       }
     }
 
-    for (final category in specialCategories) {
+    for (final category in flowCategories) {
       listChildren.add(
         _CategoryListTile(
           category: category,
@@ -341,25 +341,26 @@ class _CategoryListTile extends StatelessWidget {
   }
 
   Widget _categoryDetails() {
-    final isSpecial = SpecialCategory.isSpecialId(category.id);
+    final caption = SpecialCategory.isFlowId(category.id)
+        ? 'Built-in · cash flow'
+        : SpecialCategory.isHousingId(category.id)
+            ? row == null
+                ? 'Built-in · housing'
+                : 'Built-in · ${formatCents(row!.spentCents)} this month'
+            : row == null
+                ? 'Tap to edit'
+                : 'This month ${formatCents(row!.spentCents)}';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(category.name, style: AppText.body.large.semibold),
-        Text(
-          isSpecial
-              ? 'Built-in · cash flow'
-              : row == null
-                  ? 'Tap to edit'
-                  : 'This month ${formatCents(row!.spentCents)}',
-          style: AppText.body.small,
-        ),
+        Text(caption, style: AppText.body.small),
       ],
     );
   }
 
   Widget _annualPaceLabel() {
-    if (SpecialCategory.isSpecialId(category.id)) {
+    if (SpecialCategory.isFlowId(category.id)) {
       return const SizedBox.shrink();
     }
     return Column(

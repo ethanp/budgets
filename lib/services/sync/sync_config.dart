@@ -1,8 +1,9 @@
 import 'dart:io';
 
-import 'package:budgets/domain/special_category.dart';
+import 'package:budgets/migrations/migrate_life_event_occurred_on_keys.dart';
+import 'package:budgets/migrations/migrate_special_categories.dart';
+import 'package:budgets/migrations/seed_default_categories.dart';
 import 'package:budgets/services/sync/powersync_schema.dart';
-import 'package:budgets/services/sync/special_category_startup.dart';
 import 'package:ethan_sync/ethan_sync.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -32,6 +33,8 @@ const _fkDependencies = <String, Set<String>>{
   'categories': {'category_groups'},
   'sync_state': {},
   'life_events': {},
+  'homebase_stays': {},
+  'job_stays': {},
   'transactions': {'accounts', 'categories'},
   'categorization_rules': {'categories'},
 };
@@ -68,7 +71,8 @@ SyncConfig buildBudgetsSyncConfig(SharedPreferences preferences) {
     ),
     startupHooks: [
       _requireJwtSecret,
-      _seedDefaultCategoriesIfNeeded,
+      seedDefaultCategoriesIfNeeded,
+      migrateLifeEventOccurredOnKeys,
       ensureSpecialCategoriesMigrated,
     ],
     onSyncError: (message) => _log.warn(message),
@@ -122,57 +126,4 @@ Future<void> _requireJwtSecret(PowerSyncDatabase database) async {
   if (_jwtSecret().isEmpty) {
     throw StateError('Missing POWERSYNC_JWT_SECRET in .env');
   }
-}
-
-Future<void> _seedDefaultCategoriesIfNeeded(PowerSyncDatabase database) async {
-  final countRow = await database.getOptional(
-    'SELECT COUNT(*) AS c FROM categories',
-  );
-  final count = _asInt(countRow?['c']);
-  if (count > 0) return;
-
-  const spendDefaults = [
-    'Groceries',
-    'Dining',
-    'Transport',
-    'Housing',
-    'Utilities',
-    'Entertainment',
-    'Shopping',
-    'Health',
-    'Travel',
-    'Other',
-  ];
-  for (var index = 0; index < spendDefaults.length; index++) {
-    final name = spendDefaults[index];
-    await database.upsert('categories', {
-      'id': 'cat_${name.toLowerCase()}',
-      'name': name,
-      'sort_order': index,
-      'archived': 0,
-      'color_token': null,
-      'group_id': null,
-    });
-  }
-  for (final special in SpecialCategory.values) {
-    await database.upsert('categories', {
-      'id': special.id,
-      'name': special.name,
-      'sort_order': special.sortOrder,
-      'archived': 0,
-      'color_token': null,
-      'group_id': null,
-    });
-  }
-  _log.log(
-    'Seeded ${spendDefaults.length + SpecialCategory.values.length} '
-    'default categories',
-  );
-}
-
-int _asInt(Object? value) {
-  if (value == null) return 0;
-  if (value is int) return value;
-  if (value is num) return value.toInt();
-  return int.parse(value.toString());
 }

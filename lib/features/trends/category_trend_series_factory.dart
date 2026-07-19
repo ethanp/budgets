@@ -7,6 +7,7 @@ import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/features/trends/category_trend_point.dart';
 import 'package:budgets/features/trends/category_trend_series.dart';
 import 'package:budgets/features/trends/trends_chart_bundle.dart';
+import 'package:budgets/util/category_color.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -77,7 +78,7 @@ class CategoryTrendSeriesFactory {
               !transaction.postedAt.isBefore(historyStart),
         )
         .toList();
-    final flowCategoryIds = SpecialCategory.ids;
+    final flowCategoryIds = SpecialCategory.flowIds;
 
     final spendMaps = _categorySpendMaps(
       transactions: inRangeTransactions,
@@ -190,17 +191,20 @@ class CategoryTrendSeriesFactory {
       final dailySpendCents = spendMaps.byCategoryId[category.id];
       if (dailySpendCents == null || dailySpendCents.isEmpty) continue;
 
+      final pinnedColor = SpecialCategory.isHousingId(category.id)
+          ? CategoryColor.housing
+          : null;
       final categorySeries = _seriesForDailyMap(
         id: category.id,
         name: category.name,
-        lineColor: _palette[paletteIndex % _palette.length],
+        lineColor: pinnedColor ?? _palette[paletteIndex % _palette.length],
         dailySpendCents: dailySpendCents,
         chartDates: chartDates,
         historyFloor: historyFloor,
       );
       if (!_hasMeaningfulTrend(categorySeries)) continue;
       representedCategoryIds.add(category.id);
-      paletteIndex++;
+      if (pinnedColor == null) paletteIndex++;
 
       if (_isOtherCategory(category)) {
         otherSeries = categorySeries;

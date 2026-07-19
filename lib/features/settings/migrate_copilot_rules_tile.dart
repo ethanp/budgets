@@ -5,7 +5,7 @@ import 'package:budgets/widgets/app_card.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Converts Copilot user-locked categories into priority-0 merchant rules.
+/// Releases Copilot user-locked categories to suggested and removes bad import rules.
 class MigrateCopilotRulesTile extends ConsumerStatefulWidget {
   const MigrateCopilotRulesTile({super.key});
 
@@ -27,14 +27,15 @@ class _MigrateCopilotRulesTileState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Migrate Copilot categories to rules',
+            'Migrate Copilot categories',
             style: AppText.headline.small,
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
             'Older Copilot imports locked categories as user overrides. '
-            'This creates lowest-priority merchant rules from those mappings, '
-            'moves them to suggested categories, and lets stronger rules win.',
+            'This moves them to suggested categories (so your rules can win), '
+            'and deletes incorrect priority-0 merchant rules created from '
+            'transaction names.',
             style: AppText.body.medium,
           ),
           if (_progress != null) ...[
@@ -48,7 +49,7 @@ class _MigrateCopilotRulesTileState
           const SizedBox(height: AppSpacing.md),
           CupertinoButton.filled(
             onPressed: _busy ? null : _run,
-            child: Text(_busy ? 'Migrating…' : 'Migrate to default rules'),
+            child: Text(_busy ? 'Migrating…' : 'Migrate Copilot categories'),
           ),
         ],
       ),
@@ -66,8 +67,7 @@ class _MigrateCopilotRulesTileState
     });
     try {
       final categorizer = await ref.read(categorizerProvider.future);
-      final result =
-          await categorizer.migrateCopilotUserCategoriesToDefaultRules(
+      final result = await categorizer.migrateCopilotUserCategoriesToSuggested(
         onProgress: (progress) {
           if (!mounted) return;
           setState(() => _progress = progress);
@@ -75,12 +75,14 @@ class _MigrateCopilotRulesTileState
       );
       ref.read(dataRevisionProvider.notifier).bump();
       setState(() {
-        if (result.transactionsReleased == 0 && result.rulesEnsured == 0) {
-          _message = 'Nothing to migrate — no Copilot user categories found.';
+        if (result.transactionsReleased == 0 &&
+            result.defaultImportRulesDeleted == 0) {
+          _message = 'Nothing to migrate.';
         } else {
           _message =
-              'Released ${result.transactionsReleased} transactions into '
-              '${result.rulesEnsured} default merchant rules.';
+              'Released ${result.transactionsReleased} transactions; '
+              'deleted ${result.defaultImportRulesDeleted} incorrect '
+              'default merchant rules.';
         }
       });
     } catch (error) {

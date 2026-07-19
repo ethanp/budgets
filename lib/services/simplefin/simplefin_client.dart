@@ -289,7 +289,7 @@ class SimpleFinClient {
       currency: json['currency'] as String? ?? 'USD',
       balance: json['balance']?.toString() ?? '0',
       availableBalance: json['available-balance']?.toString(),
-      balanceDate: _asInt(json['balance-date']),
+      balanceDate: (json['balance-date'] as Object?).asIntOrNull() ?? 0,
       connId: json['conn_id'] as String?,
       connName: json['conn_name'] as String?,
       transactions: transactions,
@@ -299,7 +299,7 @@ class SimpleFinClient {
   static SimpleFinTransaction _parseTransaction(Map<String, dynamic> json) {
     return SimpleFinTransaction(
       id: json['id'] as String? ?? '',
-      posted: _asInt(json['posted']),
+      posted: (json['posted'] as Object?).asIntOrNull() ?? 0,
       amount: json['amount']?.toString() ?? '0',
       description: json['description'] as String? ?? '',
       pending: json['pending'] == true,
@@ -397,13 +397,6 @@ class SimpleFinClient {
     if (basePath.endsWith('/')) return '$basePath$segment';
     if (basePath.isEmpty) return '/$segment';
     return '$basePath/$segment';
-  }
-
-  static int _asInt(Object? value) {
-    if (value is int) return value;
-    if (value is num) return value.toInt();
-    if (value is String) return int.tryParse(value) ?? 0;
-    return 0;
   }
 
   /// Explicit Basic Auth — do not rely on URI userInfo (http package / redirects).

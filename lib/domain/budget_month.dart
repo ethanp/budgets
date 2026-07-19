@@ -51,7 +51,7 @@ class BudgetMonth {
 
     return [
       for (final category in categories)
-        if (!SpecialCategory.isSpecialId(category.id))
+        if (!SpecialCategory.isFlowId(category.id))
           CategoryMonthRow(
             categoryId: category.id,
             categoryName: category.name,

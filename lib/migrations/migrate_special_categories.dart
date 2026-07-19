@@ -1,3 +1,16 @@
+/// Built-in categories with stable ids (`cat_housing`, `cat_income`,
+/// `cat_transfer`). Older data could:
+/// - lack those rows entirely
+/// - store Copilot `transaction_type` income/transfer as a *user* category lock
+///   (so Activity treated them as manual instead of auto-categorized)
+/// - have duplicate named "Housing"/"Income"/"Transfer" categories from seeds
+///   or early imports
+///
+/// This startup migration upserts the specials, moves type-derived locks onto
+/// `suggested_category_id`, backfills suggested from `transaction_type`, and
+/// merges duplicate-named categories onto the canonical ids. Idempotent.
+library;
+
 import 'package:budgets/domain/special_category.dart';
 import 'package:ethan_sync/ethan_sync.dart';
 import 'package:ethan_utils/ethan_utils.dart';
@@ -5,9 +18,9 @@ import 'package:powersync/powersync.dart';
 
 const _log = ELogger('SpecialCategories');
 
-/// Ensures Income/Transfer exist, then migrates type-based / duplicate rows onto them.
 Future<void> ensureSpecialCategoriesMigrated(PowerSyncDatabase database) async {
   await _upsertSpecialCategories(database);
+  await _releaseTypeDerivedUserLocks(database);
   await _backfillFromTransactionType(database);
   await _mergeDuplicateNamedCategories(database);
 }
@@ -25,11 +38,38 @@ Future<void> _upsertSpecialCategories(PowerSyncDatabase database) async {
   }
 }
 
+/// Older builds wrote type-derived Income/Transfer onto [user_category_id], which
+/// made Activity treat them as manual. Move those locks to suggested.
+Future<void> _releaseTypeDerivedUserLocks(PowerSyncDatabase database) async {
+  await database.execute(
+    '''
+    UPDATE transactions
+    SET user_category_id = NULL, suggested_category_id = ?
+    WHERE user_category_id = ?
+      AND lower(trim(coalesce(transaction_type, ''))) = 'income'
+    ''',
+    [SpecialCategory.income.id, SpecialCategory.income.id],
+  );
+  await database.execute(
+    '''
+    UPDATE transactions
+    SET user_category_id = NULL, suggested_category_id = ?
+    WHERE user_category_id = ?
+      AND lower(trim(coalesce(transaction_type, ''))) IN (
+        'transfer',
+        'internal transfer'
+      )
+    ''',
+    [SpecialCategory.transfer.id, SpecialCategory.transfer.id],
+  );
+}
+
+/// Copilot / import `transaction_type` → suggested category (not a user lock).
 Future<void> _backfillFromTransactionType(PowerSyncDatabase database) async {
   await database.execute(
     '''
     UPDATE transactions
-    SET user_category_id = ?
+    SET suggested_category_id = ?
     WHERE lower(trim(coalesce(transaction_type, ''))) = 'income'
       AND (user_category_id IS NULL OR trim(user_category_id) = '')
     ''',
@@ -38,7 +78,7 @@ Future<void> _backfillFromTransactionType(PowerSyncDatabase database) async {
   await database.execute(
     '''
     UPDATE transactions
-    SET user_category_id = ?
+    SET suggested_category_id = ?
     WHERE lower(trim(coalesce(transaction_type, ''))) IN (
       'transfer',
       'internal transfer'

@@ -2,6 +2,7 @@ import 'package:budgets/domain/month_summary.dart';
 import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/util/merchant_normalize.dart';
 import 'package:ethan_sync/ethan_sync.dart';
+import 'package:ethan_utils/ethan_utils.dart';
 import 'package:powersync/powersync.dart';
 
 class _MonthFlowTotals {
@@ -229,30 +230,24 @@ class TransactionsRepository {
   }
 
   static BankTransaction _fromRow(dynamic row) {
+    final columns = (row as Map).cast<String, Object?>();
     return BankTransaction(
-      id: row['id'] as String,
-      accountId: row['account_id'] as String,
-      externalId: row['external_id'] as String,
-      postedAt: DateTime.fromMillisecondsSinceEpoch(_asInt(row['posted_at'])),
-      amountCents: _asInt(row['amount_cents']),
-      rawDescription: row['raw_description'] as String,
-      normalizedMerchant: row['normalized_merchant'] as String,
-      pending: _asInt(row['pending']) == 1,
-      userCategoryId: row['user_category_id'] as String?,
-      suggestedCategoryId: row['suggested_category_id'] as String?,
-      note: row['note'] as String?,
-      transactionType: row['transaction_type'] as String?,
-      excluded: row['excluded'] != null && _asInt(row['excluded']) == 1,
-      recurringSeries: row['recurring_series'] as String?,
-      importedAt: row['imported_at'] == null
-          ? null
-          : DateTime.fromMillisecondsSinceEpoch(_asInt(row['imported_at'])),
+      id: columns['id'] as String,
+      accountId: columns['account_id'] as String,
+      externalId: columns['external_id'] as String,
+      postedAt: columns['posted_at'].asInt().dateTimeFromMillis,
+      amountCents: columns['amount_cents'].asInt(),
+      rawDescription: columns['raw_description'] as String,
+      normalizedMerchant: columns['normalized_merchant'] as String,
+      pending: columns['pending'].asInt() == 1,
+      userCategoryId: columns['user_category_id'] as String?,
+      suggestedCategoryId: columns['suggested_category_id'] as String?,
+      note: columns['note'] as String?,
+      transactionType: columns['transaction_type'] as String?,
+      excluded:
+          columns['excluded'] != null && columns['excluded'].asInt() == 1,
+      recurringSeries: columns['recurring_series'] as String?,
+      importedAt: columns['imported_at'].asIntOrNull().dateTimeFromMillis,
     );
-  }
-
-  static int _asInt(Object? value) {
-    if (value is int) return value;
-    if (value is num) return value.toInt();
-    return int.parse('$value');
   }
 }

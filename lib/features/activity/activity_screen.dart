@@ -3,6 +3,7 @@ import 'package:budgets/domain/categorizer.dart';
 import 'package:budgets/domain/category.dart';
 import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/features/activity/activity_search.dart';
+import 'package:budgets/features/activity/activity_transaction_tile.dart';
 import 'package:budgets/features/activity/recategorize_sheet.dart';
 import 'package:budgets/features/activity/suggest_categories_sheet.dart';
 import 'package:budgets/providers/budgets_providers.dart';
@@ -10,6 +11,7 @@ import 'package:budgets/theme/app_theme.dart';
 import 'package:budgets/util/money_format.dart';
 import 'package:budgets/widgets/app_card.dart';
 import 'package:budgets/widgets/sync_status_nav_button.dart';
+import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -85,6 +87,7 @@ class _ActivityBodyState extends ConsumerState<_ActivityBody> {
   final _searchController = TextEditingController();
   String _searchQuery = '';
   bool _hideRuleMatched = true;
+  bool _showVisibleSum = false;
 
   @override
   void dispose() {
@@ -118,20 +121,32 @@ class _ActivityBodyState extends ConsumerState<_ActivityBody> {
         ))
           transaction,
     ];
-    final visibleTransactions = _hideRuleMatched
-        ? [
-            for (final transaction in searchMatches)
-              if (Categorizer.explainingRule(transaction, rules) == null)
-                transaction,
-          ]
-        : searchMatches;
+    final ruleMatchIndex = RuleMatchIndex(rules);
+    final Map<String, CategorizationRule?> explainingByTransactionId;
+    final List<BankTransaction> visibleTransactions;
+    if (_hideRuleMatched) {
+      // Full scan only when filtering — prepared rules are reused across txns.
+      explainingByTransactionId =
+          ruleMatchIndex.explainingRulesByTransactionId(searchMatches);
+      visibleTransactions = [
+        for (final transaction in searchMatches)
+          if (!_isAutoCategorized(
+            transaction,
+            explainingByTransactionId[transaction.id],
+          ))
+            transaction,
+      ];
+    } else {
+      explainingByTransactionId = const {};
+      visibleTransactions = searchMatches;
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _buildStickySearchAndFilter(
           searchMatchCount: searchMatches.length,
-          visibleCount: visibleTransactions.length,
+          visibleTransactions: visibleTransactions,
         ),
         Expanded(
           child: CustomScrollView(
@@ -149,7 +164,8 @@ class _ActivityBodyState extends ConsumerState<_ActivityBody> {
                   visibleTransactions: visibleTransactions,
                   accounts: accounts,
                   categories: categories,
-                  rules: rules,
+                  ruleMatchIndex: ruleMatchIndex,
+                  explainingByTransactionId: explainingByTransactionId,
                 ),
             ],
           ),
@@ -158,10 +174,26 @@ class _ActivityBodyState extends ConsumerState<_ActivityBody> {
     );
   }
 
+  /// True when a real rule explains the category, or Copilot/suggested filled it.
+  bool _isAutoCategorized(
+    BankTransaction transaction,
+    CategorizationRule? explainingRule,
+  ) {
+    if (explainingRule != null) {
+      // Ignore leftover priority-0 import rules — those are not real rules.
+      if (explainingRule.priority > CategorizationRule.defaultImportPriority) {
+        return true;
+      }
+    }
+    return transaction.userCategoryId == null &&
+        transaction.suggestedCategoryId != null;
+  }
+
   Widget _buildStickySearchAndFilter({
     required int searchMatchCount,
-    required int visibleCount,
+    required List<BankTransaction> visibleTransactions,
   }) {
+    final visibleCount = visibleTransactions.length;
     return ColoredBox(
       color: AppColors.backgroundDepth1,
       child: Padding(
@@ -187,6 +219,14 @@ class _ActivityBodyState extends ConsumerState<_ActivityBody> {
                 setState(() => _hideRuleMatched = hideRuleMatched);
               },
             ),
+            const SizedBox(height: AppSpacing.sm),
+            _VisibleSumBar(
+              visibleTransactions: visibleTransactions,
+              showSum: _showVisibleSum,
+              onToggle: visibleCount == 0
+                  ? null
+                  : () => setState(() => _showVisibleSum = !_showVisibleSum),
+            ),
           ],
         ),
       ),
@@ -201,8 +241,8 @@ class _ActivityBodyState extends ConsumerState<_ActivityBody> {
         ? 'No transactions match this search.'
         : hasSearch
             ? 'No unmatched transactions for this search. '
-                'Turn off “Hide rule-matched” to see more.'
-            : 'All loaded transactions match a rule. '
+                'Turn off “Hide auto-categorized” to see more.'
+            : 'All loaded transactions are already categorized. '
                 'Turn off the filter to see them.';
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
@@ -218,8 +258,10 @@ class _ActivityBodyState extends ConsumerState<_ActivityBody> {
     required List<BankTransaction> visibleTransactions,
     required Map<String, Account> accounts,
     required Map<String, SpendCategory> categories,
-    required List<CategorizationRule> rules,
+    required RuleMatchIndex ruleMatchIndex,
+    required Map<String, CategorizationRule?> explainingByTransactionId,
   }) {
+    final listItems = _dayGroupedListItems(visibleTransactions);
     return SliverPadding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.lg,
@@ -227,26 +269,102 @@ class _ActivityBodyState extends ConsumerState<_ActivityBody> {
         AppSpacing.lg,
         AppSpacing.lg,
       ),
-      sliver: SliverList.separated(
-        itemCount: visibleTransactions.length,
-        separatorBuilder: (context, index) =>
-            const SizedBox(height: AppSpacing.sm),
-        itemBuilder: (context, index) {
-          final transaction = visibleTransactions[index];
-          return _TransactionRow(
-            transaction: transaction,
-            account: accounts[transaction.accountId],
-            category: categories[transaction.effectiveCategoryId],
-            matchedRule: Categorizer.explainingRule(transaction, rules),
-            onTap: () => RecategorizeSheet.show(
-              context,
-              ref: ref,
-              transaction: transaction,
-            ),
-          );
-        },
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            final listItem = listItems[index];
+            if (listItem is _ActivityDayHeader) {
+              return _ActivityDayHeaderTile(
+                label: listItem.label,
+                isFirst: index == 0,
+              );
+            }
+            final transaction = (listItem as _ActivityTransactionItem).transaction;
+            final account = accounts[transaction.accountId];
+            final category = categories[transaction.effectiveCategoryId];
+            final explainingRule = explainingByTransactionId[transaction.id] ??
+                ruleMatchIndex.explainingRule(transaction);
+            return Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: ActivityTransactionTile(
+                transaction: transaction,
+                account: account,
+                category: category,
+                categorySourceLabel: _categorySourceLabel(
+                  transaction: transaction,
+                  account: account,
+                  category: category,
+                  explainingRule: explainingRule,
+                ),
+                onTap: () => RecategorizeSheet.show(
+                  context,
+                  ref: ref,
+                  transaction: transaction,
+                ),
+              ),
+            );
+          },
+          childCount: listItems.length,
+        ),
       ),
     );
+  }
+
+  String? _categorySourceLabel({
+    required BankTransaction transaction,
+    required Account? account,
+    required SpendCategory? category,
+    required CategorizationRule? explainingRule,
+  }) {
+    if (explainingRule != null &&
+        explainingRule.priority > CategorizationRule.defaultImportPriority) {
+      return 'Rule: contains “${explainingRule.pattern}”';
+    }
+
+    final categoryName = category?.name;
+    if (categoryName == null || categoryName.isEmpty) return null;
+    if (transaction.userCategoryId != null) return null;
+    if (transaction.suggestedCategoryId == null) return null;
+    if (transaction.suggestedCategoryId != transaction.effectiveCategoryId) {
+      return null;
+    }
+
+    final isCopilotAccount =
+        account?.externalId.startsWith('copilot:') ?? false;
+    if (isCopilotAccount) {
+      return 'Copilot category was “$categoryName”';
+    }
+    return 'Suggested: $categoryName';
+  }
+
+  List<_ActivityListItem> _dayGroupedListItems(
+    List<BankTransaction> transactions,
+  ) {
+    final today = DateTime.now().startOfDay;
+    final yesterday = today.subtract(const Duration(days: 1));
+    final listItems = <_ActivityListItem>[];
+    DateTime? currentDay;
+
+    for (final transaction in transactions) {
+      final day = transaction.postedAt.toLocal().startOfDay;
+      if (currentDay != day) {
+        currentDay = day;
+        listItems.add(
+          _ActivityDayHeader(label: _dayHeaderLabel(day, today, yesterday)),
+        );
+      }
+      listItems.add(_ActivityTransactionItem(transaction: transaction));
+    }
+    return listItems;
+  }
+
+  String _dayHeaderLabel(DateTime day, DateTime today, DateTime yesterday) {
+    if (day == today) return 'Today';
+    if (day == yesterday) return 'Yesterday';
+    if (day.year == today.year) {
+      return DateFormat('EEEE, MMM d').format(day);
+    }
+    return DateFormat('EEEE, MMM d, y').format(day);
   }
 
   Widget _buildEmptyState() {
@@ -295,7 +413,7 @@ class _RuleMatchFilterToggle extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Hide rule-matched',
+                  'Hide auto-categorized',
                   style: AppText.body.medium.semibold,
                 ),
                 Text(
@@ -317,80 +435,151 @@ class _RuleMatchFilterToggle extends StatelessWidget {
   }
 }
 
-class _TransactionRow extends StatelessWidget {
-  const _TransactionRow({
-    required this.transaction,
-    required this.account,
-    required this.category,
-    required this.matchedRule,
-    required this.onTap,
+class _VisibleSumBar extends StatelessWidget {
+  const _VisibleSumBar({
+    required this.visibleTransactions,
+    required this.showSum,
+    required this.onToggle,
   });
 
-  final BankTransaction transaction;
-  final Account? account;
-  final SpendCategory? category;
-  final CategorizationRule? matchedRule;
-  final VoidCallback onTap;
+  final List<BankTransaction> visibleTransactions;
+  final bool showSum;
+  final VoidCallback? onToggle;
 
   @override
   Widget build(BuildContext context) {
-    final amountStyle = transaction.isOutflow
-        ? AppText.body.medium.primary.semibold
-        : AppText.body.medium.success.semibold;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: AppCard(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Row(
-          children: [
-            Expanded(child: _buildLeadingDetails()),
-            const SizedBox(width: AppSpacing.md),
-            Text(formatCents(transaction.amountCents), style: amountStyle),
+    return AppCard(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Sum visible list',
+                  style: AppText.body.medium.semibold,
+                ),
+              ),
+              CupertinoButton(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                minimumSize: Size.zero,
+                onPressed: onToggle,
+                child: Text(showSum ? 'Hide' : 'Sum'),
+              ),
+            ],
+          ),
+          if (showSum && visibleTransactions.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.xs),
+            _buildSumDetails(),
           ],
-        ),
+        ],
       ),
     );
   }
 
-  Widget _buildLeadingDetails() {
+  Widget _buildSumDetails() {
+    var netCents = 0;
+    var inflowCents = 0;
+    var outflowCents = 0;
+    for (final transaction in visibleTransactions) {
+      netCents += transaction.amountCents;
+      if (transaction.isInflow) {
+        inflowCents += transaction.amountCents;
+      } else if (transaction.isOutflow) {
+        outflowCents += transaction.amountCents;
+      }
+    }
+
+    final netColor = netCents > 0
+        ? AppColors.success
+        : netCents < 0
+            ? AppColors.error
+            : AppColors.textColor2;
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          transaction.rawDescription.isEmpty
-              ? transaction.normalizedMerchant
-              : transaction.rawDescription,
-          style: AppText.body.large.semibold,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
+        Row(
+          children: [
+            Text(
+              '${visibleTransactions.length} '
+              '${visibleTransactions.length == 1 ? 'transaction' : 'transactions'}',
+              style: AppText.body.small,
+            ),
+            const Spacer(),
+            Text(
+              formatCents(netCents),
+              style: AppText.body.large.semibold.copyWith(color: netColor),
+            ),
+          ],
         ),
-        const SizedBox(height: AppSpacing.xs),
-        Text(_subtitleParts.join(' · '), style: AppText.body.small),
-        if (matchedRule != null) ...[
+        if (inflowCents != 0 || outflowCents != 0) ...[
           const SizedBox(height: AppSpacing.xs),
           Text(
-            'Rule: contains “${matchedRule!.pattern}”',
-            style: AppText.body.small.copyWith(
-              color: AppColors.accentPrimary,
-            ),
+            'In ${formatCents(inflowCents)} · Out ${formatCents(outflowCents)}',
+            style: AppText.caption,
+            textAlign: TextAlign.end,
           ),
         ],
       ],
     );
   }
+}
 
-  List<String> get _subtitleParts {
-    return [
-      if (account != null) account!.name,
-      DateFormat.MMMd().format(transaction.postedAt.toLocal()),
-      if (transaction.pending) 'Pending',
-      if (transaction.excluded) 'Excluded',
-      if (transaction.recurringSeries != null)
-        'Recurring: ${transaction.recurringSeries}',
-      category?.name ?? 'Uncategorized',
-      if (transaction.note != null && transaction.note!.isNotEmpty)
-        transaction.note!,
-    ];
+class _ActivityDayHeaderTile extends StatelessWidget {
+  const _ActivityDayHeaderTile({
+    required this.label,
+    required this.isFirst,
+  });
+
+  final String label;
+  final bool isFirst;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        top: isFirst ? AppSpacing.xs : AppSpacing.lg,
+        bottom: AppSpacing.sm,
+      ),
+      child: Row(
+        children: [
+          Text(
+            label,
+            style: AppText.body.medium.semibold.copyWith(
+              color: AppColors.textColor2,
+              letterSpacing: 0.2,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Container(
+              height: 1,
+              color: AppColors.borderDepth1,
+            ),
+          ),
+        ],
+      ),
+    );
   }
+}
+
+sealed class _ActivityListItem {
+  const _ActivityListItem();
+}
+
+class _ActivityDayHeader extends _ActivityListItem {
+  const _ActivityDayHeader({required this.label});
+
+  final String label;
+}
+
+class _ActivityTransactionItem extends _ActivityListItem {
+  const _ActivityTransactionItem({required this.transaction});
+
+  final BankTransaction transaction;
 }

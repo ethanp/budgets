@@ -6,6 +6,7 @@ import 'package:budgets/domain/category_group.dart';
 import 'package:budgets/domain/copilot_simplefin_deduper.dart';
 import 'package:budgets/domain/life_event.dart';
 import 'package:budgets/domain/month_summary.dart';
+import 'package:budgets/domain/stay_chain.dart';
 import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/domain/transaction_ingest.dart';
 import 'package:budgets/domain/trend_spend_rate.dart';
@@ -16,6 +17,7 @@ import 'package:budgets/services/simplefin/simplefin_client.dart';
 import 'package:budgets/services/simplefin/simplefin_models.dart';
 import 'package:budgets/services/sqlite/accounts_repository.dart';
 import 'package:budgets/services/sqlite/categories_repository.dart';
+import 'package:budgets/services/sqlite/chain_stays_repository.dart';
 import 'package:budgets/services/sqlite/life_events_repository.dart';
 import 'package:budgets/services/sqlite/sync_state_store.dart';
 import 'package:budgets/services/sqlite/transactions_repository.dart';
@@ -65,6 +67,30 @@ final lifeEventsProvider = FutureProvider<List<LifeEvent>>((ref) async {
   ref.watch(dataRevisionProvider);
   final repository = await ref.watch(lifeEventsRepositoryProvider.future);
   return repository.listNewestFirst();
+});
+
+final homebaseRepositoryProvider = FutureProvider<ChainStaysRepository>((
+  ref,
+) async {
+  final database = await ref.watch(powerSyncDatabaseProvider.future);
+  return ChainStaysRepository(database, tableName: 'homebase_stays');
+});
+
+final jobRepositoryProvider = FutureProvider<ChainStaysRepository>((ref) async {
+  final database = await ref.watch(powerSyncDatabaseProvider.future);
+  return ChainStaysRepository(database, tableName: 'job_stays');
+});
+
+final homebaseChainProvider = FutureProvider<StayChain>((ref) async {
+  ref.watch(dataRevisionProvider);
+  final repository = await ref.watch(homebaseRepositoryProvider.future);
+  return repository.loadChain();
+});
+
+final jobChainProvider = FutureProvider<StayChain>((ref) async {
+  ref.watch(dataRevisionProvider);
+  final repository = await ref.watch(jobRepositoryProvider.future);
+  return repository.loadChain();
 });
 
 final syncStateStoreProvider = FutureProvider<SyncStateStore>((ref) async {

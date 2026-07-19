@@ -49,7 +49,18 @@ const Schema budgetsSchema = Schema([
   ]),
   Table('life_events', [
     Column.text('title'),
-    Column.integer('occurred_on'),
+    Column.integer('started_on'),
+    Column.integer('ended_on'),
+    Column.text('note'),
+  ]),
+  Table('homebase_stays', [
+    Column.text('label'),
+    Column.integer('started_on'),
+    Column.text('note'),
+  ]),
+  Table('job_stays', [
+    Column.text('label'),
+    Column.integer('started_on'),
     Column.text('note'),
   ]),
   Table('sync_state', [
