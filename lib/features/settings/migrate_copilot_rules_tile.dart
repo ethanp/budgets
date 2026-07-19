@@ -1,7 +1,6 @@
 import 'package:budgets/domain/categorizer.dart';
+import 'package:budgets/features/settings/settings_section.dart';
 import 'package:budgets/providers/budgets_providers.dart';
-import 'package:budgets/theme/app_theme.dart';
-import 'package:budgets/widgets/app_card.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -22,37 +21,24 @@ class _MigrateCopilotRulesTileState
 
   @override
   Widget build(BuildContext context) {
-    return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Migrate Copilot categories',
-            style: AppText.headline.small,
-          ),
-          VSpace.sm,
-          Text(
-            'Older Copilot imports locked categories as user overrides. '
-            'This moves them to suggested categories (so your rules can win), '
-            'and deletes incorrect priority-0 merchant rules created from '
-            'transaction names.',
-            style: AppText.body.medium,
-          ),
-          if (_progress != null) ...[
-            VSpace.md,
-            _MigrationProgressBar(progress: _progress!),
-          ],
-          if (_message != null) ...[
-            VSpace.sm,
-            Text(_message!, style: AppText.body.small),
-          ],
-          VSpace.md,
-          CupertinoButton.filled(
-            onPressed: _busy ? null : _run,
-            child: Text(_busy ? 'Migrating…' : 'Migrate Copilot categories'),
-          ),
-        ],
-      ),
+    return SettingsToolRow(
+      icon: CupertinoIcons.arrow_right_arrow_left,
+      title: 'Migrate Copilot categories',
+      caption:
+          'Unlock imported overrides to suggested; delete bad default rules.',
+      onAction: _run,
+      style: SettingsSectionStyle.maintenance,
+      busy: _busy,
+      message: _message,
+      progress: _progress == null
+          ? null
+          : SettingsProgressBar(
+              fraction: _progress!.fraction,
+              label: _progress!.total <= 0
+                  ? 'Starting…'
+                  : '${_progress!.completed} / ${_progress!.total}',
+              style: SettingsSectionStyle.maintenance,
+            ),
     );
   }
 
@@ -95,42 +81,5 @@ class _MigrateCopilotRulesTileState
         });
       }
     }
-  }
-}
-
-class _MigrationProgressBar extends StatelessWidget {
-  const _MigrationProgressBar({required this.progress});
-
-  final CopilotDefaultRuleMigrationProgress progress;
-
-  @override
-  Widget build(BuildContext context) {
-    final fraction = progress.fraction.clamp(0.0, 1.0);
-    final label = progress.total <= 0
-        ? 'Starting…'
-        : '${progress.completed} / ${progress.total}';
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(999),
-          child: SizedBox(
-            height: 8,
-            child: Stack(
-              children: [
-                Container(color: AppColors.backgroundDepth5),
-                FractionallySizedBox(
-                  widthFactor: fraction,
-                  child: Container(color: AppColors.accentPrimary),
-                ),
-              ],
-            ),
-          ),
-        ),
-        VSpace.xs,
-        Text(label, style: AppText.body.small),
-      ],
-    );
   }
 }

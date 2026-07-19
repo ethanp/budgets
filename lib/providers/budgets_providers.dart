@@ -167,19 +167,6 @@ class TrendSpendRateNotifier extends Notifier<TrendSpendRate> {
   void setRate(TrendSpendRate rate) => state = rate;
 }
 
-/// Whether Housing/Job era gradient fills are drawn on Trends charts.
-final showChainEraFillsProvider =
-    NotifierProvider<ShowChainEraFillsNotifier, bool>(
-  ShowChainEraFillsNotifier.new,
-);
-
-class ShowChainEraFillsNotifier extends Notifier<bool> {
-  @override
-  bool build() => true;
-
-  void toggle() => state = !state;
-}
-
 class ConnectionStatus {
   const ConnectionStatus({
     required this.isConnected,

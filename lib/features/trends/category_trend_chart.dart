@@ -35,11 +35,10 @@ class CategoryTrendChart extends ConsumerStatefulWidget {
     this.housingChain,
     this.jobChain,
     this.subtitle =
-        'Centered year · tap a line for top contributors · drag to inspect · '
+        'Annual pace · tap a line for top contributors · drag to inspect · '
         'tap legend to show/hide · double-tap to solo',
     this.initiallyHiddenSeriesIds = const {},
     this.showSpendRateToggle = false,
-    this.showEraToggle = false,
     this.useDistributionLegend = false,
     this.valueKind = TrendValueKind.pace,
     this.enableContributors = true,
@@ -58,9 +57,6 @@ class CategoryTrendChart extends ConsumerStatefulWidget {
 
   /// When true, shows the shared yr/mo/day control (only one chart should).
   final bool showSpendRateToggle;
-
-  /// Era fill chip when spend-rate toggle is hidden (e.g. net worth).
-  final bool showEraToggle;
 
   /// Shared-scale min/med/avg/max/now whiskers for ranked category/group series.
   final bool useDistributionLegend;
@@ -91,8 +87,6 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
 
   TrendSpendRate get _spendRate => ref.watch(trendSpendRateProvider);
 
-  bool get _showChainEraFills => ref.watch(showChainEraFillsProvider);
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -110,8 +104,7 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
               Expanded(
                 child: Text(widget.title, style: AppText.body.large.semibold),
               ),
-              if (widget.showSpendRateToggle || widget.showEraToggle)
-                _chartSettingsToggle(),
+              if (widget.showSpendRateToggle) _spendRateToggle(),
             ],
           ),
           VSpace.xs,
@@ -135,27 +128,18 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
     );
   }
 
-  Widget _chartSettingsToggle() {
+  Widget _spendRateToggle() {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _settingsChip(
-          label: 'eras',
-          isSelected: _showChainEraFills,
-          onTap: () => ref.read(showChainEraFillsProvider.notifier).toggle(),
-        ),
-        if (widget.showSpendRateToggle) ...[
-          HSpace.sm,
-          for (final rate in TrendSpendRate.values) ...[
-            if (rate != TrendSpendRate.values.first)
-              HSpace.xs,
-            _settingsChip(
-              label: rate.toggleLabel,
-              isSelected: _spendRate == rate,
-              onTap: () =>
-                  ref.read(trendSpendRateProvider.notifier).setRate(rate),
-            ),
-          ],
+        for (final rate in TrendSpendRate.values) ...[
+          if (rate != TrendSpendRate.values.first) HSpace.xs,
+          _settingsChip(
+            label: rate.toggleLabel,
+            isSelected: _spendRate == rate,
+            onTap: () =>
+                ref.read(trendSpendRateProvider.notifier).setRate(rate),
+          ),
         ],
       ],
     );
@@ -244,7 +228,6 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
                 lifeEvents: widget.lifeEvents,
                 housingChain: widget.housingChain,
                 jobChain: widget.jobChain,
-                showChainEraFills: _showChainEraFills,
                 hoverPosition: _hoverPosition,
               ),
             ),
@@ -359,12 +342,15 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
     );
     if (contributors.isEmpty) return;
 
+    final tapPoint = _nearestPoint(series.points, tapDate);
+    if (tapPoint == null) return;
+
     TrendPointContributorsSheet.show(
       context,
       seriesName: series.name,
       tapDate: tapDate,
       contributors: contributors,
-      spendRate: _spendRate,
+      linePaceCents: tapPoint.smoothedCents.round(),
     );
   }
 

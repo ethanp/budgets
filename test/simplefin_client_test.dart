@@ -56,6 +56,32 @@ void main() {
       expect(accountSet.accounts, hasLength(1));
       expect(accountSet.accounts.first.transactions.single.amount, '-12.34');
     });
+
+    test('fills conn_name from connections when account omits it', () {
+      final accountSet = SimpleFinClient.parseAccountSet({
+        'connections': [
+          {
+            'conn_id': 'CON-1',
+            'name': 'Capital One',
+            'org_id': 'INST-1',
+            'sfin_url': 'https://example.com',
+          },
+        ],
+        'accounts': [
+          {
+            'id': 'a1',
+            'name': 'Venture X',
+            'currency': 'USD',
+            'balance': '0',
+            'balance-date': 978366153,
+            'conn_id': 'CON-1',
+            'transactions': [],
+          },
+        ],
+      });
+
+      expect(accountSet.accounts.single.connName, 'Capital One');
+    });
   });
 
   group('normalizeMerchant', () {

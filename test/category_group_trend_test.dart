@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:budgets/features/trends/trend_chart_catalog.dart';
 
 void main() {
-  test('Trends rolls grouped categories into one series', () {
+  test('Trends emits group rollup plus member category series', () {
     final start = DateTime(2024, 1, 1);
     final transactions = [
       _txn(
@@ -83,8 +83,8 @@ void main() {
       contains(TrendChartCatalog.groupSeriesId('grp_wants')),
     );
     expect(seriesIds, contains('cat_housing'));
-    expect(seriesIds, isNot(contains('cat_dining')));
-    expect(seriesIds, isNot(contains('cat_travel')));
+    expect(seriesIds, contains('cat_dining'));
+    expect(seriesIds, contains('cat_travel'));
 
     final wants = bundle.categorySpend.firstWhere(
       (series) =>
@@ -93,6 +93,16 @@ void main() {
     expect(wants.name, 'Wants');
     // Dining $10 + Travel $20 per day → $30/day → $10,950/yr annualized.
     expect(wants.points.last.rollingCents, closeTo(1095000, 0.01));
+
+    final dining = bundle.categorySpend.firstWhere(
+      (series) => series.id == 'cat_dining',
+    );
+    expect(dining.name, 'Wants · Dining');
+    // Group rollup is listed before its member lines.
+    expect(
+      seriesIds.indexOf(TrendChartCatalog.groupSeriesId('grp_wants')),
+      lessThan(seriesIds.indexOf('cat_dining')),
+    );
   });
 }
 

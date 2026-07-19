@@ -103,7 +103,7 @@ class TrendsScreen extends ConsumerWidget {
           CategoryTrendChart(
             title: 'Income · Spending · Savings',
             subtitle:
-                'Centered year · Savings = Income − Spending · '
+                'Annual pace · Savings = Income − Spending · '
                 'dashed = 25% FIRE guide · tap a line for top contributors · '
                 'double-tap legend to solo',
             seriesList: bundle.cashFlows,
@@ -133,7 +133,6 @@ class TrendsScreen extends ConsumerWidget {
             lifeEvents: lifeEvents,
             housingChain: housingChain,
             jobChain: jobChain,
-            showEraToggle: true,
             valueKind: TrendValueKind.level,
             enableContributors: false,
           ),

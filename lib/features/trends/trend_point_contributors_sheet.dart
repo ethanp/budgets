@@ -1,5 +1,3 @@
-import 'dart:ui' as ui;
-
 import 'package:budgets/domain/category.dart';
 import 'package:budgets/domain/trend_spend_rate.dart';
 import 'package:budgets/features/activity/recategorize_sheet.dart';
@@ -7,6 +5,7 @@ import 'package:budgets/features/trends/trend_point_contributors.dart';
 import 'package:budgets/providers/budgets_providers.dart';
 import 'package:budgets/theme/app_theme.dart';
 import 'package:budgets/util/money_format.dart';
+import 'package:budgets/widgets/app_spreadsheet.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -18,7 +17,7 @@ class TrendPointContributorsSheet extends ConsumerStatefulWidget {
     required this.seriesName,
     required this.tapDate,
     required this.contributors,
-    required this.spendRate,
+    required this.linePaceCents,
   });
 
   static const _contentMaxWidth = 720.0;
@@ -26,14 +25,16 @@ class TrendPointContributorsSheet extends ConsumerStatefulWidget {
   final String seriesName;
   final DateTime tapDate;
   final List<TrendPointContributor> contributors;
-  final TrendSpendRate spendRate;
+
+  /// Series smoothed value at [tapDate], annualized (/ yr).
+  final int linePaceCents;
 
   static Future<void> show(
     BuildContext context, {
     required String seriesName,
     required DateTime tapDate,
     required List<TrendPointContributor> contributors,
-    required TrendSpendRate spendRate,
+    required int linePaceCents,
   }) {
     return showCupertinoModalPopup<void>(
       context: context,
@@ -41,7 +42,7 @@ class TrendPointContributorsSheet extends ConsumerStatefulWidget {
         seriesName: seriesName,
         tapDate: tapDate,
         contributors: contributors,
-        spendRate: spendRate,
+        linePaceCents: linePaceCents,
       ),
     );
   }
@@ -89,6 +90,7 @@ class _TrendPointContributorsSheetState
   }
 
   Widget _sheetHeader() {
+    final linePaceLabel = _ContributorRow.formatPaceCents(widget.linePaceCents);
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.lg,
@@ -107,7 +109,7 @@ class _TrendPointContributorsSheetState
           Text(
             '${widget.seriesName} · '
             '${DateFormat.yMMMd().format(widget.tapDate)} · '
-            'centered year (${widget.spendRate.shortLabel.trim()})',
+            'line $linePaceLabel',
             style: AppText.caption,
           ),
         ],
@@ -132,29 +134,48 @@ class _TrendPointContributorsSheetState
     final categoryById = {
       for (final category in categories) category.id: category,
     };
-    final titleColumnWidth = _titleColumnWidth(widget.contributors);
+    final columnWidths = _ContributorColumnWidths.measure(
+      contributors: widget.contributors,
+      categoryNameFor: (contributor) =>
+          _categoryFor(contributor, categoryById)?.name ?? 'Uncategorized',
+    );
 
     return Expanded(
-      child: ListView.builder(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg,
-          AppSpacing.xs,
-          AppSpacing.lg,
-          AppSpacing.lg,
-        ),
-        itemCount: widget.contributors.length,
-        itemBuilder: (context, index) {
-          final contributor = widget.contributors[index];
-          return _ContributorRow(
-            contributor: contributor,
-            spendRate: widget.spendRate,
-            rank: index + 1,
-            titleColumnWidth: titleColumnWidth,
-            showDivider: index < widget.contributors.length - 1,
-            category: _categoryFor(contributor, categoryById),
-            onCategoryPressed: () => _changeCategory(contributor),
-          );
-        },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.xs,
+              AppSpacing.lg,
+              0,
+            ),
+            child: _ContributorHeaderRow(columnWidths: columnWidths),
+          ),
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                0,
+                AppSpacing.lg,
+                AppSpacing.lg,
+              ),
+              itemCount: widget.contributors.length,
+              itemBuilder: (context, index) {
+                final contributor = widget.contributors[index];
+                return _ContributorRow(
+                  contributor: contributor,
+                  rank: index + 1,
+                  columnWidths: columnWidths,
+                  showDivider: index < widget.contributors.length - 1,
+                  category: _categoryFor(contributor, categoryById),
+                  onCategoryPressed: () => _changeCategory(contributor),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -179,42 +200,173 @@ class _TrendPointContributorsSheetState
     if (!mounted || categoryId == null) return;
     setState(() => _categoryOverrides[contributor.transaction.id] = categoryId);
   }
+}
 
-  /// Widest merchant label among [contributors], for a shared title column.
-  static double _titleColumnWidth(List<TrendPointContributor> contributors) {
-    final style = AppText.body.medium.semibold;
-    var widest = 0.0;
-    for (final contributor in contributors) {
+class _ContributorColumnWidths {
+  const _ContributorColumnWidths({
+    required this.rank,
+    required this.date,
+    required this.merchant,
+    required this.pace,
+    required this.amount,
+    required this.category,
+  });
+
+  static const paceHeader = 'Pace';
+  static const amountHeader = 'Amount';
+
+  final double rank;
+  final double date;
+  final double merchant;
+  final double pace;
+  final double amount;
+  final double category;
+
+  static const _categoryChevronWidth = 12.0;
+  static const _categoryChevronGap = 2.0;
+
+  static _ContributorColumnWidths measure({
+    required List<TrendPointContributor> contributors,
+    required String Function(TrendPointContributor contributor) categoryNameFor,
+  }) {
+    final rankStyle = AppText.body.medium.semibold.copyWith(
+      color: AppColors.textSupport,
+    );
+    final dateStyle = AppText.body.medium.copyWith(
+      color: AppColors.textSupport,
+    );
+    final merchantStyle = AppText.body.medium.semibold;
+    final paceStyle = AppText.body.medium.semibold.copyWith(
+      color: AppColors.textSupport,
+    );
+    final amountStyle = AppText.body.medium.semibold;
+    final categoryStyle = AppText.body.small.semibold.copyWith(
+      color: AppColors.accentPrimary,
+    );
+    const headerStyle = AppText.caption;
+
+    var rankWidth = 0.0;
+    var dateWidth = 0.0;
+    var merchantWidth = 0.0;
+    var paceWidth = AppSpreadsheet.measureWidth(paceHeader, headerStyle);
+    var amountWidth = AppSpreadsheet.measureWidth(amountHeader, headerStyle);
+    var categoryWidth = 0.0;
+
+    for (var index = 0; index < contributors.length; index++) {
+      final contributor = contributors[index];
       final transaction = contributor.transaction;
-      final merchant = transaction.normalizedMerchant.trim().isNotEmpty
+      final merchantName = transaction.normalizedMerchant.trim().isNotEmpty
           ? transaction.normalizedMerchant
           : transaction.rawDescription;
-      final textPainter = TextPainter(
-        text: TextSpan(text: merchant, style: style),
-        textDirection: ui.TextDirection.ltr,
-        maxLines: 1,
-      )..layout();
-      if (textPainter.width > widest) widest = textPainter.width;
+      final paceLabel = _ContributorRow.formatPaceCents(
+        contributor.smoothedContributionCents.round(),
+      );
+      final categoryLabel = categoryNameFor(contributor);
+
+      rankWidth = _maxWidth(rankWidth, '${index + 1}', rankStyle);
+      dateWidth = _maxWidth(
+        dateWidth,
+        DateFormat.yMMMd().format(transaction.postedAt),
+        dateStyle,
+      );
+      merchantWidth = _maxWidth(merchantWidth, merchantName, merchantStyle);
+      paceWidth = _maxWidth(paceWidth, paceLabel, paceStyle);
+      amountWidth = _maxWidth(
+        amountWidth,
+        formatCents(transaction.amountCents),
+        amountStyle,
+      );
+      categoryWidth = _maxWidth(categoryWidth, categoryLabel, categoryStyle);
     }
-    return widest;
+
+    return _ContributorColumnWidths(
+      rank: rankWidth,
+      date: dateWidth,
+      merchant: merchantWidth,
+      pace: paceWidth,
+      amount: amountWidth,
+      category: categoryWidth + _categoryChevronGap + _categoryChevronWidth,
+    );
+  }
+
+  static double _maxWidth(double current, String text, TextStyle style) {
+    final width = AppSpreadsheet.measureWidth(text, style);
+    return width > current ? width : current;
+  }
+}
+
+class _ContributorHeaderRow extends StatelessWidget {
+  const _ContributorHeaderRow({required this.columnWidths});
+
+  final _ContributorColumnWidths columnWidths;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+      child: Row(
+        children: [
+          AppSpreadsheetCell(width: columnWidths.rank, child: const SizedBox()),
+          HSpace.sm,
+          AppSpreadsheetCell(width: columnWidths.date, child: const SizedBox()),
+          HSpace.sm,
+          Flexible(
+            fit: FlexFit.loose,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return AppSpreadsheetCell(
+                  width: columnWidths.merchant.clamp(0.0, constraints.maxWidth),
+                  child: const SizedBox(),
+                );
+              },
+            ),
+          ),
+          HSpace.md,
+          AppSpreadsheetCell(
+            width: columnWidths.pace,
+            alignment: Alignment.centerRight,
+            child: const Text(
+              _ContributorColumnWidths.paceHeader,
+              style: AppText.caption,
+              maxLines: 1,
+              textAlign: TextAlign.right,
+            ),
+          ),
+          HSpace.md,
+          AppSpreadsheetCell(
+            width: columnWidths.amount,
+            alignment: Alignment.centerRight,
+            child: const Text(
+              _ContributorColumnWidths.amountHeader,
+              style: AppText.caption,
+              maxLines: 1,
+              textAlign: TextAlign.right,
+            ),
+          ),
+          HSpace.sm,
+          AppSpreadsheetCell(
+            width: columnWidths.category,
+            child: const SizedBox(),
+          ),
+        ],
+      ),
+    );
   }
 }
 
 class _ContributorRow extends StatelessWidget {
   const _ContributorRow({
     required this.contributor,
-    required this.spendRate,
     required this.rank,
-    required this.titleColumnWidth,
+    required this.columnWidths,
     required this.showDivider,
     required this.category,
     required this.onCategoryPressed,
   });
 
   final TrendPointContributor contributor;
-  final TrendSpendRate spendRate;
   final int rank;
-  final double titleColumnWidth;
+  final _ContributorColumnWidths columnWidths;
   final bool showDivider;
   final SpendCategory? category;
   final VoidCallback onCategoryPressed;
@@ -233,9 +385,9 @@ class _ContributorRow extends StatelessWidget {
           HSpace.sm,
           _merchantTitle(),
           HSpace.md,
-          _smoothedContributionLabel(),
+          _paceLabel(),
           HSpace.md,
-          _rawAmountLabel(),
+          _amountLabel(),
           HSpace.sm,
           _categoryPicker(),
         ],
@@ -250,19 +402,27 @@ class _ContributorRow extends StatelessWidget {
   );
 
   Widget _rankLabel() {
-    return Text(
-      '$rank',
-      style: AppText.body.medium.semibold.copyWith(
-        color: AppColors.textSupport,
+    return AppSpreadsheetCell(
+      width: columnWidths.rank,
+      child: Text(
+        '$rank',
+        style: AppText.body.medium.semibold.copyWith(
+          color: AppColors.textSupport,
+        ),
+        maxLines: 1,
       ),
     );
   }
 
   Widget _postedDateLabel() {
-    return Text(
-      DateFormat.yMMMd().format(contributor.transaction.postedAt),
-      style: AppText.body.medium.copyWith(
-        color: AppColors.textSupport,
+    return AppSpreadsheetCell(
+      width: columnWidths.date,
+      child: Text(
+        DateFormat.yMMMd().format(contributor.transaction.postedAt),
+        style: AppText.body.medium.copyWith(
+          color: AppColors.textSupport,
+        ),
+        maxLines: 1,
       ),
     );
   }
@@ -272,8 +432,8 @@ class _ContributorRow extends StatelessWidget {
       fit: FlexFit.loose,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final width = titleColumnWidth.clamp(0.0, constraints.maxWidth);
-          return SizedBox(
+          final width = columnWidths.merchant.clamp(0.0, constraints.maxWidth);
+          return AppSpreadsheetCell(
             width: width,
             child: Text(
               _merchantName,
@@ -287,49 +447,58 @@ class _ContributorRow extends StatelessWidget {
     );
   }
 
-  Widget _smoothedContributionLabel() {
-    final contributionCents = spendRate.displayCents(
-      contributor.smoothedContributionCents.round(),
-    );
-    return Text(
-      '${_signedWholeDollars(contributionCents)}${spendRate.shortLabel}',
-      style: AppText.body.medium.semibold.copyWith(
-        color: AppColors.textSupport,
+  Widget _paceLabel() {
+    return AppSpreadsheetCell(
+      width: columnWidths.pace,
+      alignment: Alignment.centerRight,
+      child: Text(
+        formatPaceCents(contributor.smoothedContributionCents.round()),
+        style: AppText.body.medium.semibold.copyWith(
+          color: AppColors.textSupport,
+        ),
+        maxLines: 1,
+        textAlign: TextAlign.right,
       ),
     );
   }
 
-  Widget _rawAmountLabel() {
-    return Text(
-      formatCents(contributor.transaction.amountCents),
-      style: AppText.body.medium.semibold,
+  Widget _amountLabel() {
+    return AppSpreadsheetCell(
+      width: columnWidths.amount,
+      alignment: Alignment.centerRight,
+      child: Text(
+        formatCents(contributor.transaction.amountCents),
+        style: AppText.body.medium.semibold,
+        maxLines: 1,
+        textAlign: TextAlign.right,
+      ),
     );
   }
 
   Widget _categoryPicker() {
-    return CupertinoButton(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: 4,
-      ),
-      minimumSize: Size.zero,
-      onPressed: onCategoryPressed,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            category?.name ?? 'Uncategorized',
-            style: AppText.body.small.semibold.copyWith(
+    return AppSpreadsheetCell(
+      width: columnWidths.category,
+      child: CupertinoButton(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        minimumSize: Size.zero,
+        onPressed: onCategoryPressed,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              category?.name ?? 'Uncategorized',
+              style: AppText.body.small.semibold.copyWith(
+                color: AppColors.accentPrimary,
+              ),
+            ),
+            HSpace.of(2),
+            const Icon(
+              CupertinoIcons.chevron_down,
+              size: 12,
               color: AppColors.accentPrimary,
             ),
-          ),
-          HSpace.of(2),
-          const Icon(
-            CupertinoIcons.chevron_down,
-            size: 12,
-            color: AppColors.accentPrimary,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -342,10 +511,8 @@ class _ContributorRow extends StatelessWidget {
     return transaction.rawDescription;
   }
 
-  /// Whole/compact dollars with a leading minus (never `$-6.4k`).
-  static String _signedWholeDollars(int cents) {
-    final formatted = formatCentsWholeDollars(cents.abs());
-    if (cents < 0) return '−$formatted';
-    return formatted;
+  /// Annualized pace label always in `/ yr` (full dollars, not compact `$3.4k`).
+  static String formatPaceCents(int annualizedCents) {
+    return '${formatCents(annualizedCents)}${TrendSpendRate.perYear.shortLabel}';
   }
 }

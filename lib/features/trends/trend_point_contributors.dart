@@ -2,10 +2,10 @@ import 'package:budgets/domain/category.dart';
 import 'package:budgets/domain/category_group.dart';
 import 'package:budgets/domain/special_category.dart';
 import 'package:budgets/domain/transaction.dart';
+import 'package:budgets/features/trends/annual_pace_smoother.dart';
 import 'package:budgets/features/trends/category_trend_series.dart';
-import 'package:ethan_utils/ethan_utils.dart';
 import 'package:budgets/features/trends/trend_chart_catalog.dart';
-import 'package:budgets/features/trends/centered_year_pace.dart';
+import 'package:ethan_utils/ethan_utils.dart';
 
 /// One transaction's contribution to a trendline at a tap date.
 class TrendPointContributor {
@@ -66,13 +66,14 @@ class TrendPointContributors {
         chartDates[historyStartIndex].isBefore(historyFloor)) {
       historyStartIndex++;
     }
-    final tapWindow = CenteredYearPace.centeredRollingWindow(
-      dayIndex: tapIndex,
+    const smoother = AnnualPaceSmoother.standard;
+    final support = smoother.supportSpan(
+      centerIndex: tapIndex,
       historyStartIndex: historyStartIndex,
       lastDayIndex: chartDates.length - 1,
     );
-    final windowStartDay = chartDates[tapWindow.startIndex];
-    final windowEndDay = chartDates[tapWindow.endIndex];
+    final windowStartDay = chartDates[support.startIndex];
+    final windowEndDay = chartDates[support.endIndex];
 
     final membership = _membershipForSeries(
       seriesId: series.id,
@@ -95,13 +96,14 @@ class TrendPointContributors {
     for (final transaction in candidates) {
       final signedAmount = membership.signedAmountCents(transaction);
       if (signedAmount == 0) continue;
-      final smoothedContribution = _smoothedContributionAtTap(
-        signedAmountCents: signedAmount.toDouble(),
-        transactionDay: transaction.postedAt.startOfDay,
-        chartDates: chartDates,
-        dayIndexByDate: dayIndexByDate,
+      final txnIndex = dayIndexByDate[transaction.postedAt.startOfDay];
+      if (txnIndex == null) continue;
+      final smoothedContribution = smoother.impulseContributionCents(
+        amountCents: signedAmount.toDouble(),
+        impulseIndex: txnIndex,
         tapIndex: tapIndex,
         historyStartIndex: historyStartIndex,
+        lastDayIndex: chartDates.length - 1,
       );
       if (smoothedContribution.abs() < 0.5) continue;
       contributors.add(
@@ -196,46 +198,6 @@ class TrendPointContributors {
     return backed;
   }
 
-  static double _smoothedContributionAtTap({
-    required double signedAmountCents,
-    required DateTime transactionDay,
-    required List<DateTime> chartDates,
-    required Map<DateTime, int> dayIndexByDate,
-    required int tapIndex,
-    required int historyStartIndex,
-  }) {
-    final txnIndex = dayIndexByDate[transactionDay];
-    if (txnIndex == null) return 0;
-
-    final dayCount = chartDates.length;
-    final lastDayIndex = dayCount - 1;
-    final rollingContributions = List<double>.filled(dayCount, 0);
-
-    for (var dayIndex = 0; dayIndex < dayCount; dayIndex++) {
-      if (dayIndex < historyStartIndex) continue;
-      final window = CenteredYearPace.centeredRollingWindow(
-        dayIndex: dayIndex,
-        historyStartIndex: historyStartIndex,
-        lastDayIndex: lastDayIndex,
-      );
-      if (txnIndex < window.startIndex || txnIndex > window.endIndex) {
-        continue;
-      }
-      rollingContributions[dayIndex] =
-          CenteredYearPace.annualizePartialWindow(
-        windowTotalCents: signedAmountCents,
-        observedDays: window.observedDays,
-      );
-    }
-
-    var smoothed = rollingContributions;
-    for (var pass = 0;
-        pass < CenteredYearPace.smoothingPassCount;
-        pass++) {
-      smoothed = CenteredYearPace.centeredMovingAverage(smoothed);
-    }
-    return smoothed[tapIndex];
-  }
 }
 
 enum _MembershipKind {

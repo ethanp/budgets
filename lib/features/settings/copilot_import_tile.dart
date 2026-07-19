@@ -1,7 +1,6 @@
+import 'package:budgets/features/settings/settings_section.dart';
 import 'package:budgets/providers/budgets_providers.dart';
 import 'package:budgets/services/csv/copilot_csv_importer.dart';
-import 'package:budgets/theme/app_theme.dart';
-import 'package:budgets/widgets/app_card.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -19,34 +18,24 @@ class _CopilotImportTileState extends ConsumerState<CopilotImportTile> {
 
   @override
   Widget build(BuildContext context) {
-    return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Copilot export', style: AppText.headline.small),
-          VSpace.sm,
-          Text(
-            'Import the local Copilot Money CSV '
-            '($copilotTransactionsRelativePath, gitignored). Safe to retry — '
-            'rows already present are skipped. Replace the file to add newer '
-            'history.',
-            style: AppText.body.medium,
-          ),
-          if (_progress != null) ...[
-            VSpace.md,
-            _ImportProgressBar(progress: _progress!),
-          ],
-          if (_message != null) ...[
-            VSpace.sm,
-            Text(_message!, style: AppText.body.small),
-          ],
-          VSpace.md,
-          CupertinoButton.filled(
-            onPressed: _busy ? null : _importLocal,
-            child: Text(_busy ? 'Importing…' : 'Import Copilot CSV'),
-          ),
-        ],
-      ),
+    return SettingsToolRow(
+      icon: CupertinoIcons.square_arrow_down,
+      title: 'Import Copilot CSV',
+      caption:
+          'Load $copilotTransactionsRelativePath (gitignored). Safe to retry.',
+      onAction: _importLocal,
+      style: SettingsSectionStyle.maintenance,
+      busy: _busy,
+      message: _message,
+      progress: _progress == null
+          ? null
+          : SettingsProgressBar(
+              fraction: _progress!.fraction,
+              label: _progress!.total <= 0
+                  ? 'Starting…'
+                  : '${_progress!.completed} / ${_progress!.total}',
+              style: SettingsSectionStyle.maintenance,
+            ),
     );
   }
 
@@ -96,43 +85,6 @@ class _CopilotImportTileState extends ConsumerState<CopilotImportTile> {
         if (!mounted) return;
         setState(() => _progress = progress);
       },
-    );
-  }
-}
-
-class _ImportProgressBar extends StatelessWidget {
-  const _ImportProgressBar({required this.progress});
-
-  final CopilotImportProgress progress;
-
-  @override
-  Widget build(BuildContext context) {
-    final fraction = progress.fraction.clamp(0.0, 1.0);
-    final label = progress.total <= 0
-        ? 'Starting…'
-        : '${progress.completed} / ${progress.total}';
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(999),
-          child: SizedBox(
-            height: 8,
-            child: Stack(
-              children: [
-                Container(color: AppColors.backgroundDepth5),
-                FractionallySizedBox(
-                  widthFactor: fraction,
-                  child: Container(color: AppColors.accentPrimary),
-                ),
-              ],
-            ),
-          ),
-        ),
-        VSpace.xs,
-        Text(label, style: AppText.body.small),
-      ],
     );
   }
 }

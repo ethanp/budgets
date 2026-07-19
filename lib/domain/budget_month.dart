@@ -1,7 +1,8 @@
 import 'package:budgets/domain/month_summary.dart';
 import 'package:budgets/domain/special_category.dart';
 import 'package:budgets/domain/transaction.dart';
-import 'package:budgets/features/trends/centered_year_pace.dart';
+import 'package:budgets/features/trends/annual_pace_smoother.dart';
+import 'package:budgets/features/trends/hann_annual_pace_kernel.dart';
 import 'package:budgets/features/trends/trend_chart_catalog.dart';
 import 'package:budgets/services/sqlite/accounts_repository.dart';
 import 'package:budgets/services/sqlite/categories_repository.dart';
@@ -45,7 +46,7 @@ class BudgetMonth {
     );
     final trailingYearOutflows = _outflowByCategory(
       await _transactionsRepository.listPostedInLastDays(
-        CenteredYearPace.rollingDays,
+        HannAnnualPaceKernel.defaultYearDays,
       ),
     );
     final observedDays = _observedTrailingDays();
@@ -56,13 +57,11 @@ class BudgetMonth {
           CategoryMonthRow(
             categoryId: category.id,
             categoryName: category.name,
-            annualizedSpendCents: CenteredYearPace
-                .annualizePartialWindow(
-                  windowTotalCents:
-                      (trailingYearOutflows[category.id] ?? 0).toDouble(),
-                  observedDays: observedDays,
-                )
-                .round(),
+            annualizedSpendCents: AnnualPaceSmoother.annualizeTrailingTotal(
+              windowTotalCents:
+                  (trailingYearOutflows[category.id] ?? 0).toDouble(),
+              observedDays: observedDays,
+            ).round(),
             spentCents: monthOutflows[category.id] ?? 0,
           ),
     ];
@@ -74,14 +73,14 @@ class BudgetMonth {
     final historyFloor =
         TrendChartCatalog.chartHistoryStart.startOfDay;
     final windowFloor = today.shiftedByDays(
-      -(CenteredYearPace.rollingDays - 1),
+      -(HannAnnualPaceKernel.defaultYearDays - 1),
     );
     final effectiveFloor =
         windowFloor.isBefore(historyFloor) ? historyFloor : windowFloor;
     final observedDays = today.difference(effectiveFloor).inDays + 1;
     if (observedDays < 1) return 1;
-    if (observedDays > CenteredYearPace.rollingDays) {
-      return CenteredYearPace.rollingDays;
+    if (observedDays > HannAnnualPaceKernel.defaultYearDays) {
+      return HannAnnualPaceKernel.defaultYearDays;
     }
     return observedDays;
   }

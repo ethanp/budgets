@@ -118,7 +118,7 @@ void main() {
       );
       expect(contributionSum, closeTo(tapPoint.smoothedCents, 1.0));
 
-      // Spike sits in an inward-shifted / centered window of up to 365 days.
+      // Hann kernel: same-day impulse is a positive share of annualized pace.
       expect(
         topContributors.first.smoothedContributionCents,
         greaterThan(1000),

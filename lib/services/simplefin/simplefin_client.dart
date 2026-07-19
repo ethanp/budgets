@@ -6,6 +6,10 @@ import 'package:http/http.dart' as http;
 
 const _logger = ELogger('SimpleFinClient');
 
+/// Bridge dashboard — add / re-link banks here (no in-app widget).
+const simpleFinBridgeUrl = 'https://bridge.simplefin.org/';
+
+/// One-time Setup Token page for claiming a new Access URL.
 const simpleFinCreateUrl = 'https://bridge.simplefin.org/simplefin/create';
 
 class _FetchWindow {
@@ -269,12 +273,42 @@ class SimpleFinClient {
         .map(SimpleFinError.fromJson)
         .toList();
 
+    final connections = (json['connections'] as List<dynamic>? ?? [])
+        .whereType<Map<String, dynamic>>()
+        .map(SimpleFinConnection.fromJson)
+        .where((connection) => connection.id.isNotEmpty)
+        .toList();
+    final connectionNameById = {
+      for (final connection in connections) connection.id: connection.name,
+    };
+
     final accounts = (json['accounts'] as List<dynamic>? ?? [])
         .whereType<Map<String, dynamic>>()
         .map(_parseAccount)
+        .map(
+          (account) => _withResolvedConnName(account, connectionNameById),
+        )
         .toList();
 
-    return SimpleFinAccountSet(errors: errlist, accounts: accounts);
+    return SimpleFinAccountSet(
+      errors: errlist,
+      accounts: accounts,
+      connections: connections,
+    );
+  }
+
+  /// Prefer account `conn_name`; fall back to the matching `connections` entry.
+  static SimpleFinAccount _withResolvedConnName(
+    SimpleFinAccount account,
+    Map<String, String> connectionNameById,
+  ) {
+    final directName = account.connName?.trim();
+    if (directName != null && directName.isNotEmpty) return account;
+    final connId = account.connId;
+    if (connId == null) return account;
+    final fromConnections = connectionNameById[connId]?.trim();
+    if (fromConnections == null || fromConnections.isEmpty) return account;
+    return account.copyWith(connName: fromConnections);
   }
 
   static SimpleFinAccount _parseAccount(Map<String, dynamic> json) {

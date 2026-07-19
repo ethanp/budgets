@@ -1,11 +1,12 @@
 import 'package:budgets/domain/category.dart';
 import 'package:budgets/domain/transaction.dart';
+import 'package:budgets/features/trends/annual_pace_smoother.dart';
 import 'package:budgets/features/trends/category_trend_series_factory.dart';
+import 'package:budgets/features/trends/hann_annual_pace_kernel.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:budgets/features/trends/centered_year_pace.dart';
 
 void main() {
-  test('centered-year series annualizes a constant daily spend', () {
+  test('Hann pace annualizes a constant daily spend', () {
     // Constant $1/day → annual pace is always $365 once annualized.
     final start = DateTime(2024, 1, 1);
     final transactions = List.generate(
@@ -41,53 +42,43 @@ void main() {
     expect(dining.points.first.rollingCents, closeTo(36500, 0.01));
     expect(dining.points[4].rollingCents, closeTo(36500, 0.01));
     expect(dining.points.last.rollingCents, closeTo(36500, 0.01));
+    expect(dining.points.first.smoothedCents, closeTo(36500, 0.01));
   });
 
-  test('edge inward taper grows to 240 days and annualizes to year pace', () {
-    const lastDayIndex = 1000;
-    final tip = CenteredYearPace.centeredRollingWindow(
-      dayIndex: lastDayIndex,
-      historyStartIndex: 0,
-      lastDayIndex: lastDayIndex,
-    );
-    expect(tip.endIndex, lastDayIndex);
-    expect(tip.startIndex, lastDayIndex - CenteredYearPace.edgeInwardMaxDays);
-    expect(tip.observedDays, CenteredYearPace.edgeInwardMaxDays + 1);
+  test('kernel support is ±halfWidth and fades toward the edge', () {
+    const kernel = HannAnnualPaceKernel();
+    const lastDayIndex = 2000;
+    const centerIndex = 1000;
 
-    final startTip = CenteredYearPace.centeredRollingWindow(
-      dayIndex: 0,
+    final samples = kernel.normalizedSamples(
+      centerIndex: centerIndex,
       historyStartIndex: 0,
       lastDayIndex: lastDayIndex,
     );
-    expect(startTip.startIndex, 0);
-    expect(startTip.endIndex, CenteredYearPace.edgeInwardMaxDays);
-    expect(
-      startTip.observedDays,
-      CenteredYearPace.edgeInwardMaxDays + 1,
-    );
+    expect(samples, isNotEmpty);
+    // Exact ±halfWidth has Hann weight 0, so support is open at the edges.
+    expect(samples.first.dayIndex, centerIndex - kernel.halfWidthDays + 1);
+    expect(samples.last.dayIndex, centerIndex + kernel.halfWidthDays - 1);
 
-    // At the centered boundary, still a full ±182 window.
-    final boundary = CenteredYearPace.centeredRollingWindow(
-      dayIndex: lastDayIndex - CenteredYearPace.rollingHalfDays,
-      historyStartIndex: 0,
-      lastDayIndex: lastDayIndex,
-    );
-    expect(boundary.observedDays, CenteredYearPace.rollingDays);
+    final centerWeight = samples
+        .firstWhere((sample) => sample.dayIndex == centerIndex)
+        .weight;
+    final nearEdgeWeight = samples
+        .firstWhere(
+          (sample) =>
+              sample.dayIndex == centerIndex + kernel.halfWidthDays - 1,
+        )
+        .weight;
+    expect(centerWeight, greaterThan(nearEdgeWeight));
 
-    // Midway through the taper: inward between 182 and 240.
-    final midDayIndex = lastDayIndex - 91;
-    final midEdge = CenteredYearPace.centeredRollingWindow(
-      dayIndex: midDayIndex,
-      historyStartIndex: 0,
-      lastDayIndex: lastDayIndex,
+    final weightSum = samples.fold<double>(
+      0,
+      (sum, sample) => sum + sample.weight,
     );
-    final midInward = midDayIndex - midEdge.startIndex;
-    expect(midEdge.endIndex, midDayIndex + 91);
-    expect(midInward, greaterThan(CenteredYearPace.rollingHalfDays));
-    expect(midInward, lessThan(CenteredYearPace.edgeInwardMaxDays));
+    expect(weightSum, closeTo(1.0, 1e-9));
   });
 
-  test('edge taper still annualizes constant spend to flat year pace', () {
+  test('long constant spend stays flat at year pace under Hann kernel', () {
     final start = DateTime(2024, 1, 1);
     final end = DateTime(2025, 12, 31);
     final transactions = <BankTransaction>[
@@ -126,5 +117,30 @@ void main() {
     expect(dining.points.last.rollingCents, closeTo(36500, 0.01));
     expect(dining.points.first.smoothedCents, closeTo(36500, 1));
     expect(dining.points.last.smoothedCents, closeTo(36500, 1));
+  });
+
+  test('same-day impulse contributes more than a far-edge impulse', () {
+    const smoother = AnnualPaceSmoother.standard;
+    const tapIndex = 1000;
+    const lastDayIndex = 2000;
+    const historyStartIndex = 0;
+    const amountCents = 10000.0;
+
+    final atCenter = smoother.impulseContributionCents(
+      amountCents: amountCents,
+      impulseIndex: tapIndex,
+      tapIndex: tapIndex,
+      historyStartIndex: historyStartIndex,
+      lastDayIndex: lastDayIndex,
+    );
+    final nearEdge = smoother.impulseContributionCents(
+      amountCents: amountCents,
+      impulseIndex: tapIndex + smoother.halfWidthDays - 1,
+      tapIndex: tapIndex,
+      historyStartIndex: historyStartIndex,
+      lastDayIndex: lastDayIndex,
+    );
+    expect(atCenter, greaterThan(nearEdge));
+    expect(nearEdge, greaterThan(0));
   });
 }

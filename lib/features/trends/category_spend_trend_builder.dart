@@ -3,7 +3,7 @@ import 'package:budgets/domain/category_group.dart';
 import 'package:budgets/domain/special_category.dart';
 import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/features/trends/category_trend_series.dart';
-import 'package:budgets/features/trends/centered_year_pace.dart';
+import 'package:budgets/features/trends/annual_pace_smoother.dart';
 import 'package:budgets/features/trends/trend_chart_catalog.dart';
 import 'package:budgets/features/trends/trend_series_significance.dart';
 import 'package:budgets/util/category_color.dart';
@@ -171,7 +171,7 @@ class CategorySpendTrendBuilder {
   _RankedSpendSeries _rankedGroupAndCategorySeries(
     _CategoryPartition partitioned,
   ) {
-    final rankedSeries = <CategoryTrendSeries>[];
+    final seriesBlocks = <List<CategoryTrendSeries>>[];
     CategoryTrendSeries? otherSeries;
     var paletteIndex = 0;
     final representedCategoryIds = <String>{};
@@ -181,11 +181,27 @@ class CategorySpendTrendBuilder {
       if (members == null || members.isEmpty) continue;
 
       final groupDaily = <DateTime, double>{};
+      final memberSeries = <CategoryTrendSeries>[];
       for (final member in members) {
         final memberDaily = spendMaps.byCategoryId[member.id];
-        if (memberDaily == null) continue;
+        if (memberDaily == null || memberDaily.isEmpty) continue;
         _mergeDailyMaps(groupDaily, memberDaily);
         representedCategoryIds.add(member.id);
+
+        final memberIsHousing = SpecialCategory.isHousingCategory(member);
+        final builtMember = _paceSeries(
+          id: member.id,
+          name: '${group.name} · ${member.name}',
+          lineColor: memberIsHousing
+              ? CategoryColor.housing
+              : _palette[paletteIndex % _palette.length],
+          dailyCents: memberDaily,
+        );
+        if (!TrendSeriesSignificance.hasMeaningfulTrend(builtMember)) {
+          continue;
+        }
+        if (!memberIsHousing) paletteIndex++;
+        memberSeries.add(builtMember);
       }
       if (groupDaily.isEmpty) continue;
 
@@ -200,7 +216,12 @@ class CategorySpendTrendBuilder {
       );
       if (!TrendSeriesSignificance.hasMeaningfulTrend(groupSeries)) continue;
       if (!groupIsHousing) paletteIndex++;
-      rankedSeries.add(groupSeries);
+
+      memberSeries.sort(
+        (left, right) =>
+            right.latestSmoothedCents.compareTo(left.latestSmoothedCents),
+      );
+      seriesBlocks.add([groupSeries, ...memberSeries]);
     }
 
     for (final category in partitioned.ungroupedCategories) {
@@ -225,17 +246,20 @@ class CategorySpendTrendBuilder {
       if (_isOtherCategory(category)) {
         otherSeries = categorySeries;
       } else {
-        rankedSeries.add(categorySeries);
+        seriesBlocks.add([categorySeries]);
       }
     }
 
-    rankedSeries.sort(
-      (left, right) =>
-          right.latestSmoothedCents.compareTo(left.latestSmoothedCents),
+    seriesBlocks.sort(
+      (left, right) => right.first.latestSmoothedCents.compareTo(
+        left.first.latestSmoothedCents,
+      ),
     );
 
     return _RankedSpendSeries(
-      rankedSeries: rankedSeries,
+      rankedSeries: [
+        for (final block in seriesBlocks) ...block,
+      ],
       otherSeries: otherSeries,
       representedCategoryIds: representedCategoryIds,
     );
@@ -270,7 +294,7 @@ class CategorySpendTrendBuilder {
     bool dotted = false,
     bool guide = false,
   }) {
-    return CenteredYearPace.seriesFromDailyMap(
+    return AnnualPaceSmoother.standard.seriesFromDailyMap(
       id: id,
       name: name,
       lineColor: lineColor,

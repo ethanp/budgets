@@ -1,22 +1,20 @@
 import 'package:budgets/services/simplefin/simplefin_access_store.dart';
 import 'package:budgets/services/simplefin/simplefin_client.dart';
 import 'package:budgets/services/simplefin/simplefin_models.dart';
-import 'package:budgets/domain/account.dart';
+import 'package:budgets/features/settings/bank_connection_panel.dart';
 import 'package:budgets/features/settings/copilot_import_tile.dart';
 import 'package:budgets/features/settings/csv_import_sheet.dart';
 import 'package:budgets/features/settings/dedupe_copilot_tile.dart';
 import 'package:budgets/features/settings/migrate_copilot_rules_tile.dart';
+import 'package:budgets/features/settings/settings_section.dart';
 import 'package:budgets/features/settings/sync_status_tile.dart';
 import 'package:budgets/providers/budgets_providers.dart';
 import 'package:budgets/theme/app_theme.dart';
-import 'package:budgets/util/money_format.dart';
-import 'package:budgets/widgets/app_card.dart';
 import 'package:budgets/widgets/sync_status_nav_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show SelectableText;
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -48,22 +46,39 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       child: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.all(AppSpacing.lg),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.md,
+            AppSpacing.lg,
+            AppSpacing.xxl,
+          ),
           children: [
+            const SettingsSectionHeader(
+              icon: CupertinoIcons.building_2_fill,
+              title: 'Banks',
+              style: SettingsSectionStyle.banks,
+            ),
+            VSpace.md,
             connectionAsync.when(
-              data: _connectionCard,
-              loading: () => const AppCard(
-                child: CupertinoActivityIndicator(),
-              ),
-              error: (error, _) => AppCard(
-                child: SelectableText(
-                  '$error',
-                  style: AppText.body.medium.error,
-                ),
+              data: _banksBody,
+              loading: () => const CupertinoActivityIndicator(),
+              error: (error, _) => SelectableText(
+                '$error',
+                style: AppText.body.medium.error,
               ),
             ),
-            VSpace.lg,
+            VSpace.xl,
+            const SettingsHairline(style: SettingsSectionStyle.banks),
+            VSpace.xl,
             const SyncStatusTile(),
+            VSpace.xl,
+            const SettingsHairline(style: SettingsSectionStyle.sync),
+            VSpace.xl,
+            const SettingsSectionHeader(
+              icon: CupertinoIcons.wrench,
+              title: 'Maintenance',
+              style: SettingsSectionStyle.maintenance,
+            ),
             VSpace.lg,
             const CopilotImportTile(),
             VSpace.lg,
@@ -71,73 +86,58 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             VSpace.lg,
             const DedupeCopilotTile(),
             VSpace.lg,
-            _csvEscapeHatchCard(),
+            _csvToolRow(),
+            VSpace.xl,
+            const SettingsHairline(style: SettingsSectionStyle.maintenance),
             VSpace.lg,
-            _aboutCard(),
+            const Text(
+              'Budgets — personal spending by category with SimpleFIN.',
+              style: SettingsType.sectionMeta,
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _csvEscapeHatchCard() {
-    return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Import', style: AppText.headline.small),
-          VSpace.sm,
-          Text(
-            'Generic CSV escape hatch when a bank connection is broken.',
-            style: AppText.body.medium,
-          ),
-          VSpace.md,
-          CupertinoButton.filled(
-            onPressed: () => CsvImportSheet.show(context),
-            child: const Text('Import CSV'),
-          ),
-        ],
-      ),
+  Widget _banksBody(ConnectionStatus status) {
+    if (!status.isConnected) return _disconnectedBody();
+    return BankConnectionPanel(
+      status: status,
+      busy: _busy,
+      actionError: _actionError,
+      onRefresh: _refresh,
+      onRefreshFullHistory: _refreshFullHistory,
+      onAddAccount: _openSimpleFinBridge,
+      onDisconnect: _disconnect,
+      style: SettingsSectionStyle.banks,
     );
   }
 
-  Widget _aboutCard() {
-    return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('About', style: AppText.headline.small),
-          VSpace.sm,
-          Text(
-            'Budgets — personal spending by category with SimpleFIN.',
-            style: AppText.body.medium,
-          ),
-        ],
+  Widget _disconnectedBody() {
+    return CupertinoTheme(
+      data: CupertinoTheme.of(context).copyWith(
+        primaryColor: SettingsSectionStyle.banks.accent,
       ),
-    );
-  }
-
-  Widget _connectionCard(ConnectionStatus status) {
-    if (!status.isConnected) return _disconnectedCard();
-    return _connectedCard(status);
-  }
-
-  Widget _disconnectedCard() {
-    return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Bank connection', style: AppText.headline.small),
-          VSpace.sm,
-          Text(
-            'Paste a one-time Setup Token, or put the claimed Access URL in '
-            '.env as ${SimpleFinAccessStore.envAccessUrlKey} (survives reinstall).',
-            style: AppText.body.medium,
+          const Text(
+            'Paste a Setup Token from SimpleFIN, or set '
+            '${SimpleFinAccessStore.envAccessUrlKey} in .env.',
+            style: SettingsType.sectionMeta,
           ),
           VSpace.md,
           CupertinoButton.filled(
             onPressed: _busy ? null : _openSimpleFin,
-            child: const Text('Open SimpleFIN'),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(CupertinoIcons.arrow_up_right_square, size: 18),
+                HSpace.sm,
+                Text('Open SimpleFIN'),
+              ],
+            ),
           ),
           VSpace.md,
           CupertinoTextField(
@@ -157,129 +157,37 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             onPressed: _busy ? null : _connect,
             child: _busy
                 ? const CupertinoActivityIndicator()
-                : const Text('Connect'),
+                : const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(CupertinoIcons.link, size: 18),
+                      HSpace.sm,
+                      Text('Connect'),
+                    ],
+                  ),
           ),
         ],
       ),
     );
   }
 
-  Widget _connectedCard(ConnectionStatus status) {
-    return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text('Bank connection', style: AppText.headline.small),
-              const Spacer(),
-              Text(
-                status.fromEnv ? 'Connected (.env)' : 'Connected',
-                style: AppText.body.small.success.semibold,
-              ),
-            ],
-          ),
-          if (status.fromEnv) ...[
-            VSpace.xs,
-            Text(
-              'Using ${SimpleFinAccessStore.envAccessUrlKey} from .env',
-              style: AppText.body.small,
-            ),
-          ],
-          if (status.lastSyncedAt != null) ...[
-            VSpace.xs,
-            Text(
-              'Updated ${_formatRelative(status.lastSyncedAt!)}',
-              style: AppText.body.small,
-            ),
-          ],
-          VSpace.md,
-          ...status.accounts.map(_accountRow),
-          if (status.errors.isNotEmpty) ...[
-            VSpace.md,
-            ...status.errors.map(
-              (error) => Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                child: SelectableText(
-                  error.message,
-                  style: AppText.body.small.error,
-                ),
-              ),
-            ),
-          ],
-          if (_actionError != null) ...[
-            VSpace.sm,
-            SelectableText(_actionError!, style: AppText.body.small.error),
-          ],
-          VSpace.md,
-          _connectionActions(),
-        ],
-      ),
-    );
-  }
-
-  Widget _connectionActions() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            CupertinoButton.filled(
-              onPressed: _busy ? null : _refresh,
-              child: _busy
-                  ? const CupertinoActivityIndicator()
-                  : const Text('Refresh now'),
-            ),
-            HSpace.sm,
-            CupertinoButton(
-              onPressed: _busy ? null : _disconnect,
-              child: Text('Disconnect', style: AppText.body.medium.error),
-            ),
-          ],
-        ),
-        VSpace.sm,
-        CupertinoButton(
-          onPressed: _busy ? null : _refreshFullHistory,
-          child: Text(
-            'Refresh full history',
-            style: AppText.body.medium,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _accountRow(Account account) {
-    final needsRelink = account.status == AccountStatus.needsRelink;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(account.name, style: AppText.body.large.semibold),
-                Text(
-                  needsRelink ? 'Needs re-link' : account.status.name,
-                  style: needsRelink
-                      ? AppText.body.small.warning
-                      : AppText.body.small,
-                ),
-              ],
-            ),
-          ),
-          Text(
-            formatCents(account.balanceCents),
-            style: AppText.body.medium.semibold,
-          ),
-        ],
-      ),
+  Widget _csvToolRow() {
+    return SettingsToolRow(
+      icon: CupertinoIcons.doc_text,
+      title: 'Import CSV',
+      caption: 'Escape hatch when a bank connection is broken.',
+      onAction: () => CsvImportSheet.show(context),
+      style: SettingsSectionStyle.maintenance,
     );
   }
 
   Future<void> _openSimpleFin() async {
     final uri = Uri.parse(simpleFinCreateUrl);
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  Future<void> _openSimpleFinBridge() async {
+    final uri = Uri.parse(simpleFinBridgeUrl);
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
@@ -371,30 +279,46 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _disconnect() async {
+    final fromEnv = ref.read(simpleFinAccessStoreProvider).isConfiguredInEnv;
+    if (fromEnv) {
+      setState(() {
+        _actionError =
+            'Connection comes from .env. Remove '
+            '${SimpleFinAccessStore.envAccessUrlKey} and restart to disconnect.';
+      });
+      return;
+    }
+
+    final confirmed = await showCupertinoDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return CupertinoAlertDialog(
+          title: const Text('Disconnect & erase local data?'),
+          content: const Text(
+            'Removes the SimpleFIN connection and deletes all local accounts '
+            'and transactions. If device sync is enabled, those deletes can '
+            'propagate to your server. Reconnect later with a new Setup Token.',
+          ),
+          actions: [
+            CupertinoDialogAction(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancel'),
+            ),
+            CupertinoDialogAction(
+              isDestructiveAction: true,
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Disconnect & erase'),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed != true || !mounted) return;
+
     await _runBusyAction(() async {
-      final fromEnv =
-          ref.read(simpleFinAccessStoreProvider).isConfiguredInEnv;
-      if (fromEnv) {
-        setState(() {
-          _actionError =
-              'Connection comes from .env. Remove '
-              '${SimpleFinAccessStore.envAccessUrlKey} and restart to disconnect.';
-        });
-        return;
-      }
       final ingest = await ref.read(transactionIngestProvider.future);
       await ingest.disconnect(wipeLocalData: true);
       ref.read(dataRevisionProvider.notifier).bump();
     });
-  }
-
-  String _formatRelative(DateTime time) {
-    final local = time.toLocal();
-    final difference = DateTime.now().difference(local);
-    if (difference.inMinutes < 1) return 'just now';
-    if (difference.inHours < 1) return '${difference.inMinutes}m ago';
-    if (difference.inDays < 1) return '${difference.inHours}h ago';
-    if (difference.inDays < 7) return '${difference.inDays}d ago';
-    return DateFormat.MMMd().format(local);
   }
 }

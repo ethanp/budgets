@@ -24,14 +24,36 @@ class SimpleFinError {
   }
 }
 
+class SimpleFinConnection {
+  const SimpleFinConnection({
+    required this.id,
+    required this.name,
+    this.orgUrl,
+  });
+
+  final String id;
+  final String name;
+  final String? orgUrl;
+
+  factory SimpleFinConnection.fromJson(Map<String, dynamic> json) {
+    return SimpleFinConnection(
+      id: json['conn_id'] as String? ?? '',
+      name: json['name'] as String? ?? '',
+      orgUrl: json['org_url'] as String?,
+    );
+  }
+}
+
 class SimpleFinAccountSet {
   const SimpleFinAccountSet({
     required this.errors,
     required this.accounts,
+    this.connections = const [],
   });
 
   final List<SimpleFinError> errors;
   final List<SimpleFinAccount> accounts;
+  final List<SimpleFinConnection> connections;
 }
 
 class SimpleFinAccount {
@@ -56,6 +78,20 @@ class SimpleFinAccount {
   final String? connId;
   final String? connName;
   final List<SimpleFinTransaction> transactions;
+
+  SimpleFinAccount copyWith({String? connName}) {
+    return SimpleFinAccount(
+      id: id,
+      name: name,
+      currency: currency,
+      balance: balance,
+      availableBalance: availableBalance,
+      balanceDate: balanceDate,
+      connId: connId,
+      connName: connName ?? this.connName,
+      transactions: transactions,
+    );
+  }
 }
 
 class SimpleFinTransaction {

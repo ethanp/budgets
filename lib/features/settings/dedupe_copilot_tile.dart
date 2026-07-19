@@ -1,6 +1,5 @@
+import 'package:budgets/features/settings/settings_section.dart';
 import 'package:budgets/providers/budgets_providers.dart';
-import 'package:budgets/theme/app_theme.dart';
-import 'package:budgets/widgets/app_card.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -19,30 +18,15 @@ class _DedupeCopilotTileState extends ConsumerState<DedupeCopilotTile> {
 
   @override
   Widget build(BuildContext context) {
-    return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Remove Copilot duplicates', style: AppText.headline.small),
-          VSpace.sm,
-          Text(
-            'When the same card exists in both Copilot and SimpleFIN, '
-            'delete Copilot rows that match a SimpleFIN charge '
-            '(same day, amount, and similar merchant). Keeps SimpleFIN; '
-            'copies Copilot categories onto uncategorized twins.',
-            style: AppText.body.medium,
-          ),
-          if (_message != null) ...[
-            VSpace.sm,
-            Text(_message!, style: AppText.body.small),
-          ],
-          VSpace.md,
-          CupertinoButton.filled(
-            onPressed: _busy ? null : _run,
-            child: Text(_busy ? 'Scanning…' : 'Remove duplicates'),
-          ),
-        ],
-      ),
+    return SettingsToolRow(
+      icon: CupertinoIcons.square_stack_3d_up,
+      title: 'Remove Copilot duplicates',
+      caption:
+          'Drop Copilot rows that match SimpleFIN (day, amount, merchant).',
+      onAction: _run,
+      style: SettingsSectionStyle.maintenance,
+      busy: _busy,
+      message: _message,
     );
   }
 

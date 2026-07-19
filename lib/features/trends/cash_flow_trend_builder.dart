@@ -1,7 +1,7 @@
 import 'package:budgets/domain/special_category.dart';
 import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/features/trends/category_trend_series.dart';
-import 'package:budgets/features/trends/centered_year_pace.dart';
+import 'package:budgets/features/trends/annual_pace_smoother.dart';
 import 'package:budgets/features/trends/trend_chart_catalog.dart';
 import 'package:budgets/features/trends/trend_series_significance.dart';
 import 'package:ethan_utils/ethan_utils.dart';
@@ -148,7 +148,7 @@ class CashFlowTrendBuilder {
     bool guide = false,
     bool percentileAreaFill = false,
   }) {
-    return CenteredYearPace.seriesFromDailyMap(
+    return AnnualPaceSmoother.standard.seriesFromDailyMap(
       id: id,
       name: name,
       lineColor: lineColor,

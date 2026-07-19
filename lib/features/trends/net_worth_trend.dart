@@ -2,7 +2,7 @@ import 'package:budgets/domain/account.dart';
 import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/features/trends/category_trend_point.dart';
 import 'package:budgets/features/trends/category_trend_series.dart';
-import 'package:budgets/features/trends/centered_year_pace.dart';
+import 'package:budgets/features/trends/centered_moving_average.dart';
 import 'package:budgets/features/trends/trend_chart_catalog.dart';
 import 'package:budgets/features/trends/trend_series_significance.dart';
 import 'package:ethan_utils/ethan_utils.dart';
@@ -70,7 +70,7 @@ class NetWorthTrend {
       name: 'Net worth',
       lineColor: TrendChartCatalog.netWorthLineColor,
       percentileAreaFill: true,
-      points: CenteredYearPace.smoothedPoints(rawPoints),
+      points: CenteredMovingAverage.standard.smoothPoints(rawPoints),
     );
     if (!TrendSeriesSignificance.hasMeaningfulTrend(built)) return const [];
     return [built];

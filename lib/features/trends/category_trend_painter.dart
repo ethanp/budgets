@@ -18,7 +18,6 @@ class CategoryTrendPainter extends CustomPainter {
     this.lifeEvents = const [],
     this.housingChain,
     this.jobChain,
-    this.showChainEraFills = true,
     this.hoverPosition,
   });
 
@@ -40,7 +39,6 @@ class CategoryTrendPainter extends CustomPainter {
   final List<LifeEvent> lifeEvents;
   final StayChain? housingChain;
   final StayChain? jobChain;
-  final bool showChainEraFills;
   final Offset? hoverPosition;
 
   @override
@@ -57,7 +55,6 @@ class CategoryTrendPainter extends CustomPainter {
       lifeEvents: lifeEvents,
       housingChain: housingChain,
       jobChain: jobChain,
-      showChainEraFills: showChainEraFills,
       hoverPosition: hoverPosition,
     ).paint();
   }
@@ -96,7 +93,6 @@ class CategoryTrendPainter extends CustomPainter {
       lifeEvents != oldDelegate.lifeEvents ||
       housingChain != oldDelegate.housingChain ||
       jobChain != oldDelegate.jobChain ||
-      showChainEraFills != oldDelegate.showChainEraFills ||
       hoverPosition != oldDelegate.hoverPosition;
 }
 
@@ -110,7 +106,6 @@ class _CategoryTrendPaintSession {
     required this.lifeEvents,
     required this.housingChain,
     required this.jobChain,
-    required this.showChainEraFills,
     required this.hoverPosition,
   });
 
@@ -127,7 +122,6 @@ class _CategoryTrendPaintSession {
   final List<LifeEvent> lifeEvents;
   final StayChain? housingChain;
   final StayChain? jobChain;
-  final bool showChainEraFills;
   final Offset? hoverPosition;
 
   double _laneTop(int laneIndex) =>
@@ -508,7 +502,7 @@ class _CategoryTrendPaintSession {
           layout: layout,
           geometry: geometry,
           edgePaint: edgePaint,
-          fillColor: showChainEraFills ? eraAccent : null,
+          fillColor: eraAccent,
           fillStyle: fillStyle,
           fillAlpha: 0.12,
           fillTop: fillTop,
