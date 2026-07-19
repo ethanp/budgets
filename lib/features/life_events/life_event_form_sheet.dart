@@ -93,34 +93,34 @@ class _LifeEventFormSheetState extends ConsumerState<LifeEventFormSheet> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _sheetHeader(),
-              const SizedBox(height: AppSpacing.md),
+              VSpace.md,
               _titleField(),
-              const SizedBox(height: AppSpacing.md),
+              VSpace.md,
               _dateModeControl(),
-              const SizedBox(height: AppSpacing.md),
+              VSpace.md,
               _dateRow(
                 label: _dateMode == _LifeEventDateMode.day ? 'Date' : 'Start',
                 date: _startedOn,
                 onTap: () => _pickDate(isStart: true),
               ),
               if (_dateMode == _LifeEventDateMode.range) ...[
-                const SizedBox(height: AppSpacing.sm),
+                VSpace.sm,
                 _dateRow(
                   label: 'End',
                   date: _endedOn,
                   onTap: () => _pickDate(isStart: false),
                 ),
               ],
-              const SizedBox(height: AppSpacing.md),
+              VSpace.md,
               _noteField(),
               if (_error != null) ...[
-                const SizedBox(height: AppSpacing.sm),
+                VSpace.sm,
                 Text(_error!, style: AppText.body.small.error),
               ],
-              const SizedBox(height: AppSpacing.md),
+              VSpace.md,
               _saveButton(),
               if (_isEditing) ...[
-                const SizedBox(height: AppSpacing.sm),
+                VSpace.sm,
                 _deleteButton(),
               ],
             ],
@@ -143,7 +143,7 @@ class _LifeEventFormSheetState extends ConsumerState<LifeEventFormSheet> {
       autofocus: !_isEditing,
       placeholder: 'Title',
       padding: const EdgeInsets.all(AppSpacing.md),
-      style: AppText.body.large.primary,
+      style: AppText.body.large.bright,
     );
   }
 
@@ -199,11 +199,11 @@ class _LifeEventFormSheetState extends ConsumerState<LifeEventFormSheet> {
               DateFormat.yMMMd().format(date),
               style: AppText.body.medium.semibold,
             ),
-            const SizedBox(width: AppSpacing.sm),
+            HSpace.sm,
             const Icon(
               CupertinoIcons.calendar,
               size: 18,
-              color: AppColors.textColor3,
+              color: AppColors.textSupport,
             ),
           ],
         ),
@@ -218,7 +218,7 @@ class _LifeEventFormSheetState extends ConsumerState<LifeEventFormSheet> {
       maxLines: 3,
       minLines: 2,
       padding: const EdgeInsets.all(AppSpacing.md),
-      style: AppText.body.large.primary,
+      style: AppText.body.large.bright,
     );
   }
 

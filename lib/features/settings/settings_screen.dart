@@ -62,17 +62,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: AppSpacing.lg),
+            VSpace.lg,
             const SyncStatusTile(),
-            const SizedBox(height: AppSpacing.lg),
+            VSpace.lg,
             const CopilotImportTile(),
-            const SizedBox(height: AppSpacing.lg),
+            VSpace.lg,
             const MigrateCopilotRulesTile(),
-            const SizedBox(height: AppSpacing.lg),
+            VSpace.lg,
             const DedupeCopilotTile(),
-            const SizedBox(height: AppSpacing.lg),
+            VSpace.lg,
             _csvEscapeHatchCard(),
-            const SizedBox(height: AppSpacing.lg),
+            VSpace.lg,
             _aboutCard(),
           ],
         ),
@@ -86,12 +86,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Import', style: AppText.headline.small),
-          const SizedBox(height: AppSpacing.sm),
+          VSpace.sm,
           Text(
             'Generic CSV escape hatch when a bank connection is broken.',
             style: AppText.body.medium,
           ),
-          const SizedBox(height: AppSpacing.md),
+          VSpace.md,
           CupertinoButton.filled(
             onPressed: () => CsvImportSheet.show(context),
             child: const Text('Import CSV'),
@@ -107,7 +107,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('About', style: AppText.headline.small),
-          const SizedBox(height: AppSpacing.sm),
+          VSpace.sm,
           Text(
             'Budgets — personal spending by category with SimpleFIN.',
             style: AppText.body.medium,
@@ -128,31 +128,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Bank connection', style: AppText.headline.small),
-          const SizedBox(height: AppSpacing.sm),
+          VSpace.sm,
           Text(
             'Paste a one-time Setup Token, or put the claimed Access URL in '
             '.env as ${SimpleFinAccessStore.envAccessUrlKey} (survives reinstall).',
             style: AppText.body.medium,
           ),
-          const SizedBox(height: AppSpacing.md),
+          VSpace.md,
           CupertinoButton.filled(
             onPressed: _busy ? null : _openSimpleFin,
             child: const Text('Open SimpleFIN'),
           ),
-          const SizedBox(height: AppSpacing.md),
+          VSpace.md,
           CupertinoTextField(
             controller: _tokenController,
             placeholder: 'Paste Setup Token',
             maxLines: 4,
             minLines: 3,
             padding: const EdgeInsets.all(AppSpacing.md),
-            style: AppText.body.medium.primary,
+            style: AppText.body.medium.bright,
           ),
           if (_actionError != null) ...[
-            const SizedBox(height: AppSpacing.sm),
+            VSpace.sm,
             SelectableText(_actionError!, style: AppText.body.small.error),
           ],
-          const SizedBox(height: AppSpacing.md),
+          VSpace.md,
           CupertinoButton.filled(
             onPressed: _busy ? null : _connect,
             child: _busy
@@ -180,23 +180,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ],
           ),
           if (status.fromEnv) ...[
-            const SizedBox(height: AppSpacing.xs),
+            VSpace.xs,
             Text(
               'Using ${SimpleFinAccessStore.envAccessUrlKey} from .env',
               style: AppText.body.small,
             ),
           ],
           if (status.lastSyncedAt != null) ...[
-            const SizedBox(height: AppSpacing.xs),
+            VSpace.xs,
             Text(
               'Updated ${_formatRelative(status.lastSyncedAt!)}',
               style: AppText.body.small,
             ),
           ],
-          const SizedBox(height: AppSpacing.md),
+          VSpace.md,
           ...status.accounts.map(_accountRow),
           if (status.errors.isNotEmpty) ...[
-            const SizedBox(height: AppSpacing.md),
+            VSpace.md,
             ...status.errors.map(
               (error) => Padding(
                 padding: const EdgeInsets.only(bottom: AppSpacing.xs),
@@ -208,10 +208,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           ],
           if (_actionError != null) ...[
-            const SizedBox(height: AppSpacing.sm),
+            VSpace.sm,
             SelectableText(_actionError!, style: AppText.body.small.error),
           ],
-          const SizedBox(height: AppSpacing.md),
+          VSpace.md,
           _connectionActions(),
         ],
       ),
@@ -230,14 +230,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ? const CupertinoActivityIndicator()
                   : const Text('Refresh now'),
             ),
-            const SizedBox(width: AppSpacing.sm),
+            HSpace.sm,
             CupertinoButton(
               onPressed: _busy ? null : _disconnect,
               child: Text('Disconnect', style: AppText.body.medium.error),
             ),
           ],
         ),
-        const SizedBox(height: AppSpacing.sm),
+        VSpace.sm,
         CupertinoButton(
           onPressed: _busy ? null : _refreshFullHistory,
           child: Text(

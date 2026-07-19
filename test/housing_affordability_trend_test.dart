@@ -3,6 +3,7 @@ import 'package:budgets/domain/special_category.dart';
 import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/features/trends/category_trend_series_factory.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:budgets/features/trends/trend_chart_catalog.dart';
 
 void main() {
   test('category spend includes 30% of income affordability boundary', () {
@@ -46,10 +47,10 @@ void main() {
 
     final affordability = bundle.categorySpend.firstWhere(
       (series) =>
-          series.id == CategoryTrendSeriesFactory.housingAffordabilitySeriesId,
+          series.id == TrendChartCatalog.housingAffordabilitySeriesId,
     );
     final income = bundle.cashFlows.firstWhere(
-      (series) => series.id == CategoryTrendSeriesFactory.incomeSeriesId,
+      (series) => series.id == TrendChartCatalog.incomeSeriesId,
     );
 
     expect(affordability.guide, isTrue);
@@ -63,7 +64,7 @@ void main() {
         affordability.points[pointIndex].rollingCents,
         closeTo(
           income.points[pointIndex].rollingCents *
-              CategoryTrendSeriesFactory.housingIncomeShareCap,
+              TrendChartCatalog.housingIncomeShareCap,
           0.01,
         ),
       );

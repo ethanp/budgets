@@ -78,19 +78,19 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _sheetHeader(),
-            const SizedBox(height: AppSpacing.md),
+            VSpace.md,
             if (_isSpecial) _specialCategoryBody() else ...[
               _nameField(),
-              const SizedBox(height: AppSpacing.md),
+              VSpace.md,
               _groupPicker(),
               if (_error != null) ...[
-                const SizedBox(height: AppSpacing.sm),
+                VSpace.sm,
                 _errorMessage(),
               ],
-              const SizedBox(height: AppSpacing.md),
+              VSpace.md,
               _primaryAction(),
               if (_isEditing) ...[
-                const SizedBox(height: AppSpacing.sm),
+                VSpace.sm,
                 _mergeAction(),
               ],
             ],
@@ -119,14 +119,14 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
           widget.category!.name,
           style: AppText.body.large.semibold,
         ),
-        const SizedBox(height: AppSpacing.sm),
+        VSpace.sm,
         Text(
           'This is a built-in cash-flow category. '
           'It cannot be renamed or deleted. '
           'Use it when categorizing income or transfers.',
           style: AppText.body.small,
         ),
-        const SizedBox(height: AppSpacing.md),
+        VSpace.md,
         CupertinoButton(
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Done'),
@@ -141,7 +141,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
       autofocus: !_isEditing,
       placeholder: 'Name',
       padding: const EdgeInsets.all(AppSpacing.md),
-      style: AppText.body.large.primary,
+      style: AppText.body.large.bright,
     );
   }
 
@@ -152,7 +152,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Group', style: AppText.body.small),
-        const SizedBox(height: AppSpacing.xs),
+        VSpace.xs,
         Wrap(
           spacing: AppSpacing.sm,
           runSpacing: AppSpacing.sm,
@@ -189,7 +189,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
         child: Text(
           label,
           style: AppText.body.small.copyWith(
-            color: isSelected ? AppColors.textColor1 : AppColors.textColor2,
+            color: isSelected ? AppColors.textBright : AppColors.textBody,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
           ),
         ),
@@ -331,7 +331,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Merge ${category.name} into…', style: AppText.headline.small),
-          const SizedBox(height: AppSpacing.xs),
+          VSpace.xs,
           Text(
             'Transactions and rules move to the target. '
             'Then "${category.name}" is removed.',

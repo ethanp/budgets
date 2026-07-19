@@ -187,7 +187,7 @@ class CategoriesScreen extends ConsumerWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       itemCount: listChildren.length,
       separatorBuilder: (context, index) =>
-          const SizedBox(height: AppSpacing.sm),
+          VSpace.sm,
       itemBuilder: (context, index) => listChildren[index],
     );
   }
@@ -200,13 +200,13 @@ class CategoriesScreen extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text('No categories yet', style: AppText.headline.small),
-            const SizedBox(height: AppSpacing.sm),
+            VSpace.sm,
             Text(
               'Add categories to organize spending.',
               style: AppText.body.medium,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: AppSpacing.lg),
+            VSpace.lg,
             CupertinoButton.filled(
               onPressed: () => CategoryEditorSheet.show(context, ref: ref),
               child: const Text('Add category'),
@@ -281,18 +281,18 @@ class _GroupSection extends StatelessWidget {
                     Text('/ yr', style: AppText.body.small),
                   ],
                 ),
-                const SizedBox(width: AppSpacing.sm),
+                HSpace.sm,
                 const Icon(
                   CupertinoIcons.chevron_right,
                   size: 16,
-                  color: AppColors.textColor4,
+                  color: AppColors.textDim,
                 ),
               ],
             ),
           ),
         ),
         for (final member in members) ...[
-          const SizedBox(height: AppSpacing.sm),
+          VSpace.sm,
           Padding(
             padding: const EdgeInsets.only(left: AppSpacing.md),
             child: _CategoryListTile(
@@ -328,11 +328,11 @@ class _CategoryListTile extends StatelessWidget {
           children: [
             Expanded(child: _categoryDetails()),
             _annualPaceLabel(),
-            const SizedBox(width: AppSpacing.sm),
+            HSpace.sm,
             const Icon(
               CupertinoIcons.chevron_right,
               size: 16,
-              color: AppColors.textColor4,
+              color: AppColors.textDim,
             ),
           ],
         ),

@@ -58,14 +58,14 @@ class _ChainBody extends ConsumerWidget {
           kind == LifeChainKind.housing
               ? 'Where you’ve lived — a path of places over time.'
               : 'Where you’ve worked — a path of roles over time.',
-          style: AppText.body.medium.copyWith(color: AppColors.textColor3),
+          style: AppText.body.medium.copyWith(color: AppColors.textSupport),
         ),
-        const SizedBox(height: AppSpacing.lg),
+        VSpace.lg,
         if (chain.isEmpty)
           _EmptyChain(kind: kind)
         else
           _ChainPath(kind: kind, chain: chain),
-        const SizedBox(height: AppSpacing.xl),
+        VSpace.xl,
         CupertinoButton.filled(
           onPressed: () {
             final oldestStartedOn = chain.oldest?.stay.startedOn.startOfDay;
@@ -105,9 +105,9 @@ class _EmptyChain extends StatelessWidget {
       child: Column(
         children: [
           Icon(kind.icon, size: 36, color: kind.trendBandColor),
-          const SizedBox(height: AppSpacing.md),
+          VSpace.md,
           Text(kind.emptyHeroCaption, style: AppText.headline.small),
-          const SizedBox(height: AppSpacing.sm),
+          VSpace.sm,
           Text(
             'Add the first link to start the chain.',
             style: AppText.body.small,
@@ -230,10 +230,10 @@ class _StayNode extends StatelessWidget {
               child: Icon(
                 kind.icon,
                 size: isCurrent ? 22 : 18,
-                color: isCurrent ? accent : AppColors.textColor3,
+                color: isCurrent ? accent : AppColors.textSupport,
               ),
             ),
-            const SizedBox(width: AppSpacing.md),
+            HSpace.md,
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -252,21 +252,21 @@ class _StayNode extends StatelessWidget {
                     segment.stay.label,
                     style: AppText.body.large.semibold.copyWith(
                       color: isCurrent
-                          ? AppColors.textColor1
-                          : AppColors.textColor2,
+                          ? AppColors.textBright
+                          : AppColors.textBody,
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.xs),
+                  VSpace.xs,
                   Text(
                     segment.dateCaption,
                     style: AppText.body.small.copyWith(
                       color: isCurrent
-                          ? AppColors.textColor2
-                          : AppColors.textColor3,
+                          ? AppColors.textBody
+                          : AppColors.textSupport,
                     ),
                   ),
                   if (segment.stay.note != null) ...[
-                    const SizedBox(height: AppSpacing.xs),
+                    VSpace.xs,
                     Text(segment.stay.note!, style: AppText.caption),
                   ],
                 ],
@@ -275,7 +275,7 @@ class _StayNode extends StatelessWidget {
             const Icon(
               CupertinoIcons.chevron_right,
               size: 16,
-              color: AppColors.textColor4,
+              color: AppColors.textDim,
             ),
           ],
         ),

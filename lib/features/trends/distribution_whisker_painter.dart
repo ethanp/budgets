@@ -117,7 +117,7 @@ class DistributionWhiskerPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final color = isDimmed ? AppColors.textColor4 : seriesColor;
+    final color = isDimmed ? AppColors.textDim : seriesColor;
     final stemColor = color.withValues(alpha: isDimmed ? 0.45 : 0.85);
 
     final centerX = size.width / 2;
@@ -293,13 +293,13 @@ class DistributionWhiskerSymbolKey extends StatelessWidget {
             children: [
               for (var index = 0; index < _entries.length; index++) ...[
                 if (index > 0) ...[
-                  const SizedBox(width: AppSpacing.sm),
+                  HSpace.sm,
                   Container(
                     width: 1,
                     height: 14,
                     color: AppColors.borderDepth1.withValues(alpha: 0.7),
                   ),
-                  const SizedBox(width: AppSpacing.sm),
+                  HSpace.sm,
                 ],
                 _keyItem(glyph: _entries[index].$1, label: _entries[index].$2),
               ],
@@ -309,7 +309,7 @@ class DistributionWhiskerSymbolKey extends StatelessWidget {
           Text(
             'Pair: all-time (left) · past year (right)',
             style: AppText.caption.copyWith(
-              color: AppColors.textColor4,
+              color: AppColors.textDim,
               fontSize: 10,
               height: 1.1,
             ),
@@ -330,14 +330,14 @@ class DistributionWhiskerSymbolKey extends StatelessWidget {
           width: glyph == DistributionWhiskerGlyph.range ? 12 : 14,
           height: glyph == DistributionWhiskerGlyph.range ? 16 : 14,
           child: CustomPaint(
-            painter: _GlyphPainter(glyph, AppColors.textColor2),
+            painter: _GlyphPainter(glyph, AppColors.textBody),
           ),
         ),
         const SizedBox(width: 5),
         Text(
           label,
           style: AppText.caption.copyWith(
-            color: AppColors.textColor3,
+            color: AppColors.textSupport,
             fontSize: 11,
             height: 1.1,
           ),

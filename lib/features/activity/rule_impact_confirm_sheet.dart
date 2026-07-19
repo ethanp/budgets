@@ -93,14 +93,14 @@ class _RuleImpactConfirmSheetState extends State<RuleImpactConfirmSheet> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Apply rule to existing?', style: AppText.headline.small),
-          const SizedBox(height: AppSpacing.xs),
+          VSpace.xs,
           Text(
             'These $_matchCount existing transactions match. '
             'Turn off any that should stay as they are. '
             'The rule will still apply to future matches.',
             style: AppText.body.small,
           ),
-          const SizedBox(height: AppSpacing.md),
+          VSpace.md,
           _buildSelectionShortcuts(),
         ],
       ),
@@ -115,7 +115,7 @@ class _RuleImpactConfirmSheetState extends State<RuleImpactConfirmSheet> {
           onPressed: _selectAll,
           child: const Text('Select all'),
         ),
-        const SizedBox(width: AppSpacing.md),
+        HSpace.md,
         CupertinoButton(
           padding: EdgeInsets.zero,
           onPressed: _selectNone,
@@ -140,14 +140,14 @@ class _RuleImpactConfirmSheetState extends State<RuleImpactConfirmSheet> {
         '“${group.pattern}” → ${group.categoryName}',
         style: AppText.body.medium.semibold,
       ),
-      const SizedBox(height: AppSpacing.sm),
+      VSpace.sm,
       for (final transaction in group.transactions)
         _MatchRow(
           transaction: transaction,
           selected: _selectedIds.contains(transaction.id),
           onChanged: (selected) => _setSelected(transaction.id, selected),
         ),
-      const SizedBox(height: AppSpacing.lg),
+      VSpace.lg,
     ];
   }
 
@@ -235,7 +235,7 @@ class _MatchRow extends StatelessWidget {
                 value: selected,
                 onChanged: (value) => onChanged(value ?? false),
               ),
-              const SizedBox(width: AppSpacing.sm),
+              HSpace.sm,
               Expanded(child: _buildDetails()),
               Text(
                 formatCents(transaction.amountCents),

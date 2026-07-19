@@ -2,6 +2,7 @@ import 'package:budgets/domain/category.dart';
 import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/features/trends/category_trend_series_factory.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:budgets/features/trends/centered_year_pace.dart';
 
 void main() {
   test('centered-year series annualizes a constant daily spend', () {
@@ -44,46 +45,46 @@ void main() {
 
   test('edge inward taper grows to 240 days and annualizes to year pace', () {
     const lastDayIndex = 1000;
-    final tip = CategoryTrendSeriesFactory.centeredRollingWindow(
+    final tip = CenteredYearPace.centeredRollingWindow(
       dayIndex: lastDayIndex,
       historyStartIndex: 0,
       lastDayIndex: lastDayIndex,
     );
     expect(tip.endIndex, lastDayIndex);
-    expect(tip.startIndex, lastDayIndex - CategoryTrendSeriesFactory.edgeInwardMaxDays);
-    expect(tip.observedDays, CategoryTrendSeriesFactory.edgeInwardMaxDays + 1);
+    expect(tip.startIndex, lastDayIndex - CenteredYearPace.edgeInwardMaxDays);
+    expect(tip.observedDays, CenteredYearPace.edgeInwardMaxDays + 1);
 
-    final startTip = CategoryTrendSeriesFactory.centeredRollingWindow(
+    final startTip = CenteredYearPace.centeredRollingWindow(
       dayIndex: 0,
       historyStartIndex: 0,
       lastDayIndex: lastDayIndex,
     );
     expect(startTip.startIndex, 0);
-    expect(startTip.endIndex, CategoryTrendSeriesFactory.edgeInwardMaxDays);
+    expect(startTip.endIndex, CenteredYearPace.edgeInwardMaxDays);
     expect(
       startTip.observedDays,
-      CategoryTrendSeriesFactory.edgeInwardMaxDays + 1,
+      CenteredYearPace.edgeInwardMaxDays + 1,
     );
 
     // At the centered boundary, still a full ±182 window.
-    final boundary = CategoryTrendSeriesFactory.centeredRollingWindow(
-      dayIndex: lastDayIndex - CategoryTrendSeriesFactory.rollingHalfDays,
+    final boundary = CenteredYearPace.centeredRollingWindow(
+      dayIndex: lastDayIndex - CenteredYearPace.rollingHalfDays,
       historyStartIndex: 0,
       lastDayIndex: lastDayIndex,
     );
-    expect(boundary.observedDays, CategoryTrendSeriesFactory.rollingDays);
+    expect(boundary.observedDays, CenteredYearPace.rollingDays);
 
     // Midway through the taper: inward between 182 and 240.
     final midDayIndex = lastDayIndex - 91;
-    final midEdge = CategoryTrendSeriesFactory.centeredRollingWindow(
+    final midEdge = CenteredYearPace.centeredRollingWindow(
       dayIndex: midDayIndex,
       historyStartIndex: 0,
       lastDayIndex: lastDayIndex,
     );
     final midInward = midDayIndex - midEdge.startIndex;
     expect(midEdge.endIndex, midDayIndex + 91);
-    expect(midInward, greaterThan(CategoryTrendSeriesFactory.rollingHalfDays));
-    expect(midInward, lessThan(CategoryTrendSeriesFactory.edgeInwardMaxDays));
+    expect(midInward, greaterThan(CenteredYearPace.rollingHalfDays));
+    expect(midInward, lessThan(CenteredYearPace.edgeInwardMaxDays));
   });
 
   test('edge taper still annualizes constant spend to flat year pace', () {

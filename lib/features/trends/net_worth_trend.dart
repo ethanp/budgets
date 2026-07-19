@@ -1,5 +1,10 @@
 import 'package:budgets/domain/account.dart';
 import 'package:budgets/domain/transaction.dart';
+import 'package:budgets/features/trends/category_trend_point.dart';
+import 'package:budgets/features/trends/category_trend_series.dart';
+import 'package:budgets/features/trends/centered_year_pace.dart';
+import 'package:budgets/features/trends/trend_chart_catalog.dart';
+import 'package:budgets/features/trends/trend_series_significance.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 
 /// Reconstructs daily net worth from current balances + later transactions.
@@ -7,9 +12,6 @@ class NetWorthTrend {
   NetWorthTrend._();
 
   /// `NW(D) = Σ balances − Σ amounts with posted day strictly after D`.
-  ///
-  /// Returns one value per [chartDates] entry (same order). Empty [chartDates]
-  /// yields an empty list; empty [accounts] yields zeros.
   static List<double> dailyCents({
     required List<Account> accounts,
     required List<BankTransaction> transactions,
@@ -40,5 +42,37 @@ class NetWorthTrend {
       netWorthCents -= amountsByDay[day] ?? 0;
     }
     return values;
+  }
+
+  /// Level series (CMA-smoothed), or empty when not meaningful.
+  static List<CategoryTrendSeries> series({
+    required List<Account> accounts,
+    required List<BankTransaction> transactions,
+    required List<DateTime> chartDates,
+  }) {
+    if (accounts.isEmpty || chartDates.length < 2) return const [];
+
+    final daily = dailyCents(
+      accounts: accounts,
+      transactions: transactions,
+      chartDates: chartDates,
+    );
+    final rawPoints = [
+      for (var dayIndex = 0; dayIndex < chartDates.length; dayIndex++)
+        CategoryTrendPoint(
+          date: chartDates[dayIndex],
+          rollingCents: daily[dayIndex],
+          smoothedCents: 0,
+        ),
+    ];
+    final built = CategoryTrendSeries(
+      id: TrendChartCatalog.netWorthSeriesId,
+      name: 'Net worth',
+      lineColor: TrendChartCatalog.netWorthLineColor,
+      percentileAreaFill: true,
+      points: CenteredYearPace.smoothedPoints(rawPoints),
+    );
+    if (!TrendSeriesSignificance.hasMeaningfulTrend(built)) return const [];
+    return [built];
   }
 }

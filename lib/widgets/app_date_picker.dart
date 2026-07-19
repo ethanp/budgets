@@ -69,7 +69,7 @@ Future<DateTime?> _pickCalendarDate(
           colorScheme: const material.ColorScheme.dark(
             primary: AppColors.accentPrimary,
             surface: AppColors.backgroundDepth2,
-            onSurface: AppColors.textColor1,
+            onSurface: AppColors.textBright,
           ),
           dialogTheme: const material.DialogThemeData(
             backgroundColor: AppColors.backgroundDepth2,

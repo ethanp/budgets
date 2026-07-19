@@ -1,7 +1,8 @@
 import 'package:budgets/domain/month_summary.dart';
 import 'package:budgets/domain/special_category.dart';
 import 'package:budgets/domain/transaction.dart';
-import 'package:budgets/features/trends/category_trend_series_factory.dart';
+import 'package:budgets/features/trends/centered_year_pace.dart';
+import 'package:budgets/features/trends/trend_chart_catalog.dart';
 import 'package:budgets/services/sqlite/accounts_repository.dart';
 import 'package:budgets/services/sqlite/categories_repository.dart';
 import 'package:budgets/services/sqlite/sync_state_store.dart';
@@ -44,7 +45,7 @@ class BudgetMonth {
     );
     final trailingYearOutflows = _outflowByCategory(
       await _transactionsRepository.listPostedInLastDays(
-        CategoryTrendSeriesFactory.rollingDays,
+        CenteredYearPace.rollingDays,
       ),
     );
     final observedDays = _observedTrailingDays();
@@ -55,7 +56,7 @@ class BudgetMonth {
           CategoryMonthRow(
             categoryId: category.id,
             categoryName: category.name,
-            annualizedSpendCents: CategoryTrendSeriesFactory
+            annualizedSpendCents: CenteredYearPace
                 .annualizePartialWindow(
                   windowTotalCents:
                       (trailingYearOutflows[category.id] ?? 0).toDouble(),
@@ -71,16 +72,16 @@ class BudgetMonth {
   static int _observedTrailingDays() {
     final today = DateTime.now().startOfDay;
     final historyFloor =
-        CategoryTrendSeriesFactory.chartHistoryStart.startOfDay;
+        TrendChartCatalog.chartHistoryStart.startOfDay;
     final windowFloor = today.shiftedByDays(
-      -(CategoryTrendSeriesFactory.rollingDays - 1),
+      -(CenteredYearPace.rollingDays - 1),
     );
     final effectiveFloor =
         windowFloor.isBefore(historyFloor) ? historyFloor : windowFloor;
     final observedDays = today.difference(effectiveFloor).inDays + 1;
     if (observedDays < 1) return 1;
-    if (observedDays > CategoryTrendSeriesFactory.rollingDays) {
-      return CategoryTrendSeriesFactory.rollingDays;
+    if (observedDays > CenteredYearPace.rollingDays) {
+      return CenteredYearPace.rollingDays;
     }
     return observedDays;
   }

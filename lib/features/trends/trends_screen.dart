@@ -5,13 +5,13 @@ import 'package:budgets/domain/stay_chain.dart';
 import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/domain/trend_spend_rate.dart';
 import 'package:budgets/features/trends/category_trend_chart.dart';
-import 'package:budgets/features/trends/category_trend_series_factory.dart';
 import 'package:budgets/features/trends/trends_chart_bundle.dart';
 import 'package:budgets/providers/budgets_providers.dart';
 import 'package:budgets/theme/app_theme.dart';
 import 'package:budgets/widgets/sync_status_nav_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:budgets/features/trends/trend_chart_catalog.dart';
 
 class TrendsScreen extends ConsumerWidget {
   const TrendsScreen({super.key});
@@ -94,11 +94,11 @@ class TrendsScreen extends ConsumerWidget {
             showSpendRateToggle: true,
             useDistributionLegend: true,
             initiallyHiddenSeriesIds: const {
-              CategoryTrendSeriesFactory.allSpendSeriesId,
+              TrendChartCatalog.allSpendSeriesId,
             },
           ),
         if (bundle.categorySpend.isNotEmpty && bundle.cashFlows.isNotEmpty)
-          const SizedBox(height: AppSpacing.lg),
+          VSpace.lg,
         if (bundle.cashFlows.isNotEmpty)
           CategoryTrendChart(
             title: 'Income · Spending · Savings',
@@ -115,12 +115,12 @@ class TrendsScreen extends ConsumerWidget {
             jobChain: jobChain,
             showSpendRateToggle: bundle.categorySpend.isEmpty,
             initiallyHiddenSeriesIds: const {
-              CategoryTrendSeriesFactory.transferSeriesId,
+              TrendChartCatalog.transferSeriesId,
             },
           ),
         if (bundle.netWorth.isNotEmpty) ...[
           if (bundle.categorySpend.isNotEmpty || bundle.cashFlows.isNotEmpty)
-            const SizedBox(height: AppSpacing.lg),
+            VSpace.lg,
           CategoryTrendChart(
             title: 'Net worth',
             subtitle:

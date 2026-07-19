@@ -66,7 +66,7 @@ class CategoryTrendDistributionLegend extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const DistributionWhiskerSymbolKey(),
-        const SizedBox(height: AppSpacing.sm),
+        VSpace.sm,
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -84,7 +84,7 @@ class CategoryTrendDistributionLegend extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: AppSpacing.xs),
+            HSpace.xs,
             Expanded(
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -217,7 +217,7 @@ class _DistributionColumn extends StatelessWidget {
     final nowLabel =
         nowCents == null ? '—' : formatAnnualized(nowCents.round());
     final periodLabelStyle = AppText.caption.copyWith(
-      color: isHidden ? AppColors.textColor4 : AppColors.textColor3,
+      color: isHidden ? AppColors.textDim : AppColors.textSupport,
       fontSize: 9,
       height: 1,
     );
@@ -242,7 +242,7 @@ class _DistributionColumn extends StatelessWidget {
                         series.name,
                         style: isHidden
                             ? AppText.body.small.copyWith(
-                                color: AppColors.textColor4,
+                                color: AppColors.textDim,
                                 fontSize: 11,
                               )
                             : AppText.body.small.copyWith(fontSize: 11),
@@ -255,8 +255,8 @@ class _DistributionColumn extends StatelessWidget {
                 Text(
                   nowLabel,
                   style: isHidden
-                      ? AppText.caption.copyWith(color: AppColors.textColor4)
-                      : AppText.caption.copyWith(color: AppColors.textColor2),
+                      ? AppText.caption.copyWith(color: AppColors.textDim)
+                      : AppText.caption.copyWith(color: AppColors.textBody),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
@@ -287,12 +287,12 @@ class _DistributionColumn extends StatelessWidget {
                         pastYearTotalLabel,
                         style: isHidden
                             ? AppText.caption.copyWith(
-                                color: AppColors.textColor4,
+                                color: AppColors.textDim,
                                 fontSize: 10,
                                 height: 1.1,
                               )
                             : AppText.caption.copyWith(
-                                color: AppColors.textColor2,
+                                color: AppColors.textBody,
                                 fontSize: 10,
                                 height: 1.1,
                                 fontWeight: FontWeight.w600,

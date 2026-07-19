@@ -9,7 +9,6 @@ import 'package:budgets/domain/trend_spend_rate.dart';
 import 'package:budgets/features/trends/category_trend_painter.dart';
 import 'package:budgets/features/trends/category_trend_point.dart';
 import 'package:budgets/features/trends/category_trend_series.dart';
-import 'package:budgets/features/trends/category_trend_series_factory.dart';
 import 'package:budgets/features/trends/category_trend_series_legend.dart';
 import 'package:budgets/features/trends/chart_date_layout.dart';
 import 'package:budgets/features/trends/trend_point_contributors.dart';
@@ -21,6 +20,7 @@ import 'package:budgets/util/money_format.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:budgets/features/trends/trend_chart_catalog.dart';
 
 /// One SimCity-style multi-line chart with a color legend.
 class CategoryTrendChart extends ConsumerStatefulWidget {
@@ -114,13 +114,13 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
                 _chartSettingsToggle(),
             ],
           ),
-          const SizedBox(height: AppSpacing.xs),
+          VSpace.xs,
           Text(widget.subtitle, style: AppText.caption),
-          const SizedBox(height: AppSpacing.md),
+          VSpace.md,
           _chartArea(),
-          const SizedBox(height: AppSpacing.sm),
+          VSpace.sm,
           _inspectCaption(),
-          const SizedBox(height: AppSpacing.md),
+          VSpace.md,
           CategoryTrendSeriesLegend(
             seriesList: widget.seriesList,
             hiddenSeriesIds: _hiddenSeriesIds,
@@ -145,10 +145,10 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
           onTap: () => ref.read(showChainEraFillsProvider.notifier).toggle(),
         ),
         if (widget.showSpendRateToggle) ...[
-          const SizedBox(width: AppSpacing.sm),
+          HSpace.sm,
           for (final rate in TrendSpendRate.values) ...[
             if (rate != TrendSpendRate.values.first)
-              const SizedBox(width: AppSpacing.xs),
+              HSpace.xs,
             _settingsChip(
               label: rate.toggleLabel,
               isSelected: _spendRate == rate,
@@ -189,7 +189,7 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
           style: AppText.body.small.copyWith(
             color: isSelected
                 ? AppColors.accentPrimary
-                : AppColors.textColor3,
+                : AppColors.textSupport,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
           ),
         ),
@@ -379,8 +379,8 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
               series.points.length >= 2 &&
               !series.guide &&
               series.id !=
-                  CategoryTrendSeriesFactory.housingAffordabilitySeriesId &&
-              series.id != CategoryTrendSeriesFactory.fireSavingsGuideSeriesId,
+                  TrendChartCatalog.housingAffordabilitySeriesId &&
+              series.id != TrendChartCatalog.fireSavingsGuideSeriesId,
         )
         .toList();
     if (drawable.isEmpty) return null;

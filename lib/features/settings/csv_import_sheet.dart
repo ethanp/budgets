@@ -56,18 +56,18 @@ class _CsvImportSheetState extends ConsumerState<CsvImportSheet> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text('Import CSV', style: AppText.headline.small),
-              const SizedBox(height: AppSpacing.sm),
+              VSpace.sm,
               Text(
                 'Needs columns for date, amount, and description.',
                 style: AppText.body.small,
               ),
-              const SizedBox(height: AppSpacing.md),
+              VSpace.md,
               _buildAccountField(),
               if (_message != null) ...[
-                const SizedBox(height: AppSpacing.sm),
+                VSpace.sm,
                 Text(_message!, style: AppText.body.small),
               ],
-              const SizedBox(height: AppSpacing.md),
+              VSpace.md,
               _buildChooseFileButton(),
             ],
           ),
@@ -81,7 +81,7 @@ class _CsvImportSheetState extends ConsumerState<CsvImportSheet> {
       controller: _accountController,
       placeholder: 'Account name',
       padding: const EdgeInsets.all(AppSpacing.md),
-      style: AppText.body.large.primary,
+      style: AppText.body.large.bright,
     );
   }
 

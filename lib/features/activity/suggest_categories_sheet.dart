@@ -102,10 +102,10 @@ class _SuggestCategoriesSheetState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildTitleRow(),
-          const SizedBox(height: AppSpacing.md),
+          VSpace.md,
           _buildCreateRulesToggle(),
           if (_createRules) ...[
-            const SizedBox(height: AppSpacing.xs),
+            VSpace.xs,
             Text(
               'You’ll confirm which existing transactions each rule '
               'should update.',
@@ -140,7 +140,7 @@ class _SuggestCategoriesSheetState
           value: _createRules,
           onChanged: (value) => setState(() => _createRules = value),
         ),
-        const SizedBox(width: AppSpacing.sm),
+        HSpace.sm,
         Expanded(
           child: Text(
             'Also create a rule for each merchant',
@@ -178,7 +178,7 @@ class _SuggestCategoriesSheetState
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       itemCount: _suggestions.length,
       separatorBuilder: (context, index) =>
-          const SizedBox(height: AppSpacing.sm),
+          VSpace.sm,
       itemBuilder: (context, index) =>
           _buildSuggestionRow(_suggestions[index]),
     );

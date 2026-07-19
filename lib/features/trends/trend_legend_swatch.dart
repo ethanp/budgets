@@ -15,7 +15,7 @@ class TrendLegendSwatch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isHidden ? AppColors.textColor4 : series.lineColor;
+    final color = isHidden ? AppColors.textDim : series.lineColor;
     if (series.guide || series.dotted) {
       return SizedBox(
         width: 16,

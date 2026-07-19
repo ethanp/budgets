@@ -3,11 +3,11 @@ import 'dart:math' as math;
 import 'package:budgets/domain/trend_spend_rate.dart';
 import 'package:budgets/features/trends/category_trend_distribution_legend.dart';
 import 'package:budgets/features/trends/category_trend_series.dart';
-import 'package:budgets/features/trends/category_trend_series_factory.dart';
 import 'package:budgets/features/trends/trend_legend_swatch.dart';
 import 'package:budgets/theme/app_theme.dart';
 import 'package:budgets/util/money_format.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:budgets/features/trends/trend_chart_catalog.dart';
 
 /// Legend under a trends chart: meta chips, plus ranked chips or distribution.
 class CategoryTrendSeriesLegend extends StatelessWidget {
@@ -56,11 +56,11 @@ class CategoryTrendSeriesLegend extends StatelessWidget {
             onSoloSeries: onSoloSeries,
           ),
           if (rankedSeries.isNotEmpty) ...[
-            const SizedBox(width: AppSpacing.md),
+            HSpace.md,
             _LegendColumnDivider(
               height: useDistributionLegend ? 140.0 : 72.0,
             ),
-            const SizedBox(width: AppSpacing.md),
+            HSpace.md,
           ],
         ],
         if (rankedSeries.isNotEmpty)
@@ -90,12 +90,12 @@ class CategoryTrendSeriesLegend extends StatelessWidget {
   }
 
   static bool _isMetaLegendSeries(CategoryTrendSeries series) {
-    if (series.id == CategoryTrendSeriesFactory.allSpendSeriesId) return true;
+    if (series.id == TrendChartCatalog.allSpendSeriesId) return true;
     if (series.id ==
-        CategoryTrendSeriesFactory.housingAffordabilitySeriesId) {
+        TrendChartCatalog.housingAffordabilitySeriesId) {
       return true;
     }
-    if (series.id == CategoryTrendSeriesFactory.uncategorizedSeriesId) {
+    if (series.id == TrendChartCatalog.uncategorizedSeriesId) {
       return true;
     }
     return series.id == 'cat_other' || series.name.toLowerCase() == 'other';
@@ -136,7 +136,7 @@ class TrendLegendChip extends StatelessWidget {
     final label = Text(
       '${series.name} · $amountLabel$rateSuffix',
       style: isHidden
-          ? AppText.body.small.copyWith(color: AppColors.textColor4)
+          ? AppText.body.small.copyWith(color: AppColors.textDim)
           : AppText.body.small,
       maxLines: 1,
       softWrap: false,
@@ -149,7 +149,7 @@ class TrendLegendChip extends StatelessWidget {
         mainAxisSize: expandLabel ? MainAxisSize.max : MainAxisSize.min,
         children: [
           TrendLegendSwatch(series: series, isHidden: isHidden),
-          const SizedBox(width: AppSpacing.xs),
+          HSpace.xs,
           if (expandLabel) Expanded(child: label) else label,
         ],
       ),
@@ -191,7 +191,7 @@ class _MetaLegendColumn extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             for (var index = 0; index < metaSeries.length; index++) ...[
-              if (index > 0) const SizedBox(height: AppSpacing.sm),
+              if (index > 0) VSpace.sm,
               TrendLegendChip(
                 series: metaSeries[index],
                 isHidden: hiddenSeriesIds.contains(metaSeries[index].id),
@@ -280,7 +280,7 @@ class _ColumnMajorLegend extends StatelessWidget {
     for (var rowIndex = 0; rowIndex < rowCount; rowIndex++) {
       final seriesIndex = columnIndex * rowCount + rowIndex;
       if (seriesIndex >= seriesList.length) break;
-      if (rowIndex > 0) chips.add(const SizedBox(height: AppSpacing.sm));
+      if (rowIndex > 0) chips.add(VSpace.sm);
       final series = seriesList[seriesIndex];
       chips.add(
         TrendLegendChip(

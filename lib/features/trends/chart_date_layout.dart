@@ -97,6 +97,11 @@ class ChartDateLayout {
 
   void drawDateLabels(Canvas canvas, {required TextStyle labelStyle}) {
     final spanDays = maxDate.difference(minDate).inDays;
+    final tickPaint = Paint()
+      ..color = AppColors.textSupport
+      ..strokeWidth = 1
+      ..strokeCap = StrokeCap.round;
+    const tickLength = 5.0;
 
     String formatLabel(DateTime date) {
       if (spanDays > 60) return _months[date.month];
@@ -104,22 +109,29 @@ class ChartDateLayout {
     }
 
     for (final date in dateTicks()) {
+      final tickX = xForDate(date);
+      canvas.drawLine(
+        Offset(tickX, bottom),
+        Offset(tickX, bottom + tickLength),
+        tickPaint,
+      );
+
       final textPainter = TextPainter(
         text: TextSpan(text: formatLabel(date), style: labelStyle),
         textDirection: TextDirection.ltr,
       )..layout();
 
-      final labelX = (xForDate(date) - textPainter.width / 2).clamp(
+      final labelX = (tickX - textPainter.width / 2).clamp(
         left - 4,
         right - textPainter.width + 4,
       );
-      textPainter.paint(canvas, Offset(labelX, bottom + 6));
+      textPainter.paint(canvas, Offset(labelX, bottom + tickLength + 3));
     }
   }
 
   void drawAxes(Canvas canvas) {
     final axisPaint = Paint()
-      ..color = AppColors.textColor4.withValues(alpha: 0.5)
+      ..color = AppColors.textDim.withValues(alpha: 0.5)
       ..strokeWidth = 1;
     canvas.drawLine(Offset(left, bottom), Offset(right, bottom), axisPaint);
     canvas.drawLine(Offset(left, top), Offset(left, bottom), axisPaint);
@@ -144,7 +156,7 @@ class ChartDateLayout {
     if (boundaryXs.isEmpty) return;
 
     final linePaint = Paint()
-      ..color = AppColors.textColor4.withValues(alpha: 0.3)
+      ..color = AppColors.textDim.withValues(alpha: 0.3)
       ..strokeWidth = 1;
 
     for (var index = 0; index < boundaryXs.length; index++) {

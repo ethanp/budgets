@@ -76,14 +76,14 @@ class _LifeEventsBody extends ConsumerWidget {
           kind: LifeChainKind.housing,
           chain: housingChain,
         ),
-        const SizedBox(height: AppSpacing.sm),
+        VSpace.sm,
         _LifeChainHeroCard(
           kind: LifeChainKind.job,
           chain: jobChain,
         ),
-        const SizedBox(height: AppSpacing.lg),
+        VSpace.lg,
         Text('Milestones', style: AppText.body.medium.semibold),
-        const SizedBox(height: AppSpacing.sm),
+        VSpace.sm,
         if (lifeEvents.isEmpty)
           AppCard(
             child: Column(
@@ -93,12 +93,12 @@ class _LifeEventsBody extends ConsumerWidget {
                   'No milestones yet',
                   style: AppText.body.large.semibold,
                 ),
-                const SizedBox(height: AppSpacing.xs),
+                VSpace.xs,
                 Text(
                   'One-off dates and ranges still show on Trends.',
                   style: AppText.body.small,
                 ),
-                const SizedBox(height: AppSpacing.md),
+                VSpace.md,
                 CupertinoButton.filled(
                   onPressed: () =>
                       LifeEventFormSheet.show(context, ref: ref),
@@ -109,7 +109,7 @@ class _LifeEventsBody extends ConsumerWidget {
           )
         else
           for (var index = 0; index < lifeEvents.length; index++) ...[
-            if (index > 0) const SizedBox(height: AppSpacing.sm),
+            if (index > 0) VSpace.sm,
             _LifeEventListTile(
               lifeEvent: lifeEvents[index],
               onTap: () => LifeEventFormSheet.show(
@@ -176,7 +176,7 @@ class _LifeChainHeroCard extends StatelessWidget {
               ),
               child: Icon(kind.icon, color: accent, size: 22),
             ),
-            const SizedBox(width: AppSpacing.md),
+            HSpace.md,
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -189,7 +189,7 @@ class _LifeChainHeroCard extends StatelessWidget {
                   Text(
                     caption,
                     style: AppText.body.small.copyWith(
-                      color: AppColors.textColor2,
+                      color: AppColors.textBody,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -200,7 +200,7 @@ class _LifeChainHeroCard extends StatelessWidget {
             const Icon(
               CupertinoIcons.chevron_right,
               size: 16,
-              color: AppColors.textColor4,
+              color: AppColors.textDim,
             ),
           ],
         ),
@@ -228,13 +228,13 @@ class _LifeEventListTile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(lifeEvent.title, style: AppText.body.large.semibold),
-            const SizedBox(height: AppSpacing.xs),
+            VSpace.xs,
             Text(
               lifeEvent.dateCaption,
               style: AppText.body.small,
             ),
             if (lifeEvent.note != null) ...[
-              const SizedBox(height: AppSpacing.xs),
+              VSpace.xs,
               Text(lifeEvent.note!, style: AppText.caption),
             ],
           ],

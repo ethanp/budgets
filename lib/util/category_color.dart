@@ -7,7 +7,7 @@ import 'package:flutter/cupertino.dart';
 class CategoryColor {
   CategoryColor._();
 
-  static const uncategorized = AppColors.textColor4;
+  static const uncategorized = AppColors.textDim;
   static const housing = AppColors.housing;
   static const income = AppColors.success;
   static const transfer = AppColors.accentSecondary;

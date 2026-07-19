@@ -3,8 +3,9 @@ import 'package:budgets/domain/category_group.dart';
 import 'package:budgets/domain/special_category.dart';
 import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/features/trends/category_trend_series.dart';
-import 'package:budgets/features/trends/category_trend_series_factory.dart';
 import 'package:ethan_utils/ethan_utils.dart';
+import 'package:budgets/features/trends/trend_chart_catalog.dart';
+import 'package:budgets/features/trends/centered_year_pace.dart';
 
 /// One transaction's contribution to a trendline at a tap date.
 class TrendPointContributor {
@@ -50,7 +51,7 @@ class TrendPointContributors {
     }
 
     final historyFloor =
-        CategoryTrendSeriesFactory.chartHistoryStart.startOfDay;
+        TrendChartCatalog.chartHistoryStart.startOfDay;
 
     final chartDates = [
       for (final point in series.points) point.date.startOfDay,
@@ -65,7 +66,7 @@ class TrendPointContributors {
         chartDates[historyStartIndex].isBefore(historyFloor)) {
       historyStartIndex++;
     }
-    final tapWindow = CategoryTrendSeriesFactory.centeredRollingWindow(
+    final tapWindow = CenteredYearPace.centeredRollingWindow(
       dayIndex: tapIndex,
       historyStartIndex: historyStartIndex,
       lastDayIndex: chartDates.length - 1,
@@ -112,18 +113,20 @@ class TrendPointContributors {
       );
     }
 
-    contributors.sort(
-      (left, right) => right.smoothedContributionCents.abs().compareTo(
+    contributors.sort((left, right) {
+      final byContribution = right.smoothedContributionCents.abs().compareTo(
             left.smoothedContributionCents.abs(),
-          ),
-    );
+          );
+      if (byContribution != 0) return byContribution;
+      return right.transaction.postedAt.compareTo(left.transaction.postedAt);
+    });
     if (contributors.length <= limit) return contributors;
     return contributors.sublist(0, limit);
   }
 
   static bool _isGuideSeriesId(String seriesId) =>
-      seriesId == CategoryTrendSeriesFactory.housingAffordabilitySeriesId ||
-      seriesId == CategoryTrendSeriesFactory.fireSavingsGuideSeriesId;
+      seriesId == TrendChartCatalog.housingAffordabilitySeriesId ||
+      seriesId == TrendChartCatalog.fireSavingsGuideSeriesId;
 
   static _SeriesMembership? _membershipForSeries({
     required String seriesId,
@@ -131,10 +134,10 @@ class TrendPointContributors {
     required List<CategoryGroup> groups,
     required List<CategoryTrendSeries> chartSeriesList,
   }) {
-    if (seriesId == CategoryTrendSeriesFactory.allSpendSeriesId) {
+    if (seriesId == TrendChartCatalog.allSpendSeriesId) {
       return const _SeriesMembership.categorySpend(categoryIds: null);
     }
-    if (seriesId == CategoryTrendSeriesFactory.uncategorizedSeriesId) {
+    if (seriesId == TrendChartCatalog.uncategorizedSeriesId) {
       final backedIds = _seriesBackedCategoryIds(
         chartSeriesList: chartSeriesList,
         categories: categories,
@@ -142,21 +145,21 @@ class TrendPointContributors {
       );
       return _SeriesMembership.uncategorized(backedCategoryIds: backedIds);
     }
-    if (seriesId == CategoryTrendSeriesFactory.incomeSeriesId) {
+    if (seriesId == TrendChartCatalog.incomeSeriesId) {
       return const _SeriesMembership.income();
     }
-    if (seriesId == CategoryTrendSeriesFactory.spendingSeriesId) {
+    if (seriesId == TrendChartCatalog.spendingSeriesId) {
       return const _SeriesMembership.cashFlowSpending();
     }
-    if (seriesId == CategoryTrendSeriesFactory.transferSeriesId) {
+    if (seriesId == TrendChartCatalog.transferSeriesId) {
       return const _SeriesMembership.transfer();
     }
-    if (seriesId == CategoryTrendSeriesFactory.savingsSeriesId) {
+    if (seriesId == TrendChartCatalog.savingsSeriesId) {
       return const _SeriesMembership.savings();
     }
-    if (seriesId.startsWith(CategoryTrendSeriesFactory.groupSeriesIdPrefix)) {
+    if (seriesId.startsWith(TrendChartCatalog.groupSeriesIdPrefix)) {
       final groupId = seriesId.substring(
-        CategoryTrendSeriesFactory.groupSeriesIdPrefix.length,
+        TrendChartCatalog.groupSeriesIdPrefix.length,
       );
       final memberIds = {
         for (final category in categories)
@@ -177,9 +180,9 @@ class TrendPointContributors {
     final groupIds = {for (final group in groups) group.id};
     final backed = <String>{};
     for (final series in chartSeriesList) {
-      if (series.id.startsWith(CategoryTrendSeriesFactory.groupSeriesIdPrefix)) {
+      if (series.id.startsWith(TrendChartCatalog.groupSeriesIdPrefix)) {
         final groupId = series.id.substring(
-          CategoryTrendSeriesFactory.groupSeriesIdPrefix.length,
+          TrendChartCatalog.groupSeriesIdPrefix.length,
         );
         if (!groupIds.contains(groupId)) continue;
         for (final category in categories) {
@@ -210,7 +213,7 @@ class TrendPointContributors {
 
     for (var dayIndex = 0; dayIndex < dayCount; dayIndex++) {
       if (dayIndex < historyStartIndex) continue;
-      final window = CategoryTrendSeriesFactory.centeredRollingWindow(
+      final window = CenteredYearPace.centeredRollingWindow(
         dayIndex: dayIndex,
         historyStartIndex: historyStartIndex,
         lastDayIndex: lastDayIndex,
@@ -219,7 +222,7 @@ class TrendPointContributors {
         continue;
       }
       rollingContributions[dayIndex] =
-          CategoryTrendSeriesFactory.annualizePartialWindow(
+          CenteredYearPace.annualizePartialWindow(
         windowTotalCents: signedAmountCents,
         observedDays: window.observedDays,
       );
@@ -227,9 +230,9 @@ class TrendPointContributors {
 
     var smoothed = rollingContributions;
     for (var pass = 0;
-        pass < CategoryTrendSeriesFactory.smoothingPassCount;
+        pass < CenteredYearPace.smoothingPassCount;
         pass++) {
-      smoothed = CategoryTrendSeriesFactory.centeredMovingAverage(smoothed);
+      smoothed = CenteredYearPace.centeredMovingAverage(smoothed);
     }
     return smoothed[tapIndex];
   }

@@ -1,5 +1,5 @@
 import 'package:budgets/features/trends/category_trend_point.dart';
-import 'package:budgets/features/trends/category_trend_series_factory.dart';
+import 'package:budgets/features/trends/centered_year_pace.dart';
 
 /// Min / median / mean / max / current from a series' smoothed trendline.
 class CategoryTrendDistribution {
@@ -93,7 +93,7 @@ CategoryTrendDistribution? distributionForSmoothed(
   );
 }
 
-/// All-time plus the last [CategoryTrendSeriesFactory.rollingDays] of points
+/// All-time plus the last [CenteredYearPace.rollingDays] of points
 /// (aligned with a full centered-year span ending at the series tip).
 CategoryTrendDistributionPair distributionPairForSmoothed(
   List<CategoryTrendPoint> points,
@@ -102,7 +102,7 @@ CategoryTrendDistributionPair distributionPairForSmoothed(
     return const CategoryTrendDistributionPair(allTime: null, pastYear: null);
   }
   final pastYearStart = points.last.date.subtract(
-    const Duration(days: CategoryTrendSeriesFactory.rollingDays),
+    const Duration(days: CenteredYearPace.rollingDays),
   );
   return CategoryTrendDistributionPair(
     allTime: distributionForSmoothed(points),

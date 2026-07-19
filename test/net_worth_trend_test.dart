@@ -3,6 +3,7 @@ import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/features/trends/category_trend_series_factory.dart';
 import 'package:budgets/features/trends/net_worth_trend.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:budgets/features/trends/trend_chart_catalog.dart';
 
 void main() {
   test('daily net worth walks balances back through later transactions', () {
@@ -102,7 +103,7 @@ void main() {
     expect(bundle.netWorth, isNotEmpty);
     expect(
       bundle.netWorth.first.id,
-      CategoryTrendSeriesFactory.netWorthSeriesId,
+      TrendChartCatalog.netWorthSeriesId,
     );
     expect(bundle.netWorth.first.points.last.rollingCents, closeTo(500000, 0.01));
   });

@@ -3,6 +3,7 @@ import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/features/trends/category_trend_series_factory.dart';
 import 'package:budgets/features/trends/trend_point_contributors.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:budgets/features/trends/trend_chart_catalog.dart';
 
 void main() {
   test(
@@ -228,7 +229,7 @@ void main() {
     );
     final guide = bundle.cashFlows.firstWhere(
       (series) =>
-          series.id == CategoryTrendSeriesFactory.fireSavingsGuideSeriesId,
+          series.id == TrendChartCatalog.fireSavingsGuideSeriesId,
     );
     expect(
       TrendPointContributors.topForSeries(

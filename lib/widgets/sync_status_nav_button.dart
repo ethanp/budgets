@@ -74,7 +74,7 @@ enum _CollectiveSyncLook {
       };
 
   Color get color => switch (this) {
-        disconnected => AppColors.textColor3,
+        disconnected => AppColors.textSupport,
         offline => AppColors.warning,
         busy => AppColors.accentSecondary,
         warning => AppColors.warning,

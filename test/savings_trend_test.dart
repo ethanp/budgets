@@ -2,6 +2,7 @@ import 'package:budgets/domain/special_category.dart';
 import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/features/trends/category_trend_series_factory.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:budgets/features/trends/trend_chart_catalog.dart';
 
 void main() {
   test('cash-flow chart includes savings as income minus spending', () {
@@ -43,18 +44,18 @@ void main() {
     );
 
     final income = bundle.cashFlows.firstWhere(
-      (series) => series.id == CategoryTrendSeriesFactory.incomeSeriesId,
+      (series) => series.id == TrendChartCatalog.incomeSeriesId,
     );
     final spending = bundle.cashFlows.firstWhere(
-      (series) => series.id == CategoryTrendSeriesFactory.spendingSeriesId,
+      (series) => series.id == TrendChartCatalog.spendingSeriesId,
     );
     final savings = bundle.cashFlows.firstWhere(
-      (series) => series.id == CategoryTrendSeriesFactory.savingsSeriesId,
+      (series) => series.id == TrendChartCatalog.savingsSeriesId,
     );
 
     final fireGuide = bundle.cashFlows.firstWhere(
       (series) =>
-          series.id == CategoryTrendSeriesFactory.fireSavingsGuideSeriesId,
+          series.id == TrendChartCatalog.fireSavingsGuideSeriesId,
     );
 
     expect(savings.name, 'Savings');
@@ -76,7 +77,7 @@ void main() {
         fireGuide.points[pointIndex].rollingCents,
         closeTo(
           income.points[pointIndex].rollingCents *
-              CategoryTrendSeriesFactory.fireSavingsIncomeShare,
+              TrendChartCatalog.fireSavingsIncomeShare,
           0.01,
         ),
       );

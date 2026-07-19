@@ -30,7 +30,7 @@ class _MigrateCopilotRulesTileState
             'Migrate Copilot categories',
             style: AppText.headline.small,
           ),
-          const SizedBox(height: AppSpacing.sm),
+          VSpace.sm,
           Text(
             'Older Copilot imports locked categories as user overrides. '
             'This moves them to suggested categories (so your rules can win), '
@@ -39,14 +39,14 @@ class _MigrateCopilotRulesTileState
             style: AppText.body.medium,
           ),
           if (_progress != null) ...[
-            const SizedBox(height: AppSpacing.md),
+            VSpace.md,
             _MigrationProgressBar(progress: _progress!),
           ],
           if (_message != null) ...[
-            const SizedBox(height: AppSpacing.sm),
+            VSpace.sm,
             Text(_message!, style: AppText.body.small),
           ],
-          const SizedBox(height: AppSpacing.md),
+          VSpace.md,
           CupertinoButton.filled(
             onPressed: _busy ? null : _run,
             child: Text(_busy ? 'Migrating…' : 'Migrate Copilot categories'),
@@ -128,7 +128,7 @@ class _MigrationProgressBar extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: AppSpacing.xs),
+        VSpace.xs,
         Text(label, style: AppText.body.small),
       ],
     );

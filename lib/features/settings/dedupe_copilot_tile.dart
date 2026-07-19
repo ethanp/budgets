@@ -24,7 +24,7 @@ class _DedupeCopilotTileState extends ConsumerState<DedupeCopilotTile> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Remove Copilot duplicates', style: AppText.headline.small),
-          const SizedBox(height: AppSpacing.sm),
+          VSpace.sm,
           Text(
             'When the same card exists in both Copilot and SimpleFIN, '
             'delete Copilot rows that match a SimpleFIN charge '
@@ -33,10 +33,10 @@ class _DedupeCopilotTileState extends ConsumerState<DedupeCopilotTile> {
             style: AppText.body.medium,
           ),
           if (_message != null) ...[
-            const SizedBox(height: AppSpacing.sm),
+            VSpace.sm,
             Text(_message!, style: AppText.body.small),
           ],
-          const SizedBox(height: AppSpacing.md),
+          VSpace.md,
           CupertinoButton.filled(
             onPressed: _busy ? null : _run,
             child: Text(_busy ? 'Scanning…' : 'Remove duplicates'),

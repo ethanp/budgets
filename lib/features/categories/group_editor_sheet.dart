@@ -72,19 +72,19 @@ class _GroupEditorSheetState extends ConsumerState<GroupEditorSheet> {
               _isEditing ? 'Edit group' : 'New group',
               style: AppText.headline.small,
             ),
-            const SizedBox(height: AppSpacing.md),
+            VSpace.md,
             CupertinoTextField(
               controller: _nameController,
               autofocus: !_isEditing,
               placeholder: 'Name (e.g. Wants)',
               padding: const EdgeInsets.all(AppSpacing.md),
-              style: AppText.body.large.primary,
+              style: AppText.body.large.bright,
             ),
             if (_error != null) ...[
-              const SizedBox(height: AppSpacing.sm),
+              VSpace.sm,
               Text(_error!, style: AppText.body.small.error),
             ],
-            const SizedBox(height: AppSpacing.md),
+            VSpace.md,
             CupertinoButton.filled(
               onPressed: _busy ? null : _save,
               child: _busy
@@ -92,7 +92,7 @@ class _GroupEditorSheetState extends ConsumerState<GroupEditorSheet> {
                   : Text(_isEditing ? 'Save' : 'Create'),
             ),
             if (_isEditing) ...[
-              const SizedBox(height: AppSpacing.sm),
+              VSpace.sm,
               CupertinoButton(
                 onPressed: _busy ? null : _confirmDelete,
                 child: Text('Delete group', style: AppText.body.medium.error),

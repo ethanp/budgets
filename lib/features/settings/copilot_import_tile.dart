@@ -24,7 +24,7 @@ class _CopilotImportTileState extends ConsumerState<CopilotImportTile> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Copilot export', style: AppText.headline.small),
-          const SizedBox(height: AppSpacing.sm),
+          VSpace.sm,
           Text(
             'Import the local Copilot Money CSV '
             '($copilotTransactionsRelativePath, gitignored). Safe to retry — '
@@ -33,14 +33,14 @@ class _CopilotImportTileState extends ConsumerState<CopilotImportTile> {
             style: AppText.body.medium,
           ),
           if (_progress != null) ...[
-            const SizedBox(height: AppSpacing.md),
+            VSpace.md,
             _ImportProgressBar(progress: _progress!),
           ],
           if (_message != null) ...[
-            const SizedBox(height: AppSpacing.sm),
+            VSpace.sm,
             Text(_message!, style: AppText.body.small),
           ],
-          const SizedBox(height: AppSpacing.md),
+          VSpace.md,
           CupertinoButton.filled(
             onPressed: _busy ? null : _importLocal,
             child: Text(_busy ? 'Importing…' : 'Import Copilot CSV'),
@@ -130,7 +130,7 @@ class _ImportProgressBar extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: AppSpacing.xs),
+        VSpace.xs,
         Text(label, style: AppText.body.small),
       ],
     );

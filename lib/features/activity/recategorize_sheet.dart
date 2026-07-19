@@ -95,21 +95,21 @@ class _RecategorizeSheetState extends ConsumerState<RecategorizeSheet> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Categorize', style: AppText.headline.small),
-          const SizedBox(height: AppSpacing.xs),
+          VSpace.xs,
           Text(
             _description,
             style: AppText.body.small,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: AppSpacing.md),
+          VSpace.md,
           _buildCreateRuleToggle(),
           if (_createRule) ...[
-            const SizedBox(height: AppSpacing.sm),
+            VSpace.sm,
             _buildPatternFields(),
           ],
           if (_error != null) ...[
-            const SizedBox(height: AppSpacing.sm),
+            VSpace.sm,
             Text(_error!, style: AppText.body.small.error),
           ],
         ],
@@ -124,7 +124,7 @@ class _RecategorizeSheetState extends ConsumerState<RecategorizeSheet> {
           value: _createRule,
           onChanged: (value) => setState(() => _createRule = value),
         ),
-        const SizedBox(width: AppSpacing.sm),
+        HSpace.sm,
         Expanded(
           child: Text('Also create a rule', style: AppText.body.medium),
         ),
@@ -140,14 +140,14 @@ class _RecategorizeSheetState extends ConsumerState<RecategorizeSheet> {
           'If description contains (ignore case)',
           style: AppText.body.small,
         ),
-        const SizedBox(height: AppSpacing.xs),
+        VSpace.xs,
         CupertinoTextField(
           controller: _patternController,
           placeholder: 'e.g. bbq',
           padding: const EdgeInsets.all(AppSpacing.md),
-          style: AppText.body.large.primary,
+          style: AppText.body.large.bright,
         ),
-        const SizedBox(height: AppSpacing.xs),
+        VSpace.xs,
         const Text(
           'Example: "bbq" → Dining matches “Franklin BBQ Austin”.',
           style: AppText.caption,

@@ -16,7 +16,7 @@ class SyncStatusTile extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Device sync', style: AppText.headline.small),
-            const SizedBox(height: AppSpacing.sm),
+            VSpace.sm,
             Text(
               'Set POWERSYNC_JWT_SECRET and SERVER_HOST_LAN in .env to enable ethan_sync.',
               style: AppText.body.medium,
@@ -33,7 +33,7 @@ class SyncStatusTile extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Device sync', style: AppText.headline.small),
-          const SizedBox(height: AppSpacing.sm),
+          VSpace.sm,
           Text(
             offline ? 'Offline' : 'Phase: ${phase.name}',
             style: AppText.body.medium,

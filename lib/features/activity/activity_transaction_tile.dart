@@ -61,22 +61,22 @@ class ActivityTransactionTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildMerchantAmountRow(),
-          const SizedBox(height: AppSpacing.sm),
+          VSpace.sm,
           _buildCategoryChip(categoryColor),
           if (_hasSecondaryBlock) ...[
-            const SizedBox(height: AppSpacing.sm),
+            VSpace.sm,
             Container(
               height: 1,
               color: AppColors.borderDepth1.withValues(alpha: 0.7),
             ),
-            const SizedBox(height: AppSpacing.sm),
+            VSpace.sm,
             if (_hasMetaRow) _buildMetaChips(),
             if (categorySourceLabel != null) ...[
-              if (_hasMetaRow) const SizedBox(height: AppSpacing.xs),
+              if (_hasMetaRow) VSpace.xs,
               _buildProvenanceLine(),
             ],
             if (_hasNote) ...[
-              const SizedBox(height: AppSpacing.xs),
+              VSpace.xs,
               _buildNoteLine(),
             ],
           ],
@@ -97,14 +97,14 @@ class ActivityTransactionTile extends StatelessWidget {
           child: Text(
             merchantName,
             style: AppText.body.large.semibold.copyWith(
-              color: AppColors.textColor1,
+              color: AppColors.textBright,
               height: 1.25,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        const SizedBox(width: AppSpacing.md),
+        HSpace.md,
         Text(
           formatCents(transaction.amountCents),
           style: AppText.body.large.semibold.copyWith(
@@ -169,7 +169,7 @@ class ActivityTransactionTile extends StatelessWidget {
     return Text(
       transaction.note!.trim(),
       style: AppText.caption.copyWith(
-        color: AppColors.textColor4,
+        color: AppColors.textDim,
         fontStyle: FontStyle.italic,
       ),
       maxLines: 2,
@@ -212,7 +212,7 @@ class _MetaChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final (Color foreground, Color background, Color border) = switch (tone) {
       _MetaChipTone.neutral => (
-          AppColors.textColor3,
+          AppColors.textSupport,
           AppColors.backgroundDepth5,
           AppColors.borderDepth1,
         ),

@@ -53,17 +53,17 @@ class _SyncStatusBody extends ConsumerWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
         Text('Sync status', style: AppText.headline.small),
-        const SizedBox(height: AppSpacing.lg),
+        VSpace.lg,
         _deviceSyncSection(ref),
-        const SizedBox(height: AppSpacing.lg),
+        VSpace.lg,
         _bankSyncSection(),
         if (status.errors.isNotEmpty) ...[
-          const SizedBox(height: AppSpacing.lg),
+          VSpace.lg,
           _bridgeErrorsSection(),
         ],
-        const SizedBox(height: AppSpacing.lg),
+        VSpace.lg,
         Text('Accounts', style: AppText.body.large.semibold),
-        const SizedBox(height: AppSpacing.sm),
+        VSpace.sm,
         if (!status.isConnected || status.accounts.isEmpty)
           Text(
             status.isConnected
@@ -110,7 +110,7 @@ class _SyncStatusBody extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Bridge warnings', style: AppText.body.large.semibold),
-        const SizedBox(height: AppSpacing.sm),
+        VSpace.sm,
         for (final error in status.errors)
           Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.xs),

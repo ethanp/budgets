@@ -3,6 +3,7 @@ import 'package:budgets/domain/category_group.dart';
 import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/features/trends/category_trend_series_factory.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:budgets/features/trends/trend_chart_catalog.dart';
 
 void main() {
   test('Trends rolls grouped categories into one series', () {
@@ -79,7 +80,7 @@ void main() {
     final seriesIds = bundle.categorySpend.map((series) => series.id).toList();
     expect(
       seriesIds,
-      contains(CategoryTrendSeriesFactory.groupSeriesId('grp_wants')),
+      contains(TrendChartCatalog.groupSeriesId('grp_wants')),
     );
     expect(seriesIds, contains('cat_housing'));
     expect(seriesIds, isNot(contains('cat_dining')));
@@ -87,7 +88,7 @@ void main() {
 
     final wants = bundle.categorySpend.firstWhere(
       (series) =>
-          series.id == CategoryTrendSeriesFactory.groupSeriesId('grp_wants'),
+          series.id == TrendChartCatalog.groupSeriesId('grp_wants'),
     );
     expect(wants.name, 'Wants');
     // Dining $10 + Travel $20 per day → $30/day → $10,950/yr annualized.

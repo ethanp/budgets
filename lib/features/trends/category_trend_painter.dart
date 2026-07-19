@@ -710,7 +710,7 @@ class _CategoryTrendPaintSession {
     final hoverDate = layout.dateForX(position.dx);
     final hoveredX = layout.xForDate(hoverDate);
     final markerPaint = Paint()
-      ..color = AppColors.textColor3.withValues(alpha: 0.6)
+      ..color = AppColors.textSupport.withValues(alpha: 0.6)
       ..strokeWidth = 1;
     canvas.drawLine(
       Offset(hoveredX, layout.top),

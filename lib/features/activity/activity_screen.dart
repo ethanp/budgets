@@ -210,7 +210,7 @@ class _ActivityBodyState extends ConsumerState<_ActivityBody> {
               placeholder: 'Search description, category, account…',
               onChanged: (query) => setState(() => _searchQuery = query),
             ),
-            const SizedBox(height: AppSpacing.sm),
+            VSpace.sm,
             _RuleMatchFilterToggle(
               hideRuleMatched: _hideRuleMatched,
               hiddenCount: searchMatchCount - visibleCount,
@@ -219,7 +219,7 @@ class _ActivityBodyState extends ConsumerState<_ActivityBody> {
                 setState(() => _hideRuleMatched = hideRuleMatched);
               },
             ),
-            const SizedBox(height: AppSpacing.sm),
+            VSpace.sm,
             _VisibleSumBar(
               visibleTransactions: visibleTransactions,
               showSum: _showVisibleSum,
@@ -473,7 +473,7 @@ class _VisibleSumBar extends StatelessWidget {
             ],
           ),
           if (showSum && visibleTransactions.isNotEmpty) ...[
-            const SizedBox(height: AppSpacing.xs),
+            VSpace.xs,
             _buildSumDetails(),
           ],
         ],
@@ -498,7 +498,7 @@ class _VisibleSumBar extends StatelessWidget {
         ? AppColors.success
         : netCents < 0
             ? AppColors.error
-            : AppColors.textColor2;
+            : AppColors.textBody;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -518,7 +518,7 @@ class _VisibleSumBar extends StatelessWidget {
           ],
         ),
         if (inflowCents != 0 || outflowCents != 0) ...[
-          const SizedBox(height: AppSpacing.xs),
+          VSpace.xs,
           Text(
             'In ${formatCents(inflowCents)} · Out ${formatCents(outflowCents)}',
             style: AppText.caption,
@@ -551,11 +551,11 @@ class _ActivityDayHeaderTile extends StatelessWidget {
           Text(
             label,
             style: AppText.body.medium.semibold.copyWith(
-              color: AppColors.textColor2,
+              color: AppColors.textBody,
               letterSpacing: 0.2,
             ),
           ),
-          const SizedBox(width: AppSpacing.md),
+          HSpace.md,
           Expanded(
             child: Container(
               height: 1,
