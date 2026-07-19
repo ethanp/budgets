@@ -1,4 +1,5 @@
 import 'package:budgets/features/trends/category_trend_point.dart';
+import 'package:budgets/features/trends/category_trend_series_factory.dart';
 
 /// Min / median / mean / max / current from a series' smoothed trendline.
 class CategoryTrendDistribution {
@@ -35,7 +36,7 @@ class CategoryTrendDistribution {
       );
 }
 
-/// All-time and trailing-year distributions for one series.
+/// All-time and recent-year distributions for one series.
 class CategoryTrendDistributionPair {
   const CategoryTrendDistributionPair({
     required this.allTime,
@@ -48,7 +49,7 @@ class CategoryTrendDistributionPair {
   bool get isEmpty => allTime == null && pastYear == null;
 }
 
-/// Stats over smoothed values, skipping the leading zero ramp.
+/// Stats over smoothed values, skipping leading non-positive samples.
 ///
 /// When [onOrAfter] is set, only points on/after that day are sampled.
 /// Returns null when there are no positive smoothed samples in range.
@@ -92,15 +93,17 @@ CategoryTrendDistribution? distributionForSmoothed(
   );
 }
 
-/// All-time plus trailing 365 days ending on the series' last point.
+/// All-time plus the last [CategoryTrendSeriesFactory.rollingDays] of points
+/// (aligned with a full centered-year span ending at the series tip).
 CategoryTrendDistributionPair distributionPairForSmoothed(
   List<CategoryTrendPoint> points,
 ) {
   if (points.isEmpty) {
     return const CategoryTrendDistributionPair(allTime: null, pastYear: null);
   }
-  final pastYearStart =
-      points.last.date.subtract(const Duration(days: 365));
+  final pastYearStart = points.last.date.subtract(
+    const Duration(days: CategoryTrendSeriesFactory.rollingDays),
+  );
   return CategoryTrendDistributionPair(
     allTime: distributionForSmoothed(points),
     pastYear: distributionForSmoothed(points, onOrAfter: pastYearStart),

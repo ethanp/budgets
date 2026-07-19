@@ -11,12 +11,13 @@ class RecategorizeSheet extends ConsumerStatefulWidget {
 
   final BankTransaction transaction;
 
-  static Future<void> show(
+  /// Returns the assigned category id, or null if the sheet was dismissed.
+  static Future<String?> show(
     BuildContext context, {
     required WidgetRef ref,
     required BankTransaction transaction,
   }) {
-    return showCupertinoModalPopup<void>(
+    return showCupertinoModalPopup<String>(
       context: context,
       builder: (_) => RecategorizeSheet(transaction: transaction),
     );
@@ -192,7 +193,7 @@ class _RecategorizeSheetState extends ConsumerState<RecategorizeSheet> {
         category.id,
         alsoApplyToTransactionIds ?? const {},
       );
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) Navigator.of(context).pop(category.id);
     } catch (error) {
       setState(() => _error = '$error');
     }

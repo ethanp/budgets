@@ -266,9 +266,12 @@ final categoryTrendsProvider = FutureProvider<TrendsChartBundle>((ref) async {
       await ref.watch(transactionsRepositoryProvider.future);
   final categoriesRepository =
       await ref.watch(categoriesRepositoryProvider.future);
+  final accountsRepository =
+      await ref.watch(accountsRepositoryProvider.future);
   return const CategoryTrendSeriesFactory().build(
     transactions: await transactionsRepository.listAll(),
     categories: await categoriesRepository.listActive(),
     groups: await categoriesRepository.listGroups(),
+    accounts: await accountsRepository.listAccounts(),
   );
 });

@@ -65,21 +65,30 @@ void main() {
   });
 
   group('LifeChainKind.trendEraAccent', () {
-    test('keeps similar lightness across eras', () {
+    test('keeps even eras near base lightness; odd eras slightly darker', () {
       final baseLightness =
           HSLColor.fromColor(LifeChainKind.housing.trendBandColor).lightness;
       for (var eraIndex = 0; eraIndex < 5; eraIndex++) {
         final accentLightness = HSLColor.fromColor(
           LifeChainKind.housing.trendEraAccent(eraIndex),
         ).lightness;
-        expect((accentLightness - baseLightness).abs(), lessThan(0.02));
+        if (eraIndex.isEven) {
+          expect((accentLightness - baseLightness).abs(), lessThan(0.02));
+        } else {
+          expect(accentLightness, lessThan(baseLightness));
+          expect(baseLightness - accentLightness, closeTo(0.04, 0.015));
+        }
       }
     });
 
-    test('accent cycle repeats every five eras', () {
+    test('accent cycle repeats every ten eras (hue×5 and zebra×2)', () {
       expect(
         LifeChainKind.job.trendEraAccent(0),
-        LifeChainKind.job.trendEraAccent(5),
+        LifeChainKind.job.trendEraAccent(10),
+      );
+      expect(
+        LifeChainKind.job.trendEraAccent(1),
+        LifeChainKind.job.trendEraAccent(11),
       );
     });
   });

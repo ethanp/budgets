@@ -52,7 +52,14 @@ void main() {
       (series) => series.id == CategoryTrendSeriesFactory.savingsSeriesId,
     );
 
+    final fireGuide = bundle.cashFlows.firstWhere(
+      (series) =>
+          series.id == CategoryTrendSeriesFactory.fireSavingsGuideSeriesId,
+    );
+
     expect(savings.name, 'Savings');
+    expect(fireGuide.name, '25% of income');
+    expect(fireGuide.guide, isTrue);
     expect(savings.points.length, income.points.length);
     for (var pointIndex = 0;
         pointIndex < income.points.length;
@@ -62,6 +69,14 @@ void main() {
         closeTo(
           income.points[pointIndex].rollingCents -
               spending.points[pointIndex].rollingCents,
+          0.01,
+        ),
+      );
+      expect(
+        fireGuide.points[pointIndex].rollingCents,
+        closeTo(
+          income.points[pointIndex].rollingCents *
+              CategoryTrendSeriesFactory.fireSavingsIncomeShare,
           0.01,
         ),
       );

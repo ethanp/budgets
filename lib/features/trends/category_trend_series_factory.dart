@@ -1,18 +1,18 @@
-import 'dart:math' as math;
-
+import 'package:budgets/domain/account.dart';
 import 'package:budgets/domain/category.dart';
 import 'package:budgets/domain/category_group.dart';
 import 'package:budgets/domain/special_category.dart';
 import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/features/trends/category_trend_point.dart';
 import 'package:budgets/features/trends/category_trend_series.dart';
+import 'package:budgets/features/trends/net_worth_trend.dart';
 import 'package:budgets/features/trends/trends_chart_bundle.dart';
 import 'package:budgets/theme/app_theme.dart';
 import 'package:budgets/util/category_color.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/cupertino.dart';
 
-/// Builds smoothed trailing-year trendlines for category spend and cash flows.
+/// Builds smoothed trendlines for category spend, cash flows, and net worth.
 class CategoryTrendSeriesFactory {
   const CategoryTrendSeriesFactory();
 
@@ -22,12 +22,20 @@ class CategoryTrendSeriesFactory {
   static const spendingSeriesId = '__spending__';
   static const transferSeriesId = '__transfer__';
   static const savingsSeriesId = '__savings__';
-  /// Trailing-year income × [housingIncomeShareCap] — housing affordability guide.
+  static const netWorthSeriesId = '__net_worth__';
+  /// Centered-year income × [housingIncomeShareCap] — housing affordability guide.
   static const housingAffordabilitySeriesId = '__housing_30__';
+  /// Centered-year income × [fireSavingsIncomeShare] — FIRE savings-rate guide.
+  static const fireSavingsGuideSeriesId = '__savings_25__';
   static const groupSeriesIdPrefix = 'group:';
+
+  static const netWorthLineColor = Color(0xFFE9C46A);
 
   /// Common rule of thumb: housing ≤ this share of income (bank income ≈ net).
   static const housingIncomeShareCap = 0.30;
+
+  /// Common FIRE rule of thumb: save at least this share of income.
+  static const fireSavingsIncomeShare = 0.25;
 
   static String groupSeriesId(String groupId) => '$groupSeriesIdPrefix$groupId';
 
@@ -44,16 +52,29 @@ class CategoryTrendSeriesFactory {
         const Color(0xFFE53935),
         0.3,
       )!;
+  /// Savings cyan tinted toward green — guide, not the solid Savings line.
+  static final fireSavingsGuideLineColor = Color.lerp(
+        savingsLineColor,
+        AppColors.success,
+        0.45,
+      )!;
 
+  /// Full centered window length (`2 * rollingHalfDays + 1`).
   static const rollingDays = 365;
-  static const _smoothingHalfWindow = 21;
-  static const _smoothingPasses = 3;
+  static const rollingHalfDays = 182;
+
+  /// Near chart tips, inward lookback/lookforward grows from [rollingHalfDays]
+  /// up to this (not a full trailing year), then annualize to [rollingDays].
+  static const edgeInwardMaxDays = 240;
+
+  static const smoothingHalfWindow = 21;
+  static const smoothingPassCount = 3;
   static const _minMeaningfulCents = 100.0;
 
   /// History before this date is incomplete enough to distort long-term trends.
   static final chartHistoryStart = DateTime(2021, 3, 1);
 
-  /// Scale a partial trailing window up to a full-year pace.
+  /// Scale a partial window up to a full-year pace.
   static double annualizePartialWindow({
     required double windowTotalCents,
     required int observedDays,
@@ -61,6 +82,78 @@ class CategoryTrendSeriesFactory {
     if (observedDays <= 0) return 0;
     if (observedDays >= rollingDays) return windowTotalCents;
     return windowTotalCents * rollingDays / observedDays;
+  }
+
+  /// Centered year window at [dayIndex], with tapered inward edges.
+  ///
+  /// Interior: `[D−182, D+182]`. Within 182 days of a tip, the outward side
+  /// uses whatever remains and the inward side grows from 182 → 240; the
+  /// shorter span is annualized to a 365-day pace. Short overall history
+  /// (< 365 days) uses the full available range and annualizes.
+  static CenteredRollingWindow centeredRollingWindow({
+    required int dayIndex,
+    required int historyStartIndex,
+    required int lastDayIndex,
+  }) {
+    final availableDays = lastDayIndex - historyStartIndex + 1;
+    if (availableDays <= 0) {
+      return CenteredRollingWindow(
+        startIndex: dayIndex,
+        endIndex: dayIndex,
+      );
+    }
+    if (availableDays < rollingDays) {
+      return CenteredRollingWindow(
+        startIndex: historyStartIndex,
+        endIndex: lastDayIndex,
+      );
+    }
+
+    final availablePast = dayIndex - historyStartIndex;
+    final availableFuture = lastDayIndex - dayIndex;
+    if (availablePast >= rollingHalfDays &&
+        availableFuture >= rollingHalfDays) {
+      return CenteredRollingWindow(
+        startIndex: dayIndex - rollingHalfDays,
+        endIndex: dayIndex + rollingHalfDays,
+      );
+    }
+
+    if (availableFuture < rollingHalfDays) {
+      final outward = availableFuture;
+      final inward = _taperedInwardDays(
+        outwardDays: outward,
+        availableInward: availablePast,
+      );
+      return CenteredRollingWindow(
+        startIndex: dayIndex - inward,
+        endIndex: dayIndex + outward,
+      );
+    }
+
+    final outward = availablePast;
+    final inward = _taperedInwardDays(
+      outwardDays: outward,
+      availableInward: availableFuture,
+    );
+    return CenteredRollingWindow(
+      startIndex: dayIndex - outward,
+      endIndex: dayIndex + inward,
+    );
+  }
+
+  /// Inward span as outward room shrinks from [rollingHalfDays] → 0.
+  static int _taperedInwardDays({
+    required int outwardDays,
+    required int availableInward,
+  }) {
+    final edgeProgress =
+        (rollingHalfDays - outwardDays) / rollingHalfDays; // 0..1
+    final tapered = rollingHalfDays +
+        (edgeInwardMaxDays - rollingHalfDays) * edgeProgress;
+    final inward = tapered.round();
+    if (inward <= availableInward) return inward;
+    return availableInward;
   }
 
   /// Ten high-chroma hues spaced around the wheel for dark backgrounds.
@@ -82,6 +175,7 @@ class CategoryTrendSeriesFactory {
     required List<BankTransaction> transactions,
     required List<SpendCategory> categories,
     List<CategoryGroup> groups = const [],
+    List<Account> accounts = const [],
     DateTime? endDate,
   }) {
     final chartEnd = (endDate ?? DateTime.now()).startOfDay;
@@ -108,33 +202,92 @@ class CategoryTrendSeriesFactory {
       ...cashFlowMaps.spendingByDay.keys,
       ...cashFlowMaps.transferByDay.keys,
     ]);
-    if (earliestSpend == null) {
-      return const TrendsChartBundle(categorySpend: [], cashFlows: []);
+    final earliestTxn = _earliestDate([
+      for (final transaction in inRangeTransactions)
+        transaction.postedAt.startOfDay,
+    ]);
+
+    DateTime? chartStart;
+    if (earliestSpend != null) {
+      chartStart =
+          earliestSpend.isBefore(historyStart) ? historyStart : earliestSpend;
+    } else if (accounts.isNotEmpty) {
+      chartStart = earliestTxn != null && earliestTxn.isAfter(historyStart)
+          ? earliestTxn
+          : historyStart;
+    } else {
+      return const TrendsChartBundle(
+        categorySpend: [],
+        cashFlows: [],
+        netWorth: [],
+      );
     }
-    final chartStart =
-        earliestSpend.isBefore(historyStart) ? historyStart : earliestSpend;
 
     final chartDates = _calendarDates(chartStart, chartEnd);
     if (chartDates.length < 2) {
-      return const TrendsChartBundle(categorySpend: [], cashFlows: []);
+      return const TrendsChartBundle(
+        categorySpend: [],
+        cashFlows: [],
+        netWorth: [],
+      );
     }
 
     return TrendsChartBundle(
-      categorySpend: _buildCategorySpendSeries(
-        spendMaps: spendMaps,
-        incomeByDay: cashFlowMaps.incomeByDay,
-        categories: categories,
-        groups: groups,
-        flowCategoryIds: flowCategoryIds,
+      categorySpend: earliestSpend == null
+          ? const []
+          : _buildCategorySpendSeries(
+              spendMaps: spendMaps,
+              incomeByDay: cashFlowMaps.incomeByDay,
+              categories: categories,
+              groups: groups,
+              flowCategoryIds: flowCategoryIds,
+              chartDates: chartDates,
+              historyFloor: chartStart,
+            ),
+      cashFlows: earliestSpend == null
+          ? const []
+          : _buildCashFlowSeries(
+              cashFlowMaps: cashFlowMaps,
+              chartDates: chartDates,
+              historyFloor: chartStart,
+            ),
+      netWorth: _buildNetWorthSeries(
+        accounts: accounts,
+        transactions: inRangeTransactions,
         chartDates: chartDates,
-        historyFloor: chartStart,
-      ),
-      cashFlows: _buildCashFlowSeries(
-        cashFlowMaps: cashFlowMaps,
-        chartDates: chartDates,
-        historyFloor: chartStart,
       ),
     );
+  }
+
+  List<CategoryTrendSeries> _buildNetWorthSeries({
+    required List<Account> accounts,
+    required List<BankTransaction> transactions,
+    required List<DateTime> chartDates,
+  }) {
+    if (accounts.isEmpty || chartDates.length < 2) return const [];
+
+    final dailyCents = NetWorthTrend.dailyCents(
+      accounts: accounts,
+      transactions: transactions,
+      chartDates: chartDates,
+    );
+    final rawPoints = [
+      for (var dayIndex = 0; dayIndex < chartDates.length; dayIndex++)
+        CategoryTrendPoint(
+          date: chartDates[dayIndex],
+          rollingCents: dailyCents[dayIndex],
+          smoothedCents: 0,
+        ),
+    ];
+    final series = CategoryTrendSeries(
+      id: netWorthSeriesId,
+      name: 'Net worth',
+      lineColor: netWorthLineColor,
+      percentileAreaFill: true,
+      points: _smoothedPoints(rawPoints),
+    );
+    if (!_hasMeaningfulTrend(series)) return const [];
+    return [series];
   }
 
   List<CategoryTrendSeries> _buildCategorySpendSeries({
@@ -302,6 +455,10 @@ class CategoryTrendSeriesFactory {
       incomeByDay: cashFlowMaps.incomeByDay,
       spendingByDay: cashFlowMaps.spendingByDay,
     );
+    final fireSavingsGuideByDay = {
+      for (final entry in cashFlowMaps.incomeByDay.entries)
+        entry.key: entry.value * fireSavingsIncomeShare,
+    };
     final series = <CategoryTrendSeries>[
       _seriesForDailyMap(
         id: incomeSeriesId,
@@ -326,6 +483,15 @@ class CategoryTrendSeriesFactory {
         name: 'Savings',
         lineColor: savingsLineColor,
         dailySpendCents: savingsByDay,
+        chartDates: chartDates,
+        historyFloor: historyFloor,
+      ),
+      _seriesForDailyMap(
+        id: fireSavingsGuideSeriesId,
+        name: '25% of income',
+        lineColor: fireSavingsGuideLineColor,
+        guide: true,
+        dailySpendCents: fireSavingsGuideByDay,
         chartDates: chartDates,
         historyFloor: historyFloor,
       ),
@@ -363,7 +529,7 @@ class CategoryTrendSeriesFactory {
     bool guide = false,
     bool percentileAreaFill = false,
   }) {
-    final rawPoints = _annualizedTrailingPoints(
+    final rawPoints = _annualizedCenteredPoints(
       chartDates: chartDates,
       dailySpendCents: dailySpendCents,
       historyFloor: historyFloor,
@@ -379,8 +545,10 @@ class CategoryTrendSeriesFactory {
     );
   }
 
-  /// O(n) trailing-year totals via prefix sums (contiguous [chartDates]).
-  List<CategoryTrendPoint> _annualizedTrailingPoints({
+  /// O(n) centered-year totals via prefix sums (contiguous [chartDates]).
+  ///
+  /// Interior: `[D−182, D+182]`. Edges: same length, shifted inward.
+  List<CategoryTrendPoint> _annualizedCenteredPoints({
     required List<DateTime> chartDates,
     required Map<DateTime, double> dailySpendCents,
     required DateTime historyFloor,
@@ -388,6 +556,7 @@ class CategoryTrendSeriesFactory {
     if (chartDates.isEmpty) return const [];
 
     final dayCount = chartDates.length;
+    final lastDayIndex = dayCount - 1;
     final prefixSums = List<double>.filled(dayCount + 1, 0);
     for (var dayIndex = 0; dayIndex < dayCount; dayIndex++) {
       prefixSums[dayIndex + 1] = prefixSums[dayIndex] +
@@ -408,17 +577,18 @@ class CategoryTrendSeriesFactory {
           smoothedCents: 0,
         );
       }
-      final windowStart = math.max(
-        historyStartIndex,
-        dayIndex - rollingDays + 1,
+      final window = centeredRollingWindow(
+        dayIndex: dayIndex,
+        historyStartIndex: historyStartIndex,
+        lastDayIndex: lastDayIndex,
       );
-      final observedDays = dayIndex - windowStart + 1;
-      final windowTotal = prefixSums[dayIndex + 1] - prefixSums[windowStart];
+      final windowTotal =
+          prefixSums[window.endIndex + 1] - prefixSums[window.startIndex];
       return CategoryTrendPoint(
         date: chartDates[dayIndex],
         rollingCents: annualizePartialWindow(
           windowTotalCents: windowTotal,
-          observedDays: observedDays,
+          observedDays: window.observedDays,
         ),
         smoothedCents: 0,
       );
@@ -434,7 +604,9 @@ class CategoryTrendSeriesFactory {
     final totalByDay = <DateTime, double>{};
 
     for (final transaction in transactions) {
-      if (transaction.excluded || !transaction.isOutflow) continue;
+      // Outflows add spend; inflows in a spend category (refunds, earnest-money
+      // returns, etc.) subtract. Skip zero-amount and cash-flow specials.
+      if (transaction.excluded || transaction.amountCents == 0) continue;
       final categoryId = transaction.effectiveCategoryId;
       if (categoryId != null && flowCategoryIds.contains(categoryId)) {
         continue;
@@ -573,8 +745,8 @@ class CategoryTrendSeriesFactory {
 
   List<CategoryTrendPoint> _smoothedPoints(List<CategoryTrendPoint> rawPoints) {
     var smoothedValues = rawPoints.mapL((point) => point.rollingCents);
-    for (var pass = 0; pass < _smoothingPasses; pass++) {
-      smoothedValues = _centeredMovingAverage(smoothedValues);
+    for (var pass = 0; pass < smoothingPassCount; pass++) {
+      smoothedValues = centeredMovingAverage(smoothedValues);
     }
     return rawPoints.mapLWithIndex(
       (rawPoint, pointIndex) => CategoryTrendPoint(
@@ -585,21 +757,51 @@ class CategoryTrendSeriesFactory {
     );
   }
 
-  /// O(n) centered moving average via prefix sums.
-  List<double> _centeredMovingAverage(List<double> values) {
+  /// Centered moving average via prefix sums.
+  ///
+  /// Near series edges the window keeps full width and shifts inward (same
+  /// idea as [centeredRollingWindow]) so tips are not single-sample spikes.
+  static List<double> centeredMovingAverage(
+    List<double> values, {
+    int halfWindow = smoothingHalfWindow,
+  }) {
     if (values.isEmpty) return const [];
+    final lastIndex = values.length - 1;
+    final fullSpan = 2 * halfWindow + 1;
     final prefixSums = List<double>.filled(values.length + 1, 0);
     for (var index = 0; index < values.length; index++) {
       prefixSums[index + 1] = prefixSums[index] + values[index];
     }
     return List.generate(values.length, (index) {
-      final firstIndex = math.max(0, index - _smoothingHalfWindow);
-      final lastIndex =
-          math.min(values.length - 1, index + _smoothingHalfWindow);
-      return (prefixSums[lastIndex + 1] - prefixSums[firstIndex]) /
-          (lastIndex - firstIndex + 1);
+      if (values.length < fullSpan) {
+        return prefixSums[values.length] / values.length;
+      }
+      var firstIndex = index - halfWindow;
+      var lastWindowIndex = index + halfWindow;
+      if (firstIndex < 0) {
+        firstIndex = 0;
+        lastWindowIndex = fullSpan - 1;
+      } else if (lastWindowIndex > lastIndex) {
+        lastWindowIndex = lastIndex;
+        firstIndex = lastWindowIndex - fullSpan + 1;
+      }
+      return (prefixSums[lastWindowIndex + 1] - prefixSums[firstIndex]) /
+          (lastWindowIndex - firstIndex + 1);
     });
   }
+}
+
+/// Inclusive day-index span for a centered (or edge-shifted) year window.
+class CenteredRollingWindow {
+  const CenteredRollingWindow({
+    required this.startIndex,
+    required this.endIndex,
+  });
+
+  final int startIndex;
+  final int endIndex;
+
+  int get observedDays => endIndex - startIndex + 1;
 }
 
 class _CategorySpendMaps {

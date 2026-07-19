@@ -19,13 +19,13 @@ class DateRangeBandGeometry {
   final bool drawRightEdge;
 }
 
-/// Vertical gradient treatments that bounce between consecutive chain eras.
+/// Lane fill treatments that alternate between consecutive chain eras.
 enum DateRangeBandFillStyle {
-  /// Stronger at the top, fading downward.
-  fadeDown,
+  /// Uniform tint across the band.
+  solid,
 
-  /// Stronger at the bottom, fading upward.
-  fadeUp,
+  /// Sparse diagonal hatch in the band accent.
+  hatch,
 }
 
 /// Computes chart-clipped band geometry, or null when the range is empty.
@@ -75,8 +75,8 @@ void paintDateRangeBand(
   required Paint edgePaint,
   Paint? fillPaint,
   Color? fillColor,
-  DateRangeBandFillStyle fillStyle = DateRangeBandFillStyle.fadeDown,
-  double fillAlpha = 0.07,
+  DateRangeBandFillStyle fillStyle = DateRangeBandFillStyle.solid,
+  double fillAlpha = 0.12,
   double? fillTop,
   double? fillBottom,
   double? edgeTop,
@@ -96,14 +96,12 @@ void paintDateRangeBand(
   if (fillPaint != null) {
     canvas.drawRect(fillRect, fillPaint);
   } else if (fillColor != null) {
-    canvas.drawRect(
-      fillRect,
-      _bandFillPaint(
-        color: fillColor,
-        bandRect: fillRect,
-        style: fillStyle,
-        alpha: fillAlpha,
-      ),
+    _paintBandFill(
+      canvas,
+      bandRect: fillRect,
+      color: fillColor,
+      style: fillStyle,
+      alpha: fillAlpha,
     );
   }
   if (geometry.drawLeftEdge) {
@@ -122,34 +120,59 @@ void paintDateRangeBand(
   }
 }
 
-Paint _bandFillPaint({
-  required Color color,
+void _paintBandFill(
+  Canvas canvas, {
   required Rect bandRect,
+  required Color color,
   required DateRangeBandFillStyle style,
   required double alpha,
 }) {
-  final peak = color.withValues(alpha: alpha);
-  final clear = color.withValues(alpha: 0);
-  // Peak hugs the accent edge; clears by ~12% so most of the band is empty.
-  final edgeColors = [peak, clear, clear];
-  const stops = [0.0, 0.12, 1.0];
+  switch (style) {
+    case DateRangeBandFillStyle.solid:
+      canvas.drawRect(
+        bandRect,
+        Paint()
+          ..color = color.withValues(alpha: alpha)
+          ..style = PaintingStyle.fill,
+      );
+    case DateRangeBandFillStyle.hatch:
+      _paintBandHatch(
+        canvas,
+        bandRect: bandRect,
+        color: color,
+        alpha: math.min(1.0, alpha + 0.10),
+      );
+  }
+}
 
-  final gradient = switch (style) {
-    DateRangeBandFillStyle.fadeDown => LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: edgeColors,
-        stops: stops,
-      ),
-    DateRangeBandFillStyle.fadeUp => LinearGradient(
-        begin: Alignment.bottomCenter,
-        end: Alignment.topCenter,
-        colors: edgeColors,
-        stops: stops,
-      ),
-  };
+void _paintBandHatch(
+  Canvas canvas, {
+  required Rect bandRect,
+  required Color color,
+  required double alpha,
+}) {
+  if (bandRect.width <= 0 || bandRect.height <= 0) return;
 
-  return Paint()
-    ..shader = gradient.createShader(bandRect)
-    ..style = PaintingStyle.fill;
+  canvas.save();
+  canvas.clipRect(bandRect);
+
+  final hatchPaint = Paint()
+    ..color = color.withValues(alpha: alpha)
+    ..strokeWidth = 1.0
+    ..style = PaintingStyle.stroke
+    ..strokeCap = StrokeCap.butt;
+
+  const spacing = 7.0;
+  // Diagonals from lower-left toward upper-right; cover the clipped rect.
+  final minX = bandRect.left - bandRect.height;
+  final maxX = bandRect.right + bandRect.height;
+  for (var x = minX; x < maxX; x += spacing) {
+    canvas.drawLine(
+      Offset(x, bandRect.bottom),
+      Offset(x + bandRect.height, bandRect.top),
+      hatchPaint,
+    );
+  }
+
+  canvas.restore();
 }

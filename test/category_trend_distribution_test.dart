@@ -77,7 +77,7 @@ void main() {
   });
 
   group('distributionPairForSmoothed', () {
-    test('splits all-time vs trailing year', () {
+    test('splits all-time vs past year', () {
       final pair = distributionPairForSmoothed([
         _point(date: DateTime(2022, 1, 1), smoothedCents: 50),
         _point(date: DateTime(2023, 1, 1), smoothedCents: 900),

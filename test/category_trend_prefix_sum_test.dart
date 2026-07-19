@@ -4,8 +4,8 @@ import 'package:budgets/features/trends/category_trend_series_factory.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('trailing-year series annualizes a constant daily spend', () {
-    // 10 days of $1/day spend → day 0 annualizes 1*(365/1), day 9 → 10*(365/10).
+  test('centered-year series annualizes a constant daily spend', () {
+    // Constant $1/day → annual pace is always $365 once annualized.
     final start = DateTime(2024, 1, 1);
     final transactions = List.generate(
       10,
@@ -37,9 +37,93 @@ void main() {
     final dining = bundle.categorySpend
         .firstWhere((series) => series.id == 'cat_dining');
     expect(dining.points.length, 10);
-    // Constant $1/day → annual pace is always $365 once annualized.
     expect(dining.points.first.rollingCents, closeTo(36500, 0.01));
     expect(dining.points[4].rollingCents, closeTo(36500, 0.01));
     expect(dining.points.last.rollingCents, closeTo(36500, 0.01));
+  });
+
+  test('edge inward taper grows to 240 days and annualizes to year pace', () {
+    const lastDayIndex = 1000;
+    final tip = CategoryTrendSeriesFactory.centeredRollingWindow(
+      dayIndex: lastDayIndex,
+      historyStartIndex: 0,
+      lastDayIndex: lastDayIndex,
+    );
+    expect(tip.endIndex, lastDayIndex);
+    expect(tip.startIndex, lastDayIndex - CategoryTrendSeriesFactory.edgeInwardMaxDays);
+    expect(tip.observedDays, CategoryTrendSeriesFactory.edgeInwardMaxDays + 1);
+
+    final startTip = CategoryTrendSeriesFactory.centeredRollingWindow(
+      dayIndex: 0,
+      historyStartIndex: 0,
+      lastDayIndex: lastDayIndex,
+    );
+    expect(startTip.startIndex, 0);
+    expect(startTip.endIndex, CategoryTrendSeriesFactory.edgeInwardMaxDays);
+    expect(
+      startTip.observedDays,
+      CategoryTrendSeriesFactory.edgeInwardMaxDays + 1,
+    );
+
+    // At the centered boundary, still a full ±182 window.
+    final boundary = CategoryTrendSeriesFactory.centeredRollingWindow(
+      dayIndex: lastDayIndex - CategoryTrendSeriesFactory.rollingHalfDays,
+      historyStartIndex: 0,
+      lastDayIndex: lastDayIndex,
+    );
+    expect(boundary.observedDays, CategoryTrendSeriesFactory.rollingDays);
+
+    // Midway through the taper: inward between 182 and 240.
+    final midDayIndex = lastDayIndex - 91;
+    final midEdge = CategoryTrendSeriesFactory.centeredRollingWindow(
+      dayIndex: midDayIndex,
+      historyStartIndex: 0,
+      lastDayIndex: lastDayIndex,
+    );
+    final midInward = midDayIndex - midEdge.startIndex;
+    expect(midEdge.endIndex, midDayIndex + 91);
+    expect(midInward, greaterThan(CategoryTrendSeriesFactory.rollingHalfDays));
+    expect(midInward, lessThan(CategoryTrendSeriesFactory.edgeInwardMaxDays));
+  });
+
+  test('edge taper still annualizes constant spend to flat year pace', () {
+    final start = DateTime(2024, 1, 1);
+    final end = DateTime(2025, 12, 31);
+    final transactions = <BankTransaction>[
+      for (var day = start;
+          !day.isAfter(end);
+          day = day.add(const Duration(days: 1)))
+        BankTransaction(
+          id: 'd${day.year}_${day.month}_${day.day}',
+          accountId: 'a1',
+          externalId: 'e${day.year}_${day.month}_${day.day}',
+          postedAt: day,
+          amountCents: -100,
+          rawDescription: 'Coffee',
+          normalizedMerchant: 'COFFEE',
+          pending: false,
+          userCategoryId: 'cat_dining',
+        ),
+    ];
+
+    final bundle = const CategoryTrendSeriesFactory().build(
+      transactions: transactions,
+      categories: const [
+        SpendCategory(
+          id: 'cat_dining',
+          name: 'Dining',
+          sortOrder: 0,
+          archived: false,
+        ),
+      ],
+      endDate: end,
+    );
+    final dining = bundle.categorySpend
+        .firstWhere((series) => series.id == 'cat_dining');
+
+    expect(dining.points.first.rollingCents, closeTo(36500, 0.01));
+    expect(dining.points.last.rollingCents, closeTo(36500, 0.01));
+    expect(dining.points.first.smoothedCents, closeTo(36500, 1));
+    expect(dining.points.last.smoothedCents, closeTo(36500, 1));
   });
 }

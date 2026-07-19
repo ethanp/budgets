@@ -19,11 +19,13 @@ class CategoryTrendSeriesLegend extends StatelessWidget {
     required this.useDistributionLegend,
     required this.onToggleSeries,
     required this.onSoloSeries,
+    this.valueKind = TrendValueKind.pace,
   });
 
   final List<CategoryTrendSeries> seriesList;
   final Set<String> hiddenSeriesIds;
   final TrendSpendRate spendRate;
+  final TrendValueKind valueKind;
   final bool useDistributionLegend;
   final ValueChanged<String> onToggleSeries;
   final ValueChanged<String> onSoloSeries;
@@ -49,6 +51,7 @@ class CategoryTrendSeriesLegend extends StatelessWidget {
             metaSeries: metaSeries,
             hiddenSeriesIds: hiddenSeriesIds,
             spendRate: spendRate,
+            valueKind: valueKind,
             onToggleSeries: onToggleSeries,
             onSoloSeries: onSoloSeries,
           ),
@@ -76,6 +79,7 @@ class CategoryTrendSeriesLegend extends StatelessWidget {
                       maxWidth: constraints.maxWidth,
                       hiddenSeriesIds: hiddenSeriesIds,
                       spendRate: spendRate,
+                      valueKind: valueKind,
                       onToggleSeries: onToggleSeries,
                       onSoloSeries: onSoloSeries,
                     ),
@@ -106,23 +110,31 @@ class TrendLegendChip extends StatelessWidget {
     required this.spendRate,
     required this.onToggle,
     required this.onSolo,
+    this.valueKind = TrendValueKind.pace,
     this.expandLabel = true,
   });
 
   final CategoryTrendSeries series;
   final bool isHidden;
   final TrendSpendRate spendRate;
+  final TrendValueKind valueKind;
   final VoidCallback onToggle;
   final VoidCallback onSolo;
   final bool expandLabel;
 
   @override
   Widget build(BuildContext context) {
+    final cents = series.latestSmoothedCents.round();
     final amountLabel = formatCentsWholeDollars(
-      spendRate.displayCents(series.latestSmoothedCents.round()),
+      valueKind == TrendValueKind.level
+          ? cents
+          : spendRate.displayCents(cents),
     );
+    final rateSuffix = valueKind == TrendValueKind.level
+        ? ''
+        : ' ${spendRate.shortLabel}';
     final label = Text(
-      '${series.name} · $amountLabel ${spendRate.shortLabel}',
+      '${series.name} · $amountLabel$rateSuffix',
       style: isHidden
           ? AppText.body.small.copyWith(color: AppColors.textColor4)
           : AppText.body.small,
@@ -150,6 +162,7 @@ class _MetaLegendColumn extends StatelessWidget {
     required this.metaSeries,
     required this.hiddenSeriesIds,
     required this.spendRate,
+    required this.valueKind,
     required this.onToggleSeries,
     required this.onSoloSeries,
   });
@@ -157,6 +170,7 @@ class _MetaLegendColumn extends StatelessWidget {
   final List<CategoryTrendSeries> metaSeries;
   final Set<String> hiddenSeriesIds;
   final TrendSpendRate spendRate;
+  final TrendValueKind valueKind;
   final ValueChanged<String> onToggleSeries;
   final ValueChanged<String> onSoloSeries;
 
@@ -182,6 +196,7 @@ class _MetaLegendColumn extends StatelessWidget {
                 series: metaSeries[index],
                 isHidden: hiddenSeriesIds.contains(metaSeries[index].id),
                 spendRate: spendRate,
+                valueKind: valueKind,
                 expandLabel: false,
                 onToggle: () => onToggleSeries(metaSeries[index].id),
                 onSolo: () => onSoloSeries(metaSeries[index].id),
@@ -215,6 +230,7 @@ class _ColumnMajorLegend extends StatelessWidget {
     required this.maxWidth,
     required this.hiddenSeriesIds,
     required this.spendRate,
+    required this.valueKind,
     required this.onToggleSeries,
     required this.onSoloSeries,
   });
@@ -223,6 +239,7 @@ class _ColumnMajorLegend extends StatelessWidget {
   final double maxWidth;
   final Set<String> hiddenSeriesIds;
   final TrendSpendRate spendRate;
+  final TrendValueKind valueKind;
   final ValueChanged<String> onToggleSeries;
   final ValueChanged<String> onSoloSeries;
 
@@ -270,6 +287,7 @@ class _ColumnMajorLegend extends StatelessWidget {
           series: series,
           isHidden: hiddenSeriesIds.contains(series.id),
           spendRate: spendRate,
+          valueKind: valueKind,
           onToggle: () => onToggleSeries(series.id),
           onSolo: () => onSoloSeries(series.id),
         ),

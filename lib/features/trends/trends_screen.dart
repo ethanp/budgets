@@ -1,5 +1,9 @@
+import 'package:budgets/domain/category.dart';
+import 'package:budgets/domain/category_group.dart';
 import 'package:budgets/domain/life_event.dart';
 import 'package:budgets/domain/stay_chain.dart';
+import 'package:budgets/domain/transaction.dart';
+import 'package:budgets/domain/trend_spend_rate.dart';
 import 'package:budgets/features/trends/category_trend_chart.dart';
 import 'package:budgets/features/trends/category_trend_series_factory.dart';
 import 'package:budgets/features/trends/trends_chart_bundle.dart';
@@ -15,6 +19,9 @@ class TrendsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final trendsAsync = ref.watch(categoryTrendsProvider);
+    final transactionsAsync = ref.watch(transactionsListProvider);
+    final categoriesAsync = ref.watch(categoriesListProvider);
+    final groupsAsync = ref.watch(categoryGroupsProvider);
     final lifeEventsAsync = ref.watch(lifeEventsProvider);
     final housingAsync = ref.watch(housingChainProvider);
     final jobAsync = ref.watch(jobChainProvider);
@@ -35,6 +42,11 @@ class TrendsScreen extends ConsumerWidget {
           ),
           data: (bundle) => _trendsBody(
             bundle,
+            transactions: transactionsAsync.asData?.value ??
+                const <BankTransaction>[],
+            categories:
+                categoriesAsync.asData?.value ?? const <SpendCategory>[],
+            groups: groupsAsync.asData?.value ?? const <CategoryGroup>[],
             lifeEvents: lifeEventsAsync.asData?.value ?? const <LifeEvent>[],
             housingChain: housingAsync.asData?.value,
             jobChain: jobAsync.asData?.value,
@@ -46,6 +58,9 @@ class TrendsScreen extends ConsumerWidget {
 
   Widget _trendsBody(
     TrendsChartBundle bundle, {
+    required List<BankTransaction> transactions,
+    required List<SpendCategory> categories,
+    required List<CategoryGroup> groups,
     required List<LifeEvent> lifeEvents,
     required StayChain? housingChain,
     required StayChain? jobChain,
@@ -70,6 +85,9 @@ class TrendsScreen extends ConsumerWidget {
           CategoryTrendChart(
             title: 'Category spend',
             seriesList: bundle.categorySpend,
+            transactions: transactions,
+            categories: categories,
+            groups: groups,
             lifeEvents: lifeEvents,
             housingChain: housingChain,
             jobChain: jobChain,
@@ -85,9 +103,13 @@ class TrendsScreen extends ConsumerWidget {
           CategoryTrendChart(
             title: 'Income · Spending · Savings',
             subtitle:
-                'Trailing year · Savings = Income − Spending · '
-                'fill = percentile · double-tap legend to solo',
+                'Centered year · Savings = Income − Spending · '
+                'dashed = 25% FIRE guide · tap a line for top contributors · '
+                'double-tap legend to solo',
             seriesList: bundle.cashFlows,
+            transactions: transactions,
+            categories: categories,
+            groups: groups,
             lifeEvents: lifeEvents,
             housingChain: housingChain,
             jobChain: jobChain,
@@ -96,6 +118,26 @@ class TrendsScreen extends ConsumerWidget {
               CategoryTrendSeriesFactory.transferSeriesId,
             },
           ),
+        if (bundle.netWorth.isNotEmpty) ...[
+          if (bundle.categorySpend.isNotEmpty || bundle.cashFlows.isNotEmpty)
+            const SizedBox(height: AppSpacing.lg),
+          CategoryTrendChart(
+            title: 'Net worth',
+            subtitle:
+                'Reconstructed from account balances · '
+                'walked back through transactions · drag to inspect',
+            seriesList: bundle.netWorth,
+            transactions: transactions,
+            categories: categories,
+            groups: groups,
+            lifeEvents: lifeEvents,
+            housingChain: housingChain,
+            jobChain: jobChain,
+            showEraToggle: true,
+            valueKind: TrendValueKind.level,
+            enableContributors: false,
+          ),
+        ],
       ],
     );
   }

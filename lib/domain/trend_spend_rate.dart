@@ -1,3 +1,12 @@
+/// Whether a Trends chart plots annualized pace or absolute dollar levels.
+enum TrendValueKind {
+  /// Centered-year spend / cash-flow pace (yr/mo/day toggle applies).
+  pace,
+
+  /// Point-in-time dollars (e.g. net worth); no rate scaling.
+  level,
+}
+
 /// Display rate for Trends legend / inspect amounts (chart series stay annualized).
 enum TrendSpendRate {
   perYear,
@@ -16,7 +25,7 @@ enum TrendSpendRate {
         TrendSpendRate.perDay => 'day',
       };
 
-  /// Convert trailing-year annualized cents into this display rate.
+  /// Convert centered-year annualized cents into this display rate.
   int displayCents(int annualizedCents) => switch (this) {
         TrendSpendRate.perYear => annualizedCents,
         TrendSpendRate.perMonth => (annualizedCents / 12).round(),

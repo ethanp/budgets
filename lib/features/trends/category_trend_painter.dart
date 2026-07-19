@@ -489,8 +489,8 @@ class _CategoryTrendPaintSession {
       final eraIndex = eraIndexByStayId[segment.stay.id] ?? index;
       final eraAccent = kind.trendEraAccent(eraIndex);
       final fillStyle = eraIndex.isEven
-          ? DateRangeBandFillStyle.fadeDown
-          : DateRangeBandFillStyle.fadeUp;
+          ? DateRangeBandFillStyle.solid
+          : DateRangeBandFillStyle.hatch;
       final edgePaint = Paint()
         ..color = eraAccent.withValues(alpha: _eraEdgeAlpha)
         ..strokeWidth = _eraEdgeStroke;
@@ -510,7 +510,7 @@ class _CategoryTrendPaintSession {
           edgePaint: edgePaint,
           fillColor: showChainEraFills ? eraAccent : null,
           fillStyle: fillStyle,
-          fillAlpha: 0.16,
+          fillAlpha: 0.12,
           fillTop: fillTop,
           fillBottom: fillBottom,
           edgeTop: layout.top,

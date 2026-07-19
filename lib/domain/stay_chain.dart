@@ -49,10 +49,9 @@ enum LifeChainKind {
         LifeChainKind.job => AppColors.success,
       };
 
-  /// Mild per-era accent for labels/edges — same lightness family, tiny hue nudge.
+  /// Mild per-era accent for labels/edges — tiny hue nudge, odd eras slightly darker.
   ///
-  /// Era fills are differentiated by gradient *style* in the Trends painter, not
-  /// by getting progressively brighter.
+  /// Lane fills alternate solid vs hatch in the Trends painter (not by brightness).
   Color trendEraAccent(int eraIndex) {
     final base = HSLColor.fromColor(trendBandColor);
     final hueShift = switch (eraIndex % 5) {
@@ -63,7 +62,11 @@ enum LifeChainKind {
       _ => 5.0,
     };
     final hue = (base.hue + hueShift) % 360.0;
-    return base.withHue(hue < 0 ? hue + 360.0 : hue).toColor();
+    final shifted = base.withHue(hue < 0 ? hue + 360.0 : hue);
+    if (eraIndex.isEven) return shifted.toColor();
+    return shifted
+        .withLightness((shifted.lightness - 0.04).clamp(0.0, 1.0))
+        .toColor();
   }
 }
 
