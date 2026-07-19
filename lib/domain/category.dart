@@ -5,6 +5,7 @@ class SpendCategory {
     required this.sortOrder,
     required this.archived,
     this.colorToken,
+    this.groupId,
   });
 
   final String id;
@@ -12,6 +13,25 @@ class SpendCategory {
   final int sortOrder;
   final bool archived;
   final String? colorToken;
+  final String? groupId;
+
+  SpendCategory copyWith({
+    String? name,
+    int? sortOrder,
+    bool? archived,
+    String? colorToken,
+    String? groupId,
+    bool clearGroupId = false,
+  }) {
+    return SpendCategory(
+      id: id,
+      name: name ?? this.name,
+      sortOrder: sortOrder ?? this.sortOrder,
+      archived: archived ?? this.archived,
+      colorToken: colorToken ?? this.colorToken,
+      groupId: clearGroupId ? null : (groupId ?? this.groupId),
+    );
+  }
 }
 
 class CategorizationRule {
@@ -22,6 +42,12 @@ class CategorizationRule {
     required this.categoryId,
     required this.priority,
   });
+
+  /// Weakest priority — Copilot / import defaults lose to user-created rules.
+  static const defaultImportPriority = 0;
+
+  /// Priority for rules created from the Activity recategorize sheet.
+  static const userCreatedPriority = 10;
 
   final String id;
   final RuleMatchType matchType;

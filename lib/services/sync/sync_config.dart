@@ -28,7 +28,8 @@ bool budgetsSyncConfigured() {
 /// FK graph for upload ordering (table → tables it references).
 const _fkDependencies = <String, Set<String>>{
   'accounts': {},
-  'categories': {},
+  'category_groups': {},
+  'categories': {'category_groups'},
   'sync_state': {},
   'life_events': {},
   'transactions': {'accounts', 'categories'},
@@ -150,6 +151,7 @@ Future<void> _seedDefaultCategoriesIfNeeded(PowerSyncDatabase database) async {
       'sort_order': index,
       'archived': 0,
       'color_token': null,
+      'group_id': null,
     });
   }
   for (final special in SpecialCategory.values) {
@@ -159,6 +161,7 @@ Future<void> _seedDefaultCategoriesIfNeeded(PowerSyncDatabase database) async {
       'sort_order': special.sortOrder,
       'archived': 0,
       'color_token': null,
+      'group_id': null,
     });
   }
   _log.log(

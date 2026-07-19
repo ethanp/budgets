@@ -20,6 +20,7 @@ Future<void> _upsertSpecialCategories(PowerSyncDatabase database) async {
       'sort_order': special.sortOrder,
       'archived': 0,
       'color_token': null,
+      'group_id': null,
     });
   }
 }
@@ -46,7 +47,7 @@ Future<void> _backfillFromTransactionType(PowerSyncDatabase database) async {
     ''',
     [SpecialCategory.transfer.id],
   );
-  _log.log('Backfilled special categories from transaction_type');
+  _log.fine('Backfilled special categories from transaction_type');
 }
 
 Future<void> _mergeDuplicateNamedCategories(PowerSyncDatabase database) async {

@@ -14,11 +14,16 @@ const Schema budgetsSchema = Schema([
     Column.text('status'),
     Column.text('status_message'),
   ]),
+  Table('category_groups', [
+    Column.text('name'),
+    Column.integer('sort_order'),
+  ]),
   Table('categories', [
     Column.text('name'),
     Column.integer('sort_order'),
     Column.integer('archived'),
     Column.text('color_token'),
+    Column.text('group_id'),
   ]),
   Table('transactions', [
     Column.text('account_id'),

@@ -4,6 +4,7 @@ import 'package:budgets/domain/life_event.dart';
 import 'package:budgets/features/trends/category_trend_point.dart';
 import 'package:budgets/features/trends/category_trend_series.dart';
 import 'package:budgets/features/trends/chart_date_layout.dart';
+import 'package:budgets/features/trends/trend_value_scale.dart';
 import 'package:budgets/theme/app_theme.dart';
 import 'package:budgets/util/money_format.dart';
 import 'package:ethan_utils/ethan_utils.dart';
@@ -65,31 +66,33 @@ class CategoryTrendPainter extends CustomPainter {
     );
   }
 
-  _TrendValueScale _valueScale(List<CategoryTrendSeries> drawableSeries) {
+  TrendValueScale _valueScale(List<CategoryTrendSeries> drawableSeries) {
     var highest = 0.0;
     for (final series in drawableSeries) {
       for (final point in series.points) {
         highest = math.max(highest, point.smoothedCents);
       }
     }
-    return _TrendValueScale.niceForMax(highest);
+    return TrendValueScale.niceForMax(highest);
   }
 
   void _drawBackground(
     Canvas canvas,
     ChartDateLayout layout,
-    _TrendValueScale scale,
+    TrendValueScale scale,
   ) {
     final gridPaint = Paint()
-      ..color = AppColors.borderDepth1.withValues(alpha: 0.4)
-      ..strokeWidth = 0.5;
+      ..color = AppColors.borderDepth1.withValues(alpha: 0.55)
+      ..strokeWidth = 0.75
+      ..strokeCap = StrokeCap.round;
     for (final tickCents in scale.tickCents) {
       if (tickCents <= 0) continue;
       final lineY = scale.yForCents(tickCents, layout);
-      canvas.drawLine(
-        Offset(layout.left, lineY),
-        Offset(layout.right, lineY),
-        gridPaint,
+      _drawDashedHorizontal(
+        canvas,
+        start: Offset(layout.left, lineY),
+        endX: layout.right,
+        paint: gridPaint,
       );
     }
     layout.drawAxes(canvas);
@@ -105,7 +108,7 @@ class CategoryTrendPainter extends CustomPainter {
   void _drawPercentileArea(
     Canvas canvas,
     ChartDateLayout layout,
-    _TrendValueScale scale,
+    TrendValueScale scale,
     CategoryTrendSeries series,
   ) {
     final points = series.points;
@@ -196,7 +199,7 @@ class CategoryTrendPainter extends CustomPainter {
   void _drawSeriesLine(
     Canvas canvas,
     ChartDateLayout layout,
-    _TrendValueScale scale,
+    TrendValueScale scale,
     CategoryTrendSeries series,
   ) {
     final offsets = <Offset>[
@@ -225,6 +228,26 @@ class CategoryTrendPainter extends CustomPainter {
       seriesPath.lineTo(offsets[offsetIndex].dx, offsets[offsetIndex].dy);
     }
     canvas.drawPath(seriesPath, linePaint);
+  }
+
+  void _drawDashedHorizontal(
+    Canvas canvas, {
+    required Offset start,
+    required double endX,
+    required Paint paint,
+    double dashLength = 4,
+    double gapLength = 3,
+  }) {
+    var x = start.dx;
+    var drawingDash = true;
+    while (x < endX) {
+      final next = math.min(x + (drawingDash ? dashLength : gapLength), endX);
+      if (drawingDash) {
+        canvas.drawLine(Offset(x, start.dy), Offset(next, start.dy), paint);
+      }
+      x = next;
+      drawingDash = !drawingDash;
+    }
   }
 
   void _drawDottedPolyline(
@@ -369,7 +392,7 @@ class CategoryTrendPainter extends CustomPainter {
   void _drawHoverMarker(
     Canvas canvas,
     ChartDateLayout layout,
-    _TrendValueScale scale,
+    TrendValueScale scale,
     List<CategoryTrendSeries> drawableSeries,
   ) {
     final position = hoverPosition;
@@ -404,7 +427,7 @@ class CategoryTrendPainter extends CustomPainter {
   void _drawAxisLabels(
     Canvas canvas,
     ChartDateLayout layout,
-    _TrendValueScale scale,
+    TrendValueScale scale,
   ) {
     for (final tickCents in scale.tickCents) {
       final label = formatAxisCents(tickCents);
@@ -445,67 +468,4 @@ class CategoryTrendPainter extends CustomPainter {
       seriesList != oldDelegate.seriesList ||
       lifeEvents != oldDelegate.lifeEvents ||
       hoverPosition != oldDelegate.hoverPosition;
-}
-
-/// Y scale snapped to human-readable tick steps for the data max.
-class _TrendValueScale {
-  const _TrendValueScale({
-    required this.maxCents,
-    required this.tickCents,
-  });
-
-  final double maxCents;
-  final List<double> tickCents;
-
-  factory _TrendValueScale.niceForMax(double dataMaxCents) {
-    const targetTickCount = 4;
-    if (dataMaxCents <= 0) {
-      return const _TrendValueScale(
-        maxCents: 10000,
-        tickCents: [0, 2500, 5000, 7500, 10000],
-      );
-    }
-
-    final roughStep = dataMaxCents / targetTickCount;
-    final stepCents = _niceNumber(roughStep, round: true);
-    final niceMaxCents = (dataMaxCents / stepCents).ceil() * stepCents;
-    final tickCents = <double>[];
-    for (var tick = 0.0; tick <= niceMaxCents + stepCents * 0.001; tick += stepCents) {
-      tickCents.add(tick);
-    }
-    return _TrendValueScale(maxCents: niceMaxCents, tickCents: tickCents);
-  }
-
-  double yForCents(double cents, ChartDateLayout layout) {
-    final valueFraction = (cents / maxCents).clamp(0.0, 1.0);
-    return layout.bottom - valueFraction * layout.height;
-  }
-
-  /// Classic "nice number" step (1 / 2 / 5 × 10^n).
-  static double _niceNumber(double value, {required bool round}) {
-    if (value <= 0) return 100;
-    final exponent = (math.log(value) / math.ln10).floor();
-    final fraction = value / math.pow(10, exponent);
-    late final double niceFraction;
-    if (round) {
-      if (fraction < 1.5) {
-        niceFraction = 1;
-      } else if (fraction < 3) {
-        niceFraction = 2;
-      } else if (fraction < 7) {
-        niceFraction = 5;
-      } else {
-        niceFraction = 10;
-      }
-    } else if (fraction <= 1) {
-      niceFraction = 1;
-    } else if (fraction <= 2) {
-      niceFraction = 2;
-    } else if (fraction <= 5) {
-      niceFraction = 5;
-    } else {
-      niceFraction = 10;
-    }
-    return niceFraction * math.pow(10, exponent);
-  }
 }

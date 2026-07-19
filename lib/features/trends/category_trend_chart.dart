@@ -1,17 +1,23 @@
 import 'dart:math' as math;
 
 import 'package:budgets/domain/life_event.dart';
+import 'package:budgets/domain/trend_spend_rate.dart';
+import 'package:budgets/features/trends/category_trend_distribution.dart';
 import 'package:budgets/features/trends/category_trend_painter.dart';
 import 'package:budgets/features/trends/category_trend_point.dart';
 import 'package:budgets/features/trends/category_trend_series.dart';
 import 'package:budgets/features/trends/category_trend_series_factory.dart';
+import 'package:budgets/features/trends/distribution_whisker_painter.dart';
+import 'package:budgets/features/trends/trend_value_scale.dart';
+import 'package:budgets/providers/budgets_providers.dart';
 import 'package:budgets/theme/app_theme.dart';
 import 'package:budgets/util/money_format.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 /// One SimCity-style multi-line chart with a color legend.
-class CategoryTrendChart extends StatefulWidget {
+class CategoryTrendChart extends ConsumerStatefulWidget {
   const CategoryTrendChart({
     super.key,
     required this.title,
@@ -20,6 +26,8 @@ class CategoryTrendChart extends StatefulWidget {
     this.subtitle =
         'Trailing year · tap legend to show/hide · double-tap to solo',
     this.initiallyHiddenSeriesIds = const {},
+    this.showSpendRateToggle = false,
+    this.useDistributionLegend = false,
   });
 
   final String title;
@@ -28,11 +36,17 @@ class CategoryTrendChart extends StatefulWidget {
   final List<LifeEvent> lifeEvents;
   final Set<String> initiallyHiddenSeriesIds;
 
+  /// When true, shows the shared yr/mo/day control (only one chart should).
+  final bool showSpendRateToggle;
+
+  /// Shared-scale min/med/avg/max/now whiskers for ranked category/group series.
+  final bool useDistributionLegend;
+
   @override
-  State<CategoryTrendChart> createState() => _CategoryTrendChartState();
+  ConsumerState<CategoryTrendChart> createState() => _CategoryTrendChartState();
 }
 
-class _CategoryTrendChartState extends State<CategoryTrendChart> {
+class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
   late final Set<String> _hiddenSeriesIds = {
     ...widget.initiallyHiddenSeriesIds,
   };
@@ -42,6 +56,8 @@ class _CategoryTrendChartState extends State<CategoryTrendChart> {
   List<CategoryTrendSeries> get _visibleSeries => widget.seriesList
       .where((series) => !_hiddenSeriesIds.contains(series.id))
       .toList();
+
+  TrendSpendRate get _spendRate => ref.watch(trendSpendRateProvider);
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +71,14 @@ class _CategoryTrendChartState extends State<CategoryTrendChart> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(widget.title, style: AppText.body.large.semibold),
+          Row(
+            children: [
+              Expanded(
+                child: Text(widget.title, style: AppText.body.large.semibold),
+              ),
+              if (widget.showSpendRateToggle) _spendRateToggle(),
+            ],
+          ),
           const SizedBox(height: AppSpacing.xs),
           Text(widget.subtitle, style: AppText.caption),
           const SizedBox(height: AppSpacing.md),
@@ -67,6 +90,56 @@ class _CategoryTrendChartState extends State<CategoryTrendChart> {
         ],
       ),
     );
+  }
+
+  Widget _spendRateToggle() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final rate in TrendSpendRate.values) ...[
+          if (rate != TrendSpendRate.values.first)
+            const SizedBox(width: AppSpacing.xs),
+          _spendRateChip(rate),
+        ],
+      ],
+    );
+  }
+
+  Widget _spendRateChip(TrendSpendRate rate) {
+    final isSelected = _spendRate == rate;
+    return GestureDetector(
+      onTap: () => ref.read(trendSpendRateProvider.notifier).setRate(rate),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: 2,
+        ),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.accentPrimary.withValues(alpha: 0.25)
+              : AppColors.backgroundDepth3,
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+          border: Border.all(
+            color: isSelected
+                ? AppColors.accentPrimary
+                : AppColors.borderDepth1,
+          ),
+        ),
+        child: Text(
+          rate.toggleLabel,
+          style: AppText.body.small.copyWith(
+            color: isSelected
+                ? AppColors.accentPrimary
+                : AppColors.textColor3,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatAnnualized(int annualizedCents) {
+    return formatCentsWholeDollars(_spendRate.displayCents(annualizedCents));
   }
 
   Widget _chartArea() {
@@ -116,12 +189,13 @@ class _CategoryTrendChartState extends State<CategoryTrendChart> {
       final point = _nearestPoint(series.points, hoverDate);
       final amount = point == null
           ? '—'
-          : formatCentsWholeDollars(point.smoothedCents.round());
+          : _formatAnnualized(point.smoothedCents.round());
       return '${series.name} $amount';
     }).join(' · ');
 
     return Text(
-      '${DateFormat.MMMd().format(hoverDate)} · $values',
+      '${DateFormat.MMMd().format(hoverDate)} · $values '
+      '(${_spendRate.shortLabel.trim()})',
       style: AppText.caption,
       maxLines: 4,
       overflow: TextOverflow.ellipsis,
@@ -129,7 +203,7 @@ class _CategoryTrendChartState extends State<CategoryTrendChart> {
   }
 
   /// Meta series (All / Other / Uncategorized) in a separated column; remaining
-  /// categories fill column-major top→bottom, then left→right.
+  /// categories use chips or shared-scale distribution whiskers.
   Widget _legend() {
     final seriesList = widget.seriesList;
     if (seriesList.isEmpty) return const SizedBox.shrink();
@@ -150,20 +224,285 @@ class _CategoryTrendChartState extends State<CategoryTrendChart> {
           _metaLegendColumn(metaSeries),
           if (rankedSeries.isNotEmpty) ...[
             const SizedBox(width: AppSpacing.md),
-            _legendColumnDivider(),
+            _legendColumnDivider(
+              height: widget.useDistributionLegend ? 140.0 : 72.0,
+            ),
             const SizedBox(width: AppSpacing.md),
           ],
         ],
         if (rankedSeries.isNotEmpty)
           Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) => _columnMajorLegend(
-                seriesList: rankedSeries,
-                maxWidth: constraints.maxWidth,
-              ),
-            ),
+            child: widget.useDistributionLegend
+                ? _distributionLegend(rankedSeries)
+                : LayoutBuilder(
+                    builder: (context, constraints) => _columnMajorLegend(
+                      seriesList: rankedSeries,
+                      maxWidth: constraints.maxWidth,
+                    ),
+                  ),
           ),
       ],
+    );
+  }
+
+  Widget _distributionLegend(List<CategoryTrendSeries> seriesList) {
+    final pairsBySeriesId = <String, CategoryTrendDistributionPair>{};
+    for (final series in seriesList) {
+      final pair = distributionPairForSmoothed(series.points);
+      if (!pair.isEmpty) {
+        pairsBySeriesId[series.id] = pair;
+      }
+    }
+
+    var dataMaxCents = 0.0;
+    for (final pair in pairsBySeriesId.values) {
+      for (final distribution in [pair.allTime, pair.pastYear]) {
+        if (distribution == null) continue;
+        dataMaxCents = math.max(
+          dataMaxCents,
+          math.max(distribution.maxCents, distribution.currentCents),
+        );
+      }
+    }
+    final scale = TrendValueScale.niceForMax(dataMaxCents);
+
+    const whiskerHeight = 108.0;
+    const labelBlockHeight = 52.0;
+    const columnWidth = 96.0;
+    const axisWidth = 44.0;
+    const columnGap = AppSpacing.sm;
+    // Stop guides just past the last whisker, not at the viewport edge.
+    const gridOverhang = 12.0;
+    final columnsWidth = seriesList.isEmpty
+        ? 0.0
+        : seriesList.length * columnWidth +
+            math.max(0, seriesList.length - 1) * columnGap;
+    final gridWidth = columnsWidth + gridOverhang;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const DistributionWhiskerSymbolKey(),
+        const SizedBox(height: AppSpacing.sm),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: axisWidth,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  const SizedBox(height: labelBlockHeight),
+                  _distributionAxisLabels(
+                    scale: scale,
+                    whiskerHeight: whiskerHeight,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            Expanded(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: SizedBox(
+                  width: gridWidth,
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        top: labelBlockHeight,
+                        left: 0,
+                        width: gridWidth,
+                        height: whiskerHeight,
+                        child: CustomPaint(
+                          painter: DistributionWhiskerGridPainter(scale: scale),
+                        ),
+                      ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for (var index = 0;
+                              index < seriesList.length;
+                              index++) ...[
+                            if (index > 0) const SizedBox(width: columnGap),
+                            SizedBox(
+                              width: columnWidth,
+                              child: _distributionColumn(
+                                series: seriesList[index],
+                                pair: pairsBySeriesId[seriesList[index].id],
+                                scale: scale,
+                                whiskerHeight: whiskerHeight,
+                                labelBlockHeight: labelBlockHeight,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _distributionAxisLabels({
+    required TrendValueScale scale,
+    required double whiskerHeight,
+  }) {
+    final tickStyle = AppText.caption.copyWith(fontSize: 10);
+    return SizedBox(
+      height: whiskerHeight,
+      width: double.infinity,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          for (final tickCents in scale.tickCents)
+            Positioned(
+              top: scale.yFromTop(tickCents, whiskerHeight) - 7,
+              right: 0,
+              child: Text(
+                _formatAnnualized(tickCents.round()),
+                style: tickStyle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _distributionColumn({
+    required CategoryTrendSeries series,
+    required CategoryTrendDistributionPair? pair,
+    required TrendValueScale scale,
+    required double whiskerHeight,
+    required double labelBlockHeight,
+  }) {
+    final isHidden = _hiddenSeriesIds.contains(series.id);
+    final nowCents =
+        pair?.pastYear?.currentCents ?? pair?.allTime?.currentCents;
+    final nowLabel =
+        nowCents == null ? '—' : _formatAnnualized(nowCents.round());
+    final periodLabelStyle = AppText.caption.copyWith(
+      color: isHidden ? AppColors.textColor4 : AppColors.textColor3,
+      fontSize: 9,
+      height: 1,
+    );
+
+    return GestureDetector(
+      onTap: () => _toggleSeries(series.id),
+      onDoubleTap: () => _soloSeries(series.id),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            height: labelBlockHeight,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    _legendSwatch(series, isHidden),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        series.name,
+                        style: isHidden
+                            ? AppText.body.small.copyWith(
+                                color: AppColors.textColor4,
+                                fontSize: 11,
+                              )
+                            : AppText.body.small.copyWith(fontSize: 11),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                Text(
+                  nowLabel,
+                  style: isHidden
+                      ? AppText.caption.copyWith(color: AppColors.textColor4)
+                      : AppText.caption.copyWith(color: AppColors.textColor2),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'all',
+                        style: periodLabelStyle,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        '1y',
+                        style: periodLabelStyle,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: whiskerHeight,
+            width: double.infinity,
+            child: pair == null || pair.isEmpty
+                ? const Center(
+                    child: Text('—', style: AppText.caption),
+                  )
+                : Row(
+                    children: [
+                      Expanded(
+                        child: _distributionWhisker(
+                          distribution: pair.allTime,
+                          scale: scale,
+                          seriesColor: series.lineColor.withValues(alpha: 0.55),
+                          isHidden: isHidden,
+                        ),
+                      ),
+                      Expanded(
+                        child: _distributionWhisker(
+                          distribution: pair.pastYear,
+                          scale: scale,
+                          seriesColor: series.lineColor,
+                          isHidden: isHidden,
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _distributionWhisker({
+    required CategoryTrendDistribution? distribution,
+    required TrendValueScale scale,
+    required Color seriesColor,
+    required bool isHidden,
+  }) {
+    if (distribution == null) {
+      return const Center(child: Text('—', style: AppText.caption));
+    }
+    return CustomPaint(
+      painter: DistributionWhiskerPainter(
+        distribution: distribution,
+        scale: scale,
+        seriesColor: seriesColor,
+        isDimmed: isHidden,
+      ),
+      child: const SizedBox.expand(),
     );
   }
 
@@ -200,10 +539,10 @@ class _CategoryTrendChartState extends State<CategoryTrendChart> {
     );
   }
 
-  Widget _legendColumnDivider() {
+  Widget _legendColumnDivider({double height = 72}) {
     return Container(
       width: 1,
-      height: 72,
+      height: height,
       color: AppColors.borderDepth1.withValues(alpha: 0.8),
     );
   }
@@ -251,7 +590,8 @@ class _CategoryTrendChartState extends State<CategoryTrendChart> {
     final isHidden = _hiddenSeriesIds.contains(series.id);
     final label = Text(
       '${series.name} · '
-      '${formatCentsWholeDollars(series.latestSmoothedCents.round())} / yr',
+      '${_formatAnnualized(series.latestSmoothedCents.round())} '
+      '${_spendRate.shortLabel}',
       style: isHidden
           ? AppText.body.small.copyWith(color: AppColors.textColor4)
           : AppText.body.small,

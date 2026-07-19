@@ -1,0 +1,116 @@
+import 'package:budgets/features/trends/category_trend_point.dart';
+
+/// Min / median / mean / max / current from a series' smoothed trendline.
+class CategoryTrendDistribution {
+  const CategoryTrendDistribution({
+    required this.minCents,
+    required this.medianCents,
+    required this.averageCents,
+    required this.maxCents,
+    required this.currentCents,
+  });
+
+  final double minCents;
+  final double medianCents;
+  final double averageCents;
+  final double maxCents;
+  final double currentCents;
+
+  @override
+  bool operator ==(Object other) =>
+      other is CategoryTrendDistribution &&
+      other.minCents == minCents &&
+      other.medianCents == medianCents &&
+      other.averageCents == averageCents &&
+      other.maxCents == maxCents &&
+      other.currentCents == currentCents;
+
+  @override
+  int get hashCode => Object.hash(
+        minCents,
+        medianCents,
+        averageCents,
+        maxCents,
+        currentCents,
+      );
+}
+
+/// All-time and trailing-year distributions for one series.
+class CategoryTrendDistributionPair {
+  const CategoryTrendDistributionPair({
+    required this.allTime,
+    required this.pastYear,
+  });
+
+  final CategoryTrendDistribution? allTime;
+  final CategoryTrendDistribution? pastYear;
+
+  bool get isEmpty => allTime == null && pastYear == null;
+}
+
+/// Stats over smoothed values, skipping the leading zero ramp.
+///
+/// When [onOrAfter] is set, only points on/after that day are sampled.
+/// Returns null when there are no positive smoothed samples in range.
+CategoryTrendDistribution? distributionForSmoothed(
+  List<CategoryTrendPoint> points, {
+  DateTime? onOrAfter,
+}) {
+  if (points.isEmpty) return null;
+
+  var firstPositiveIndex = 0;
+  while (firstPositiveIndex < points.length &&
+      points[firstPositiveIndex].smoothedCents <= 0) {
+    firstPositiveIndex++;
+  }
+  if (firstPositiveIndex >= points.length) return null;
+
+  final sampleCents = <double>[];
+  for (var index = firstPositiveIndex; index < points.length; index++) {
+    final point = points[index];
+    if (onOrAfter != null && point.date.isBefore(onOrAfter)) continue;
+    sampleCents.add(point.smoothedCents);
+  }
+  if (sampleCents.isEmpty) return null;
+
+  var minCents = sampleCents.first;
+  var maxCents = sampleCents.first;
+  var sumCents = 0.0;
+  for (final cents in sampleCents) {
+    if (cents < minCents) minCents = cents;
+    if (cents > maxCents) maxCents = cents;
+    sumCents += cents;
+  }
+
+  final sortedCents = [...sampleCents]..sort();
+  return CategoryTrendDistribution(
+    minCents: minCents,
+    medianCents: _median(sortedCents),
+    averageCents: sumCents / sampleCents.length,
+    maxCents: maxCents,
+    currentCents: points.last.smoothedCents,
+  );
+}
+
+/// All-time plus trailing 365 days ending on the series' last point.
+CategoryTrendDistributionPair distributionPairForSmoothed(
+  List<CategoryTrendPoint> points,
+) {
+  if (points.isEmpty) {
+    return const CategoryTrendDistributionPair(allTime: null, pastYear: null);
+  }
+  final pastYearStart =
+      points.last.date.subtract(const Duration(days: 365));
+  return CategoryTrendDistributionPair(
+    allTime: distributionForSmoothed(points),
+    pastYear: distributionForSmoothed(points, onOrAfter: pastYearStart),
+  );
+}
+
+double _median(List<double> sortedAscending) {
+  final midpoint = sortedAscending.length ~/ 2;
+  if (sortedAscending.length.isOdd) {
+    return sortedAscending[midpoint];
+  }
+  return (sortedAscending[midpoint - 1] + sortedAscending[midpoint]) / 2;
+}

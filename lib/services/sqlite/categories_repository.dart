@@ -1,4 +1,5 @@
 import 'package:budgets/domain/category.dart';
+import 'package:budgets/domain/category_group.dart';
 import 'package:budgets/domain/special_category.dart';
 import 'package:ethan_sync/ethan_sync.dart';
 import 'package:powersync/powersync.dart';
@@ -28,6 +29,16 @@ class CategoriesRepository {
     return rows.map(_categoryFromRow).toList();
   }
 
+  Future<List<CategoryGroup>> listGroups() async {
+    final rows = await _powerSync.getAll(
+      '''
+      SELECT * FROM category_groups
+      ORDER BY sort_order ASC, name COLLATE NOCASE
+      ''',
+    );
+    return rows.map(_groupFromRow).toList();
+  }
+
   Future<void> upsertCategory(SpendCategory category) async {
     await _powerSync.upsert('categories', {
       'id': category.id,
@@ -35,6 +46,15 @@ class CategoriesRepository {
       'sort_order': category.sortOrder,
       'archived': category.archived ? 1 : 0,
       'color_token': category.colorToken,
+      'group_id': category.groupId,
+    });
+  }
+
+  Future<void> upsertGroup(CategoryGroup group) async {
+    await _powerSync.upsert('category_groups', {
+      'id': group.id,
+      'name': group.name,
+      'sort_order': group.sortOrder,
     });
   }
 
@@ -65,6 +85,27 @@ class CategoriesRepository {
     return category;
   }
 
+  Future<CategoryGroup> createGroup({required String name}) async {
+    final trimmedName = name.trim();
+    if (trimmedName.isEmpty) {
+      throw ArgumentError('Group name is required.');
+    }
+    final groups = await listGroups();
+    var nextSortOrder = 0;
+    for (final group in groups) {
+      if (group.sortOrder >= nextSortOrder) {
+        nextSortOrder = group.sortOrder + 1;
+      }
+    }
+    final group = CategoryGroup(
+      id: _uuid.v4(),
+      name: trimmedName,
+      sortOrder: nextSortOrder,
+    );
+    await upsertGroup(group);
+    return group;
+  }
+
   Future<void> renameCategory({
     required String categoryId,
     required String name,
@@ -81,22 +122,57 @@ class CategoriesRepository {
         '"$trimmedName" is reserved for a built-in category.',
       );
     }
-    final row = await _powerSync.getOptional(
-      'SELECT * FROM categories WHERE id = ? LIMIT 1',
-      [categoryId],
-    );
-    if (row == null) {
-      throw StateError('Category not found.');
+    final existing = await _requireCategory(categoryId);
+    await upsertCategory(existing.copyWith(name: trimmedName));
+  }
+
+  Future<void> renameGroup({
+    required String groupId,
+    required String name,
+  }) async {
+    final trimmedName = name.trim();
+    if (trimmedName.isEmpty) {
+      throw ArgumentError('Group name is required.');
     }
-    final existing = _categoryFromRow(row);
-    await upsertCategory(
-      SpendCategory(
+    final existing = await _requireGroup(groupId);
+    await upsertGroup(
+      CategoryGroup(
         id: existing.id,
         name: trimmedName,
         sortOrder: existing.sortOrder,
-        archived: existing.archived,
-        colorToken: existing.colorToken,
       ),
+    );
+  }
+
+  Future<void> setCategoryGroup({
+    required String categoryId,
+    String? groupId,
+  }) async {
+    if (SpecialCategory.isSpecialId(categoryId)) {
+      throw StateError('Built-in categories cannot join a group.');
+    }
+    if (groupId != null) {
+      await _requireGroup(groupId);
+    }
+    final existing = await _requireCategory(categoryId);
+    await upsertCategory(
+      existing.copyWith(
+        groupId: groupId,
+        clearGroupId: groupId == null,
+      ),
+    );
+  }
+
+  /// Deletes the group and clears membership on its categories.
+  Future<void> deleteGroup(String groupId) async {
+    await _requireGroup(groupId);
+    await _powerSync.execute(
+      'UPDATE categories SET group_id = NULL WHERE group_id = ?',
+      [groupId],
+    );
+    await _powerSync.execute(
+      'DELETE FROM category_groups WHERE id = ?',
+      [groupId],
     );
   }
 
@@ -180,11 +256,72 @@ class CategoriesRepository {
     });
   }
 
+  /// Ensures a lowest-priority contains rule for import defaults.
+  ///
+  /// Does not overwrite a stronger (higher-priority) rule for the same pattern.
+  Future<void> ensureDefaultImportContainsRule({
+    required String pattern,
+    required String categoryId,
+  }) async {
+    final normalizedPattern = pattern.trim().toLowerCase();
+    if (normalizedPattern.isEmpty) return;
+
+    final rules = await listRules();
+    for (final rule in rules) {
+      if (rule.matchType != RuleMatchType.merchantContains) continue;
+      if (rule.pattern.trim().toLowerCase() != normalizedPattern) continue;
+      if (rule.priority > CategorizationRule.defaultImportPriority) return;
+      if (rule.categoryId == categoryId) return;
+      await upsertRule(
+        CategorizationRule(
+          id: rule.id,
+          matchType: RuleMatchType.merchantContains,
+          pattern: normalizedPattern,
+          categoryId: categoryId,
+          priority: CategorizationRule.defaultImportPriority,
+        ),
+      );
+      return;
+    }
+
+    await upsertRule(
+      CategorizationRule(
+        id: _uuid.v4(),
+        matchType: RuleMatchType.merchantContains,
+        pattern: normalizedPattern,
+        categoryId: categoryId,
+        priority: CategorizationRule.defaultImportPriority,
+      ),
+    );
+  }
+
   Future<void> deleteRule(String ruleId) async {
     await _powerSync.execute(
       'DELETE FROM categorization_rules WHERE id = ?',
       [ruleId],
     );
+  }
+
+  Future<SpendCategory> _requireCategory(String categoryId) async {
+    final row = await _powerSync.getOptional(
+      'SELECT * FROM categories WHERE id = ? LIMIT 1',
+      [categoryId],
+    );
+    if (row == null) {
+      throw StateError('Category not found.');
+    }
+    return _categoryFromRow(row);
+  }
+
+  Future<CategoryGroup> _requireGroup(String groupId) async {
+    final row = await _powerSync.getOptional(
+      'SELECT * FROM category_groups WHERE id = ? LIMIT 1',
+      [groupId],
+    );
+    if (row == null) {
+      throw StateError('Group not found.');
+    }
+    return _groupFromRow(row);
   }
 
   static SpendCategory _categoryFromRow(dynamic row) {
@@ -194,6 +331,15 @@ class CategoriesRepository {
       sortOrder: _asInt(row['sort_order']),
       archived: _asInt(row['archived']) == 1,
       colorToken: row['color_token'] as String?,
+      groupId: row['group_id'] as String?,
+    );
+  }
+
+  static CategoryGroup _groupFromRow(dynamic row) {
+    return CategoryGroup(
+      id: row['id'] as String,
+      name: row['name'] as String,
+      sortOrder: _asInt(row['sort_order']),
     );
   }
 

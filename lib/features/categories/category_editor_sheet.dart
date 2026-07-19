@@ -1,4 +1,5 @@
 import 'package:budgets/domain/category.dart';
+import 'package:budgets/domain/category_group.dart';
 import 'package:budgets/domain/special_category.dart';
 import 'package:budgets/providers/budgets_providers.dart';
 import 'package:budgets/services/sqlite/categories_repository.dart';
@@ -6,7 +7,7 @@ import 'package:budgets/theme/app_theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Create or edit a category name.
+/// Create or edit a category name (and optional group membership).
 class CategoryEditorSheet extends ConsumerStatefulWidget {
   const CategoryEditorSheet({
     super.key,
@@ -33,6 +34,7 @@ class CategoryEditorSheet extends ConsumerStatefulWidget {
 
 class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
   late final TextEditingController _nameController;
+  String? _selectedGroupId;
   bool _busy = false;
   String? _error;
 
@@ -45,6 +47,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.category?.name ?? '');
+    _selectedGroupId = widget.category?.groupId;
   }
 
   @override
@@ -78,6 +81,8 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
             const SizedBox(height: AppSpacing.md),
             if (_isSpecial) _specialCategoryBody() else ...[
               _nameField(),
+              const SizedBox(height: AppSpacing.md),
+              _groupPicker(),
               if (_error != null) ...[
                 const SizedBox(height: AppSpacing.sm),
                 _errorMessage(),
@@ -140,6 +145,58 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
     );
   }
 
+  Widget _groupPicker() {
+    final groups = ref.watch(categoryGroupsProvider).asData?.value ??
+        const <CategoryGroup>[];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Group', style: AppText.body.small),
+        const SizedBox(height: AppSpacing.xs),
+        Wrap(
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
+          children: [
+            _groupChip(label: 'None', groupId: null),
+            for (final group in groups)
+              _groupChip(label: group.name, groupId: group.id),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _groupChip({required String label, required String? groupId}) {
+    final isSelected = _selectedGroupId == groupId;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedGroupId = groupId),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.accentPrimary
+              : AppColors.backgroundDepth3,
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+          border: Border.all(
+            color: isSelected
+                ? AppColors.accentPrimary
+                : AppColors.borderDepth1,
+          ),
+        ),
+        child: Text(
+          label,
+          style: AppText.body.small.copyWith(
+            color: isSelected ? AppColors.textColor1 : AppColors.textColor2,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _errorMessage() {
     return Text(_error!, style: AppText.body.small.error);
   }
@@ -192,13 +249,24 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
     String name,
   ) async {
     if (_isEditing) {
+      final categoryId = widget.category!.id;
       await repository.renameCategory(
-        categoryId: widget.category!.id,
+        categoryId: categoryId,
         name: name,
+      );
+      await repository.setCategoryGroup(
+        categoryId: categoryId,
+        groupId: _selectedGroupId,
       );
       return;
     }
-    await repository.createCategory(name: name);
+    final created = await repository.createCategory(name: name);
+    if (_selectedGroupId != null) {
+      await repository.setCategoryGroup(
+        categoryId: created.id,
+        groupId: _selectedGroupId,
+      );
+    }
   }
 
   Future<void> _startMergeAndDelete() async {

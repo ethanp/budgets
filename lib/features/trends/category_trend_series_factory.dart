@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:budgets/domain/category.dart';
+import 'package:budgets/domain/category_group.dart';
 import 'package:budgets/domain/special_category.dart';
 import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/features/trends/category_trend_point.dart';
@@ -18,6 +19,9 @@ class CategoryTrendSeriesFactory {
   static const incomeSeriesId = '__income__';
   static const spendingSeriesId = '__spending__';
   static const transferSeriesId = '__transfer__';
+  static const groupSeriesIdPrefix = 'group:';
+
+  static String groupSeriesId(String groupId) => '$groupSeriesIdPrefix$groupId';
 
   /// Reserved for the total-spend overlay (not used by category lines).
   static const allSpendLineColor = Color(0xFF8B1E2D);
@@ -62,6 +66,7 @@ class CategoryTrendSeriesFactory {
   TrendsChartBundle build({
     required List<BankTransaction> transactions,
     required List<SpendCategory> categories,
+    List<CategoryGroup> groups = const [],
     DateTime? endDate,
   }) {
     final chartEnd = (endDate ?? DateTime.now()).startOfDay;
@@ -103,6 +108,7 @@ class CategoryTrendSeriesFactory {
       categorySpend: _buildCategorySpendSeries(
         spendMaps: spendMaps,
         categories: categories,
+        groups: groups,
         flowCategoryIds: flowCategoryIds,
         chartDates: chartDates,
         historyFloor: chartStart,
@@ -118,6 +124,7 @@ class CategoryTrendSeriesFactory {
   List<CategoryTrendSeries> _buildCategorySpendSeries({
     required _CategorySpendMaps spendMaps,
     required List<SpendCategory> categories,
+    required List<CategoryGroup> groups,
     required Set<String> flowCategoryIds,
     required List<DateTime> chartDates,
     required DateTime historyFloor,
@@ -134,13 +141,52 @@ class CategoryTrendSeriesFactory {
       historyFloor: historyFloor,
     );
 
-    final rankedCategorySeries = <CategoryTrendSeries>[];
+    final groupsById = {for (final group in groups) group.id: group};
+    final membersByGroupId = <String, List<SpendCategory>>{};
+    final ungroupedCategories = <SpendCategory>[];
+
+    for (final category in categories) {
+      if (flowCategoryIds.contains(category.id)) continue;
+      final groupId = category.groupId;
+      if (groupId != null && groupsById.containsKey(groupId)) {
+        membersByGroupId.putIfAbsent(groupId, () => []).add(category);
+      } else {
+        ungroupedCategories.add(category);
+      }
+    }
+
+    final rankedSeries = <CategoryTrendSeries>[];
     CategoryTrendSeries? otherSeries;
     var paletteIndex = 0;
     final representedCategoryIds = <String>{};
 
-    for (final category in categories) {
-      if (flowCategoryIds.contains(category.id)) continue;
+    for (final group in groups) {
+      final members = membersByGroupId[group.id];
+      if (members == null || members.isEmpty) continue;
+
+      final groupDaily = <DateTime, double>{};
+      for (final member in members) {
+        final memberDaily = spendMaps.byCategoryId[member.id];
+        if (memberDaily == null) continue;
+        _mergeDailyMaps(groupDaily, memberDaily);
+        representedCategoryIds.add(member.id);
+      }
+      if (groupDaily.isEmpty) continue;
+
+      final groupSeries = _seriesForDailyMap(
+        id: groupSeriesId(group.id),
+        name: group.name,
+        lineColor: _palette[paletteIndex % _palette.length],
+        dailySpendCents: groupDaily,
+        chartDates: chartDates,
+        historyFloor: historyFloor,
+      );
+      if (!_hasMeaningfulTrend(groupSeries)) continue;
+      paletteIndex++;
+      rankedSeries.add(groupSeries);
+    }
+
+    for (final category in ungroupedCategories) {
       final dailySpendCents = spendMaps.byCategoryId[category.id];
       if (dailySpendCents == null || dailySpendCents.isEmpty) continue;
 
@@ -159,11 +205,11 @@ class CategoryTrendSeriesFactory {
       if (_isOtherCategory(category)) {
         otherSeries = categorySeries;
       } else {
-        rankedCategorySeries.add(categorySeries);
+        rankedSeries.add(categorySeries);
       }
     }
 
-    rankedCategorySeries.sort(
+    rankedSeries.sort(
       (left, right) =>
           right.latestSmoothedCents.compareTo(left.latestSmoothedCents),
     );
@@ -193,7 +239,7 @@ class CategoryTrendSeriesFactory {
 
     return [
       allSpendSeries,
-      ...rankedCategorySeries,
+      ...rankedSeries,
       ?otherSeries,
       ?uncategorizedSeries,
     ];

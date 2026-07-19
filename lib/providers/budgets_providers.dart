@@ -2,11 +2,13 @@ import 'package:budgets/domain/account.dart';
 import 'package:budgets/domain/budget_month.dart';
 import 'package:budgets/domain/categorizer.dart';
 import 'package:budgets/domain/category.dart';
+import 'package:budgets/domain/category_group.dart';
 import 'package:budgets/domain/copilot_simplefin_deduper.dart';
 import 'package:budgets/domain/life_event.dart';
 import 'package:budgets/domain/month_summary.dart';
 import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/domain/transaction_ingest.dart';
+import 'package:budgets/domain/trend_spend_rate.dart';
 import 'package:budgets/features/trends/category_trend_series_factory.dart';
 import 'package:budgets/features/trends/trends_chart_bundle.dart';
 import 'package:budgets/services/simplefin/simplefin_access_store.dart';
@@ -90,6 +92,7 @@ final categorizerProvider = FutureProvider<Categorizer>((ref) async {
     transactionsRepository: await ref.watch(
       transactionsRepositoryProvider.future,
     ),
+    accountsRepository: await ref.watch(accountsRepositoryProvider.future),
   );
 });
 
@@ -123,6 +126,19 @@ class DataRevision extends Notifier<int> {
   int build() => 0;
 
   void bump() => state = state + 1;
+}
+
+/// Shared yr/mo/day display rate for both Trends charts.
+final trendSpendRateProvider =
+    NotifierProvider<TrendSpendRateNotifier, TrendSpendRate>(
+  TrendSpendRateNotifier.new,
+);
+
+class TrendSpendRateNotifier extends Notifier<TrendSpendRate> {
+  @override
+  TrendSpendRate build() => TrendSpendRate.perYear;
+
+  void setRate(TrendSpendRate rate) => state = rate;
 }
 
 class ConnectionStatus {
@@ -186,6 +202,12 @@ final categoriesListProvider = FutureProvider<List<SpendCategory>>((ref) async {
   return repository.listActive();
 });
 
+final categoryGroupsProvider = FutureProvider<List<CategoryGroup>>((ref) async {
+  ref.watch(dataRevisionProvider);
+  final repository = await ref.watch(categoriesRepositoryProvider.future);
+  return repository.listGroups();
+});
+
 final categorizationRulesProvider =
     FutureProvider<List<CategorizationRule>>((ref) async {
   ref.watch(dataRevisionProvider);
@@ -208,5 +230,6 @@ final categoryTrendsProvider = FutureProvider<TrendsChartBundle>((ref) async {
   return const CategoryTrendSeriesFactory().build(
     transactions: await transactionsRepository.listAll(),
     categories: await categoriesRepository.listActive(),
+    groups: await categoriesRepository.listGroups(),
   );
 });

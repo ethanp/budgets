@@ -61,6 +61,8 @@ class TrendsScreen extends ConsumerWidget {
             title: 'Category spend',
             seriesList: bundle.categorySpend,
             lifeEvents: lifeEvents,
+            showSpendRateToggle: true,
+            useDistributionLegend: true,
             initiallyHiddenSeriesIds: const {
               CategoryTrendSeriesFactory.allSpendSeriesId,
             },
@@ -75,6 +77,7 @@ class TrendsScreen extends ConsumerWidget {
                 'double-tap legend to solo',
             seriesList: bundle.cashFlows,
             lifeEvents: lifeEvents,
+            showSpendRateToggle: bundle.categorySpend.isEmpty,
             initiallyHiddenSeriesIds: const {
               CategoryTrendSeriesFactory.transferSeriesId,
             },

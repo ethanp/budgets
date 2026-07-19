@@ -36,7 +36,7 @@ Future<void> main() async {
 
   try {
     await SyncLifecycle.start(container);
-    _logger.log('ethan_sync started');
+    _logger.fine('ethan_sync started');
   } catch (error, stackTrace) {
     _logger.error('ethan_sync failed to start', error, stackTrace);
     rethrow;

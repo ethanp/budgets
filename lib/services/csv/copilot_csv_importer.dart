@@ -162,11 +162,14 @@ class CopilotCsvImporter {
     final budgetsCategoryName = specialFromType != null
         ? null
         : budgetsCategoryNameForCopilot(parsed.categoryText);
-    final categoryId = specialFromType?.id ??
-        (budgetsCategoryName == null
-            ? null
-            : session.categoryIdByName[budgetsCategoryName.toLowerCase()]);
+    final mappedCategoryId = budgetsCategoryName == null
+        ? null
+        : session.categoryIdByName[budgetsCategoryName.toLowerCase()];
+    final normalizedMerchant = normalizeMerchant(parsed.name);
 
+    // Income/Transfer and mapped spend categories become suggested + a
+    // priority-0 merchant rule so stronger rules can override later.
+    final defaultCategoryId = specialFromType?.id ?? mappedCategoryId;
     await _transactionsRepository.upsertTransaction(
       BankTransaction(
         id: _uuid.v4(),
@@ -175,9 +178,10 @@ class CopilotCsvImporter {
         postedAt: parsed.postedAt,
         amountCents: parsed.amountCents,
         rawDescription: parsed.name,
-        normalizedMerchant: normalizeMerchant(parsed.name),
+        normalizedMerchant: normalizedMerchant,
         pending: parsed.pending,
-        userCategoryId: categoryId,
+        userCategoryId: null,
+        suggestedCategoryId: defaultCategoryId,
         note: parsed.note,
         // Kept as import provenance only; runtime identity is the category.
         transactionType: parsed.transactionType,
@@ -187,6 +191,13 @@ class CopilotCsvImporter {
       ),
       overwriteUserCategory: true,
     );
+
+    if (defaultCategoryId != null && normalizedMerchant.trim().isNotEmpty) {
+      await _categoriesRepository.ensureDefaultImportContainsRule(
+        pattern: normalizedMerchant,
+        categoryId: defaultCategoryId,
+      );
+    }
   }
 
   Future<Map<String, String>> _loadCategoryIdsByName() async {

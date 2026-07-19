@@ -5,6 +5,7 @@ import 'package:budgets/domain/account.dart';
 import 'package:budgets/features/settings/copilot_import_tile.dart';
 import 'package:budgets/features/settings/csv_import_sheet.dart';
 import 'package:budgets/features/settings/dedupe_copilot_tile.dart';
+import 'package:budgets/features/settings/migrate_copilot_rules_tile.dart';
 import 'package:budgets/features/settings/sync_status_tile.dart';
 import 'package:budgets/providers/budgets_providers.dart';
 import 'package:budgets/theme/app_theme.dart';
@@ -65,6 +66,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             const SyncStatusTile(),
             const SizedBox(height: AppSpacing.lg),
             const CopilotImportTile(),
+            const SizedBox(height: AppSpacing.lg),
+            const MigrateCopilotRulesTile(),
             const SizedBox(height: AppSpacing.lg),
             const DedupeCopilotTile(),
             const SizedBox(height: AppSpacing.lg),

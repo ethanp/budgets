@@ -1,7 +1,9 @@
 import 'package:budgets/domain/category.dart';
+import 'package:budgets/domain/category_group.dart';
 import 'package:budgets/domain/month_summary.dart';
 import 'package:budgets/domain/special_category.dart';
 import 'package:budgets/features/categories/category_editor_sheet.dart';
+import 'package:budgets/features/categories/group_editor_sheet.dart';
 import 'package:budgets/providers/budgets_providers.dart';
 import 'package:budgets/theme/app_theme.dart';
 import 'package:budgets/util/money_format.dart';
@@ -17,6 +19,7 @@ class CategoriesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final String yearMonth = ref.watch(currentYearMonthProvider);
     final categoriesAsync = ref.watch(categoriesListProvider);
+    final groupsAsync = ref.watch(categoryGroupsProvider);
     final rowsAsync = ref.watch(categoryMonthRowsProvider(yearMonth));
 
     return CupertinoPageScaffold(
@@ -27,12 +30,19 @@ class CategoriesScreen extends ConsumerWidget {
           error: (error, _) => Center(
             child: Text('$error', style: AppText.body.medium.error),
           ),
-          data: (categories) => _categoriesContent(
-            context,
-            ref,
-            categories,
-            rowsAsync,
-          ),
+          data: (categories) {
+            if (categories.isEmpty) {
+              return _buildEmptyState(context, ref);
+            }
+            final groups = groupsAsync.asData?.value ?? const <CategoryGroup>[];
+            return _categoryList(
+              context,
+              ref,
+              categories,
+              groups,
+              rowsAsync,
+            );
+          },
         ),
       ),
     );
@@ -47,28 +57,45 @@ class CategoriesScreen extends ConsumerWidget {
       middle: const Text('Categories'),
       trailing: CupertinoButton(
         padding: EdgeInsets.zero,
-        onPressed: () => CategoryEditorSheet.show(context, ref: ref),
+        onPressed: () => _showAddMenu(context, ref),
         child: const Icon(CupertinoIcons.add),
       ),
     );
   }
 
-  Widget _categoriesContent(
-    BuildContext context,
-    WidgetRef ref,
-    List<SpendCategory> categories,
-    AsyncValue<List<CategoryMonthRow>> rowsAsync,
-  ) {
-    if (categories.isEmpty) {
-      return _buildEmptyState(context, ref);
-    }
-    return _categoryList(context, ref, categories, rowsAsync);
+  void _showAddMenu(BuildContext context, WidgetRef ref) {
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (sheetContext) => CupertinoActionSheet(
+        actions: [
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.of(sheetContext).pop();
+              CategoryEditorSheet.show(context, ref: ref);
+            },
+            child: const Text('Add category'),
+          ),
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.of(sheetContext).pop();
+              GroupEditorSheet.show(context, ref: ref);
+            },
+            child: const Text('Add group'),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.of(sheetContext).pop(),
+          child: const Text('Cancel'),
+        ),
+      ),
+    );
   }
 
   Widget _categoryList(
     BuildContext context,
     WidgetRef ref,
     List<SpendCategory> categories,
+    List<CategoryGroup> groups,
     AsyncValue<List<CategoryMonthRow>> rowsAsync,
   ) {
     final rowsById = {
@@ -83,25 +110,85 @@ class CategoriesScreen extends ConsumerWidget {
       for (final category in categories)
         if (SpecialCategory.isSpecialId(category.id)) category,
     ];
-    final listedCategories = [...spendCategories, ...specialCategories];
-    return ListView.separated(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      itemCount: listedCategories.length,
-      separatorBuilder: (context, index) =>
-          const SizedBox(height: AppSpacing.sm),
-      itemBuilder: (context, index) {
-        final category = listedCategories[index];
-        final row = rowsById[category.id];
-        return _CategoryListTile(
+
+    final groupsById = {for (final group in groups) group.id: group};
+    final membersByGroupId = <String, List<SpendCategory>>{};
+    final ungrouped = <SpendCategory>[];
+    for (final category in spendCategories) {
+      final groupId = category.groupId;
+      if (groupId != null && groupsById.containsKey(groupId)) {
+        membersByGroupId.putIfAbsent(groupId, () => []).add(category);
+      } else {
+        ungrouped.add(category);
+      }
+    }
+
+    final listChildren = <Widget>[];
+    for (final group in groups) {
+      final members = membersByGroupId[group.id] ?? const <SpendCategory>[];
+      listChildren.add(
+        _GroupSection(
+          group: group,
+          members: members,
+          rowsById: rowsById,
+          onEditGroup: () => GroupEditorSheet.show(
+            context,
+            ref: ref,
+            group: group,
+          ),
+          onEditCategory: (category) => CategoryEditorSheet.show(
+            context,
+            ref: ref,
+            category: category,
+          ),
+        ),
+      );
+    }
+
+    if (ungrouped.isNotEmpty) {
+      if (groups.isNotEmpty) {
+        listChildren.add(
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.sm),
+            child: Text('Ungrouped', style: AppText.body.small),
+          ),
+        );
+      }
+      for (final category in ungrouped) {
+        listChildren.add(
+          _CategoryListTile(
+            category: category,
+            row: rowsById[category.id],
+            onTap: () => CategoryEditorSheet.show(
+              context,
+              ref: ref,
+              category: category,
+            ),
+          ),
+        );
+      }
+    }
+
+    for (final category in specialCategories) {
+      listChildren.add(
+        _CategoryListTile(
           category: category,
-          row: row,
+          row: rowsById[category.id],
           onTap: () => CategoryEditorSheet.show(
             context,
             ref: ref,
             category: category,
           ),
-        );
-      },
+        ),
+      );
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      itemCount: listChildren.length,
+      separatorBuilder: (context, index) =>
+          const SizedBox(height: AppSpacing.sm),
+      itemBuilder: (context, index) => listChildren[index],
     );
   }
 
@@ -127,6 +214,95 @@ class CategoriesScreen extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _GroupSection extends StatelessWidget {
+  const _GroupSection({
+    required this.group,
+    required this.members,
+    required this.rowsById,
+    required this.onEditGroup,
+    required this.onEditCategory,
+  });
+
+  final CategoryGroup group;
+  final List<SpendCategory> members;
+  final Map<String, CategoryMonthRow> rowsById;
+  final VoidCallback onEditGroup;
+  final void Function(SpendCategory category) onEditCategory;
+
+  @override
+  Widget build(BuildContext context) {
+    var annualizedTotal = 0;
+    var monthTotal = 0;
+    for (final member in members) {
+      final row = rowsById[member.id];
+      if (row == null) continue;
+      annualizedTotal += row.annualizedSpendCents;
+      monthTotal += row.spentCents;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        GestureDetector(
+          onTap: onEditGroup,
+          child: AppCard(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(group.name, style: AppText.body.large.semibold),
+                      Text(
+                        members.isEmpty
+                            ? 'No categories yet · tap to edit'
+                            : '${members.length} '
+                                '${members.length == 1 ? 'category' : 'categories'}'
+                                ' · this month ${formatCents(monthTotal)}',
+                        style: AppText.body.small,
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      annualizedTotal == 0
+                          ? '—'
+                          : formatCents(annualizedTotal),
+                      style: AppText.body.medium.semibold,
+                    ),
+                    Text('/ yr', style: AppText.body.small),
+                  ],
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                const Icon(
+                  CupertinoIcons.chevron_right,
+                  size: 16,
+                  color: AppColors.textColor4,
+                ),
+              ],
+            ),
+          ),
+        ),
+        for (final member in members) ...[
+          const SizedBox(height: AppSpacing.sm),
+          Padding(
+            padding: const EdgeInsets.only(left: AppSpacing.md),
+            child: _CategoryListTile(
+              category: member,
+              row: rowsById[member.id],
+              onTap: () => onEditCategory(member),
+            ),
+          ),
+        ],
+      ],
     );
   }
 }

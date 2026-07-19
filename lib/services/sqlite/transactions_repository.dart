@@ -108,8 +108,9 @@ class TransactionsRepository {
       'user_category_id': overwriteUserCategory
           ? transaction.userCategoryId
           : (existing?.userCategoryId ?? transaction.userCategoryId),
-      'suggested_category_id':
-          existing?.suggestedCategoryId ?? transaction.suggestedCategoryId,
+      'suggested_category_id': overwriteUserCategory
+          ? transaction.suggestedCategoryId
+          : (existing?.suggestedCategoryId ?? transaction.suggestedCategoryId),
       'note': transaction.note,
       'transaction_type': transaction.transactionType,
       'excluded': transaction.excluded ? 1 : 0,
@@ -138,6 +139,21 @@ class TransactionsRepository {
       UPDATE transactions
       SET suggested_category_id = ?
       WHERE id = ? AND user_category_id IS NULL
+      ''',
+      [categoryId, transactionId],
+    );
+  }
+
+  /// Move a locked user category onto suggested so default rules can own it.
+  Future<void> releaseUserCategoryToSuggested({
+    required String transactionId,
+    required String categoryId,
+  }) async {
+    await _powerSync.execute(
+      '''
+      UPDATE transactions
+      SET user_category_id = NULL, suggested_category_id = ?
+      WHERE id = ?
       ''',
       [categoryId, transactionId],
     );

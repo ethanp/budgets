@@ -1,18 +1,44 @@
 import 'package:budgets/domain/category.dart';
 import 'package:budgets/domain/transaction.dart';
+import 'package:budgets/services/sqlite/accounts_repository.dart';
 import 'package:budgets/services/sqlite/categories_repository.dart';
 import 'package:budgets/services/sqlite/transactions_repository.dart';
 import 'package:uuid/uuid.dart';
+
+class CopilotDefaultRuleMigrationResult {
+  const CopilotDefaultRuleMigrationResult({
+    required this.rulesEnsured,
+    required this.transactionsReleased,
+  });
+
+  final int rulesEnsured;
+  final int transactionsReleased;
+}
+
+class CopilotDefaultRuleMigrationProgress {
+  const CopilotDefaultRuleMigrationProgress({
+    required this.completed,
+    required this.total,
+  });
+
+  final int completed;
+  final int total;
+
+  double get fraction => total <= 0 ? 0 : completed / total;
+}
 
 class Categorizer {
   Categorizer({
     required CategoriesRepository categoriesRepository,
     required TransactionsRepository transactionsRepository,
+    required AccountsRepository accountsRepository,
   })  : _categoriesRepository = categoriesRepository,
-        _transactionsRepository = transactionsRepository;
+        _transactionsRepository = transactionsRepository,
+        _accountsRepository = accountsRepository;
 
   final CategoriesRepository _categoriesRepository;
   final TransactionsRepository _transactionsRepository;
+  final AccountsRepository _accountsRepository;
   final _uuid = const Uuid();
 
   /// Case-insensitive match of [rule] against the transaction description.
@@ -131,8 +157,7 @@ class Categorizer {
       matchType: RuleMatchType.merchantContains,
       pattern: normalizedPattern,
       categoryId: '_proposed_',
-      // Match priority used by [_upsertContainsRule] for new contains rules.
-      priority: 10,
+      priority: CategorizationRule.userCreatedPriority,
     );
     final transactions = await _transactionsRepository.listAll();
     final existingRules = await _categoriesRepository.listRules();
@@ -185,6 +210,15 @@ class Categorizer {
   }) =>
       _upsertContainsRule(pattern: pattern, categoryId: categoryId);
 
+  Future<void> ensureDefaultImportContainsRule({
+    required String pattern,
+    required String categoryId,
+  }) =>
+      _categoriesRepository.ensureDefaultImportContainsRule(
+        pattern: pattern,
+        categoryId: categoryId,
+      );
+
   Future<void> applyCategoryToTransactions({
     required String categoryId,
     required Iterable<String> transactionIds,
@@ -232,15 +266,102 @@ class Categorizer {
         matchType: RuleMatchType.merchantContains,
         pattern: normalizedPattern,
         categoryId: categoryId,
-        priority: 10,
+        priority: CategorizationRule.userCreatedPriority,
       ),
     );
   }
 
-  Future<void> applyRulesToUncategorized() async {
+  /// Turns Copilot-locked user categories into priority-0 merchant rules +
+  /// suggested categories so stronger rules can override later.
+  Future<CopilotDefaultRuleMigrationResult>
+      migrateCopilotUserCategoriesToDefaultRules({
+    void Function(CopilotDefaultRuleMigrationProgress progress)? onProgress,
+  }) async {
+    final accounts = await _accountsRepository.listAccounts();
+    final copilotAccountIds = {
+      for (final account in accounts)
+        if (account.externalId.startsWith('copilot:')) account.id,
+    };
+    if (copilotAccountIds.isEmpty) {
+      onProgress?.call(
+        const CopilotDefaultRuleMigrationProgress(completed: 0, total: 0),
+      );
+      return const CopilotDefaultRuleMigrationResult(
+        rulesEnsured: 0,
+        transactionsReleased: 0,
+      );
+    }
+
+    final transactions = await _transactionsRepository.listAll();
+    // Include Income/Transfer: older Copilot imports locked those as user
+    // categories too; they need the same priority-0 merchant rules + release.
+    final candidates = [
+      for (final transaction in transactions)
+        if (copilotAccountIds.contains(transaction.accountId) &&
+            transaction.userCategoryId != null &&
+            transaction.normalizedMerchant.trim().isNotEmpty)
+          transaction,
+    ];
+
+    final applyTotal = transactions.length;
+    final totalSteps = candidates.length + applyTotal;
+    void report(int completed) {
+      onProgress?.call(
+        CopilotDefaultRuleMigrationProgress(
+          completed: completed,
+          total: totalSteps,
+        ),
+      );
+    }
+
+    report(0);
+
+    final ruleKeysEnsured = <String>{};
+    var transactionsReleased = 0;
+    for (var index = 0; index < candidates.length; index++) {
+      final transaction = candidates[index];
+      final categoryId = transaction.userCategoryId!;
+      final pattern = transaction.normalizedMerchant.trim();
+
+      final ruleKey = '${pattern.toLowerCase()}|$categoryId';
+      if (!ruleKeysEnsured.contains(ruleKey)) {
+        await ensureDefaultImportContainsRule(
+          pattern: pattern,
+          categoryId: categoryId,
+        );
+        ruleKeysEnsured.add(ruleKey);
+      }
+
+      await _transactionsRepository.releaseUserCategoryToSuggested(
+        transactionId: transaction.id,
+        categoryId: categoryId,
+      );
+      transactionsReleased++;
+      report(index + 1);
+    }
+
+    await applyRulesToUncategorized(
+      onProgress: (completed, total) {
+        report(candidates.length + completed);
+      },
+    );
+    report(totalSteps);
+
+    return CopilotDefaultRuleMigrationResult(
+      rulesEnsured: ruleKeysEnsured.length,
+      transactionsReleased: transactionsReleased,
+    );
+  }
+
+  Future<void> applyRulesToUncategorized({
+    void Function(int completed, int total)? onProgress,
+  }) async {
     final transactions = await _transactionsRepository.listAll();
     final rules = await _categoriesRepository.listRules();
-    for (final transaction in transactions) {
+    final total = transactions.length;
+    for (var index = 0; index < transactions.length; index++) {
+      final transaction = transactions[index];
+      onProgress?.call(index + 1, total);
       if (transaction.userCategoryId != null) continue;
 
       final matchingRule = bestMatchingRule(transaction, rules);
