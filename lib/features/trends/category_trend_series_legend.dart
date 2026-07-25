@@ -124,7 +124,12 @@ class TrendLegendChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cents = series.latestSmoothedCents.round();
+    // Level charts (net worth): show current rolling balance, not CMA tip —
+    // the tip window averages prior days and drifts from today's Banks total.
+    final cents = (valueKind == TrendValueKind.level
+            ? series.latestRollingCents
+            : series.latestSmoothedCents)
+        .round();
     final amountLabel = formatCentsWholeDollars(
       valueKind == TrendValueKind.level
           ? cents

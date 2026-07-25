@@ -68,7 +68,7 @@ class _SyncStatusBody extends ConsumerWidget {
           Text(
             status.isConnected
                 ? 'No accounts yet.'
-                : 'Connect a bank in Settings to sync accounts.',
+                : 'Connect a bank on the Banks tab to sync accounts.',
             style: AppText.body.medium,
           )
         else
@@ -160,7 +160,7 @@ class _AccountSyncRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(account.name, style: AppText.body.large.semibold),
+                Text(account.displayName, style: AppText.body.large.semibold),
                 Text(
                   needsRelink ? 'Needs re-link' : account.status.name,
                   style: needsRelink

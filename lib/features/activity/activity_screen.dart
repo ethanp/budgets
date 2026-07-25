@@ -377,7 +377,7 @@ class _ActivityBodyState extends ConsumerState<_ActivityBody> {
           child: Text(
             connected
                 ? 'No transactions yet. Pull to refresh.'
-                : 'Connect a bank in Settings to see activity.',
+                : 'Connect a bank on the Banks tab to see activity.',
             style: AppText.body.medium,
           ),
         ),

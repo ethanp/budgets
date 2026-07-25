@@ -29,4 +29,7 @@ class CategoryTrendSeries {
 
   double get latestSmoothedCents =>
       points.isEmpty ? 0 : points.last.smoothedCents;
+
+  double get latestRollingCents =>
+      points.isEmpty ? 0 : points.last.rollingCents;
 }

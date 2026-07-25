@@ -13,6 +13,7 @@ const Schema budgetsSchema = Schema([
     Column.integer('last_synced_at'),
     Column.text('status'),
     Column.text('status_message'),
+    Column.text('user_label'),
   ]),
   Table('category_groups', [
     Column.text('name'),

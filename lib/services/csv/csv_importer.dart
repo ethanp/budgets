@@ -112,6 +112,7 @@ class CsvImporter {
         lastSyncedAt: DateTime.now(),
         status: AccountStatus.ok,
         statusMessage: 'Imported from CSV',
+        userLabel: existing?.userLabel,
       ),
     );
     return accountId;

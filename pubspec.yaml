@@ -43,6 +43,10 @@ dependency_overrides:
   path_provider_foundation: 2.5.1
 
 flutter:
+  config:
+    # flutter_secure_storage_macos has no Package.swift yet; keep CocoaPods
+    # until the plugin adopts SPM (Flutter 3.44+ defaults SPM on).
+    enable-swift-package-manager: false
   uses-material-design: true
   assets:
     - .env

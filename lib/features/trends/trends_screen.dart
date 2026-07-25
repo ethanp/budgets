@@ -1,3 +1,4 @@
+import 'package:budgets/domain/account.dart';
 import 'package:budgets/domain/category.dart';
 import 'package:budgets/domain/category_group.dart';
 import 'package:budgets/domain/life_event.dart';
@@ -5,13 +6,14 @@ import 'package:budgets/domain/stay_chain.dart';
 import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/domain/trend_spend_rate.dart';
 import 'package:budgets/features/trends/category_trend_chart.dart';
+import 'package:budgets/features/trends/category_trend_series.dart';
+import 'package:budgets/features/trends/trend_chart_catalog.dart';
 import 'package:budgets/features/trends/trends_chart_bundle.dart';
 import 'package:budgets/providers/budgets_providers.dart';
 import 'package:budgets/theme/app_theme.dart';
 import 'package:budgets/widgets/sync_status_nav_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:budgets/features/trends/trend_chart_catalog.dart';
 
 class TrendsScreen extends ConsumerWidget {
   const TrendsScreen({super.key});
@@ -25,6 +27,7 @@ class TrendsScreen extends ConsumerWidget {
     final lifeEventsAsync = ref.watch(lifeEventsProvider);
     final housingAsync = ref.watch(housingChainProvider);
     final jobAsync = ref.watch(jobChainProvider);
+    final accountsAsync = ref.watch(accountsMapProvider);
 
     return CupertinoPageScaffold(
       navigationBar: const CupertinoNavigationBar(
@@ -42,6 +45,7 @@ class TrendsScreen extends ConsumerWidget {
           ),
           data: (bundle) => _trendsBody(
             bundle,
+            currentNetWorthCents: _sumAccountBalances(accountsAsync),
             transactions: transactionsAsync.asData?.value ??
                 const <BankTransaction>[],
             categories:
@@ -58,6 +62,7 @@ class TrendsScreen extends ConsumerWidget {
 
   Widget _trendsBody(
     TrendsChartBundle bundle, {
+    required int? currentNetWorthCents,
     required List<BankTransaction> transactions,
     required List<SpendCategory> categories,
     required List<CategoryGroup> groups,
@@ -70,7 +75,8 @@ class TrendsScreen extends ConsumerWidget {
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.xl),
           child: Text(
-            'Sync or import transactions to see long-term trends.',
+            'Connect a bank on the Banks tab and sync, or import CSV in '
+            'Settings, to see long-term trends.',
             style: AppText.body.medium,
             textAlign: TextAlign.center,
           ),
@@ -123,9 +129,13 @@ class TrendsScreen extends ConsumerWidget {
             VSpace.lg,
           CategoryTrendChart(
             title: 'Net worth',
+            headlineFigures: _netWorthHeadlines(
+              currentCents: currentNetWorthCents,
+              netWorthSeries: bundle.netWorth,
+            ),
             subtitle:
-                'Reconstructed from account balances · '
-                'walked back through transactions · drag to inspect',
+                'Current = Banks sum · Smoothed = chart line tip · '
+                'account lines use |balance|, dashed = liability',
             seriesList: bundle.netWorth,
             transactions: transactions,
             categories: categories,
@@ -140,4 +150,42 @@ class TrendsScreen extends ConsumerWidget {
       ],
     );
   }
+}
+
+int? _sumAccountBalances(AsyncValue<Map<String, Account>> accountsAsync) {
+  final accounts = accountsAsync.asData?.value;
+  if (accounts == null) return null;
+  var totalCents = 0;
+  for (final account in accounts.values) {
+    totalCents += account.balanceCents;
+  }
+  return totalCents;
+}
+
+List<ChartHeadlineFigure> _netWorthHeadlines({
+  required int? currentCents,
+  required List<CategoryTrendSeries> netWorthSeries,
+}) {
+  final figures = <ChartHeadlineFigure>[];
+  if (currentCents != null) {
+    figures.add(
+      ChartHeadlineFigure(label: 'Current', cents: currentCents),
+    );
+  }
+  final smoothedCents = _smoothedNetWorthCents(netWorthSeries);
+  if (smoothedCents != null) {
+    figures.add(
+      ChartHeadlineFigure(label: 'Smoothed', cents: smoothedCents),
+    );
+  }
+  return figures;
+}
+
+int? _smoothedNetWorthCents(List<CategoryTrendSeries> netWorthSeries) {
+  for (final series in netWorthSeries) {
+    if (series.id != TrendChartCatalog.netWorthSeriesId) continue;
+    if (series.points.isEmpty) return null;
+    return series.latestSmoothedCents.round();
+  }
+  return null;
 }

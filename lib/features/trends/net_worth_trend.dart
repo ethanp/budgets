@@ -6,14 +6,56 @@ import 'package:budgets/features/trends/centered_moving_average.dart';
 import 'package:budgets/features/trends/trend_chart_catalog.dart';
 import 'package:budgets/features/trends/trend_series_significance.dart';
 import 'package:ethan_utils/ethan_utils.dart';
+import 'package:flutter/cupertino.dart';
 
 /// Reconstructs daily net worth from current balances + later transactions.
 class NetWorthTrend {
   NetWorthTrend._();
 
-  /// `NW(D) = Σ balances − Σ amounts with posted day strictly after D`.
+  /// High-chroma hues for account breakdown lines (not the total NW gold).
+  static const _accountPalette = <Color>[
+    Color(0xFF4CC9F0),
+    Color(0xFFF4A261),
+    Color(0xFFB5179E),
+    Color(0xFF80ED99),
+    Color(0xFF4361EE),
+    Color(0xFFFF6B35),
+    Color(0xFF9B5DE5),
+    Color(0xFF2EC4B6),
+    Color(0xFFF72585),
+    Color(0xFF80FFDB),
+  ];
+
+  /// Sum of per-account [accountDailyCents] (keeps total NW consistent with
+  /// breakdown lines, including investment accounts with no transaction history).
   static List<double> dailyCents({
     required List<Account> accounts,
+    required List<BankTransaction> transactions,
+    required List<DateTime> chartDates,
+  }) {
+    if (chartDates.isEmpty) return const [];
+    final totals = List<double>.filled(chartDates.length, 0);
+    for (final account in accounts) {
+      final accountDaily = accountDailyCents(
+        account: account,
+        transactions: transactions,
+        chartDates: chartDates,
+      );
+      for (var dayIndex = 0; dayIndex < chartDates.length; dayIndex++) {
+        totals[dayIndex] += accountDaily[dayIndex];
+      }
+    }
+    return totals;
+  }
+
+  /// Walks [account.balanceCents] back through that account's transactions.
+  ///
+  /// Before the account's first known activity (earliest transaction, else
+  /// [Account.balanceAsOf], else the chart end), contribution is 0. That stops
+  /// investment balances with no SimpleFIN history (e.g. M1) from painting
+  /// today's market value across the entire chart.
+  static List<double> accountDailyCents({
+    required Account account,
     required List<BankTransaction> transactions,
     required List<DateTime> chartDates,
   }) {
@@ -21,30 +63,43 @@ class NetWorthTrend {
 
     final dayCount = chartDates.length;
     final amountsByDay = <DateTime, double>{};
+    DateTime? earliestTransactionDay;
     for (final transaction in transactions) {
+      if (transaction.accountId != account.id) continue;
       final day = transaction.postedAt.startOfDay;
       amountsByDay.update(
         day,
         (prior) => prior + transaction.amountCents,
         ifAbsent: () => transaction.amountCents.toDouble(),
       );
+      if (earliestTransactionDay == null ||
+          day.isBefore(earliestTransactionDay)) {
+        earliestTransactionDay = day;
+      }
     }
 
-    var netWorthCents = 0.0;
-    for (final account in accounts) {
-      netWorthCents += account.balanceCents;
-    }
+    final knownFrom = earliestTransactionDay ??
+        account.balanceAsOf?.startOfDay ??
+        chartDates.last;
 
+    var balanceCents = account.balanceCents.toDouble();
     final values = List<double>.filled(dayCount, 0);
     for (var dayIndex = dayCount - 1; dayIndex >= 0; dayIndex--) {
-      values[dayIndex] = netWorthCents;
       final day = chartDates[dayIndex];
-      netWorthCents -= amountsByDay[day] ?? 0;
+      if (day.isBefore(knownFrom)) {
+        values[dayIndex] = 0;
+        continue;
+      }
+      values[dayIndex] = balanceCents;
+      balanceCents -= amountsByDay[day] ?? 0;
     }
     return values;
   }
 
-  /// Level series (CMA-smoothed), or empty when not meaningful.
+  /// Total net worth plus per-account contribution lines.
+  ///
+  /// Account breakdowns plot [abs] magnitude so liabilities sit above zero;
+  /// a dashed stroke marks that the signed balance is negative.
   static List<CategoryTrendSeries> series({
     required List<Account> accounts,
     required List<BankTransaction> transactions,
@@ -52,11 +107,61 @@ class NetWorthTrend {
   }) {
     if (accounts.isEmpty || chartDates.length < 2) return const [];
 
-    final daily = dailyCents(
-      accounts: accounts,
-      transactions: transactions,
+    final netWorthSeries = _levelSeries(
+      id: TrendChartCatalog.netWorthSeriesId,
+      name: 'Net worth',
+      lineColor: TrendChartCatalog.netWorthLineColor,
+      daily: dailyCents(
+        accounts: accounts,
+        transactions: transactions,
+        chartDates: chartDates,
+      ),
       chartDates: chartDates,
+      percentileAreaFill: true,
     );
+    if (netWorthSeries == null) return const [];
+
+    final rankedAccounts = [...accounts]..sort(
+        (left, right) =>
+            right.balanceCents.abs().compareTo(left.balanceCents.abs()),
+      );
+
+    final accountSeries = <CategoryTrendSeries>[];
+    for (var accountIndex = 0;
+        accountIndex < rankedAccounts.length;
+        accountIndex++) {
+      final account = rankedAccounts[accountIndex];
+      final signedDaily = accountDailyCents(
+        account: account,
+        transactions: transactions,
+        chartDates: chartDates,
+      );
+      final isLiability = account.balanceCents < 0;
+      final built = _levelSeries(
+        id: TrendChartCatalog.accountSeriesId(account.id),
+        name: account.displayName,
+        lineColor: _accountPalette[accountIndex % _accountPalette.length],
+        daily: [
+          for (final value in signedDaily) value.abs(),
+        ],
+        chartDates: chartDates,
+        dotted: isLiability,
+      );
+      if (built != null) accountSeries.add(built);
+    }
+
+    return [netWorthSeries, ...accountSeries];
+  }
+
+  static CategoryTrendSeries? _levelSeries({
+    required String id,
+    required String name,
+    required Color lineColor,
+    required List<double> daily,
+    required List<DateTime> chartDates,
+    bool dotted = false,
+    bool percentileAreaFill = false,
+  }) {
     final rawPoints = [
       for (var dayIndex = 0; dayIndex < chartDates.length; dayIndex++)
         CategoryTrendPoint(
@@ -66,13 +171,14 @@ class NetWorthTrend {
         ),
     ];
     final built = CategoryTrendSeries(
-      id: TrendChartCatalog.netWorthSeriesId,
-      name: 'Net worth',
-      lineColor: TrendChartCatalog.netWorthLineColor,
-      percentileAreaFill: true,
+      id: id,
+      name: name,
+      lineColor: lineColor,
+      dotted: dotted,
+      percentileAreaFill: percentileAreaFill,
       points: CenteredMovingAverage.standard.smoothPoints(rawPoints),
     );
-    if (!TrendSeriesSignificance.hasMeaningfulTrend(built)) return const [];
-    return [built];
+    if (!TrendSeriesSignificance.hasMeaningfulTrend(built)) return null;
+    return built;
   }
 }

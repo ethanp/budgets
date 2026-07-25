@@ -12,13 +12,28 @@ class AccountsRepository {
     final rows = await _powerSync.getAll(
       'SELECT * FROM accounts ORDER BY name COLLATE NOCASE',
     );
-    return rows.map(_fromRow).toList();
+    final accounts = rows.map(_fromRow).toList();
+    accounts.sort(
+      (left, right) => left.displayName.toLowerCase().compareTo(
+            right.displayName.toLowerCase(),
+          ),
+    );
+    return accounts;
   }
 
   Future<Account?> findByExternalId(String externalId) async {
     final row = await _powerSync.getOptional(
       'SELECT * FROM accounts WHERE external_id = ? LIMIT 1',
       [externalId],
+    );
+    if (row == null) return null;
+    return _fromRow(row);
+  }
+
+  Future<Account?> findById(String accountId) async {
+    final row = await _powerSync.getOptional(
+      'SELECT * FROM accounts WHERE id = ? LIMIT 1',
+      [accountId],
     );
     if (row == null) return null;
     return _fromRow(row);
@@ -39,7 +54,22 @@ class AccountsRepository {
       'last_synced_at': account.lastSyncedAt?.millisecondsSinceEpoch,
       'status': account.status.storageValue,
       'status_message': account.statusMessage,
+      'user_label': account.userLabel,
     });
+  }
+
+  /// Sets or clears the user-visible label. Empty/whitespace clears to official name.
+  Future<void> updateUserLabel({
+    required String accountId,
+    required String? userLabel,
+  }) async {
+    final trimmed = userLabel?.trim();
+    final stored =
+        trimmed == null || trimmed.isEmpty ? null : trimmed;
+    await _powerSync.execute(
+      'UPDATE accounts SET user_label = ? WHERE id = ?',
+      [stored, accountId],
+    );
   }
 
   Future<void> deleteAll() async {
@@ -62,6 +92,7 @@ class AccountsRepository {
           columns['last_synced_at'].asIntOrNull().dateTimeFromMillis,
       status: AccountStatus.fromStorage(columns['status'] as String),
       statusMessage: columns['status_message'] as String?,
+      userLabel: columns['user_label'] as String?,
     );
   }
 }

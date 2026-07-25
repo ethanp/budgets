@@ -22,6 +22,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:budgets/features/trends/trend_chart_catalog.dart';
 
+/// Labeled amount shown under a Trends chart title.
+class ChartHeadlineFigure {
+  const ChartHeadlineFigure({
+    required this.label,
+    required this.cents,
+  });
+
+  final String label;
+  final int cents;
+}
+
 /// One SimCity-style multi-line chart with a color legend.
 class CategoryTrendChart extends ConsumerStatefulWidget {
   const CategoryTrendChart({
@@ -42,6 +53,7 @@ class CategoryTrendChart extends ConsumerStatefulWidget {
     this.useDistributionLegend = false,
     this.valueKind = TrendValueKind.pace,
     this.enableContributors = true,
+    this.headlineFigures = const [],
   });
 
   final String title;
@@ -65,6 +77,9 @@ class CategoryTrendChart extends ConsumerStatefulWidget {
 
   /// Tap-to-open top contributors (disabled for level charts like net worth).
   final bool enableContributors;
+
+  /// Optional labeled amounts under the title (e.g. current + smoothed NW).
+  final List<ChartHeadlineFigure> headlineFigures;
 
   @override
   ConsumerState<CategoryTrendChart> createState() => _CategoryTrendChartState();
@@ -107,6 +122,10 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
               if (widget.showSpendRateToggle) _spendRateToggle(),
             ],
           ),
+          if (widget.headlineFigures.isNotEmpty) ...[
+            VSpace.sm,
+            _headlineFigures(widget.headlineFigures),
+          ],
           VSpace.xs,
           Text(widget.subtitle, style: AppText.caption),
           VSpace.md,
@@ -125,6 +144,36 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _headlineFigures(List<ChartHeadlineFigure> figures) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (var figureIndex = 0; figureIndex < figures.length; figureIndex++) ...[
+          if (figureIndex > 0) HSpace.xl,
+          Expanded(
+            child: _headlineFigure(figures[figureIndex]),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _headlineFigure(ChartHeadlineFigure figure) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(figure.label, style: AppText.caption),
+        VSpace.xs,
+        Text(
+          formatCents(figure.cents),
+          style: figure.cents < 0
+              ? AppText.headline.medium.error
+              : AppText.headline.medium,
+        ),
+      ],
     );
   }
 

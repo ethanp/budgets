@@ -256,6 +256,7 @@ class TransactionIngest {
         statusMessage: needsRelink
             ? 'Authentication required — re-link in SimpleFIN'
             : null,
+        userLabel: existing?.userLabel,
       ),
     );
     return localId;

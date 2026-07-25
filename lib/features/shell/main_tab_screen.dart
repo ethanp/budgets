@@ -1,4 +1,5 @@
 import 'package:budgets/features/activity/activity_screen.dart';
+import 'package:budgets/features/banks/banks_screen.dart';
 import 'package:budgets/features/categories/categories_screen.dart';
 import 'package:budgets/features/life_events/life_events_screen.dart';
 import 'package:budgets/features/settings/settings_screen.dart';
@@ -25,6 +26,11 @@ const mainTabs = <MainTab>[
     icon: CupertinoIcons.chart_bar,
     label: 'Trends',
     screen: TrendsScreen(),
+  ),
+  MainTab(
+    icon: CupertinoIcons.building_2_fill,
+    label: 'Banks',
+    screen: BanksScreen(),
   ),
   MainTab(
     icon: CupertinoIcons.flag,

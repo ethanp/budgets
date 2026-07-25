@@ -206,8 +206,9 @@ class SimpleFinClient {
   void _logFetchResponse(http.Response response) {
     _logger.log(
       'Fetch response HTTP ${response.statusCode}, '
-      'bytes=${response.bodyBytes.length}, body=${_truncate(response.body)}',
+      'bytes=${response.bodyBytes.length}',
     );
+    _logger.log(_prettyJsonForLog(response.body));
   }
 
   /// Hard failures (auth/billing/non-JSON). Soft non-200 with a JSON Account
@@ -448,6 +449,22 @@ class SimpleFinClient {
   static String _redactUri(Uri uri) {
     if (uri.userInfo.isEmpty) return uri.toString();
     return uri.replace(userInfo: '***:***').toString();
+  }
+
+  /// Indented JSON for console logs; falls back to raw text when not JSON.
+  static String _prettyJsonForLog(String body, [int maxChars = 20000]) {
+    final pretty = _tryPrettyJson(body) ?? body.trim();
+    if (pretty.length <= maxChars) return pretty;
+    return '${pretty.substring(0, maxChars)}\n… (truncated)';
+  }
+
+  static String? _tryPrettyJson(String body) {
+    try {
+      final decoded = jsonDecode(body);
+      return const JsonEncoder.withIndent('  ').convert(decoded);
+    } catch (_) {
+      return null;
+    }
   }
 
   static String _truncate(String value, [int maxChars = 400]) {

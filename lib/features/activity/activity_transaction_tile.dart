@@ -142,7 +142,7 @@ class ActivityTransactionTile extends StatelessWidget {
       runSpacing: AppSpacing.xs,
       children: [
         if (account != null)
-          _MetaChip(label: account!.name, tone: _MetaChipTone.neutral),
+          _MetaChip(label: account!.displayName, tone: _MetaChipTone.neutral),
         if (transaction.pending)
           const _MetaChip(label: 'Pending', tone: _MetaChipTone.warning),
         if (transaction.excluded)

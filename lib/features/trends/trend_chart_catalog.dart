@@ -15,8 +15,12 @@ class TrendChartCatalog {
   static const housingAffordabilitySeriesId = '__housing_30__';
   static const fireSavingsGuideSeriesId = '__savings_25__';
   static const groupSeriesIdPrefix = 'group:';
+  static const accountSeriesIdPrefix = 'account:';
 
   static String groupSeriesId(String groupId) => '$groupSeriesIdPrefix$groupId';
+
+  static String accountSeriesId(String accountId) =>
+      '$accountSeriesIdPrefix$accountId';
 
   /// Housing ≤ this share of income (bank income ≈ net).
   static const housingIncomeShareCap = 0.30;

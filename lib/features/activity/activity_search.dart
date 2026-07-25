@@ -19,7 +19,7 @@ bool activityMatchesSearch({
   final haystack = [
     transaction.rawDescription,
     transaction.normalizedMerchant,
-    account?.name ?? '',
+    account?.displayName ?? '',
     category?.name ?? 'Uncategorized',
     transaction.note ?? '',
     transaction.transactionType ?? '',

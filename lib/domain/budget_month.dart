@@ -30,7 +30,7 @@ class BudgetMonth {
   Future<MonthSummary> snapshot(String yearMonth) async {
     final accounts = await _accountsRepository.listAccounts();
     final names = {
-      for (final account in accounts) account.id: account.name,
+      for (final account in accounts) account.id: account.displayName,
     };
     return _transactionsRepository.monthSummary(
       yearMonth: yearMonth,

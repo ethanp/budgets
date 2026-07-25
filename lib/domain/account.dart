@@ -11,10 +11,13 @@ class Account {
     this.lastSyncedAt,
     required this.status,
     this.statusMessage,
+    this.userLabel,
   });
 
   final String id;
   final String externalId;
+
+  /// Official name from SimpleFIN / CSV import.
   final String name;
   final String currency;
   final int balanceCents;
@@ -24,6 +27,47 @@ class Account {
   final DateTime? lastSyncedAt;
   final AccountStatus status;
   final String? statusMessage;
+
+  /// Optional user-visible name; when set, [displayName] prefers it.
+  final String? userLabel;
+
+  /// Name shown throughout the app.
+  String get displayName {
+    final label = userLabel?.trim();
+    if (label != null && label.isNotEmpty) return label;
+    return name;
+  }
+
+  Account copyWith({
+    String? id,
+    String? externalId,
+    String? name,
+    String? currency,
+    int? balanceCents,
+    DateTime? balanceAsOf,
+    String? connId,
+    String? connName,
+    DateTime? lastSyncedAt,
+    AccountStatus? status,
+    String? statusMessage,
+    String? userLabel,
+    bool clearUserLabel = false,
+  }) {
+    return Account(
+      id: id ?? this.id,
+      externalId: externalId ?? this.externalId,
+      name: name ?? this.name,
+      currency: currency ?? this.currency,
+      balanceCents: balanceCents ?? this.balanceCents,
+      balanceAsOf: balanceAsOf ?? this.balanceAsOf,
+      connId: connId ?? this.connId,
+      connName: connName ?? this.connName,
+      lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
+      status: status ?? this.status,
+      statusMessage: statusMessage ?? this.statusMessage,
+      userLabel: clearUserLabel ? null : (userLabel ?? this.userLabel),
+    );
+  }
 }
 
 enum AccountStatus {
