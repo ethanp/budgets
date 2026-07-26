@@ -1,4 +1,5 @@
 import 'package:budgets/domain/account.dart';
+import 'package:budgets/domain/account_kind.dart' show AccountKind;
 import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/features/trends/category_trend_point.dart';
 import 'package:budgets/features/trends/category_trend_series.dart';
@@ -121,36 +122,52 @@ class NetWorthTrend {
     );
     if (netWorthSeries == null) return const [];
 
-    final rankedAccounts = [...accounts]..sort(
-        (left, right) =>
-            right.balanceCents.abs().compareTo(left.balanceCents.abs()),
-      );
-
     final accountSeries = <CategoryTrendSeries>[];
-    for (var accountIndex = 0;
-        accountIndex < rankedAccounts.length;
-        accountIndex++) {
-      final account = rankedAccounts[accountIndex];
-      final signedDaily = accountDailyCents(
-        account: account,
-        transactions: transactions,
-        chartDates: chartDates,
-      );
-      final isLiability = account.balanceCents < 0;
-      final built = _levelSeries(
-        id: TrendChartCatalog.accountSeriesId(account.id),
-        name: account.displayName,
-        lineColor: _accountPalette[accountIndex % _accountPalette.length],
-        daily: [
-          for (final value in signedDaily) value.abs(),
-        ],
-        chartDates: chartDates,
-        dotted: isLiability,
-      );
-      if (built != null) accountSeries.add(built);
+    var paletteIndex = 0;
+    for (final group in _accountsByKind(accounts)) {
+      for (final account in group.accounts) {
+        final signedDaily = accountDailyCents(
+          account: account,
+          transactions: transactions,
+          chartDates: chartDates,
+        );
+        final isLiability = account.balanceCents < 0;
+        final built = _levelSeries(
+          id: TrendChartCatalog.accountSeriesId(account.id),
+          name: account.displayName,
+          lineColor: _accountPalette[paletteIndex % _accountPalette.length],
+          daily: [
+            for (final value in signedDaily) value.abs(),
+          ],
+          chartDates: chartDates,
+          dotted: isLiability,
+          legendGroup: group.kind.legendLabel,
+        );
+        paletteIndex += 1;
+        if (built != null) accountSeries.add(built);
+      }
     }
 
     return [netWorthSeries, ...accountSeries];
+  }
+
+  static List<_KindAccountGroup> _accountsByKind(List<Account> accounts) {
+    final byKind = <AccountKind, List<Account>>{};
+    for (final account in accounts) {
+      byKind.putIfAbsent(account.kind, () => []).add(account);
+    }
+    final sortedKinds = byKind.keys.toList()
+      ..sort((left, right) => left.legendSortOrder.compareTo(right.legendSortOrder));
+    return [
+      for (final kind in sortedKinds)
+        _KindAccountGroup(
+          kind: kind,
+          accounts: [...byKind[kind]!]
+            ..sort(
+              (left, right) => left.displayName.compareTo(right.displayName),
+            ),
+        ),
+    ];
   }
 
   static CategoryTrendSeries? _levelSeries({
@@ -161,6 +178,7 @@ class NetWorthTrend {
     required List<DateTime> chartDates,
     bool dotted = false,
     bool percentileAreaFill = false,
+    String? legendGroup,
   }) {
     final rawPoints = [
       for (var dayIndex = 0; dayIndex < chartDates.length; dayIndex++)
@@ -176,9 +194,20 @@ class NetWorthTrend {
       lineColor: lineColor,
       dotted: dotted,
       percentileAreaFill: percentileAreaFill,
+      legendGroup: legendGroup,
       points: CenteredMovingAverage.standard.smoothPoints(rawPoints),
     );
     if (!TrendSeriesSignificance.hasMeaningfulTrend(built)) return null;
     return built;
   }
+}
+
+class _KindAccountGroup {
+  const _KindAccountGroup({
+    required this.kind,
+    required this.accounts,
+  });
+
+  final AccountKind kind;
+  final List<Account> accounts;
 }

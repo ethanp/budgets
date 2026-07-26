@@ -1,4 +1,5 @@
 import 'package:budgets/domain/account.dart';
+import 'package:budgets/domain/account_kind.dart';
 import 'package:ethan_sync/ethan_sync.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:powersync/powersync.dart';
@@ -55,6 +56,7 @@ class AccountsRepository {
       'status': account.status.storageValue,
       'status_message': account.statusMessage,
       'user_label': account.userLabel,
+      'account_kind': account.kind.storageValue,
     });
   }
 
@@ -72,6 +74,16 @@ class AccountsRepository {
     );
   }
 
+  Future<void> updateKind({
+    required String accountId,
+    required AccountKind kind,
+  }) async {
+    await _powerSync.execute(
+      'UPDATE accounts SET account_kind = ? WHERE id = ?',
+      [kind.storageValue, accountId],
+    );
+  }
+
   Future<void> deleteAll() async {
     await _powerSync.execute('DELETE FROM transactions');
     await _powerSync.execute('DELETE FROM accounts');
@@ -79,7 +91,7 @@ class AccountsRepository {
 
   static Account _fromRow(dynamic row) {
     final columns = (row as Map).cast<String, Object?>();
-    return Account(
+    final draft = Account(
       id: columns['id'] as String,
       externalId: columns['external_id'] as String,
       name: columns['name'] as String,
@@ -93,6 +105,12 @@ class AccountsRepository {
       status: AccountStatus.fromStorage(columns['status'] as String),
       statusMessage: columns['status_message'] as String?,
       userLabel: columns['user_label'] as String?,
+    );
+    final storedKind = AccountKind.tryFromStorage(
+      columns['account_kind'] as String?,
+    );
+    return draft.copyWith(
+      kind: storedKind ?? AccountKindClassifier.classify(draft),
     );
   }
 }

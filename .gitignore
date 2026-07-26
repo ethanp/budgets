@@ -18,6 +18,7 @@ migrate_working_dir/
 .venv-icon/
 *.db
 budgets.db
+.deploy_ios_hash
 
 # Personal bank/transaction exports (never commit)
 assets/imports/*.csv

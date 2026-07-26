@@ -1,4 +1,5 @@
 import 'package:budgets/domain/account.dart';
+import 'package:budgets/domain/account_kind.dart';
 import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/features/trends/category_trend_series_factory.dart';
 import 'package:budgets/features/trends/net_worth_trend.dart';
@@ -139,6 +140,7 @@ void main() {
         currency: 'USD',
         balanceCents: 500000,
         status: AccountStatus.ok,
+        kind: AccountKind.checking,
       ),
       const Account(
         id: 'mortgage',
@@ -147,6 +149,7 @@ void main() {
         currency: 'USD',
         balanceCents: -200000,
         status: AccountStatus.ok,
+        kind: AccountKind.loans,
       ),
     ];
 
@@ -165,6 +168,75 @@ void main() {
     expect(series[2].dotted, isTrue);
     expect(series[2].name, 'Mortgage');
     expect(series[2].points.last.rollingCents, closeTo(200000, 0.01));
+    expect(series[1].legendGroup, 'Checking');
+    expect(series[2].legendGroup, 'Loans');
+  });
+
+  test('account series are ordered by kind then display name', () {
+    final day0 = DateTime(2024, 1, 1);
+    final chartDates = [
+      for (var dayOffset = 0; dayOffset < 10; dayOffset++)
+        day0.add(Duration(days: dayOffset)),
+    ];
+    final accounts = [
+      const Account(
+        id: 'm1',
+        externalId: 'ext-m1',
+        name: 'Account',
+        currency: 'USD',
+        balanceCents: 100000,
+        connName: 'M1',
+        status: AccountStatus.ok,
+        kind: AccountKind.investment,
+      ),
+      const Account(
+        id: 'ira',
+        externalId: 'ext-ira',
+        name: 'Roth IRA',
+        currency: 'USD',
+        balanceCents: 80000,
+        status: AccountStatus.ok,
+        kind: AccountKind.investment,
+      ),
+      const Account(
+        id: 'schwab-b',
+        externalId: 'ext-s2',
+        name: 'Checking',
+        currency: 'USD',
+        balanceCents: 20000,
+        connName: 'Charles Schwab US',
+        status: AccountStatus.ok,
+        kind: AccountKind.checking,
+      ),
+      const Account(
+        id: 'mortgage',
+        externalId: 'ext-m',
+        name: 'Mortgage',
+        currency: 'USD',
+        balanceCents: -500000,
+        status: AccountStatus.ok,
+        kind: AccountKind.loans,
+      ),
+    ];
+
+    final series = NetWorthTrend.series(
+      accounts: accounts,
+      transactions: const [],
+      chartDates: chartDates,
+    );
+    final accountSeries = [
+      for (final entry in series)
+        if (entry.id != TrendChartCatalog.netWorthSeriesId) entry,
+    ];
+
+    expect(
+      accountSeries.map((entry) => entry.legendGroup).toList(),
+      ['Checking', 'Investment', 'Investment', 'Loans'],
+    );
+    expect(
+      accountSeries.map((entry) => entry.name).toList(),
+      ['Checking', 'Account', 'Roth IRA', 'Mortgage'],
+    );
   });
 
   test('factory includes a net worth series when accounts exist', () {

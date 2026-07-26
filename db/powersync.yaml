@@ -1,0 +1,47 @@
+# PowerSync Open Edition Configuration for budgets
+
+replication:
+  connections:
+    - type: postgresql
+      hostname: postgres
+      port: 5432
+      database: budgets
+      username: budgets
+      password: !env PS_PG_PASSWORD
+      sslmode: disable
+      id: budgets
+
+storage:
+  type: postgresql
+  hostname: postgres
+  port: 5432
+  database: budgets
+  username: budgets
+  password: !env PS_PG_PASSWORD
+  sslmode: disable
+
+client_auth:
+  jwks:
+    keys:
+      - kty: oct
+        kid: budgets-dev-key
+        k: !env PS_JWT_KEY
+        alg: HS256
+  audience:
+    - powersync
+
+sync_rules:
+  content: |
+    bucket_definitions:
+      budgets_global:
+        priority: 0
+        data:
+          - SELECT * FROM accounts
+          - SELECT * FROM category_groups
+          - SELECT * FROM categories
+          - SELECT * FROM transactions
+          - SELECT * FROM categorization_rules
+          - SELECT * FROM life_events
+          - SELECT * FROM housing_stays
+          - SELECT * FROM job_stays
+          - SELECT * FROM sync_state

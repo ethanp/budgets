@@ -14,6 +14,7 @@ const Schema budgetsSchema = Schema([
     Column.text('status'),
     Column.text('status_message'),
     Column.text('user_label'),
+    Column.text('account_kind'),
   ]),
   Table('category_groups', [
     Column.text('name'),

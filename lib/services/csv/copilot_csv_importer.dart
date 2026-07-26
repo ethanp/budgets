@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:budgets/domain/account.dart';
+import 'package:budgets/domain/account_kind.dart';
 import 'package:budgets/domain/special_category.dart';
 import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/services/csv/copilot_category_map.dart';
@@ -211,17 +212,18 @@ class CopilotCsvImporter {
     if (existing != null) return existing.id;
 
     final accountId = _uuid.v4();
+    final draft = Account(
+      id: accountId,
+      externalId: externalId,
+      name: accountMask.isEmpty ? accountName : '$accountName ·$accountMask',
+      currency: 'USD',
+      balanceCents: 0,
+      lastSyncedAt: DateTime.now(),
+      status: AccountStatus.ok,
+      statusMessage: 'Imported from Copilot CSV',
+    );
     await _accountsRepository.upsertAccount(
-      Account(
-        id: accountId,
-        externalId: externalId,
-        name: accountMask.isEmpty ? accountName : '$accountName ·$accountMask',
-        currency: 'USD',
-        balanceCents: 0,
-        lastSyncedAt: DateTime.now(),
-        status: AccountStatus.ok,
-        statusMessage: 'Imported from Copilot CSV',
-      ),
+      draft.copyWith(kind: AccountKindClassifier.classify(draft)),
     );
     return accountId;
   }

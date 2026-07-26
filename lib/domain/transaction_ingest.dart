@@ -1,4 +1,5 @@
 import 'package:budgets/domain/account.dart';
+import 'package:budgets/domain/account_kind.dart';
 import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/services/simplefin/simplefin_access_store.dart';
 import 'package:budgets/services/simplefin/simplefin_client.dart';
@@ -237,26 +238,29 @@ class TransactionIngest {
       (error) => error.connId == null || error.connId == remoteAccount.connId,
     );
 
+    final draft = Account(
+      id: localId,
+      externalId: remoteAccount.id,
+      name: remoteAccount.name,
+      currency: remoteAccount.currency,
+      balanceCents: amountStringToCents(remoteAccount.balance),
+      balanceAsOf: remoteAccount.balanceDate > 0
+          ? DateTime.fromMillisecondsSinceEpoch(
+              remoteAccount.balanceDate * 1000,
+            )
+          : null,
+      connId: remoteAccount.connId,
+      connName: remoteAccount.connName,
+      lastSyncedAt: syncedAt,
+      status: needsRelink ? AccountStatus.needsRelink : AccountStatus.ok,
+      statusMessage: needsRelink
+          ? 'Authentication required — re-link in SimpleFIN'
+          : null,
+      userLabel: existing?.userLabel,
+    );
     await _accountsRepository.upsertAccount(
-      Account(
-        id: localId,
-        externalId: remoteAccount.id,
-        name: remoteAccount.name,
-        currency: remoteAccount.currency,
-        balanceCents: amountStringToCents(remoteAccount.balance),
-        balanceAsOf: remoteAccount.balanceDate > 0
-            ? DateTime.fromMillisecondsSinceEpoch(
-                remoteAccount.balanceDate * 1000,
-              )
-            : null,
-        connId: remoteAccount.connId,
-        connName: remoteAccount.connName,
-        lastSyncedAt: syncedAt,
-        status: needsRelink ? AccountStatus.needsRelink : AccountStatus.ok,
-        statusMessage: needsRelink
-            ? 'Authentication required — re-link in SimpleFIN'
-            : null,
-        userLabel: existing?.userLabel,
+      draft.copyWith(
+        kind: existing?.kind ?? AccountKindClassifier.classify(draft),
       ),
     );
     return localId;

@@ -10,6 +10,7 @@ class CategoryTrendSeries {
     this.dotted = false,
     this.guide = false,
     this.percentileAreaFill = false,
+    this.legendGroup,
   });
 
   /// Category id, or `'__all__'` for total spend.
@@ -26,6 +27,9 @@ class CategoryTrendSeries {
 
   /// Fill under the line; opacity encodes each point's percentile in the series.
   final bool percentileAreaFill;
+
+  /// Optional legend section header (e.g. bank institution for net worth).
+  final String? legendGroup;
 
   double get latestSmoothedCents =>
       points.isEmpty ? 0 : points.last.smoothedCents;

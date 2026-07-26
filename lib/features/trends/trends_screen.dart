@@ -135,7 +135,7 @@ class TrendsScreen extends ConsumerWidget {
             ),
             subtitle:
                 'Current = Banks sum · Smoothed = chart line tip · '
-                'account lines use |balance|, dashed = liability',
+                'grouped by account kind · |balance|, dashed = liability',
             seriesList: bundle.netWorth,
             transactions: transactions,
             categories: categories,

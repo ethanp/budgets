@@ -3,7 +3,6 @@ import 'package:budgets/services/sync/sync_config.dart';
 import 'package:ethan_sync/ethan_sync.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -12,11 +11,7 @@ const _logger = ELogger('BudgetsMain');
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  try {
-    await dotenv.load(fileName: '.env');
-  } catch (_) {
-    // Optional until secrets are present.
-  }
+  await loadAppDotEnv();
 
   if (!budgetsSyncConfigured()) {
     throw StateError(

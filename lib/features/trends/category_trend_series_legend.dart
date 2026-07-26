@@ -73,24 +73,41 @@ class CategoryTrendSeriesLegend extends StatelessWidget {
                     onToggleSeries: onToggleSeries,
                     onSoloSeries: onSoloSeries,
                   )
-                : LayoutBuilder(
-                    builder: (context, constraints) => _ColumnMajorLegend(
-                      seriesList: rankedSeries,
-                      maxWidth: constraints.maxWidth,
-                      hiddenSeriesIds: hiddenSeriesIds,
-                      spendRate: spendRate,
-                      valueKind: valueKind,
-                      onToggleSeries: onToggleSeries,
-                      onSoloSeries: onSoloSeries,
-                    ),
-                  ),
+                : _rankedSeriesHasLegendGroups(rankedSeries)
+                    ? _SectionGroupedLegend(
+                        seriesList: rankedSeries,
+                        hiddenSeriesIds: hiddenSeriesIds,
+                        spendRate: spendRate,
+                        valueKind: valueKind,
+                        onToggleSeries: onToggleSeries,
+                        onSoloSeries: onSoloSeries,
+                      )
+                    : LayoutBuilder(
+                        builder: (context, constraints) => _ColumnMajorLegend(
+                          seriesList: rankedSeries,
+                          maxWidth: constraints.maxWidth,
+                          hiddenSeriesIds: hiddenSeriesIds,
+                          spendRate: spendRate,
+                          valueKind: valueKind,
+                          onToggleSeries: onToggleSeries,
+                          onSoloSeries: onSoloSeries,
+                        ),
+                      ),
           ),
       ],
     );
   }
 
+  static bool _rankedSeriesHasLegendGroups(List<CategoryTrendSeries> seriesList) {
+    for (final series in seriesList) {
+      if (series.legendGroup != null) return true;
+    }
+    return false;
+  }
+
   static bool _isMetaLegendSeries(CategoryTrendSeries series) {
     if (series.id == TrendChartCatalog.allSpendSeriesId) return true;
+    if (series.id == TrendChartCatalog.netWorthSeriesId) return true;
     if (series.id ==
         TrendChartCatalog.housingAffordabilitySeriesId) {
       return true;
@@ -300,4 +317,100 @@ class _ColumnMajorLegend extends StatelessWidget {
     }
     return chips;
   }
+}
+
+/// Account chips grouped under section headers (account kind for net worth).
+///
+/// Section order follows first appearance in [seriesList].
+class _SectionGroupedLegend extends StatelessWidget {
+  const _SectionGroupedLegend({
+    required this.seriesList,
+    required this.hiddenSeriesIds,
+    required this.spendRate,
+    required this.valueKind,
+    required this.onToggleSeries,
+    required this.onSoloSeries,
+  });
+
+  final List<CategoryTrendSeries> seriesList;
+  final Set<String> hiddenSeriesIds;
+  final TrendSpendRate spendRate;
+  final TrendValueKind valueKind;
+  final ValueChanged<String> onToggleSeries;
+  final ValueChanged<String> onSoloSeries;
+
+  @override
+  Widget build(BuildContext context) {
+    final groups = _groupsFromSeries(seriesList);
+    final showSectionLabels = groups.length > 1 ||
+        (groups.length == 1 && groups.first.sectionName != 'Other');
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (var groupIndex = 0; groupIndex < groups.length; groupIndex++) ...[
+          if (groupIndex > 0) VSpace.md,
+          if (showSectionLabels) ...[
+            Text(
+              groups[groupIndex].sectionName,
+              style: AppText.body.small.semibold.accent,
+            ),
+            VSpace.xs,
+          ],
+          for (var seriesIndex = 0;
+              seriesIndex < groups[groupIndex].seriesList.length;
+              seriesIndex++) ...[
+            if (seriesIndex > 0) VSpace.sm,
+            TrendLegendChip(
+              series: groups[groupIndex].seriesList[seriesIndex],
+              isHidden: hiddenSeriesIds.contains(
+                groups[groupIndex].seriesList[seriesIndex].id,
+              ),
+              spendRate: spendRate,
+              valueKind: valueKind,
+              onToggle: () => onToggleSeries(
+                groups[groupIndex].seriesList[seriesIndex].id,
+              ),
+              onSolo: () => onSoloSeries(
+                groups[groupIndex].seriesList[seriesIndex].id,
+              ),
+            ),
+          ],
+        ],
+      ],
+    );
+  }
+
+  static List<_LegendSectionGroup> _groupsFromSeries(
+    List<CategoryTrendSeries> seriesList,
+  ) {
+    final byName = <String, List<CategoryTrendSeries>>{};
+    final sectionOrder = <String>[];
+    for (final series in seriesList) {
+      final key = series.legendGroup?.trim();
+      final sectionName = key == null || key.isEmpty ? 'Other' : key;
+      if (!byName.containsKey(sectionName)) {
+        sectionOrder.add(sectionName);
+        byName[sectionName] = [];
+      }
+      byName[sectionName]!.add(series);
+    }
+    return [
+      for (final name in sectionOrder)
+        _LegendSectionGroup(
+          sectionName: name,
+          seriesList: byName[name]!,
+        ),
+    ];
+  }
+}
+
+class _LegendSectionGroup {
+  const _LegendSectionGroup({
+    required this.sectionName,
+    required this.seriesList,
+  });
+
+  final String sectionName;
+  final List<CategoryTrendSeries> seriesList;
 }

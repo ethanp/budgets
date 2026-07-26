@@ -1,3 +1,5 @@
+import 'package:budgets/domain/account_kind.dart';
+
 class Account {
   const Account({
     required this.id,
@@ -12,6 +14,7 @@ class Account {
     required this.status,
     this.statusMessage,
     this.userLabel,
+    this.kind = AccountKind.other,
   });
 
   final String id;
@@ -30,6 +33,9 @@ class Account {
 
   /// Optional user-visible name; when set, [displayName] prefers it.
   final String? userLabel;
+
+  /// Persisted account class (Checking, Investment, …); user-editable.
+  final AccountKind kind;
 
   /// Name shown throughout the app.
   String get displayName {
@@ -52,6 +58,7 @@ class Account {
     String? statusMessage,
     String? userLabel,
     bool clearUserLabel = false,
+    AccountKind? kind,
   }) {
     return Account(
       id: id ?? this.id,
@@ -66,6 +73,7 @@ class Account {
       status: status ?? this.status,
       statusMessage: statusMessage ?? this.statusMessage,
       userLabel: clearUserLabel ? null : (userLabel ?? this.userLabel),
+      kind: kind ?? this.kind,
     );
   }
 }

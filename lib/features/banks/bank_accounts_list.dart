@@ -1,4 +1,5 @@
 import 'package:budgets/domain/account.dart';
+import 'package:budgets/domain/account_kind.dart';
 import 'package:budgets/providers/budgets_providers.dart';
 import 'package:budgets/services/simplefin/simplefin_models.dart';
 import 'package:budgets/theme/app_theme.dart';
@@ -202,29 +203,54 @@ class _AccountBalanceRowState extends ConsumerState<_AccountBalanceRow> {
 
     final nameRow = AppSpreadsheetRow(
       trailingWidth: widget.amountColumnWidth,
-      leading: _editing
-          ? CupertinoTextField(
-              controller: _nameController,
-              focusNode: _focusNode,
-              placeholder: _account.name,
-              style: nameStyle.bright,
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.sm,
-                vertical: AppSpacing.xs,
-              ),
-              enabled: !_saving,
-              onSubmitted: (_) => _commitRename(),
-            )
-          : GestureDetector(
-              onTap: _beginEditing,
-              behavior: HitTestBehavior.opaque,
-              child: Text(
-                _account.displayName,
-                style: nameStyle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
+      leading: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _editing
+              ? CupertinoTextField(
+                  controller: _nameController,
+                  focusNode: _focusNode,
+                  placeholder: _account.name,
+                  style: nameStyle.bright,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm,
+                    vertical: AppSpacing.xs,
+                  ),
+                  enabled: !_saving,
+                  onSubmitted: (_) => _commitRename(),
+                )
+              : GestureDetector(
+                  onTap: _beginEditing,
+                  behavior: HitTestBehavior.opaque,
+                  child: Text(
+                    _account.displayName,
+                    style: nameStyle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+          VSpace.xs,
+          GestureDetector(
+            onTap: _saving ? null : () => _pickKind(context),
+            behavior: HitTestBehavior.opaque,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _account.kind.legendLabel,
+                  style: AppText.body.small.copyWith(color: AppColors.textDim),
+                ),
+                const SizedBox(width: 2),
+                const Icon(
+                  CupertinoIcons.chevron_down,
+                  size: 12,
+                  color: AppColors.textDim,
+                ),
+              ],
             ),
+          ),
+        ],
+      ),
       trailing: Text(
         formatCents(_account.balanceCents),
         style: isZero
@@ -244,6 +270,41 @@ class _AccountBalanceRowState extends ConsumerState<_AccountBalanceRow> {
         Text(exceptionLabel, style: AppText.body.small.warning),
       ],
     );
+  }
+
+  Future<void> _pickKind(BuildContext context) async {
+    final selected = await showCupertinoModalPopup<AccountKind>(
+      context: context,
+      builder: (sheetContext) => CupertinoActionSheet(
+        title: const Text('Account type'),
+        actions: [
+          for (final kind in AccountKind.values)
+            CupertinoActionSheetAction(
+              onPressed: () => Navigator.of(sheetContext).pop(kind),
+              child: Text(
+                kind.legendLabel,
+                style: kind == _account.kind
+                    ? AppText.body.medium.semibold
+                    : null,
+              ),
+            ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.of(sheetContext).pop(),
+          child: const Text('Cancel'),
+        ),
+      ),
+    );
+    if (selected == null || selected == _account.kind || !mounted) return;
+
+    setState(() => _saving = true);
+    try {
+      final repository = await ref.read(accountsRepositoryProvider.future);
+      await repository.updateKind(accountId: _account.id, kind: selected);
+      ref.read(dataRevisionProvider.notifier).bump();
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   void _beginEditing() {

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:budgets/services/sqlite/accounts_repository.dart';
 import 'package:budgets/services/sqlite/transactions_repository.dart';
 import 'package:budgets/domain/account.dart';
+import 'package:budgets/domain/account_kind.dart';
 import 'package:budgets/domain/transaction.dart';
 import 'package:budgets/util/merchant_normalize.dart';
 import 'package:csv/csv.dart';
@@ -102,17 +103,20 @@ class CsvImporter {
     final existing =
         await _accountsRepository.findByExternalId(externalAccountId);
     final accountId = existing?.id ?? _uuid.v4();
+    final draft = Account(
+      id: accountId,
+      externalId: externalAccountId,
+      name: accountName,
+      currency: 'USD',
+      balanceCents: existing?.balanceCents ?? 0,
+      lastSyncedAt: DateTime.now(),
+      status: AccountStatus.ok,
+      statusMessage: 'Imported from CSV',
+      userLabel: existing?.userLabel,
+    );
     await _accountsRepository.upsertAccount(
-      Account(
-        id: accountId,
-        externalId: externalAccountId,
-        name: accountName,
-        currency: 'USD',
-        balanceCents: existing?.balanceCents ?? 0,
-        lastSyncedAt: DateTime.now(),
-        status: AccountStatus.ok,
-        statusMessage: 'Imported from CSV',
-        userLabel: existing?.userLabel,
+      draft.copyWith(
+        kind: existing?.kind ?? AccountKindClassifier.classify(draft),
       ),
     );
     return accountId;
