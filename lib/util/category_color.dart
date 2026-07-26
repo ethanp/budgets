@@ -1,6 +1,6 @@
-import 'package:budgets/domain/category.dart';
-import 'package:budgets/domain/special_category.dart';
-import 'package:budgets/theme/app_theme.dart';
+import 'package:spend_trends/domain/category.dart';
+import 'package:spend_trends/domain/special_category.dart';
+import 'package:spend_trends/theme/app_theme.dart';
 import 'package:flutter/cupertino.dart';
 
 /// Stable colors for category identity across Activity / Trends.

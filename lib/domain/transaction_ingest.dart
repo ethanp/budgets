@@ -1,13 +1,13 @@
-import 'package:budgets/domain/account.dart';
-import 'package:budgets/domain/account_kind.dart';
-import 'package:budgets/domain/transaction.dart';
-import 'package:budgets/services/simplefin/simplefin_access_store.dart';
-import 'package:budgets/services/simplefin/simplefin_client.dart';
-import 'package:budgets/services/simplefin/simplefin_models.dart';
-import 'package:budgets/services/sqlite/accounts_repository.dart';
-import 'package:budgets/services/sqlite/sync_state_store.dart';
-import 'package:budgets/services/sqlite/transactions_repository.dart';
-import 'package:budgets/util/merchant_normalize.dart';
+import 'package:spend_trends/domain/account.dart';
+import 'package:spend_trends/domain/account_kind.dart';
+import 'package:spend_trends/domain/transaction.dart';
+import 'package:spend_trends/services/simplefin/simplefin_access_store.dart';
+import 'package:spend_trends/services/simplefin/simplefin_client.dart';
+import 'package:spend_trends/services/simplefin/simplefin_models.dart';
+import 'package:spend_trends/services/sqlite/accounts_repository.dart';
+import 'package:spend_trends/services/sqlite/sync_state_store.dart';
+import 'package:spend_trends/services/sqlite/transactions_repository.dart';
+import 'package:spend_trends/util/merchant_normalize.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:uuid/uuid.dart';
 

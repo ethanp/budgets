@@ -11,7 +11,7 @@
 /// merges duplicate-named categories onto the canonical ids. Idempotent.
 library;
 
-import 'package:budgets/domain/special_category.dart';
+import 'package:spend_trends/domain/special_category.dart';
 import 'package:ethan_sync/ethan_sync.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:powersync/powersync.dart';

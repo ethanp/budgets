@@ -1,6 +1,6 @@
-import 'package:budgets/domain/month_summary.dart';
-import 'package:budgets/domain/transaction.dart';
-import 'package:budgets/util/merchant_normalize.dart';
+import 'package:spend_trends/domain/month_summary.dart';
+import 'package:spend_trends/domain/transaction.dart';
+import 'package:spend_trends/util/merchant_normalize.dart';
 import 'package:ethan_sync/ethan_sync.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:powersync/powersync.dart';

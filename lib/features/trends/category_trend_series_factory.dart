@@ -1,13 +1,13 @@
-import 'package:budgets/domain/account.dart';
-import 'package:budgets/domain/category.dart';
-import 'package:budgets/domain/category_group.dart';
-import 'package:budgets/domain/special_category.dart';
-import 'package:budgets/domain/transaction.dart';
-import 'package:budgets/features/trends/cash_flow_trend_builder.dart';
-import 'package:budgets/features/trends/category_spend_trend_builder.dart';
-import 'package:budgets/features/trends/net_worth_trend.dart';
-import 'package:budgets/features/trends/trend_chart_catalog.dart';
-import 'package:budgets/features/trends/trends_chart_bundle.dart';
+import 'package:spend_trends/domain/account.dart';
+import 'package:spend_trends/domain/category.dart';
+import 'package:spend_trends/domain/category_group.dart';
+import 'package:spend_trends/domain/special_category.dart';
+import 'package:spend_trends/domain/transaction.dart';
+import 'package:spend_trends/features/trends/cash_flow_trend_builder.dart';
+import 'package:spend_trends/features/trends/category_spend_trend_builder.dart';
+import 'package:spend_trends/features/trends/net_worth_trend.dart';
+import 'package:spend_trends/features/trends/trend_chart_catalog.dart';
+import 'package:spend_trends/features/trends/trends_chart_bundle.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 
 /// Orchestrates Trends chart series from transactions, categories, and accounts.

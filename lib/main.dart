@@ -1,19 +1,19 @@
-import 'package:budgets/features/shell/budgets_app.dart';
-import 'package:budgets/services/sync/sync_config.dart';
+import 'package:spend_trends/features/shell/spend_trends_app.dart';
+import 'package:spend_trends/services/sync/sync_config.dart';
 import 'package:ethan_sync/ethan_sync.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-const _logger = ELogger('BudgetsMain');
+const _logger = ELogger('SpendTrendsMain');
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await loadAppDotEnv();
 
-  if (!budgetsSyncConfigured()) {
+  if (!spendTrendsSyncConfigured()) {
     throw StateError(
       'Set POWERSYNC_JWT_SECRET and SERVER_HOST_LAN in .env '
       '(ethan_sync is required for local storage).',
@@ -24,7 +24,7 @@ Future<void> main() async {
   final container = ProviderContainer(
     overrides: [
       syncConfigProvider.overrideWith(
-        (ref) => buildBudgetsSyncConfig(preferences),
+        (ref) => buildSpendTrendsSyncConfig(preferences),
       ),
     ],
   );
@@ -40,7 +40,7 @@ Future<void> main() async {
   runApp(
     UncontrolledProviderScope(
       container: container,
-      child: const BudgetsApp(),
+      child: const SpendTrendsApp(),
     ),
   );
 }

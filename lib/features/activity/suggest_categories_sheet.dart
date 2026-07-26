@@ -1,10 +1,10 @@
-import 'package:budgets/domain/categorizer.dart';
-import 'package:budgets/features/activity/rule_impact_confirm_sheet.dart';
-import 'package:budgets/providers/budgets_providers.dart';
-import 'package:budgets/providers/llm_providers.dart';
-import 'package:budgets/services/llm/llm_category_suggester.dart';
-import 'package:budgets/services/llm/llm_errors.dart';
-import 'package:budgets/theme/app_theme.dart';
+import 'package:spend_trends/domain/categorizer.dart';
+import 'package:spend_trends/features/activity/rule_impact_confirm_sheet.dart';
+import 'package:spend_trends/providers/spend_trends_providers.dart';
+import 'package:spend_trends/providers/llm_providers.dart';
+import 'package:spend_trends/services/llm/llm_category_suggester.dart';
+import 'package:spend_trends/services/llm/llm_errors.dart';
+import 'package:spend_trends/theme/app_theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

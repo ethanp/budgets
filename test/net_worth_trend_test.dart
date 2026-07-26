@@ -1,10 +1,10 @@
-import 'package:budgets/domain/account.dart';
-import 'package:budgets/domain/account_kind.dart';
-import 'package:budgets/domain/transaction.dart';
-import 'package:budgets/features/trends/category_trend_series_factory.dart';
-import 'package:budgets/features/trends/net_worth_trend.dart';
+import 'package:spend_trends/domain/account.dart';
+import 'package:spend_trends/domain/account_kind.dart';
+import 'package:spend_trends/domain/transaction.dart';
+import 'package:spend_trends/features/trends/category_trend_series_factory.dart';
+import 'package:spend_trends/features/trends/net_worth_trend.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:budgets/features/trends/trend_chart_catalog.dart';
+import 'package:spend_trends/features/trends/trend_chart_catalog.dart';
 
 void main() {
   test('daily net worth walks balances back through later transactions', () {

@@ -1,8 +1,8 @@
-import 'package:budgets/domain/category.dart';
-import 'package:budgets/domain/transaction.dart';
-import 'package:budgets/features/trends/annual_pace_smoother.dart';
-import 'package:budgets/features/trends/category_trend_series_factory.dart';
-import 'package:budgets/features/trends/hann_annual_pace_kernel.dart';
+import 'package:spend_trends/domain/category.dart';
+import 'package:spend_trends/domain/transaction.dart';
+import 'package:spend_trends/features/trends/annual_pace_smoother.dart';
+import 'package:spend_trends/features/trends/category_trend_series_factory.dart';
+import 'package:spend_trends/features/trends/hann_annual_pace_kernel.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

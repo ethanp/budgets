@@ -1,4 +1,4 @@
-import 'package:budgets/domain/special_category.dart';
+import 'package:spend_trends/domain/special_category.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

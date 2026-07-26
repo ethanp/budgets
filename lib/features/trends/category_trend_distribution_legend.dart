@@ -1,13 +1,13 @@
 import 'dart:math' as math;
 
-import 'package:budgets/domain/trend_spend_rate.dart';
-import 'package:budgets/features/trends/category_trend_distribution.dart';
-import 'package:budgets/features/trends/category_trend_series.dart';
-import 'package:budgets/features/trends/distribution_whisker_painter.dart';
-import 'package:budgets/features/trends/trend_legend_swatch.dart';
-import 'package:budgets/features/trends/trend_value_scale.dart';
-import 'package:budgets/theme/app_theme.dart';
-import 'package:budgets/util/money_format.dart';
+import 'package:spend_trends/domain/trend_spend_rate.dart';
+import 'package:spend_trends/features/trends/category_trend_distribution.dart';
+import 'package:spend_trends/features/trends/category_trend_series.dart';
+import 'package:spend_trends/features/trends/distribution_whisker_painter.dart';
+import 'package:spend_trends/features/trends/trend_legend_swatch.dart';
+import 'package:spend_trends/features/trends/trend_value_scale.dart';
+import 'package:spend_trends/theme/app_theme.dart';
+import 'package:spend_trends/util/money_format.dart';
 import 'package:flutter/cupertino.dart';
 
 /// Shared-scale min/med/avg/max/now whiskers for ranked category/group series.

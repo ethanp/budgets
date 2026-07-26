@@ -1,6 +1,6 @@
-import 'package:budgets/domain/category.dart';
-import 'package:budgets/domain/category_group.dart';
-import 'package:budgets/domain/special_category.dart';
+import 'package:spend_trends/domain/category.dart';
+import 'package:spend_trends/domain/category_group.dart';
+import 'package:spend_trends/domain/special_category.dart';
 import 'package:ethan_sync/ethan_sync.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:powersync/powersync.dart';

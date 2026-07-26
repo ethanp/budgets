@@ -1,15 +1,15 @@
-import 'package:budgets/features/shell/main_tab_screen.dart';
-import 'package:budgets/theme/app_theme.dart';
+import 'package:spend_trends/features/shell/main_tab_screen.dart';
+import 'package:spend_trends/theme/app_theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show DefaultMaterialLocalizations;
 
-class BudgetsApp extends StatelessWidget {
-  const BudgetsApp({super.key});
+class SpendTrendsApp extends StatelessWidget {
+  const SpendTrendsApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return CupertinoApp(
-      title: 'Budgets',
+      title: 'Spend Trends',
       theme: buildAppTheme(),
       debugShowCheckedModeBanner: false,
       localizationsDelegates: const [

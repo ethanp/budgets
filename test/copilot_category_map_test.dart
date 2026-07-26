@@ -1,4 +1,4 @@
-import 'package:budgets/services/csv/copilot_category_map.dart';
+import 'package:spend_trends/services/csv/copilot_category_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

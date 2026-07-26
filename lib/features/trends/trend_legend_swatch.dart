@@ -1,5 +1,5 @@
-import 'package:budgets/features/trends/category_trend_series.dart';
-import 'package:budgets/theme/app_theme.dart';
+import 'package:spend_trends/features/trends/category_trend_series.dart';
+import 'package:spend_trends/theme/app_theme.dart';
 import 'package:flutter/cupertino.dart';
 
 /// Color chip for a trend series (solid, dotted, or long-dash guide).

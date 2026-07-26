@@ -1,4 +1,4 @@
-import 'package:budgets/features/trends/category_trend_series.dart';
+import 'package:spend_trends/features/trends/category_trend_series.dart';
 
 class TrendsChartBundle {
   const TrendsChartBundle({

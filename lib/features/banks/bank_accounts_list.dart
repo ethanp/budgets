@@ -1,10 +1,10 @@
-import 'package:budgets/domain/account.dart';
-import 'package:budgets/domain/account_kind.dart';
-import 'package:budgets/providers/budgets_providers.dart';
-import 'package:budgets/services/simplefin/simplefin_models.dart';
-import 'package:budgets/theme/app_theme.dart';
-import 'package:budgets/util/money_format.dart';
-import 'package:budgets/widgets/app_spreadsheet.dart';
+import 'package:spend_trends/domain/account.dart';
+import 'package:spend_trends/domain/account_kind.dart';
+import 'package:spend_trends/providers/spend_trends_providers.dart';
+import 'package:spend_trends/services/simplefin/simplefin_models.dart';
+import 'package:spend_trends/theme/app_theme.dart';
+import 'package:spend_trends/util/money_format.dart';
+import 'package:spend_trends/widgets/app_spreadsheet.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show SelectableText;
 import 'package:flutter_riverpod/flutter_riverpod.dart';

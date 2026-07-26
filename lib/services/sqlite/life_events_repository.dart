@@ -1,4 +1,4 @@
-import 'package:budgets/domain/life_event.dart';
+import 'package:spend_trends/domain/life_event.dart';
 import 'package:ethan_sync/ethan_sync.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:powersync/powersync.dart';

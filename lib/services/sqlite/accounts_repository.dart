@@ -1,5 +1,5 @@
-import 'package:budgets/domain/account.dart';
-import 'package:budgets/domain/account_kind.dart';
+import 'package:spend_trends/domain/account.dart';
+import 'package:spend_trends/domain/account_kind.dart';
 import 'package:ethan_sync/ethan_sync.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:powersync/powersync.dart';

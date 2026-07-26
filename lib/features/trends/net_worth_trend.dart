@@ -1,11 +1,11 @@
-import 'package:budgets/domain/account.dart';
-import 'package:budgets/domain/account_kind.dart' show AccountKind;
-import 'package:budgets/domain/transaction.dart';
-import 'package:budgets/features/trends/category_trend_point.dart';
-import 'package:budgets/features/trends/category_trend_series.dart';
-import 'package:budgets/features/trends/centered_moving_average.dart';
-import 'package:budgets/features/trends/trend_chart_catalog.dart';
-import 'package:budgets/features/trends/trend_series_significance.dart';
+import 'package:spend_trends/domain/account.dart';
+import 'package:spend_trends/domain/account_kind.dart' show AccountKind;
+import 'package:spend_trends/domain/transaction.dart';
+import 'package:spend_trends/features/trends/category_trend_point.dart';
+import 'package:spend_trends/features/trends/category_trend_series.dart';
+import 'package:spend_trends/features/trends/centered_moving_average.dart';
+import 'package:spend_trends/features/trends/trend_chart_catalog.dart';
+import 'package:spend_trends/features/trends/trend_series_significance.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/cupertino.dart';
 

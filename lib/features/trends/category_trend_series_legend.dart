@@ -1,13 +1,13 @@
 import 'dart:math' as math;
 
-import 'package:budgets/domain/trend_spend_rate.dart';
-import 'package:budgets/features/trends/category_trend_distribution_legend.dart';
-import 'package:budgets/features/trends/category_trend_series.dart';
-import 'package:budgets/features/trends/trend_legend_swatch.dart';
-import 'package:budgets/theme/app_theme.dart';
-import 'package:budgets/util/money_format.dart';
+import 'package:spend_trends/domain/trend_spend_rate.dart';
+import 'package:spend_trends/features/trends/category_trend_distribution_legend.dart';
+import 'package:spend_trends/features/trends/category_trend_series.dart';
+import 'package:spend_trends/features/trends/trend_legend_swatch.dart';
+import 'package:spend_trends/theme/app_theme.dart';
+import 'package:spend_trends/util/money_format.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:budgets/features/trends/trend_chart_catalog.dart';
+import 'package:spend_trends/features/trends/trend_chart_catalog.dart';
 
 /// Legend under a trends chart: meta chips, plus ranked chips or distribution.
 class CategoryTrendSeriesLegend extends StatelessWidget {

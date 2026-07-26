@@ -1,26 +1,25 @@
 import 'dart:io';
 
-import 'package:budgets/migrations/migrate_life_event_occurred_on_keys.dart';
-import 'package:budgets/migrations/migrate_special_categories.dart';
-import 'package:budgets/migrations/seed_default_categories.dart';
-import 'package:budgets/services/sync/powersync_schema.dart';
+import 'package:spend_trends/migrations/migrate_life_event_occurred_on_keys.dart';
+import 'package:spend_trends/migrations/migrate_special_categories.dart';
+import 'package:spend_trends/migrations/seed_default_categories.dart';
+import 'package:spend_trends/services/sync/powersync_schema.dart';
 import 'package:ethan_sync/ethan_sync.dart';
 import 'package:ethan_utils/ethan_utils.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:powersync/powersync.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-const _log = ELogger('BudgetsSync');
+const _log = ELogger('SpendTrendsSync');
 
 const _powersyncPort = 8083;
 const _postgrestPort = 3006;
 const _llmProxyPort = 3002;
-const _databasePathKey = 'budgets_powersync_database_path';
-const _databaseFileName = 'budgets_powersync.db';
+const _databasePathKey = 'spend_trends_powersync_database_path';
+const _databaseFileName = 'spend_trends_powersync.db';
 
-bool budgetsSyncConfigured() {
+bool spendTrendsSyncConfigured() {
   final secret = dotenv.env['POWERSYNC_JWT_SECRET']?.trim() ?? '';
   final lan = dotenv.env['SERVER_HOST_LAN']?.trim() ?? '';
   return secret.isNotEmpty && lan.isNotEmpty;
@@ -46,7 +45,7 @@ const _conflictColumns = <String, String>{
   'sync_state': 'key',
 };
 
-SyncConfig buildBudgetsSyncConfig(SharedPreferences preferences) {
+SyncConfig buildSpendTrendsSyncConfig(SharedPreferences preferences) {
   return SyncConfig(
     hostResolution: HostResolutionSettings(
       candidates: _hostCandidates(),
@@ -61,9 +60,9 @@ SyncConfig buildBudgetsSyncConfig(SharedPreferences preferences) {
     ),
     jwtCredentials: PowerSyncJwtCredentials(
       secret: _jwtSecret(),
-      keyId: 'budgets-dev-key',
+      keyId: 'spend-trends-dev-key',
     ),
-    schema: budgetsSchema,
+    schema: spendTrendsSchema,
     databasePath: () => _resolveDatabasePath(preferences),
     upload: UploadSettings(
       strategy: TieredBatchUploadStrategy(dependencies: _fkDependencies),

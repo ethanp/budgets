@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:budgets/services/simplefin/simplefin_models.dart';
+import 'package:spend_trends/services/simplefin/simplefin_models.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:http/http.dart' as http;
 

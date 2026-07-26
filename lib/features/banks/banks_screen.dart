@@ -1,6 +1,6 @@
-import 'package:budgets/features/banks/banks_source_section.dart';
-import 'package:budgets/theme/app_theme.dart';
-import 'package:budgets/widgets/sync_status_nav_button.dart';
+import 'package:spend_trends/features/banks/banks_source_section.dart';
+import 'package:spend_trends/theme/app_theme.dart';
+import 'package:spend_trends/widgets/sync_status_nav_button.dart';
 import 'package:flutter/cupertino.dart';
 
 /// Everyday SimpleFIN connect / accounts / sync.

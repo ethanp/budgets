@@ -1,4 +1,4 @@
-import 'package:budgets/domain/category.dart';
+import 'package:spend_trends/domain/category.dart';
 
 /// Built-in categories with stable ids.
 ///

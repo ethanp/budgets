@@ -1,4 +1,4 @@
-import 'package:budgets/domain/transaction.dart';
+import 'package:spend_trends/domain/transaction.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Documents the upsert contract used by [TransactionsRepository]: when the

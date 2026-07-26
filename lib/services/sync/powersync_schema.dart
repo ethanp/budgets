@@ -1,7 +1,7 @@
 import 'package:powersync/powersync.dart';
 
-/// Mirrors [infra/budgets] Postgres tables. PowerSync adds `id` automatically.
-const Schema budgetsSchema = Schema([
+/// Mirrors [infra/spend_trends] Postgres tables. PowerSync adds `id` automatically.
+const Schema spendTrendsSchema = Schema([
   Table('accounts', [
     Column.text('external_id'),
     Column.text('name'),

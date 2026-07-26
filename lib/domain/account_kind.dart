@@ -1,4 +1,4 @@
-import 'package:budgets/domain/account.dart';
+import 'package:spend_trends/domain/account.dart';
 
 /// Fixed account classes for Trends / net-worth legend grouping.
 ///

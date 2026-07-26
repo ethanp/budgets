@@ -1,6 +1,6 @@
-import 'package:budgets/domain/category_group.dart';
-import 'package:budgets/providers/budgets_providers.dart';
-import 'package:budgets/theme/app_theme.dart';
+import 'package:spend_trends/domain/category_group.dart';
+import 'package:spend_trends/providers/spend_trends_providers.dart';
+import 'package:spend_trends/theme/app_theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

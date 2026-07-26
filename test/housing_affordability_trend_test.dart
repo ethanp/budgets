@@ -1,9 +1,9 @@
-import 'package:budgets/domain/category.dart';
-import 'package:budgets/domain/special_category.dart';
-import 'package:budgets/domain/transaction.dart';
-import 'package:budgets/features/trends/category_trend_series_factory.dart';
+import 'package:spend_trends/domain/category.dart';
+import 'package:spend_trends/domain/special_category.dart';
+import 'package:spend_trends/domain/transaction.dart';
+import 'package:spend_trends/features/trends/category_trend_series_factory.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:budgets/features/trends/trend_chart_catalog.dart';
+import 'package:spend_trends/features/trends/trend_chart_catalog.dart';
 
 void main() {
   test('category spend includes 30% of income affordability boundary', () {

@@ -1,22 +1,22 @@
-# PowerSync Open Edition Configuration for budgets
+# PowerSync Open Edition Configuration for spend_trends
 
 replication:
   connections:
     - type: postgresql
       hostname: postgres
       port: 5432
-      database: budgets
-      username: budgets
+      database: spend_trends
+      username: spend_trends
       password: !env PS_PG_PASSWORD
       sslmode: disable
-      id: budgets
+      id: spend_trends
 
 storage:
   type: postgresql
   hostname: postgres
   port: 5432
-  database: budgets
-  username: budgets
+  database: spend_trends
+  username: spend_trends
   password: !env PS_PG_PASSWORD
   sslmode: disable
 
@@ -24,7 +24,7 @@ client_auth:
   jwks:
     keys:
       - kty: oct
-        kid: budgets-dev-key
+        kid: spend-trends-dev-key
         k: !env PS_JWT_KEY
         alg: HS256
   audience:
@@ -33,7 +33,7 @@ client_auth:
 sync_rules:
   content: |
     bucket_definitions:
-      budgets_global:
+      spend_trends_global:
         priority: 0
         data:
           - SELECT * FROM accounts

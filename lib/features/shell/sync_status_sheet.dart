@@ -1,7 +1,7 @@
-import 'package:budgets/domain/account.dart';
-import 'package:budgets/providers/budgets_providers.dart';
-import 'package:budgets/services/sync/sync_config.dart';
-import 'package:budgets/theme/app_theme.dart';
+import 'package:spend_trends/domain/account.dart';
+import 'package:spend_trends/providers/spend_trends_providers.dart';
+import 'package:spend_trends/services/sync/sync_config.dart';
+import 'package:spend_trends/theme/app_theme.dart';
 import 'package:ethan_sync/ethan_sync.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -78,7 +78,7 @@ class _SyncStatusBody extends ConsumerWidget {
   }
 
   Widget _deviceSyncSection(WidgetRef ref) {
-    if (!budgetsSyncConfigured()) {
+    if (!spendTrendsSyncConfigured()) {
       return _statusLine(
         label: 'Device sync',
         value: 'Not configured',

@@ -1,14 +1,14 @@
-import 'package:budgets/domain/category.dart';
-import 'package:budgets/domain/category_group.dart';
-import 'package:budgets/domain/month_summary.dart';
-import 'package:budgets/domain/special_category.dart';
-import 'package:budgets/features/categories/category_editor_sheet.dart';
-import 'package:budgets/features/categories/group_editor_sheet.dart';
-import 'package:budgets/providers/budgets_providers.dart';
-import 'package:budgets/theme/app_theme.dart';
-import 'package:budgets/util/money_format.dart';
-import 'package:budgets/widgets/app_card.dart';
-import 'package:budgets/widgets/sync_status_nav_button.dart';
+import 'package:spend_trends/domain/category.dart';
+import 'package:spend_trends/domain/category_group.dart';
+import 'package:spend_trends/domain/month_summary.dart';
+import 'package:spend_trends/domain/special_category.dart';
+import 'package:spend_trends/features/categories/category_editor_sheet.dart';
+import 'package:spend_trends/features/categories/group_editor_sheet.dart';
+import 'package:spend_trends/providers/spend_trends_providers.dart';
+import 'package:spend_trends/theme/app_theme.dart';
+import 'package:spend_trends/util/money_format.dart';
+import 'package:spend_trends/widgets/app_card.dart';
+import 'package:spend_trends/widgets/sync_status_nav_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

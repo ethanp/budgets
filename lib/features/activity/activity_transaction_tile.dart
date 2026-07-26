@@ -1,10 +1,10 @@
-import 'package:budgets/domain/account.dart';
-import 'package:budgets/domain/category.dart';
-import 'package:budgets/domain/special_category.dart';
-import 'package:budgets/domain/transaction.dart';
-import 'package:budgets/theme/app_theme.dart';
-import 'package:budgets/util/category_color.dart';
-import 'package:budgets/util/money_format.dart';
+import 'package:spend_trends/domain/account.dart';
+import 'package:spend_trends/domain/category.dart';
+import 'package:spend_trends/domain/special_category.dart';
+import 'package:spend_trends/domain/transaction.dart';
+import 'package:spend_trends/theme/app_theme.dart';
+import 'package:spend_trends/util/category_color.dart';
+import 'package:spend_trends/util/money_format.dart';
 import 'package:flutter/cupertino.dart';
 
 /// One Activity row: merchant + amount first, then category, then metadata.

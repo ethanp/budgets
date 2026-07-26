@@ -1,4 +1,4 @@
-import 'package:budgets/features/trends/category_trend_point.dart';
+import 'package:spend_trends/features/trends/category_trend_point.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 
 /// Simple centered moving-average smoother (level series like net worth).

@@ -1,5 +1,5 @@
-import 'package:budgets/domain/account.dart';
-import 'package:budgets/domain/account_kind.dart';
+import 'package:spend_trends/domain/account.dart';
+import 'package:spend_trends/domain/account_kind.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

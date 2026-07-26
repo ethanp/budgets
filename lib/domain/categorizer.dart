@@ -1,8 +1,8 @@
-import 'package:budgets/domain/category.dart';
-import 'package:budgets/domain/transaction.dart';
-import 'package:budgets/services/sqlite/accounts_repository.dart';
-import 'package:budgets/services/sqlite/categories_repository.dart';
-import 'package:budgets/services/sqlite/transactions_repository.dart';
+import 'package:spend_trends/domain/category.dart';
+import 'package:spend_trends/domain/transaction.dart';
+import 'package:spend_trends/services/sqlite/accounts_repository.dart';
+import 'package:spend_trends/services/sqlite/categories_repository.dart';
+import 'package:spend_trends/services/sqlite/transactions_repository.dart';
 import 'package:uuid/uuid.dart';
 
 class CopilotDefaultRuleMigrationResult {

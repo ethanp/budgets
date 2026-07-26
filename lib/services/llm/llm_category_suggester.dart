@@ -1,10 +1,10 @@
 import 'dart:convert';
 
-import 'package:budgets/services/llm/category_suggest_prompt.dart';
-import 'package:budgets/services/llm/llm_errors.dart';
-import 'package:budgets/services/sqlite/categories_repository.dart';
-import 'package:budgets/services/sqlite/transactions_repository.dart';
-import 'package:budgets/domain/category.dart';
+import 'package:spend_trends/services/llm/category_suggest_prompt.dart';
+import 'package:spend_trends/services/llm/llm_errors.dart';
+import 'package:spend_trends/services/sqlite/categories_repository.dart';
+import 'package:spend_trends/services/sqlite/transactions_repository.dart';
+import 'package:spend_trends/domain/category.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:http/http.dart' as http;
 

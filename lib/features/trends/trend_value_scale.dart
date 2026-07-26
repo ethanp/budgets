@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:budgets/features/trends/chart_date_layout.dart';
+import 'package:spend_trends/features/trends/chart_date_layout.dart';
 
 /// Y scale snapped to human-readable tick steps for the data max.
 class TrendValueScale {

@@ -1,4 +1,4 @@
-import 'package:budgets/theme/app_theme.dart';
+import 'package:spend_trends/theme/app_theme.dart';
 import 'package:flutter/cupertino.dart';
 
 class AppCard extends StatelessWidget {

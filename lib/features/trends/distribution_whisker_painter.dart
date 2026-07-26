@@ -1,6 +1,6 @@
-import 'package:budgets/features/trends/category_trend_distribution.dart';
-import 'package:budgets/features/trends/trend_value_scale.dart';
-import 'package:budgets/theme/app_theme.dart';
+import 'package:spend_trends/features/trends/category_trend_distribution.dart';
+import 'package:spend_trends/features/trends/trend_value_scale.dart';
+import 'package:spend_trends/theme/app_theme.dart';
 import 'package:flutter/cupertino.dart';
 
 /// Shared stroke/mark drawing for whiskers and the symbol key.

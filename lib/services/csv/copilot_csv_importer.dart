@@ -1,15 +1,15 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:budgets/domain/account.dart';
-import 'package:budgets/domain/account_kind.dart';
-import 'package:budgets/domain/special_category.dart';
-import 'package:budgets/domain/transaction.dart';
-import 'package:budgets/services/csv/copilot_category_map.dart';
-import 'package:budgets/services/sqlite/accounts_repository.dart';
-import 'package:budgets/services/sqlite/categories_repository.dart';
-import 'package:budgets/services/sqlite/transactions_repository.dart';
-import 'package:budgets/util/merchant_normalize.dart';
+import 'package:spend_trends/domain/account.dart';
+import 'package:spend_trends/domain/account_kind.dart';
+import 'package:spend_trends/domain/special_category.dart';
+import 'package:spend_trends/domain/transaction.dart';
+import 'package:spend_trends/services/csv/copilot_category_map.dart';
+import 'package:spend_trends/services/sqlite/accounts_repository.dart';
+import 'package:spend_trends/services/sqlite/categories_repository.dart';
+import 'package:spend_trends/services/sqlite/transactions_repository.dart';
+import 'package:spend_trends/util/merchant_normalize.dart';
 import 'package:csv/csv.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:uuid/uuid.dart';

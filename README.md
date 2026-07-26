@@ -1,4 +1,4 @@
-# Budgets
+# Spend Trends
 
 Personal **categorical spend trend analysis** for **macOS and iPhone** only. Connect accounts via [SimpleFIN Bridge](https://beta-bridge.simplefin.org/) (or import history), categorize outflows, and read long-term shape per category — not monthly envelope budgeting.
 
@@ -17,7 +17,7 @@ This is a personal app (not a product). The repo is public-safe: bank Access URL
 SimpleFIN Bridge ──HTTP──► App (claim + /accounts)
                               │
                               ▼
-              PowerSync DB (budgets_powersync.db)
+              PowerSync DB (spend_trends_powersync.db)
                               │
               ┌───────────────┼───────────────┐
               ▼               ▼               ▼
@@ -54,7 +54,7 @@ Sibling path packages (same layout as your other Flutter apps):
 - `../ethan_sync`
 
 ```bash
-cd ~/code/my-code/Active/Flutter/budgets
+cd ~/code/my-code/Active/Flutter/spend_trends
 cp .env.example .env
 # Required: POWERSYNC_JWT_SECRET, SERVER_HOST_LAN
 # Optional: SIMPLEFIN_ACCESS_URL (after first Connect), LLM_APP_SECRET
@@ -69,16 +69,16 @@ flutter run -d iphone
 | Key | Required | Purpose |
 |-----|----------|---------|
 | `SERVER_HOST_LAN` | Yes | Home server host |
-| `POWERSYNC_JWT_SECRET` | Yes | ethan_sync JWT (raw secret; infra `BUDGETS_POWERSYNC_JWT_KEY` is its base64url form) |
+| `POWERSYNC_JWT_SECRET` | Yes | ethan_sync JWT (raw secret; infra `SPEND_TRENDS_POWERSYNC_JWT_KEY` is its base64url form) |
 | `SIMPLEFIN_ACCESS_URL` | After claim | Claimed Access URL (not Setup Token) |
-| `LLM_APP_NAME` | Optional | Usually `budgets` |
-| `LLM_APP_SECRET` | Optional | Must match infra `LLM_BUDGETS_SECRET` |
+| `LLM_APP_NAME` | Optional | Usually `spend_trends` |
+| `LLM_APP_SECRET` | Optional | Must match infra `LLM_SPEND_TRENDS_SECRET` |
 
 `.env` is gitignored and listed as a Flutter asset (same pattern as your other apps). Keep real values only on your machine.
 
 ## Infra
 
-Server pieces live in `../../infra/budgets/` (PowerSync **8083**, PostgREST **3006**). Schema + publication migrations are under `infra/budgets/migrations/`. Register `LLM_BUDGETS_SECRET` on the shared llm-proxy for category suggestions.
+Server schema lives in this repo under `db/` and syncs to `../../infra/spend_trends/` for Docker mounts (PowerSync **8083**, PostgREST **3006**). Register `LLM_SPEND_TRENDS_SECRET` on the shared llm-proxy for category suggestions.
 
 ## Icon
 

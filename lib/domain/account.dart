@@ -1,4 +1,4 @@
-import 'package:budgets/domain/account_kind.dart';
+import 'package:spend_trends/domain/account_kind.dart';
 
 class Account {
   const Account({

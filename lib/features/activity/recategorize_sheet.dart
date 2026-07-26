@@ -1,8 +1,8 @@
-import 'package:budgets/domain/category.dart';
-import 'package:budgets/domain/transaction.dart';
-import 'package:budgets/features/activity/rule_impact_confirm_sheet.dart';
-import 'package:budgets/providers/budgets_providers.dart';
-import 'package:budgets/theme/app_theme.dart';
+import 'package:spend_trends/domain/category.dart';
+import 'package:spend_trends/domain/transaction.dart';
+import 'package:spend_trends/features/activity/rule_impact_confirm_sheet.dart';
+import 'package:spend_trends/providers/spend_trends_providers.dart';
+import 'package:spend_trends/theme/app_theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

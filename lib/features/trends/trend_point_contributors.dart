@@ -1,10 +1,10 @@
-import 'package:budgets/domain/category.dart';
-import 'package:budgets/domain/category_group.dart';
-import 'package:budgets/domain/special_category.dart';
-import 'package:budgets/domain/transaction.dart';
-import 'package:budgets/features/trends/annual_pace_smoother.dart';
-import 'package:budgets/features/trends/category_trend_series.dart';
-import 'package:budgets/features/trends/trend_chart_catalog.dart';
+import 'package:spend_trends/domain/category.dart';
+import 'package:spend_trends/domain/category_group.dart';
+import 'package:spend_trends/domain/special_category.dart';
+import 'package:spend_trends/domain/transaction.dart';
+import 'package:spend_trends/features/trends/annual_pace_smoother.dart';
+import 'package:spend_trends/features/trends/category_trend_series.dart';
+import 'package:spend_trends/features/trends/trend_chart_catalog.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 
 /// One transaction's contribution to a trendline at a tap date.

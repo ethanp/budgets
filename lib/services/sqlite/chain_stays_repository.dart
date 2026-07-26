@@ -1,4 +1,4 @@
-import 'package:budgets/domain/stay_chain.dart';
+import 'package:spend_trends/domain/stay_chain.dart';
 import 'package:ethan_sync/ethan_sync.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:powersync/powersync.dart';

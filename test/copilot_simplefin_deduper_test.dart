@@ -1,5 +1,5 @@
-import 'package:budgets/domain/account.dart';
-import 'package:budgets/domain/copilot_simplefin_deduper.dart';
+import 'package:spend_trends/domain/account.dart';
+import 'package:spend_trends/domain/copilot_simplefin_deduper.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

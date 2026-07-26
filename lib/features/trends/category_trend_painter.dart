@@ -1,14 +1,14 @@
 import 'dart:math' as math;
 
-import 'package:budgets/domain/life_event.dart';
-import 'package:budgets/domain/stay_chain.dart';
-import 'package:budgets/features/trends/category_trend_point.dart';
-import 'package:budgets/features/trends/category_trend_series.dart';
-import 'package:budgets/features/trends/chart_date_layout.dart';
-import 'package:budgets/features/trends/trend_value_scale.dart';
-import 'package:budgets/theme/app_theme.dart';
-import 'package:budgets/theme/draw/date_range_band.dart';
-import 'package:budgets/util/money_format.dart';
+import 'package:spend_trends/domain/life_event.dart';
+import 'package:spend_trends/domain/stay_chain.dart';
+import 'package:spend_trends/features/trends/category_trend_point.dart';
+import 'package:spend_trends/features/trends/category_trend_series.dart';
+import 'package:spend_trends/features/trends/chart_date_layout.dart';
+import 'package:spend_trends/features/trends/trend_value_scale.dart';
+import 'package:spend_trends/theme/app_theme.dart';
+import 'package:spend_trends/theme/draw/date_range_band.dart';
+import 'package:spend_trends/util/money_format.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/cupertino.dart';
 

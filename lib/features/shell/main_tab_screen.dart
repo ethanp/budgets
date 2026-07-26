@@ -1,9 +1,9 @@
-import 'package:budgets/features/activity/activity_screen.dart';
-import 'package:budgets/features/banks/banks_screen.dart';
-import 'package:budgets/features/categories/categories_screen.dart';
-import 'package:budgets/features/life_events/life_events_screen.dart';
-import 'package:budgets/features/settings/settings_screen.dart';
-import 'package:budgets/features/trends/trends_screen.dart';
+import 'package:spend_trends/features/activity/activity_screen.dart';
+import 'package:spend_trends/features/banks/banks_screen.dart';
+import 'package:spend_trends/features/categories/categories_screen.dart';
+import 'package:spend_trends/features/life_events/life_events_screen.dart';
+import 'package:spend_trends/features/settings/settings_screen.dart';
+import 'package:spend_trends/features/trends/trends_screen.dart';
 import 'package:flutter/cupertino.dart';
 
 class MainTab {

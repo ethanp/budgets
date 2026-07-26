@@ -1,7 +1,7 @@
-import 'package:budgets/domain/account.dart';
-import 'package:budgets/domain/category.dart';
-import 'package:budgets/domain/transaction.dart';
-import 'package:budgets/features/activity/activity_search.dart';
+import 'package:spend_trends/domain/account.dart';
+import 'package:spend_trends/domain/category.dart';
+import 'package:spend_trends/domain/transaction.dart';
+import 'package:spend_trends/features/activity/activity_search.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

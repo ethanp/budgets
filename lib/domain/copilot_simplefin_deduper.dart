@@ -1,7 +1,7 @@
-import 'package:budgets/domain/account.dart';
-import 'package:budgets/domain/transaction.dart';
-import 'package:budgets/services/sqlite/accounts_repository.dart';
-import 'package:budgets/services/sqlite/transactions_repository.dart';
+import 'package:spend_trends/domain/account.dart';
+import 'package:spend_trends/domain/transaction.dart';
+import 'package:spend_trends/services/sqlite/accounts_repository.dart';
+import 'package:spend_trends/services/sqlite/transactions_repository.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 
 const _log = ELogger('CopilotSimplefinDeduper');

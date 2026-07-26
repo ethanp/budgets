@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'package:budgets/services/csv/csv_importer.dart';
-import 'package:budgets/providers/budgets_providers.dart';
-import 'package:budgets/theme/app_theme.dart';
+import 'package:spend_trends/services/csv/csv_importer.dart';
+import 'package:spend_trends/providers/spend_trends_providers.dart';
+import 'package:spend_trends/theme/app_theme.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

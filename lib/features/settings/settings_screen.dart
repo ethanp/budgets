@@ -1,12 +1,12 @@
-import 'package:budgets/features/banks/banks_advanced_section.dart';
-import 'package:budgets/features/settings/copilot_import_tile.dart';
-import 'package:budgets/features/settings/csv_import_sheet.dart';
-import 'package:budgets/features/settings/dedupe_copilot_tile.dart';
-import 'package:budgets/features/settings/migrate_copilot_rules_tile.dart';
-import 'package:budgets/features/settings/settings_section.dart';
-import 'package:budgets/features/settings/sync_status_tile.dart';
-import 'package:budgets/theme/app_theme.dart';
-import 'package:budgets/widgets/sync_status_nav_button.dart';
+import 'package:spend_trends/features/banks/banks_advanced_section.dart';
+import 'package:spend_trends/features/settings/copilot_import_tile.dart';
+import 'package:spend_trends/features/settings/csv_import_sheet.dart';
+import 'package:spend_trends/features/settings/dedupe_copilot_tile.dart';
+import 'package:spend_trends/features/settings/migrate_copilot_rules_tile.dart';
+import 'package:spend_trends/features/settings/settings_section.dart';
+import 'package:spend_trends/features/settings/sync_status_tile.dart';
+import 'package:spend_trends/theme/app_theme.dart';
+import 'package:spend_trends/widgets/sync_status_nav_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

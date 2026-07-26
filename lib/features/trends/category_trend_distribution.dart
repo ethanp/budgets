@@ -1,5 +1,5 @@
-import 'package:budgets/features/trends/category_trend_point.dart';
-import 'package:budgets/features/trends/hann_annual_pace_kernel.dart';
+import 'package:spend_trends/features/trends/category_trend_point.dart';
+import 'package:spend_trends/features/trends/hann_annual_pace_kernel.dart';
 
 /// Min / median / mean / max / current from a series' smoothed trendline.
 class CategoryTrendDistribution {

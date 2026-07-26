@@ -1,8 +1,8 @@
-import 'package:budgets/domain/stay_chain.dart';
-import 'package:budgets/providers/budgets_providers.dart';
-import 'package:budgets/services/sqlite/chain_stays_repository.dart';
-import 'package:budgets/theme/app_theme.dart';
-import 'package:budgets/widgets/app_date_picker.dart';
+import 'package:spend_trends/domain/stay_chain.dart';
+import 'package:spend_trends/providers/spend_trends_providers.dart';
+import 'package:spend_trends/services/sqlite/chain_stays_repository.dart';
+import 'package:spend_trends/theme/app_theme.dart';
+import 'package:spend_trends/widgets/app_date_picker.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

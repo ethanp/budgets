@@ -1,7 +1,7 @@
 #!/bin/bash
-# Apply a budgets DB migration via the shared infra migrate script.
+# Apply a spend_trends migration via the shared infra migrate script.
 #
-# Usage (from Flutter/budgets):
+# Usage (from Flutter/spend_trends):
 #   ./scripts/migrate.sh migrations/015_account_kind.sql
 #   ./scripts/migrate.sh --full migrations/015_account_kind.sql
 
@@ -38,4 +38,5 @@ if [ ! -f "$MIGRATION_FILE" ]; then
   exit 1
 fi
 
-exec "$INFRA_ROOT/migrate.sh" "${MODE_ARGS[@]}" --app budgets "$MIGRATION_FILE"
+# Postgres database/role are "spend_trends".
+exec "$INFRA_ROOT/migrate.sh" "${MODE_ARGS[@]}" --app spend_trends "$MIGRATION_FILE"

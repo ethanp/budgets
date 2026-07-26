@@ -1,7 +1,7 @@
-import 'package:budgets/domain/stay_chain.dart';
-import 'package:budgets/features/life_chains/chain_stay_form_sheet.dart';
-import 'package:budgets/providers/budgets_providers.dart';
-import 'package:budgets/theme/app_theme.dart';
+import 'package:spend_trends/domain/stay_chain.dart';
+import 'package:spend_trends/features/life_chains/chain_stay_form_sheet.dart';
+import 'package:spend_trends/providers/spend_trends_providers.dart';
+import 'package:spend_trends/theme/app_theme.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

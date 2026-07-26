@@ -1,4 +1,4 @@
-import 'package:budgets/domain/life_event.dart';
+import 'package:spend_trends/domain/life_event.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

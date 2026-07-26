@@ -1,5 +1,5 @@
-name: budgets
-description: Personal category budgeting with SimpleFIN bank sync
+name: spend_trends
+description: Personal spend trends with SimpleFIN bank sync
 publish_to: "none"
 version: 1.0.0+1
 

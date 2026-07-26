@@ -1,4 +1,4 @@
-import 'package:budgets/theme/app_theme.dart';
+import 'package:spend_trends/theme/app_theme.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';

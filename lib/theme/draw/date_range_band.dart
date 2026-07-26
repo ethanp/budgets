@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:budgets/features/trends/chart_date_layout.dart';
+import 'package:spend_trends/features/trends/chart_date_layout.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/painting.dart';
 

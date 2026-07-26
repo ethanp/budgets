@@ -1,6 +1,6 @@
-import 'package:budgets/domain/categorizer.dart';
-import 'package:budgets/domain/category.dart';
-import 'package:budgets/domain/transaction.dart';
+import 'package:spend_trends/domain/categorizer.dart';
+import 'package:spend_trends/domain/category.dart';
+import 'package:spend_trends/domain/transaction.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

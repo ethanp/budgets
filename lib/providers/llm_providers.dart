@@ -1,6 +1,6 @@
-import 'package:budgets/services/llm/llm_category_suggester.dart';
-import 'package:budgets/providers/budgets_providers.dart';
-import 'package:budgets/services/sync/sync_config.dart';
+import 'package:spend_trends/services/llm/llm_category_suggester.dart';
+import 'package:spend_trends/providers/spend_trends_providers.dart';
+import 'package:spend_trends/services/sync/sync_config.dart';
 import 'package:ethan_sync/ethan_sync.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,7 +12,7 @@ final llmCategorySuggesterProvider = FutureProvider<LlmCategorySuggester?>((
   if (secret == null || secret.isEmpty) return null;
 
   String? proxyUrl;
-  if (budgetsSyncConfigured()) {
+  if (spendTrendsSyncConfigured()) {
     try {
       proxyUrl = ref.watch(backendEndpointsProvider).llmProxyUrl;
     } catch (_) {}
@@ -26,7 +26,7 @@ final llmCategorySuggesterProvider = FutureProvider<LlmCategorySuggester?>((
 
   final suggester = LlmCategorySuggester(
     proxyUrl: proxyUrl,
-    appName: dotenv.env['LLM_APP_NAME']?.trim() ?? 'budgets',
+    appName: dotenv.env['LLM_APP_NAME']?.trim() ?? 'spend_trends',
     appSecret: secret,
     clientId: 'budgets-device',
     categoriesRepository: await ref.watch(categoriesRepositoryProvider.future),

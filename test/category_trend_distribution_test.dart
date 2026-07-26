@@ -1,5 +1,5 @@
-import 'package:budgets/features/trends/category_trend_distribution.dart';
-import 'package:budgets/features/trends/category_trend_point.dart';
+import 'package:spend_trends/features/trends/category_trend_distribution.dart';
+import 'package:spend_trends/features/trends/category_trend_point.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

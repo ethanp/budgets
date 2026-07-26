@@ -1,6 +1,6 @@
-import 'package:budgets/domain/categorizer.dart';
-import 'package:budgets/features/settings/settings_section.dart';
-import 'package:budgets/providers/budgets_providers.dart';
+import 'package:spend_trends/domain/categorizer.dart';
+import 'package:spend_trends/features/settings/settings_section.dart';
+import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

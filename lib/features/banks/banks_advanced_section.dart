@@ -1,8 +1,8 @@
-import 'package:budgets/features/banks/banks_controller.dart';
-import 'package:budgets/features/settings/settings_section.dart';
-import 'package:budgets/providers/budgets_providers.dart';
-import 'package:budgets/services/simplefin/simplefin_access_store.dart';
-import 'package:budgets/theme/app_theme.dart';
+import 'package:spend_trends/features/banks/banks_controller.dart';
+import 'package:spend_trends/features/settings/settings_section.dart';
+import 'package:spend_trends/providers/spend_trends_providers.dart';
+import 'package:spend_trends/services/simplefin/simplefin_access_store.dart';
+import 'package:spend_trends/theme/app_theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show SelectableText;
 import 'package:flutter_riverpod/flutter_riverpod.dart';

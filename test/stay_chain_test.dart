@@ -1,4 +1,4 @@
-import 'package:budgets/domain/stay_chain.dart';
+import 'package:spend_trends/domain/stay_chain.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
 

@@ -1,26 +1,26 @@
 import 'dart:math' as math;
 
-import 'package:budgets/domain/category.dart';
-import 'package:budgets/domain/category_group.dart';
-import 'package:budgets/domain/life_event.dart';
-import 'package:budgets/domain/stay_chain.dart';
-import 'package:budgets/domain/transaction.dart';
-import 'package:budgets/domain/trend_spend_rate.dart';
-import 'package:budgets/features/trends/category_trend_painter.dart';
-import 'package:budgets/features/trends/category_trend_point.dart';
-import 'package:budgets/features/trends/category_trend_series.dart';
-import 'package:budgets/features/trends/category_trend_series_legend.dart';
-import 'package:budgets/features/trends/chart_date_layout.dart';
-import 'package:budgets/features/trends/trend_point_contributors.dart';
-import 'package:budgets/features/trends/trend_point_contributors_sheet.dart';
-import 'package:budgets/features/trends/trend_value_scale.dart';
-import 'package:budgets/providers/budgets_providers.dart';
-import 'package:budgets/theme/app_theme.dart';
-import 'package:budgets/util/money_format.dart';
+import 'package:spend_trends/domain/category.dart';
+import 'package:spend_trends/domain/category_group.dart';
+import 'package:spend_trends/domain/life_event.dart';
+import 'package:spend_trends/domain/stay_chain.dart';
+import 'package:spend_trends/domain/transaction.dart';
+import 'package:spend_trends/domain/trend_spend_rate.dart';
+import 'package:spend_trends/features/trends/category_trend_painter.dart';
+import 'package:spend_trends/features/trends/category_trend_point.dart';
+import 'package:spend_trends/features/trends/category_trend_series.dart';
+import 'package:spend_trends/features/trends/category_trend_series_legend.dart';
+import 'package:spend_trends/features/trends/chart_date_layout.dart';
+import 'package:spend_trends/features/trends/trend_point_contributors.dart';
+import 'package:spend_trends/features/trends/trend_point_contributors_sheet.dart';
+import 'package:spend_trends/features/trends/trend_value_scale.dart';
+import 'package:spend_trends/providers/spend_trends_providers.dart';
+import 'package:spend_trends/theme/app_theme.dart';
+import 'package:spend_trends/util/money_format.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:budgets/features/trends/trend_chart_catalog.dart';
+import 'package:spend_trends/features/trends/trend_chart_catalog.dart';
 
 /// Labeled amount shown under a Trends chart title.
 class ChartHeadlineFigure {

@@ -1,9 +1,9 @@
--- Run as postgres/viant superuser once to create the budgets database.
+-- Run as postgres/viant superuser once to create the spend_trends database.
 -- Example (after sync-app-db.sh, from infra/):
---   docker exec -i <postgres> psql -U viant -d postgres < budgets/create_database.sql
--- Source of truth: Flutter/budgets/db/create_database.sql
+--   docker exec -i <postgres> psql -U viant -d postgres < spend_trends/create_database.sql
+-- Source of truth: Flutter/spend_trends/db/create_database.sql
 
-SELECT 'CREATE DATABASE budgets OWNER budgets'
-WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'budgets')\gexec
+SELECT 'CREATE DATABASE spend_trends OWNER spend_trends'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'spend_trends')\gexec
 
-GRANT ALL PRIVILEGES ON DATABASE budgets TO budgets;
+GRANT ALL PRIVILEGES ON DATABASE spend_trends TO spend_trends;

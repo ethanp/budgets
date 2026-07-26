@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:budgets/features/settings/settings_section.dart';
-import 'package:budgets/providers/sync_ui_provider.dart';
-import 'package:budgets/services/sync/sync_config.dart';
-import 'package:budgets/theme/app_theme.dart';
+import 'package:spend_trends/features/settings/settings_section.dart';
+import 'package:spend_trends/providers/sync_ui_provider.dart';
+import 'package:spend_trends/services/sync/sync_config.dart';
+import 'package:spend_trends/theme/app_theme.dart';
 import 'package:ethan_sync/ethan_sync.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,14 +23,14 @@ class _SyncStatusTileState extends ConsumerState<SyncStatusTile> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !budgetsSyncConfigured()) return;
+      if (!mounted || !spendTrendsSyncConfigured()) return;
       unawaited(ref.read(syncEnsureProvider).ensureConnected());
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!budgetsSyncConfigured()) {
+    if (!spendTrendsSyncConfigured()) {
       return const SettingsSectionHeader(
         icon: CupertinoIcons.cloud,
         title: 'Sync',

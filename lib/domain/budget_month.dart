@@ -1,14 +1,14 @@
-import 'package:budgets/domain/month_summary.dart';
-import 'package:budgets/domain/special_category.dart';
-import 'package:budgets/domain/transaction.dart';
-import 'package:budgets/features/trends/annual_pace_smoother.dart';
-import 'package:budgets/features/trends/hann_annual_pace_kernel.dart';
-import 'package:budgets/features/trends/trend_chart_catalog.dart';
-import 'package:budgets/services/sqlite/accounts_repository.dart';
-import 'package:budgets/services/sqlite/categories_repository.dart';
-import 'package:budgets/services/sqlite/sync_state_store.dart';
-import 'package:budgets/services/sqlite/transactions_repository.dart';
-import 'package:budgets/util/merchant_normalize.dart';
+import 'package:spend_trends/domain/month_summary.dart';
+import 'package:spend_trends/domain/special_category.dart';
+import 'package:spend_trends/domain/transaction.dart';
+import 'package:spend_trends/features/trends/annual_pace_smoother.dart';
+import 'package:spend_trends/features/trends/hann_annual_pace_kernel.dart';
+import 'package:spend_trends/features/trends/trend_chart_catalog.dart';
+import 'package:spend_trends/services/sqlite/accounts_repository.dart';
+import 'package:spend_trends/services/sqlite/categories_repository.dart';
+import 'package:spend_trends/services/sqlite/sync_state_store.dart';
+import 'package:spend_trends/services/sqlite/transactions_repository.dart';
+import 'package:spend_trends/util/merchant_normalize.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 
 class BudgetMonth {
