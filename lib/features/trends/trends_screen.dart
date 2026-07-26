@@ -157,6 +157,7 @@ int? _sumAccountBalances(AsyncValue<Map<String, Account>> accountsAsync) {
   if (accounts == null) return null;
   var totalCents = 0;
   for (final account in accounts.values) {
+    if (account.hasParent) continue;
     totalCents += account.balanceCents;
   }
   return totalCents;

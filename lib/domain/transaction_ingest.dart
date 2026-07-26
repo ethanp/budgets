@@ -257,6 +257,7 @@ class TransactionIngest {
           ? 'Authentication required — re-link in SimpleFIN'
           : null,
       userLabel: existing?.userLabel,
+      belongsToAccountId: existing?.belongsToAccountId,
     );
     await _accountsRepository.upsertAccount(
       draft.copyWith(

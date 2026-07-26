@@ -57,6 +57,8 @@ class AccountsRepository {
       'status_message': account.statusMessage,
       'user_label': account.userLabel,
       'account_kind': account.kind.storageValue,
+      'belongs_to_account_id':
+          account.belongsToAccountId ?? existing?.belongsToAccountId,
     });
   }
 
@@ -84,6 +86,38 @@ class AccountsRepository {
     );
   }
 
+  /// Assigns a Copilot account to a non-Copilot parent, or clears the link.
+  Future<void> updateBelongsTo({
+    required String accountId,
+    required String? belongsToAccountId,
+  }) async {
+    final child = await findById(accountId);
+    if (child == null) {
+      throw StateError('Account $accountId not found.');
+    }
+    if (!child.isCopilot) {
+      throw StateError('Only Copilot accounts can belong to another account.');
+    }
+
+    if (belongsToAccountId != null) {
+      if (belongsToAccountId == accountId) {
+        throw ArgumentError('An account cannot belong to itself.');
+      }
+      final parent = await findById(belongsToAccountId);
+      if (parent == null) {
+        throw StateError('Parent account $belongsToAccountId not found.');
+      }
+      if (parent.isCopilot) {
+        throw StateError('Parent must not be a Copilot account.');
+      }
+    }
+
+    await _powerSync.execute(
+      'UPDATE accounts SET belongs_to_account_id = ? WHERE id = ?',
+      [belongsToAccountId, accountId],
+    );
+  }
+
   Future<void> deleteAll() async {
     await _powerSync.execute('DELETE FROM transactions');
     await _powerSync.execute('DELETE FROM accounts');
@@ -105,6 +139,7 @@ class AccountsRepository {
       status: AccountStatus.fromStorage(columns['status'] as String),
       statusMessage: columns['status_message'] as String?,
       userLabel: columns['user_label'] as String?,
+      belongsToAccountId: columns['belongs_to_account_id'] as String?,
     );
     final storedKind = AccountKind.tryFromStorage(
       columns['account_kind'] as String?,

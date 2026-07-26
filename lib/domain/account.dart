@@ -15,6 +15,7 @@ class Account {
     this.statusMessage,
     this.userLabel,
     this.kind = AccountKind.other,
+    this.belongsToAccountId,
   });
 
   final String id;
@@ -37,12 +38,19 @@ class Account {
   /// Persisted account class (Checking, Investment, …); user-editable.
   final AccountKind kind;
 
+  /// Parent SimpleFIN (or other live) account for Copilot import history.
+  final String? belongsToAccountId;
+
   /// Name shown throughout the app.
   String get displayName {
     final label = userLabel?.trim();
     if (label != null && label.isNotEmpty) return label;
     return name;
   }
+
+  bool get isCopilot => externalId.startsWith('copilot:');
+
+  bool get hasParent => belongsToAccountId != null;
 
   Account copyWith({
     String? id,
@@ -59,6 +67,8 @@ class Account {
     String? userLabel,
     bool clearUserLabel = false,
     AccountKind? kind,
+    String? belongsToAccountId,
+    bool clearBelongsTo = false,
   }) {
     return Account(
       id: id ?? this.id,
@@ -74,6 +84,9 @@ class Account {
       statusMessage: statusMessage ?? this.statusMessage,
       userLabel: clearUserLabel ? null : (userLabel ?? this.userLabel),
       kind: kind ?? this.kind,
+      belongsToAccountId: clearBelongsTo
+          ? null
+          : (belongsToAccountId ?? this.belongsToAccountId),
     );
   }
 }

@@ -30,6 +30,7 @@ class _BanksSourceSectionState extends ConsumerState<BanksSourceSection> {
     final actionState = ref.watch(banksControllerProvider);
 
     return connectionAsync.when(
+      skipLoadingOnReload: true,
       loading: () => const CupertinoActivityIndicator(),
       error: (error, _) => SelectableText(
         '$error',

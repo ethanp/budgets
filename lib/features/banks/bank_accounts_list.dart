@@ -113,14 +113,25 @@ class BankAccountsList extends ConsumerWidget {
   static List<_InstitutionGroup> _accountsByInstitution(
     List<Account> accounts,
   ) {
+    const copilotGroupName = 'Copilot';
     final byName = <String, List<Account>>{};
     for (final account in accounts) {
-      final institution = account.connName?.trim();
-      final key =
-          institution == null || institution.isEmpty ? 'Other' : institution;
+      final String key;
+      if (account.isCopilot) {
+        key = copilotGroupName;
+      } else {
+        final institution = account.connName?.trim();
+        key =
+            institution == null || institution.isEmpty ? 'Other' : institution;
+      }
       byName.putIfAbsent(key, () => []).add(account);
     }
-    final sortedNames = byName.keys.toList()..sort();
+    final sortedNames = byName.keys.toList()
+      ..sort((left, right) {
+        if (left == copilotGroupName) return 1;
+        if (right == copilotGroupName) return -1;
+        return left.compareTo(right);
+      });
     return [
       for (final name in sortedNames)
         _InstitutionGroup(
@@ -249,6 +260,28 @@ class _AccountBalanceRowState extends ConsumerState<_AccountBalanceRow> {
               ],
             ),
           ),
+          if (_account.isCopilot) ...[
+            VSpace.xs,
+            GestureDetector(
+              onTap: _saving ? null : () => _pickBelongsTo(context),
+              behavior: HitTestBehavior.opaque,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    _belongsToCaption(ref),
+                    style: AppText.body.small.copyWith(color: AppColors.textDim),
+                  ),
+                  const SizedBox(width: 2),
+                  const Icon(
+                    CupertinoIcons.chevron_down,
+                    size: 12,
+                    color: AppColors.textDim,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
       trailing: Text(
@@ -270,6 +303,14 @@ class _AccountBalanceRowState extends ConsumerState<_AccountBalanceRow> {
         Text(exceptionLabel, style: AppText.body.small.warning),
       ],
     );
+  }
+
+  String _belongsToCaption(WidgetRef ref) {
+    final parentId = _account.belongsToAccountId;
+    if (parentId == null) return 'Belongs to: None';
+    final accounts = ref.watch(accountsMapProvider).asData?.value;
+    final parentName = accounts?[parentId]?.displayName;
+    return 'Belongs to: ${parentName ?? 'Unknown'}';
   }
 
   Future<void> _pickKind(BuildContext context) async {
@@ -301,6 +342,72 @@ class _AccountBalanceRowState extends ConsumerState<_AccountBalanceRow> {
     try {
       final repository = await ref.read(accountsRepositoryProvider.future);
       await repository.updateKind(accountId: _account.id, kind: selected);
+      ref.read(dataRevisionProvider.notifier).bump();
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _pickBelongsTo(BuildContext context) async {
+    final Map<String, Account>? accounts =
+        ref.read(accountsMapProvider).asData?.value;
+    if (accounts == null) return;
+
+    final parents = [
+      for (final account in accounts.values)
+        if (!account.isCopilot) account,
+    ]..sort(
+        (left, right) => left.displayName.toLowerCase().compareTo(
+              right.displayName.toLowerCase(),
+            ),
+      );
+
+    final selected = await showCupertinoModalPopup<String?>(
+      context: context,
+      builder: (sheetContext) => CupertinoActionSheet(
+        title: const Text('Belongs to'),
+        message: const Text(
+          'Combine this Copilot history with a SimpleFIN account in Trends.',
+        ),
+        actions: [
+          CupertinoActionSheetAction(
+            onPressed: () => Navigator.of(sheetContext).pop(''),
+            child: Text(
+              'None',
+              style: _account.belongsToAccountId == null
+                  ? AppText.body.medium.semibold
+                  : null,
+            ),
+          ),
+          for (final parent in parents)
+            CupertinoActionSheetAction(
+              onPressed: () => Navigator.of(sheetContext).pop(parent.id),
+              child: Text(
+                parent.displayName,
+                style: parent.id == _account.belongsToAccountId
+                    ? AppText.body.medium.semibold
+                    : null,
+              ),
+            ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.of(sheetContext).pop(),
+          child: const Text('Cancel'),
+        ),
+      ),
+    );
+    if (selected == null || !mounted) return;
+
+    final nextParentId = selected.isEmpty ? null : selected;
+    if (nextParentId == _account.belongsToAccountId) return;
+
+    setState(() => _saving = true);
+    try {
+      final repository = await ref.read(accountsRepositoryProvider.future);
+      await repository.updateBelongsTo(
+        accountId: _account.id,
+        belongsToAccountId: nextParentId,
+      );
       ref.read(dataRevisionProvider.notifier).bump();
     } finally {
       if (mounted) setState(() => _saving = false);

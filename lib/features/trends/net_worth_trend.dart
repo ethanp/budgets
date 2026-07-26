@@ -29,18 +29,27 @@ class NetWorthTrend {
 
   /// Sum of per-account [accountDailyCents] (keeps total NW consistent with
   /// breakdown lines, including investment accounts with no transaction history).
+  ///
+  /// Child accounts ([Account.belongsToAccountId]) are skipped; their
+  /// transactions fold into the parent walk-back.
   static List<double> dailyCents({
     required List<Account> accounts,
     required List<BankTransaction> transactions,
     required List<DateTime> chartDates,
   }) {
     if (chartDates.isEmpty) return const [];
+    final roots = _rootAccounts(accounts);
+    final childIdsByParent = _childIdsByParent(accounts);
     final totals = List<double>.filled(chartDates.length, 0);
-    for (final account in accounts) {
+    for (final account in roots) {
       final accountDaily = accountDailyCents(
         account: account,
         transactions: transactions,
         chartDates: chartDates,
+        includeAccountIds: {
+          account.id,
+          ...?childIdsByParent[account.id],
+        },
       );
       for (var dayIndex = 0; dayIndex < chartDates.length; dayIndex++) {
         totals[dayIndex] += accountDaily[dayIndex];
@@ -55,18 +64,23 @@ class NetWorthTrend {
   /// [Account.balanceAsOf], else the chart end), contribution is 0. That stops
   /// investment balances with no SimpleFIN history (e.g. M1) from painting
   /// today's market value across the entire chart.
+  ///
+  /// When [includeAccountIds] is set (parent + Copilot children), those
+  /// accounts' transactions all feed the walk-back from this balance.
   static List<double> accountDailyCents({
     required Account account,
     required List<BankTransaction> transactions,
     required List<DateTime> chartDates,
+    Set<String>? includeAccountIds,
   }) {
     if (chartDates.isEmpty) return const [];
 
+    final accountIds = includeAccountIds ?? {account.id};
     final dayCount = chartDates.length;
     final amountsByDay = <DateTime, double>{};
     DateTime? earliestTransactionDay;
     for (final transaction in transactions) {
-      if (transaction.accountId != account.id) continue;
+      if (!accountIds.contains(transaction.accountId)) continue;
       final day = transaction.postedAt.startOfDay;
       amountsByDay.update(
         day,
@@ -101,12 +115,16 @@ class NetWorthTrend {
   ///
   /// Account breakdowns plot [abs] magnitude so liabilities sit above zero;
   /// a dashed stroke marks that the signed balance is negative.
+  /// Child accounts are omitted; their history folds into the parent line.
   static List<CategoryTrendSeries> series({
     required List<Account> accounts,
     required List<BankTransaction> transactions,
     required List<DateTime> chartDates,
   }) {
     if (accounts.isEmpty || chartDates.length < 2) return const [];
+
+    final roots = _rootAccounts(accounts);
+    final childIdsByParent = _childIdsByParent(accounts);
 
     final netWorthSeries = _levelSeries(
       id: TrendChartCatalog.netWorthSeriesId,
@@ -124,12 +142,16 @@ class NetWorthTrend {
 
     final accountSeries = <CategoryTrendSeries>[];
     var paletteIndex = 0;
-    for (final group in _accountsByKind(accounts)) {
+    for (final group in _accountsByKind(roots)) {
       for (final account in group.accounts) {
         final signedDaily = accountDailyCents(
           account: account,
           transactions: transactions,
           chartDates: chartDates,
+          includeAccountIds: {
+            account.id,
+            ...?childIdsByParent[account.id],
+          },
         );
         final isLiability = account.balanceCents < 0;
         final built = _levelSeries(
@@ -149,6 +171,21 @@ class NetWorthTrend {
     }
 
     return [netWorthSeries, ...accountSeries];
+  }
+
+  static List<Account> _rootAccounts(List<Account> accounts) => [
+        for (final account in accounts)
+          if (!account.hasParent) account,
+      ];
+
+  static Map<String, Set<String>> _childIdsByParent(List<Account> accounts) {
+    final childIdsByParent = <String, Set<String>>{};
+    for (final account in accounts) {
+      final parentId = account.belongsToAccountId;
+      if (parentId == null) continue;
+      childIdsByParent.putIfAbsent(parentId, () => {}).add(account.id);
+    }
+    return childIdsByParent;
   }
 
   static List<_KindAccountGroup> _accountsByKind(List<Account> accounts) {

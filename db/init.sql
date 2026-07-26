@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS accounts (
     status TEXT NOT NULL,
     status_message TEXT,
     user_label TEXT,
-    account_kind TEXT
+    account_kind TEXT,
+    belongs_to_account_id TEXT REFERENCES accounts(id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS category_groups (

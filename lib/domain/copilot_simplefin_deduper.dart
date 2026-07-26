@@ -3,6 +3,7 @@ import 'package:spend_trends/domain/transaction.dart';
 import 'package:spend_trends/services/sqlite/accounts_repository.dart';
 import 'package:spend_trends/services/sqlite/transactions_repository.dart';
 import 'package:ethan_utils/ethan_utils.dart';
+import 'package:flutter/foundation.dart';
 
 const _log = ELogger('CopilotSimplefinDeduper');
 
@@ -20,8 +21,9 @@ class CopilotSimplefinDedupeResult {
 
 /// Removes Copilot rows that duplicate SimpleFIN charges on the same card/account.
 ///
-/// Links accounts by trailing 4-digit mask. Keeps SimpleFIN as canonical; copies
-/// a Copilot user category onto the SimpleFIN twin when that twin is uncategorized.
+/// Links accounts by explicit [Account.belongsToAccountId] or by trailing
+/// 4-digit mask. Keeps SimpleFIN as canonical; copies a Copilot user category
+/// onto the SimpleFIN twin when that twin is uncategorized.
 class CopilotSimplefinDeduper {
   CopilotSimplefinDeduper({
     required AccountsRepository accountsRepository,
@@ -37,8 +39,8 @@ class CopilotSimplefinDeduper {
     final transactions = await _transactionsRepository.listAll();
     final accountsById = {for (final account in accounts) account.id: account};
 
-    final linkedMasks = _linkedMasks(accounts);
-    if (linkedMasks.isEmpty) {
+    final links = _AccountLinks.fromAccounts(accounts);
+    if (links.isEmpty) {
       return const CopilotSimplefinDedupeResult(
         deletedCopilotCount: 0,
         categoriesCopiedToSimplefin: 0,
@@ -49,12 +51,14 @@ class CopilotSimplefinDeduper {
     final simplefinByKey = <String, List<BankTransaction>>{};
     for (final transaction in transactions) {
       final account = accountsById[transaction.accountId];
-      if (account == null || _isCopilotAccount(account)) continue;
-      final mask = accountMask(account);
-      if (mask == null || !linkedMasks.contains(mask)) continue;
+      if (account == null || account.isCopilot) continue;
+      final linkKeys = links.keysForSimplefin(account);
+      if (linkKeys.isEmpty) continue;
       final dayKey = _dayKey(transaction.postedAt);
-      final groupKey = '$mask|$dayKey|${transaction.amountCents}';
-      simplefinByKey.putIfAbsent(groupKey, () => []).add(transaction);
+      for (final linkKey in linkKeys) {
+        final groupKey = '$linkKey|$dayKey|${transaction.amountCents}';
+        simplefinByKey.putIfAbsent(groupKey, () => []).add(transaction);
+      }
     }
 
     final copilotIdsToDelete = <String>{};
@@ -63,12 +67,12 @@ class CopilotSimplefinDeduper {
 
     for (final transaction in transactions) {
       final account = accountsById[transaction.accountId];
-      if (account == null || !_isCopilotAccount(account)) continue;
-      final mask = accountMask(account);
-      if (mask == null || !linkedMasks.contains(mask)) continue;
+      if (account == null || !account.isCopilot) continue;
+      final linkKey = links.keyForCopilot(account);
+      if (linkKey == null) continue;
 
       final dayKey = _dayKey(transaction.postedAt);
-      final groupKey = '$mask|$dayKey|${transaction.amountCents}';
+      final groupKey = '$linkKey|$dayKey|${transaction.amountCents}';
       final candidates = simplefinByKey[groupKey];
       if (candidates == null) continue;
 
@@ -102,39 +106,20 @@ class CopilotSimplefinDeduper {
 
     _log.log(
       'Removed ${copilotIdsToDelete.length} Copilot duplicates across '
-      '${linkedMasks.length} linked account masks '
+      '${links.linkCount} linked accounts '
       '(copied $categoriesCopied categories to SimpleFIN)',
     );
 
     return CopilotSimplefinDedupeResult(
       deletedCopilotCount: copilotIdsToDelete.length,
       categoriesCopiedToSimplefin: categoriesCopied,
-      linkedAccountMasks: linkedMasks.length,
+      linkedAccountMasks: links.linkCount,
     );
   }
 
-  /// Masks that have both a Copilot and a non-Copilot account.
-  static Set<String> _linkedMasks(List<Account> accounts) {
-    final copilotMasks = <String>{};
-    final simplefinMasks = <String>{};
-    for (final account in accounts) {
-      final mask = accountMask(account);
-      if (mask == null) continue;
-      if (_isCopilotAccount(account)) {
-        copilotMasks.add(mask);
-      } else {
-        simplefinMasks.add(mask);
-      }
-    }
-    return copilotMasks.intersection(simplefinMasks);
-  }
-
-  static bool _isCopilotAccount(Account account) =>
-      account.externalId.startsWith('copilot:');
-
   /// Trailing 4 digits from Copilot external id or account name.
   static String? accountMask(Account account) {
-    if (_isCopilotAccount(account)) {
+    if (account.isCopilot) {
       final parts = account.externalId.split(':');
       if (parts.length >= 3) {
         final mask = parts.last.trim();
@@ -144,6 +129,14 @@ class CopilotSimplefinDeduper {
     final nameMatch = RegExp(r'(\d{4})\D*$').firstMatch(account.name.trim());
     return nameMatch?.group(1);
   }
+
+  /// Copilot account id → link key used for duplicate matching.
+  ///
+  /// Explicit [Account.belongsToAccountId] uses `id:<parentId>`; shared
+  /// last-4 masks use `mask:<digits>`.
+  @visibleForTesting
+  static Map<String, String> copilotLinkKeysForTest(List<Account> accounts) =>
+      _AccountLinks.fromAccounts(accounts).copilotKeyByAccountId;
 
   static String _dayKey(DateTime postedAt) {
     final local = postedAt.toLocal();
@@ -194,6 +187,79 @@ class CopilotSimplefinDeduper {
       sharedPrefix++;
     }
     return sharedPrefix;
+  }
+}
+
+/// Explicit belongs-to pairs plus mask-intersection pairs for unlinked accounts.
+class _AccountLinks {
+  _AccountLinks({
+    required this.copilotKeyByAccountId,
+    required this.simplefinKeysByAccountId,
+    required this.linkCount,
+  });
+
+  final Map<String, String> copilotKeyByAccountId;
+  final Map<String, Set<String>> simplefinKeysByAccountId;
+  final int linkCount;
+
+  bool get isEmpty => linkCount == 0;
+
+  String? keyForCopilot(Account account) =>
+      copilotKeyByAccountId[account.id];
+
+  Set<String> keysForSimplefin(Account account) =>
+      simplefinKeysByAccountId[account.id] ?? const {};
+
+  factory _AccountLinks.fromAccounts(List<Account> accounts) {
+    final accountsById = {for (final account in accounts) account.id: account};
+    final copilotKeyByAccountId = <String, String>{};
+    final simplefinKeysByAccountId = <String, Set<String>>{};
+    final linkedPairKeys = <String>{};
+
+    for (final account in accounts) {
+      final parentId = account.belongsToAccountId;
+      if (!account.isCopilot || parentId == null) continue;
+      final parent = accountsById[parentId];
+      if (parent == null || parent.isCopilot) continue;
+      final linkKey = 'id:$parentId';
+      copilotKeyByAccountId[account.id] = linkKey;
+      simplefinKeysByAccountId.putIfAbsent(parentId, () => {}).add(linkKey);
+      linkedPairKeys.add(linkKey);
+    }
+
+    final copilotMasks = <String, List<Account>>{};
+    final simplefinMasks = <String, List<Account>>{};
+    for (final account in accounts) {
+      if (account.isCopilot && account.belongsToAccountId != null) continue;
+      final mask = CopilotSimplefinDeduper.accountMask(account);
+      if (mask == null) continue;
+      if (account.isCopilot) {
+        copilotMasks.putIfAbsent(mask, () => []).add(account);
+      } else {
+        simplefinMasks.putIfAbsent(mask, () => []).add(account);
+      }
+    }
+
+    for (final mask in copilotMasks.keys) {
+      final simplefinAccounts = simplefinMasks[mask];
+      if (simplefinAccounts == null || simplefinAccounts.isEmpty) continue;
+      final linkKey = 'mask:$mask';
+      for (final copilotAccount in copilotMasks[mask]!) {
+        copilotKeyByAccountId.putIfAbsent(copilotAccount.id, () => linkKey);
+      }
+      for (final simplefinAccount in simplefinAccounts) {
+        simplefinKeysByAccountId
+            .putIfAbsent(simplefinAccount.id, () => {})
+            .add(linkKey);
+      }
+      linkedPairKeys.add(linkKey);
+    }
+
+    return _AccountLinks(
+      copilotKeyByAccountId: copilotKeyByAccountId,
+      simplefinKeysByAccountId: simplefinKeysByAccountId,
+      linkCount: linkedPairKeys.length,
+    );
   }
 }
 

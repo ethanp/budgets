@@ -15,6 +15,7 @@ const Schema spendTrendsSchema = Schema([
     Column.text('status_message'),
     Column.text('user_label'),
     Column.text('account_kind'),
+    Column.text('belongs_to_account_id'),
   ]),
   Table('category_groups', [
     Column.text('name'),

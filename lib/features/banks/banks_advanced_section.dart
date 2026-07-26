@@ -28,6 +28,7 @@ class BanksAdvancedSection extends ConsumerWidget {
         ),
         VSpace.md,
         connectionAsync.when(
+          skipLoadingOnReload: true,
           loading: () => const CupertinoActivityIndicator(),
           error: (error, _) => SelectableText(
             '$error',

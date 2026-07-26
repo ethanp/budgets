@@ -281,4 +281,96 @@ void main() {
     );
     expect(bundle.netWorth.first.points.last.rollingCents, closeTo(500000, 0.01));
   });
+
+  test('Copilot child history folds into SimpleFIN parent net worth', () {
+    final day0 = DateTime(2024, 1, 1);
+    final day1 = DateTime(2024, 1, 2);
+    final day2 = DateTime(2024, 1, 3);
+    final chartDates = [day0, day1, day2];
+    final accounts = [
+      const Account(
+        id: 'simplefin',
+        externalId: 'ACT-card',
+        name: 'Venture X (1298)',
+        currency: 'USD',
+        balanceCents: 10000,
+        status: AccountStatus.ok,
+        kind: AccountKind.creditCard,
+      ),
+      const Account(
+        id: 'copilot',
+        externalId: 'copilot:Venture X:1298',
+        name: 'Venture X ·1298',
+        currency: 'USD',
+        balanceCents: 0,
+        status: AccountStatus.ok,
+        kind: AccountKind.creditCard,
+        belongsToAccountId: 'simplefin',
+      ),
+    ];
+    // Parent ends at 10000. Day2 SimpleFIN spend -500, day1 Copilot spend -2000.
+    // Activity starts day1 → day0 contribution is 0 (knownFrom cutoff).
+    // day2: 10000
+    // day1: 10000 - (-500) = 10500
+    // day0: 0
+    final transactions = [
+      BankTransaction(
+        id: 'copilot-spend',
+        accountId: 'copilot',
+        externalId: 'c1',
+        postedAt: day1,
+        amountCents: -2000,
+        rawDescription: 'Shop',
+        normalizedMerchant: 'SHOP',
+        pending: false,
+      ),
+      BankTransaction(
+        id: 'simplefin-spend',
+        accountId: 'simplefin',
+        externalId: 's1',
+        postedAt: day2,
+        amountCents: -500,
+        rawDescription: 'Cafe',
+        normalizedMerchant: 'CAFE',
+        pending: false,
+      ),
+    ];
+
+    final daily = NetWorthTrend.dailyCents(
+      accounts: accounts,
+      transactions: transactions,
+      chartDates: chartDates,
+    );
+    expect(daily, [0.0, 10500.0, 10000.0]);
+
+    // Without folding, parent alone would only see day2 → day1 would be 0.
+    final parentOnly = NetWorthTrend.accountDailyCents(
+      account: accounts[0],
+      transactions: transactions,
+      chartDates: chartDates,
+    );
+    expect(parentOnly, [0.0, 0.0, 10000.0]);
+
+    final series = NetWorthTrend.series(
+      accounts: accounts,
+      transactions: transactions,
+      chartDates: [
+        for (var dayOffset = 0; dayOffset < 10; dayOffset++)
+          day0.add(Duration(days: dayOffset)),
+      ],
+    );
+    expect(
+      series.map((entry) => entry.id).toList(),
+      [
+        TrendChartCatalog.netWorthSeriesId,
+        TrendChartCatalog.accountSeriesId('simplefin'),
+      ],
+    );
+    expect(
+      series.any(
+        (entry) => entry.id == TrendChartCatalog.accountSeriesId('copilot'),
+      ),
+      isFalse,
+    );
+  });
 }
