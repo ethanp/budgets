@@ -18,7 +18,9 @@ migrate_working_dir/
 .venv-icon/
 *.db
 budgets.db
-.deploy_ios_hash
+# Local phone_deploy / deploy.rb fingerprints
+.deploy_hash
+.deploy_*_hash
 
 # Personal bank/transaction exports (never commit)
 assets/imports/*.csv
