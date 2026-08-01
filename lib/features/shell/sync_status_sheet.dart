@@ -1,6 +1,8 @@
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:spend_trends/domain/account.dart';
+import 'package:spend_trends/features/banks/bank_pull_history_sheet.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
+import 'package:spend_trends/services/sqlite/simplefin_pull_history.dart';
 import 'package:spend_trends/services/sync/sync_config.dart';
 import 'package:spend_trends/theme/app_theme.dart';
 import 'package:spend_trends/widgets/app_sheet_panel.dart';
@@ -44,6 +46,17 @@ class _SyncStatusBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final latestFinished = status.latestFinishedPull;
+    final issueByAccountId = <String, SimpleFinPullAccountRecord>{};
+    if (latestFinished != null) {
+      for (final account in latestFinished.accounts) {
+        if (!account.status.isIssue) continue;
+        final accountId = account.accountId;
+        if (accountId == null) continue;
+        issueByAccountId[accountId] = account;
+      }
+    }
+
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
@@ -51,7 +64,7 @@ class _SyncStatusBody extends ConsumerWidget {
         VSpace.lg,
         _deviceSyncSection(ref),
         VSpace.lg,
-        _bankSyncSection(),
+        _bankSyncSection(context),
         if (status.errors.isNotEmpty) ...[
           VSpace.lg,
           _bridgeErrorsSection(),
@@ -67,7 +80,12 @@ class _SyncStatusBody extends ConsumerWidget {
             style: AppText.body.medium,
           )
         else
-          ...status.accounts.map(_AccountSyncRow.new),
+          ...status.accounts.map(
+            (account) => _AccountSyncRow(
+              account: account,
+              lastPullIssue: issueByAccountId[account.id],
+            ),
+          ),
       ],
     );
   }
@@ -87,16 +105,79 @@ class _SyncStatusBody extends ConsumerWidget {
     );
   }
 
-  Widget _bankSyncSection() {
+  Widget _bankSyncSection(BuildContext context) {
     if (!status.isConnected) {
       return _statusLine(label: 'Bank pull', value: 'Not connected');
     }
+
     final lastSyncedAt = status.lastSyncedAt;
-    return _statusLine(
-      label: 'Bank pull',
-      value: lastSyncedAt == null
-          ? 'Never'
-          : lastSyncedAt.relativeTimeAgo(includeClock: true),
+    final primary = lastSyncedAt == null
+        ? 'Never'
+        : lastSyncedAt.relativeTimeAgo(includeClock: true);
+    final secondary = _bankPullSecondaryLine();
+
+    return CupertinoButton(
+      padding: EdgeInsets.zero,
+      minimumSize: Size.zero,
+      onPressed: () => BankPullHistorySheet.show(context),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Bank pull', style: AppText.body.medium),
+                Text(primary, style: AppText.body.medium.semibold),
+                if (secondary != null)
+                  Text(
+                    secondary.text,
+                    style: secondary.isError
+                        ? AppText.body.small.error
+                        : secondary.isWarning
+                            ? AppText.body.small.warning
+                            : AppText.body.small,
+                  ),
+              ],
+            ),
+          ),
+          const Icon(
+            CupertinoIcons.chevron_right,
+            size: 16,
+            color: AppColors.textSupport,
+          ),
+        ],
+      ),
+    );
+  }
+
+  _SecondaryLine? _bankPullSecondaryLine() {
+    final running = status.latestRunningPull;
+    if (running != null) {
+      return const _SecondaryLine('Pulling…');
+    }
+    final finished = status.latestFinishedPull;
+    if (finished == null) return null;
+
+    if (finished.status == SimpleFinPullStatus.failed) {
+      final when = finished.finishedAt ?? finished.startedAt;
+      return _SecondaryLine(
+        'Last pull failed · ${when.relativeTimeAgo()}',
+        isError: true,
+      );
+    }
+
+    if (finished.isPartialSuccess) {
+      final count = finished.issueAccountCount;
+      return _SecondaryLine(
+        '$count ${count == 1 ? 'account' : 'accounts'} had issues',
+        isWarning: true,
+      );
+    }
+
+    final txCount = finished.transactionCount ?? 0;
+    return _SecondaryLine(
+      'Last pull OK · ${finished.kind.displayLabel} · $txCount txs',
     );
   }
 
@@ -136,15 +217,32 @@ class _SyncStatusBody extends ConsumerWidget {
   }
 }
 
+class _SecondaryLine {
+  const _SecondaryLine(
+    this.text, {
+    this.isError = false,
+    this.isWarning = false,
+  });
+
+  final String text;
+  final bool isError;
+  final bool isWarning;
+}
+
 class _AccountSyncRow extends StatelessWidget {
-  const _AccountSyncRow(this.account);
+  const _AccountSyncRow({
+    required this.account,
+    this.lastPullIssue,
+  });
 
   final Account account;
+  final SimpleFinPullAccountRecord? lastPullIssue;
 
   @override
   Widget build(BuildContext context) {
     final needsRelink = account.status == AccountStatus.needsRelink;
     final lastSyncedAt = account.lastSyncedAt;
+    final issue = lastPullIssue;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.md),
@@ -162,6 +260,13 @@ class _AccountSyncRow extends StatelessWidget {
                       ? AppText.body.small.warning
                       : AppText.body.small,
                 ),
+                if (issue != null)
+                  Text(
+                    'Last pull: ${_issueCaption(issue)}',
+                    style: issue.status == SimpleFinPullAccountStatus.needsRelink
+                        ? AppText.body.small.warning
+                        : AppText.body.small.error,
+                  ),
               ],
             ),
           ),
@@ -175,5 +280,13 @@ class _AccountSyncRow extends StatelessWidget {
       ),
     );
   }
-}
 
+  static String _issueCaption(SimpleFinPullAccountRecord issue) {
+    if (issue.status == SimpleFinPullAccountStatus.needsRelink) {
+      return 'needs re-link';
+    }
+    final message = issue.errorMessage?.trim() ?? '';
+    if (message.isNotEmpty) return message;
+    return issue.status.displayLabel;
+  }
+}

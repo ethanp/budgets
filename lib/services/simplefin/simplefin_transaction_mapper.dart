@@ -1,0 +1,71 @@
+import 'package:spend_trends/domain/transaction.dart';
+import 'package:spend_trends/services/simplefin/simplefin_models.dart';
+import 'package:spend_trends/services/simplefin/simplefin_pull_progress.dart';
+import 'package:spend_trends/services/sqlite/transactions_repository.dart';
+import 'package:spend_trends/util/merchant_normalize.dart';
+import 'package:ethan_utils/ethan_utils.dart';
+import 'package:uuid/uuid.dart';
+
+/// Maps SimpleFIN remote transactions into local [BankTransaction] rows.
+class SimpleFinTransactionMapper {
+  SimpleFinTransactionMapper({
+    required TransactionsRepository transactionsRepository,
+    Uuid? uuid,
+  })  : _transactionsRepository = transactionsRepository,
+        _uuid = uuid ?? const Uuid();
+
+  final TransactionsRepository _transactionsRepository;
+  final Uuid _uuid;
+
+  Future<List<SimpleFinPulledTransaction>> upsertFromRemote({
+    required SimpleFinAccount remoteAccount,
+    required String localAccountId,
+    required DateTime syncedAt,
+  }) async {
+    final newlyInserted = <SimpleFinPulledTransaction>[];
+    for (final remoteTransaction in remoteAccount.transactions) {
+      final bankTransaction = _bankTransactionFromRemote(
+        remoteTransaction: remoteTransaction,
+        localAccountId: localAccountId,
+        syncedAt: syncedAt,
+      );
+      final wasInserted =
+          await _transactionsRepository.upsertTransaction(bankTransaction);
+      if (!wasInserted) continue;
+      newlyInserted.add(
+        SimpleFinPulledTransaction(
+          externalId: bankTransaction.externalId,
+          description: bankTransaction.rawDescription.isEmpty
+              ? bankTransaction.normalizedMerchant
+              : bankTransaction.rawDescription,
+          amountCents: bankTransaction.amountCents,
+          postedAt: bankTransaction.postedAt,
+          pending: bankTransaction.pending,
+        ),
+      );
+    }
+    return newlyInserted;
+  }
+
+  BankTransaction _bankTransactionFromRemote({
+    required SimpleFinTransaction remoteTransaction,
+    required String localAccountId,
+    required DateTime syncedAt,
+  }) {
+    final postedSeconds = remoteTransaction.posted;
+    final postedAt = postedSeconds > 0
+        ? DateTime.fromMillisecondsSinceEpoch(postedSeconds * 1000)
+        : syncedAt;
+    return BankTransaction(
+      id: _uuid.v4(),
+      accountId: localAccountId,
+      externalId: remoteTransaction.id,
+      postedAt: postedAt,
+      amountCents: remoteTransaction.amount.asCents,
+      rawDescription: remoteTransaction.description,
+      normalizedMerchant: normalizeMerchant(remoteTransaction.description),
+      pending: remoteTransaction.pending || postedSeconds == 0,
+      importedAt: syncedAt,
+    );
+  }
+}

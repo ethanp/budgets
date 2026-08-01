@@ -71,4 +71,23 @@ const Schema spendTrendsSchema = Schema([
     Column.text('key'),
     Column.text('value'),
   ]),
+  Table('simplefin_pulls', [
+    Column.integer('started_at'),
+    Column.integer('finished_at'),
+    Column.text('kind'),
+    Column.text('status'),
+    Column.integer('account_count'),
+    Column.integer('transaction_count'),
+    Column.text('errors_json'),
+  ]),
+  Table('simplefin_pull_accounts', [
+    Column.text('pull_id'),
+    Column.text('account_id'),
+    Column.text('account_external_id'),
+    Column.text('conn_id'),
+    Column.text('account_label'),
+    Column.integer('transaction_count'),
+    Column.text('status'),
+    Column.text('error_message'),
+  ]),
 ]);

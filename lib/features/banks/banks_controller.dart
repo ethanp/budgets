@@ -1,8 +1,8 @@
-import 'package:spend_trends/domain/pull_simplefin_transactions.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/services/simplefin/simplefin_access_store.dart';
 import 'package:spend_trends/services/simplefin/simplefin_client.dart';
 import 'package:spend_trends/services/simplefin/simplefin_models.dart';
+import 'package:spend_trends/services/simplefin/simplefin_pull_progress.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

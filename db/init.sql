@@ -87,3 +87,26 @@ CREATE TABLE IF NOT EXISTS sync_state (
     key TEXT NOT NULL UNIQUE,
     value TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS simplefin_pulls (
+    id TEXT PRIMARY KEY,
+    started_at BIGINT NOT NULL,
+    finished_at BIGINT,
+    kind TEXT NOT NULL,
+    status TEXT NOT NULL,
+    account_count INTEGER,
+    transaction_count INTEGER,
+    errors_json TEXT
+);
+
+CREATE TABLE IF NOT EXISTS simplefin_pull_accounts (
+    id TEXT PRIMARY KEY,
+    pull_id TEXT NOT NULL REFERENCES simplefin_pulls(id) ON DELETE CASCADE,
+    account_id TEXT,
+    account_external_id TEXT,
+    conn_id TEXT,
+    account_label TEXT NOT NULL,
+    transaction_count INTEGER NOT NULL DEFAULT 0,
+    status TEXT NOT NULL,
+    error_message TEXT
+);

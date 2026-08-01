@@ -175,6 +175,8 @@ class ConnectionStatus {
     required this.accounts,
     required this.errors,
     this.lastSyncedAt,
+    this.latestFinishedPull,
+    this.latestRunningPull,
   });
 
   final bool isConnected;
@@ -182,6 +184,8 @@ class ConnectionStatus {
   final List<Account> accounts;
   final List<SimpleFinError> errors;
   final DateTime? lastSyncedAt;
+  final SimpleFinPullRecord? latestFinishedPull;
+  final SimpleFinPullRecord? latestRunningPull;
 }
 
 final connectionStatusProvider = FutureProvider<ConnectionStatus>((ref) async {
@@ -196,7 +200,16 @@ final connectionStatusProvider = FutureProvider<ConnectionStatus>((ref) async {
     accounts: await accountsRepository.listAccounts(),
     errors: await simpleFinPullHistory.lastErrors(),
     lastSyncedAt: await simpleFinPullHistory.lastSuccessfulPullAt(),
+    latestFinishedPull: await simpleFinPullHistory.latestFinished(),
+    latestRunningPull: await simpleFinPullHistory.latestRunning(),
   );
+});
+
+final simpleFinPullHistoryListProvider =
+    FutureProvider<List<SimpleFinPullRecord>>((ref) async {
+  ref.watch(spendDataChangedProvider);
+  final history = await ref.watch(simpleFinPullHistoryProvider.future);
+  return history.listRecent();
 });
 
 final transactionsListProvider = FutureProvider<List<BankTransaction>>((

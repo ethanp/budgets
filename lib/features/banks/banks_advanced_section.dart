@@ -1,3 +1,4 @@
+import 'package:spend_trends/features/banks/bank_pull_history_sheet.dart';
 import 'package:spend_trends/features/banks/banks_controller.dart';
 import 'package:spend_trends/features/banks/banks_pull_progress_sheet.dart';
 import 'package:spend_trends/features/settings/settings_section.dart';
@@ -82,6 +83,17 @@ class BanksAdvancedSection extends ConsumerWidget {
           onAction: () => ref
               .read(banksControllerProvider.notifier)
               .openSimpleFinBridge(),
+          style: _style,
+          busy: actionState.busy,
+        ),
+        VSpace.lg,
+        SettingsToolRow(
+          icon: CupertinoIcons.clock,
+          title: 'Pull history',
+          caption:
+              'Recent SimpleFIN pulls, including per-account outages and '
+              'bridge warnings.',
+          onAction: () => BankPullHistorySheet.show(context),
           style: _style,
           busy: actionState.busy,
         ),

@@ -150,43 +150,45 @@ class TrendsScreen extends ConsumerWidget {
       ],
     );
   }
-}
 
-int? _sumAccountBalances(AsyncValue<Map<String, Account>> accountsAsync) {
-  final accounts = accountsAsync.asData?.value;
-  if (accounts == null) return null;
-  var totalCents = 0;
-  for (final account in accounts.values) {
-    if (account.hasParent) continue;
-    totalCents += account.balanceCents;
+  static int? _sumAccountBalances(
+    AsyncValue<Map<String, Account>> accountsAsync,
+  ) {
+    final accounts = accountsAsync.asData?.value;
+    if (accounts == null) return null;
+    var totalCents = 0;
+    for (final account in accounts.values) {
+      if (account.hasParent) continue;
+      totalCents += account.balanceCents;
+    }
+    return totalCents;
   }
-  return totalCents;
-}
 
-List<ChartHeadlineFigure> _netWorthHeadlines({
-  required int? currentCents,
-  required List<CategoryTrendSeries> netWorthSeries,
-}) {
-  final figures = <ChartHeadlineFigure>[];
-  if (currentCents != null) {
-    figures.add(
-      ChartHeadlineFigure(label: 'Current', cents: currentCents),
-    );
+  static List<ChartHeadlineFigure> _netWorthHeadlines({
+    required int? currentCents,
+    required List<CategoryTrendSeries> netWorthSeries,
+  }) {
+    final figures = <ChartHeadlineFigure>[];
+    if (currentCents != null) {
+      figures.add(
+        ChartHeadlineFigure(label: 'Current', cents: currentCents),
+      );
+    }
+    final smoothedCents = _smoothedNetWorthCents(netWorthSeries);
+    if (smoothedCents != null) {
+      figures.add(
+        ChartHeadlineFigure(label: 'Smoothed', cents: smoothedCents),
+      );
+    }
+    return figures;
   }
-  final smoothedCents = _smoothedNetWorthCents(netWorthSeries);
-  if (smoothedCents != null) {
-    figures.add(
-      ChartHeadlineFigure(label: 'Smoothed', cents: smoothedCents),
-    );
-  }
-  return figures;
-}
 
-int? _smoothedNetWorthCents(List<CategoryTrendSeries> netWorthSeries) {
-  for (final series in netWorthSeries) {
-    if (series.id != TrendChartCatalog.netWorthSeriesId) continue;
-    if (series.points.isEmpty) return null;
-    return series.latestSmoothedCents.round();
+  static int? _smoothedNetWorthCents(List<CategoryTrendSeries> netWorthSeries) {
+    for (final series in netWorthSeries) {
+      if (series.id != TrendChartCatalog.netWorthSeriesId) continue;
+      if (series.points.isEmpty) return null;
+      return series.latestSmoothedCents.round();
+    }
+    return null;
   }
-  return null;
 }

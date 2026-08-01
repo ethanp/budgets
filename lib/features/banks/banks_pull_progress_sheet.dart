@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:spend_trends/domain/pull_simplefin_transactions.dart';
 import 'package:spend_trends/features/banks/banks_controller.dart';
+import 'package:spend_trends/services/simplefin/simplefin_pull_progress.dart';
 import 'package:spend_trends/theme/app_theme.dart';
 import 'package:spend_trends/widgets/app_primary_button.dart';
 import 'package:spend_trends/widgets/app_sheet_panel.dart';

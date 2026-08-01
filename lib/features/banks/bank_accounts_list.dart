@@ -3,6 +3,7 @@ import 'package:spend_trends/domain/account.dart';
 import 'package:spend_trends/domain/account_kind.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/services/simplefin/simplefin_models.dart';
+import 'package:spend_trends/services/sqlite/simplefin_pull_history.dart';
 import 'package:spend_trends/theme/app_theme.dart';
 import 'package:spend_trends/widgets/app_spreadsheet.dart';
 import 'package:flutter/cupertino.dart';
@@ -50,7 +51,30 @@ class BankAccountsList extends ConsumerWidget {
     final accountCount = status.accounts.length;
     final accountLabel =
         '$accountCount ${accountCount == 1 ? 'account' : 'accounts'}';
-    return '$source · $updated · $accountLabel';
+    final suffix = _pullOutcomeSuffix();
+    return '$source · $updated · $accountLabel$suffix';
+  }
+
+  String _pullOutcomeSuffix() {
+    final running = status.latestRunningPull;
+    if (running != null) return ' · pulling…';
+
+    final finished = status.latestFinishedPull;
+    if (finished == null) return '';
+
+    if (finished.status == SimpleFinPullStatus.failed) {
+      final lastSuccess = status.lastSyncedAt;
+      final failedAt = finished.finishedAt ?? finished.startedAt;
+      if (lastSuccess == null || failedAt.isAfter(lastSuccess)) {
+        return ' · last pull failed';
+      }
+    }
+
+    if (finished.isPartialSuccess) {
+      final count = finished.issueAccountCount;
+      return ' · $count account issue${count == 1 ? '' : 's'}';
+    }
+    return '';
   }
 
   List<Widget> _institutionGroups(WidgetRef ref) {
