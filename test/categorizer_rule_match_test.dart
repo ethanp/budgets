@@ -156,11 +156,66 @@ void main() {
       );
     });
   });
+
+  group('RuleMatchIndex.explainingRule', () {
+    test('lists only transactions where the rule is primary', () {
+      final groceryRule = CategorizationRule(
+        id: 'grocery',
+        matchType: RuleMatchType.merchantContains,
+        pattern: 'kroger',
+        categoryId: 'groceries',
+        priority: 10,
+      );
+      final fuelRule = CategorizationRule(
+        id: 'fuel',
+        matchType: RuleMatchType.merchantContains,
+        pattern: 'kroger fuel',
+        categoryId: 'transport',
+        priority: 10,
+      );
+      final index = RuleMatchIndex([groceryRule, fuelRule]);
+
+      final groceryTxn = _txn(
+        id: 'g1',
+        merchant: 'KROGER',
+        suggestedCategoryId: 'groceries',
+      );
+      final fuelTxn = _txn(
+        id: 'f1',
+        merchant: 'KROGER FUEL',
+        suggestedCategoryId: 'transport',
+      );
+      final wrongCategoryTxn = _txn(
+        id: 'w1',
+        merchant: 'KROGER',
+        userCategoryId: 'dining',
+      );
+
+      final primaryForGrocery = [
+        for (final transaction in [groceryTxn, fuelTxn, wrongCategoryTxn])
+          if (index.explainingRule(transaction)?.id == groceryRule.id)
+            transaction.id,
+      ];
+      expect(primaryForGrocery, ['g1']);
+
+      final primaryForFuel = [
+        for (final transaction in [groceryTxn, fuelTxn, wrongCategoryTxn])
+          if (index.explainingRule(transaction)?.id == fuelRule.id)
+            transaction.id,
+      ];
+      expect(primaryForFuel, ['f1']);
+    });
+  });
 }
 
-BankTransaction _txn({required String merchant}) {
+BankTransaction _txn({
+  required String merchant,
+  String id = 't1',
+  String? userCategoryId,
+  String? suggestedCategoryId,
+}) {
   return BankTransaction(
-    id: 't1',
+    id: id,
     accountId: 'a1',
     externalId: 'e1',
     postedAt: DateTime(2024, 1, 1),
@@ -168,5 +223,7 @@ BankTransaction _txn({required String merchant}) {
     rawDescription: merchant,
     normalizedMerchant: merchant,
     pending: false,
+    userCategoryId: userCategoryId,
+    suggestedCategoryId: suggestedCategoryId,
   );
 }

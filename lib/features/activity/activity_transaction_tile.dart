@@ -4,7 +4,7 @@ import 'package:spend_trends/domain/special_category.dart';
 import 'package:spend_trends/domain/transaction.dart';
 import 'package:spend_trends/theme/app_theme.dart';
 import 'package:spend_trends/util/category_color.dart';
-import 'package:spend_trends/util/money_format.dart';
+import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/cupertino.dart';
 
 /// One Activity row: merchant + amount first, then category, then metadata.
@@ -16,6 +16,7 @@ class ActivityTransactionTile extends StatelessWidget {
     required this.category,
     required this.categorySourceLabel,
     required this.onTap,
+    this.onRuleTap,
   });
 
   final BankTransaction transaction;
@@ -23,12 +24,14 @@ class ActivityTransactionTile extends StatelessWidget {
   final SpendCategory? category;
   final String? categorySourceLabel;
   final VoidCallback onTap;
+  final VoidCallback? onRuleTap;
 
   @override
   Widget build(BuildContext context) {
     final categoryColor = CategoryColor.forCategoryId(
       category?.id,
       categoryName: category?.name,
+      groupId: category?.groupId,
     );
 
     return GestureDetector(
@@ -154,7 +157,7 @@ class ActivityTransactionTile extends StatelessWidget {
   }
 
   Widget _buildProvenanceLine() {
-    return Text(
+    final label = Text(
       categorySourceLabel!,
       style: AppText.caption.copyWith(
         color: AppColors.accentPrimary.withValues(alpha: 0.9),
@@ -162,6 +165,12 @@ class ActivityTransactionTile extends StatelessWidget {
       ),
       maxLines: 2,
       overflow: TextOverflow.ellipsis,
+    );
+    if (onRuleTap == null) return label;
+    return GestureDetector(
+      onTap: onRuleTap,
+      behavior: HitTestBehavior.opaque,
+      child: label,
     );
   }
 

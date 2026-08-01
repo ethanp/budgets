@@ -8,7 +8,6 @@ import 'package:spend_trends/features/trends/chart_date_layout.dart';
 import 'package:spend_trends/features/trends/trend_value_scale.dart';
 import 'package:spend_trends/theme/app_theme.dart';
 import 'package:spend_trends/theme/draw/date_range_band.dart';
-import 'package:spend_trends/util/money_format.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/cupertino.dart';
 

@@ -6,9 +6,8 @@ import 'package:spend_trends/features/trends/hann_annual_pace_kernel.dart';
 import 'package:spend_trends/features/trends/trend_chart_catalog.dart';
 import 'package:spend_trends/services/sqlite/accounts_repository.dart';
 import 'package:spend_trends/services/sqlite/categories_repository.dart';
-import 'package:spend_trends/services/sqlite/sync_state_store.dart';
+import 'package:spend_trends/services/sqlite/simplefin_pull_history.dart';
 import 'package:spend_trends/services/sqlite/transactions_repository.dart';
-import 'package:spend_trends/util/merchant_normalize.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 
 class BudgetMonth {
@@ -16,16 +15,16 @@ class BudgetMonth {
     required AccountsRepository accountsRepository,
     required TransactionsRepository transactionsRepository,
     required CategoriesRepository categoriesRepository,
-    required SyncStateStore syncStateStore,
+    required SimpleFinPullHistory simpleFinPullHistory,
   })  : _accountsRepository = accountsRepository,
         _transactionsRepository = transactionsRepository,
         _categoriesRepository = categoriesRepository,
-        _syncStateStore = syncStateStore;
+        _simpleFinPullHistory = simpleFinPullHistory;
 
   final AccountsRepository _accountsRepository;
   final TransactionsRepository _transactionsRepository;
   final CategoriesRepository _categoriesRepository;
-  final SyncStateStore _syncStateStore;
+  final SimpleFinPullHistory _simpleFinPullHistory;
 
   Future<MonthSummary> snapshot(String yearMonth) async {
     final accounts = await _accountsRepository.listAccounts();
@@ -35,7 +34,7 @@ class BudgetMonth {
     return _transactionsRepository.monthSummary(
       yearMonth: yearMonth,
       accountNames: names,
-      lastSyncedAt: await _syncStateStore.lastSuccessfulPullAt(),
+      lastSyncedAt: await _simpleFinPullHistory.lastSuccessfulPullAt(),
     );
   }
 
@@ -85,7 +84,7 @@ class BudgetMonth {
     return observedDays;
   }
 
-  String currentYearMonth() => yearMonthKey(DateTime.now());
+  String currentYearMonth() => DateTime.now().yearMonthKey;
 
   static Map<String, int> _outflowByCategory(
     List<BankTransaction> transactions,

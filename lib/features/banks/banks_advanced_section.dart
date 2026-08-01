@@ -1,4 +1,5 @@
 import 'package:spend_trends/features/banks/banks_controller.dart';
+import 'package:spend_trends/features/banks/banks_pull_progress_sheet.dart';
 import 'package:spend_trends/features/settings/settings_section.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/services/simplefin/simplefin_access_store.dart';
@@ -87,11 +88,17 @@ class BanksAdvancedSection extends ConsumerWidget {
         VSpace.lg,
         SettingsToolRow(
           icon: CupertinoIcons.cloud_download,
-          title: 'Re-fetch full history',
-          caption: 'Pulls the entire SimpleFIN history again.',
-          onAction: () => ref
-              .read(banksControllerProvider.notifier)
-              .refreshFullHistory(),
+          title: 'Re-download all history',
+          caption:
+              'Fetches ~2 years from SimpleFIN again. Everyday “Pull bank '
+              'transactions” only covers since the last SimpleFIN update '
+              '(window starts 2 days earlier).',
+          onAction: () => BanksPullProgressSheet.showAndRun(
+            context,
+            run: (onProgress) => ref
+                .read(banksControllerProvider.notifier)
+                .refreshFullHistory(onProgress: onProgress),
+          ),
           style: _style,
           busy: actionState.busy,
         ),

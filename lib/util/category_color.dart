@@ -1,9 +1,14 @@
 import 'package:spend_trends/domain/category.dart';
 import 'package:spend_trends/domain/special_category.dart';
 import 'package:spend_trends/theme/app_theme.dart';
+import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/cupertino.dart';
 
 /// Stable colors for category identity across Activity / Trends.
+///
+/// Grouped categories share a hue from [SpendCategory.groupId], with a
+/// per-category shade so members stay related but distinct. Ungrouped
+/// categories keep a per-category palette color. Built-ins stay pinned.
 class CategoryColor {
   CategoryColor._();
 
@@ -26,7 +31,11 @@ class CategoryColor {
     Color(0xFFF72585),
   ];
 
-  static Color forCategoryId(String? categoryId, {String? categoryName}) {
+  static Color forCategoryId(
+    String? categoryId, {
+    String? categoryName,
+    String? groupId,
+  }) {
     if (SpecialCategory.isHousingId(categoryId) ||
         SpecialCategory.isHousingName(categoryName)) {
       return housing;
@@ -34,17 +43,19 @@ class CategoryColor {
     if (categoryId == null || categoryId.isEmpty) return uncategorized;
     if (SpecialCategory.isIncomeId(categoryId)) return income;
     if (SpecialCategory.isTransferId(categoryId)) return transfer;
-    return palette[_stableIndex(categoryId) % palette.length];
-  }
-
-  static Color forCategory(SpendCategory category) =>
-      forCategoryId(category.id, categoryName: category.name);
-
-  static int _stableIndex(String categoryId) {
-    var hash = 0;
-    for (final codeUnit in categoryId.codeUnits) {
-      hash = (hash * 31 + codeUnit) & 0x7fffffff;
+    final trimmedGroupId = groupId?.trim();
+    if (trimmedGroupId != null && trimmedGroupId.isNotEmpty) {
+      return forGroupId(trimmedGroupId).shadeKeyedBy(categoryId);
     }
-    return hash;
+    return palette[categoryId.stableHash % palette.length];
   }
+
+  static Color forCategory(SpendCategory category) => forCategoryId(
+        category.id,
+        categoryName: category.name,
+        groupId: category.groupId,
+      );
+
+  static Color forGroupId(String groupId) =>
+      palette[groupId.stableHash % palette.length];
 }

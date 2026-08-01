@@ -4,8 +4,8 @@ import 'package:spend_trends/services/simplefin/simplefin_models.dart';
 import 'package:ethan_sync/ethan_sync.dart';
 import 'package:powersync/powersync.dart';
 
-class SyncStateStore {
-  SyncStateStore(this._powerSync);
+class SimpleFinPullHistory {
+  SimpleFinPullHistory(this._powerSync);
 
   final PowerSyncDatabase _powerSync;
 

@@ -1,5 +1,4 @@
-import 'dart:math' as math;
-
+import 'package:ethan_utils/ethan_utils.dart';
 import 'package:spend_trends/features/trends/chart_date_layout.dart';
 
 /// Y scale snapped to human-readable tick steps for the data max.
@@ -22,7 +21,7 @@ class TrendValueScale {
     }
 
     final roughStep = dataMaxCents / targetTickCount;
-    final stepCents = _niceNumber(roughStep, round: true);
+    final stepCents = roughStep.niceNumber(round: true);
     final niceMaxCents = (dataMaxCents / stepCents).ceil() * stepCents;
     final tickCents = <double>[];
     for (var tick = 0.0;
@@ -42,33 +41,5 @@ class TrendValueScale {
 
   double yForCents(double cents, ChartDateLayout layout) {
     return layout.bottom - fractionFromBottom(cents) * layout.height;
-  }
-
-  /// Classic "nice number" step (1 / 2 / 5 × 10^n).
-  static double _niceNumber(double value, {required bool round}) {
-    if (value <= 0) return 100;
-    final exponent = (math.log(value) / math.ln10).floor();
-    final fraction = value / math.pow(10, exponent);
-    late final double niceFraction;
-    if (round) {
-      if (fraction < 1.5) {
-        niceFraction = 1;
-      } else if (fraction < 3) {
-        niceFraction = 2;
-      } else if (fraction < 7) {
-        niceFraction = 5;
-      } else {
-        niceFraction = 10;
-      }
-    } else if (fraction <= 1) {
-      niceFraction = 1;
-    } else if (fraction <= 2) {
-      niceFraction = 2;
-    } else if (fraction <= 5) {
-      niceFraction = 5;
-    } else {
-      niceFraction = 10;
-    }
-    return niceFraction * math.pow(10, exponent);
   }
 }

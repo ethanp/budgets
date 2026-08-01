@@ -2,6 +2,7 @@ import 'package:spend_trends/domain/stay_chain.dart';
 import 'package:spend_trends/features/life_chains/chain_stay_form_sheet.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/theme/app_theme.dart';
+import 'package:spend_trends/widgets/app_primary_button.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -66,7 +67,7 @@ class _ChainBody extends ConsumerWidget {
         else
           _ChainPath(kind: kind, chain: chain),
         VSpace.xl,
-        CupertinoButton.filled(
+        AppPrimaryButton(
           onPressed: () {
             final oldestStartedOn = chain.oldest?.stay.startedOn.startOfDay;
             ChainStayFormSheet.show(

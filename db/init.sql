@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS accounts (
     status TEXT NOT NULL,
     status_message TEXT,
     user_label TEXT,
+    conn_user_label TEXT,
     account_kind TEXT,
     belongs_to_account_id TEXT REFERENCES accounts(id) ON DELETE SET NULL
 );
@@ -43,6 +44,11 @@ CREATE TABLE IF NOT EXISTS transactions (
     pending INTEGER NOT NULL DEFAULT 0,
     user_category_id TEXT REFERENCES categories(id),
     suggested_category_id TEXT REFERENCES categories(id),
+    note TEXT,
+    transaction_type TEXT,
+    excluded INTEGER NOT NULL DEFAULT 0,
+    recurring_series TEXT,
+    imported_at BIGINT,
     UNIQUE(account_id, external_id)
 );
 

@@ -1,11 +1,13 @@
 import 'package:spend_trends/domain/life_event.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/theme/app_theme.dart';
+import 'package:spend_trends/widgets/app_primary_button.dart';
+import 'package:spend_trends/widgets/app_date_field.dart';
 import 'package:spend_trends/widgets/app_date_picker.dart';
+import 'package:spend_trends/widgets/app_sheet_panel.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 enum _LifeEventDateMode { day, range, ongoing }
 
@@ -71,21 +73,9 @@ class _LifeEventFormSheetState extends ConsumerState<LifeEventFormSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
-
-    return Container(
-      padding: EdgeInsets.only(
-        left: AppSpacing.lg,
-        right: AppSpacing.lg,
-        top: AppSpacing.lg,
-        bottom: bottomInset + AppSpacing.lg,
-      ),
-      decoration: const BoxDecoration(
-        color: AppColors.backgroundDepth2,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
-      ),
-      child: SafeArea(
-        top: false,
+    return AppSheetPanel.compact(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           child: Column(
@@ -98,14 +88,14 @@ class _LifeEventFormSheetState extends ConsumerState<LifeEventFormSheet> {
               VSpace.md,
               _dateModeControl(),
               VSpace.md,
-              _dateRow(
+              AppDateField(
                 label: _dateMode == _LifeEventDateMode.day ? 'Date' : 'Start',
                 date: _startedOn,
                 onTap: () => _pickDate(isStart: true),
               ),
               if (_dateMode == _LifeEventDateMode.range) ...[
                 VSpace.sm,
-                _dateRow(
+                AppDateField(
                   label: 'End',
                   date: _endedOn,
                   onTap: () => _pickDate(isStart: false),
@@ -177,40 +167,6 @@ class _LifeEventFormSheetState extends ConsumerState<LifeEventFormSheet> {
     );
   }
 
-  Widget _dateRow({
-    required String label,
-    required DateTime date,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          color: AppColors.backgroundDepth3,
-          borderRadius: BorderRadius.circular(AppRadius.sm),
-          border: Border.all(color: AppColors.borderDepth1),
-        ),
-        child: Row(
-          children: [
-            Text(label, style: AppText.body.medium),
-            const Spacer(),
-            Text(
-              DateFormat.yMMMd().format(date),
-              style: AppText.body.medium.semibold,
-            ),
-            HSpace.sm,
-            const Icon(
-              CupertinoIcons.calendar,
-              size: 18,
-              color: AppColors.textSupport,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _noteField() {
     return CupertinoTextField(
       controller: _noteController,
@@ -223,11 +179,10 @@ class _LifeEventFormSheetState extends ConsumerState<LifeEventFormSheet> {
   }
 
   Widget _saveButton() {
-    return CupertinoButton.filled(
-      onPressed: _busy ? null : _save,
-      child: _busy
-          ? const CupertinoActivityIndicator()
-          : Text(_isEditing ? 'Save' : 'Add'),
+    return AppPrimaryButton(
+      busy: _busy,
+      onPressed: _save,
+      child: Text(_isEditing ? 'Save' : 'Add'),
     );
   }
 
@@ -300,7 +255,7 @@ class _LifeEventFormSheetState extends ConsumerState<LifeEventFormSheet> {
           note: _noteController.text,
         );
       }
-      ref.read(dataRevisionProvider.notifier).bump();
+      ref.read(spendDataChangedProvider.notifier).notify();
       if (mounted) Navigator.of(context).pop();
     } catch (error) {
       setState(() => _error = '$error');
@@ -337,7 +292,7 @@ class _LifeEventFormSheetState extends ConsumerState<LifeEventFormSheet> {
     try {
       final repository = await ref.read(lifeEventsRepositoryProvider.future);
       await repository.delete(widget.lifeEvent!.id);
-      ref.read(dataRevisionProvider.notifier).bump();
+      ref.read(spendDataChangedProvider.notifier).notify();
       if (mounted) Navigator.of(context).pop();
     } catch (error) {
       setState(() => _error = '$error');

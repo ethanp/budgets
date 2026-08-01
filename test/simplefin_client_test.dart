@@ -1,3 +1,4 @@
+import 'package:ethan_utils/ethan_utils.dart';
 import 'dart:convert';
 
 import 'package:spend_trends/services/simplefin/simplefin_client.dart';
@@ -6,17 +7,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 
 void main() {
-  group('amountStringToCents', () {
+  group('asCents', () {
     test('parses negative dollars', () {
-      expect(amountStringToCents('-12.34'), -1234);
+      expect('-12.34'.asCents, -1234);
     });
 
     test('parses fractional cents', () {
-      expect(amountStringToCents('0.1'), 10);
+      expect('0.1'.asCents, 10);
     });
 
     test('parses whole dollars', () {
-      expect(amountStringToCents('100'), 10000);
+      expect('100'.asCents, 10000);
     });
   });
 

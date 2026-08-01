@@ -4,6 +4,8 @@ import 'package:spend_trends/domain/special_category.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/services/sqlite/categories_repository.dart';
 import 'package:spend_trends/theme/app_theme.dart';
+import 'package:spend_trends/widgets/app_primary_button.dart';
+import 'package:spend_trends/widgets/app_sheet_panel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -58,21 +60,9 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
-
-    return Container(
-      padding: EdgeInsets.only(
-        left: AppSpacing.lg,
-        right: AppSpacing.lg,
-        top: AppSpacing.lg,
-        bottom: bottomInset + AppSpacing.lg,
-      ),
-      decoration: const BoxDecoration(
-        color: AppColors.backgroundDepth2,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
-      ),
-      child: SafeArea(
-        top: false,
+    return AppSheetPanel.compact(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -202,11 +192,10 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
   }
 
   Widget _primaryAction() {
-    return CupertinoButton.filled(
-      onPressed: _busy ? null : _save,
-      child: _busy
-          ? const CupertinoActivityIndicator()
-          : Text(_isEditing ? 'Save' : 'Create'),
+    return AppPrimaryButton(
+      busy: _busy,
+      onPressed: _save,
+      child: Text(_isEditing ? 'Save' : 'Create'),
     );
   }
 
@@ -235,7 +224,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
     try {
       final repository = await ref.read(categoriesRepositoryProvider.future);
       await _persistCategory(repository, name);
-      ref.read(dataRevisionProvider.notifier).bump();
+      ref.read(spendDataChangedProvider.notifier).notify();
       if (mounted) Navigator.of(context).pop();
     } catch (error) {
       setState(() => _error = '$error');
@@ -385,7 +374,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
         fromCategoryId: category.id,
         intoCategoryId: target.id,
       );
-      ref.read(dataRevisionProvider.notifier).bump();
+      ref.read(spendDataChangedProvider.notifier).notify();
       if (mounted) Navigator.of(context).pop();
     } catch (error) {
       setState(() => _error = '$error');

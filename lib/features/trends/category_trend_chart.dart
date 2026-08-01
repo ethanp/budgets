@@ -16,7 +16,7 @@ import 'package:spend_trends/features/trends/trend_point_contributors_sheet.dart
 import 'package:spend_trends/features/trends/trend_value_scale.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/theme/app_theme.dart';
-import 'package:spend_trends/util/money_format.dart';
+import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';

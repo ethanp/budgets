@@ -163,6 +163,7 @@ class SettingsToolRow extends StatelessWidget {
     this.busy = false,
     this.message,
     this.progress,
+    this.onCancel,
   });
 
   final IconData icon;
@@ -173,6 +174,7 @@ class SettingsToolRow extends StatelessWidget {
   final bool busy;
   final String? message;
   final Widget? progress;
+  final VoidCallback? onCancel;
 
   @override
   Widget build(BuildContext context) {
@@ -236,7 +238,23 @@ class SettingsToolRow extends StatelessWidget {
                   ],
                 ),
               ),
-              if (busy) ...[
+              if (busy && onCancel != null) ...[
+                HSpace.sm,
+                CupertinoButton(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm,
+                    vertical: AppSpacing.xs,
+                  ),
+                  minimumSize: Size.zero,
+                  onPressed: onCancel,
+                  child: Text(
+                    'Cancel',
+                    style: AppText.body.small.semibold.copyWith(
+                      color: style.accent,
+                    ),
+                  ),
+                ),
+              ] else if (busy) ...[
                 HSpace.sm,
                 CupertinoActivityIndicator(
                   radius: 8,

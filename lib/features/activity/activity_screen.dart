@@ -1,17 +1,20 @@
 import 'package:spend_trends/domain/account.dart';
+import 'package:spend_trends/domain/canceling_merchant_pairs.dart';
 import 'package:spend_trends/domain/categorizer.dart';
 import 'package:spend_trends/domain/category.dart';
 import 'package:spend_trends/domain/transaction.dart';
 import 'package:spend_trends/features/activity/activity_search.dart';
 import 'package:spend_trends/features/activity/activity_transaction_tile.dart';
+import 'package:spend_trends/features/activity/manage_rule_sheet.dart';
 import 'package:spend_trends/features/activity/recategorize_sheet.dart';
 import 'package:spend_trends/features/activity/suggest_categories_sheet.dart';
+import 'package:spend_trends/features/banks/banks_controller.dart';
+import 'package:spend_trends/features/banks/banks_pull_progress_sheet.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/theme/app_theme.dart';
-import 'package:spend_trends/util/money_format.dart';
+import 'package:ethan_utils/ethan_utils.dart';
 import 'package:spend_trends/widgets/app_card.dart';
 import 'package:spend_trends/widgets/sync_status_nav_button.dart';
-import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -51,26 +54,28 @@ class ActivityScreen extends ConsumerWidget {
           ),
           CupertinoButton(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-            onPressed: () => _refresh(ref),
-            child: const Text('Sync bank'),
+            onPressed: () => _refresh(context, ref),
+            child: const Text('Pull bank transactions'),
           ),
         ],
       ),
     );
   }
 
-  static Future<void> _refresh(WidgetRef ref) async {
+  static Future<void> _refresh(BuildContext context, WidgetRef ref) async {
     final connected =
         await ref.read(simpleFinAccessStoreProvider).isConnected;
     if (!connected) {
-      ref.read(dataRevisionProvider.notifier).bump();
+      ref.read(spendDataChangedProvider.notifier).notify();
       return;
     }
-    final ingest = await ref.read(transactionIngestProvider.future);
-    await ingest.pullAndUpsert();
-    final categorizer = await ref.read(categorizerProvider.future);
-    await categorizer.applyRulesToUncategorized();
-    ref.read(dataRevisionProvider.notifier).bump();
+    if (!context.mounted) return;
+    await BanksPullProgressSheet.showAndRun(
+      context,
+      run: (onProgress) => ref
+          .read(banksControllerProvider.notifier)
+          .syncLatest(onProgress: onProgress),
+    );
   }
 }
 
@@ -111,16 +116,25 @@ class _ActivityBodyState extends ConsumerState<_ActivityBody> {
             const <CategorizationRule>[];
 
     final hasSearch = _searchQuery.trim().isNotEmpty;
-    final searchMatches = [
+    final searchHits = [
       for (final transaction in widget.transactions)
-        if (activityMatchesSearch(
-          transaction: transaction,
-          query: _searchQuery,
-          account: accounts[transaction.accountId],
-          category: categories[transaction.effectiveCategoryId],
-        ))
+        if (!_isHiddenLinkedCopilotTxn(transaction, accounts) &&
+            activityMatchesSearch(
+              transaction: transaction,
+              query: _searchQuery,
+              account: accounts[transaction.accountId],
+              category: categories[transaction.effectiveCategoryId],
+            ))
           transaction,
     ];
+    // Default view hides canceling pairs; search still surfaces them.
+    // Investment accounts pair by amount alone (fund swaps differ by name).
+    final searchMatches = hasSearch
+        ? searchHits
+        : CancelingMerchantPairs.excludingCancelingPairs(
+            searchHits,
+            accountsById: accounts,
+          );
     final ruleMatchIndex = RuleMatchIndex(rules);
     final Map<String, CategorizationRule?> explainingByTransactionId;
     final List<BankTransaction> visibleTransactions;
@@ -152,7 +166,7 @@ class _ActivityBodyState extends ConsumerState<_ActivityBody> {
           child: CustomScrollView(
             slivers: [
               CupertinoSliverRefreshControl(
-                onRefresh: () => ActivityScreen._refresh(ref),
+                onRefresh: () => ActivityScreen._refresh(context, ref),
               ),
               if (visibleTransactions.isEmpty)
                 _buildNoResultsSliver(
@@ -172,6 +186,16 @@ class _ActivityBodyState extends ConsumerState<_ActivityBody> {
         ),
       ],
     );
+  }
+
+  /// Copilot accounts with belongs-to are enrichment only — parent (SimpleFIN)
+  /// rows are canonical in Activity.
+  bool _isHiddenLinkedCopilotTxn(
+    BankTransaction transaction,
+    Map<String, Account> accounts,
+  ) {
+    final account = accounts[transaction.accountId];
+    return account != null && account.isCopilot && account.hasParent;
   }
 
   /// True when a real rule explains the category, or Copilot/suggested filled it.
@@ -301,6 +325,15 @@ class _ActivityBodyState extends ConsumerState<_ActivityBody> {
                   ref: ref,
                   transaction: transaction,
                 ),
+                onRuleTap: explainingRule != null &&
+                        explainingRule.priority >
+                            CategorizationRule.defaultImportPriority
+                    ? () => ManageRuleSheet.show(
+                          context,
+                          ref: ref,
+                          rule: explainingRule,
+                        )
+                    : null,
               ),
             );
           },
@@ -376,7 +409,7 @@ class _ActivityBodyState extends ConsumerState<_ActivityBody> {
         AppCard(
           child: Text(
             connected
-                ? 'No transactions yet. Pull to refresh.'
+                ? 'No transactions yet.'
                 : 'Connect a bank on the Banks tab to see activity.',
             style: AppText.body.medium,
           ),

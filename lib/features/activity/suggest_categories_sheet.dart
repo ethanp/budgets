@@ -2,9 +2,11 @@ import 'package:spend_trends/domain/categorizer.dart';
 import 'package:spend_trends/features/activity/rule_impact_confirm_sheet.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/providers/llm_providers.dart';
-import 'package:spend_trends/services/llm/llm_category_suggester.dart';
+import 'package:spend_trends/services/llm/suggest_merchant_categories.dart';
 import 'package:spend_trends/services/llm/llm_errors.dart';
 import 'package:spend_trends/theme/app_theme.dart';
+import 'package:ethan_utils/ethan_utils.dart';
+import 'package:spend_trends/widgets/app_sheet_panel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -30,6 +32,10 @@ class _SuggestCategoriesSheetState
   String? _error;
   List<CategorySuggestion> _suggestions = const [];
 
+  String get _primaryActionLabel => _createRules ? 'Review' : 'Apply';
+
+  String get _bulkActionLabel => _createRules ? 'Review all' : 'Apply all';
+
   @override
   void initState() {
     super.initState();
@@ -51,7 +57,7 @@ class _SuggestCategoriesSheetState
   }
 
   Future<void> _loadSuggestions() async {
-    final suggester = await ref.read(llmCategorySuggesterProvider.future);
+    final suggester = await ref.read(suggestMerchantCategoriesProvider.future);
     if (suggester == null) {
       _showLoadError(
         'Configure LLM_APP_SECRET and SERVER_HOST_LAN in .env to use suggestions.',
@@ -59,7 +65,7 @@ class _SuggestCategoriesSheetState
       return;
     }
 
-    final suggestions = await suggester.suggestForUncategorized();
+    final suggestions = await suggester.forUncategorizedMerchants();
     if (!mounted) return;
     setState(() {
       _suggestions = suggestions;
@@ -77,20 +83,14 @@ class _SuggestCategoriesSheetState
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: MediaQuery.sizeOf(context).height * 0.7,
-      decoration: const BoxDecoration(
-        color: AppColors.backgroundDepth2,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Column(
-          children: [
-            _buildHeader(),
-            Expanded(child: _buildBody()),
-          ],
-        ),
+    return AppSheetPanel(
+      heightFraction: 0.7,
+      padForKeyboard: false,
+      child: Column(
+        children: [
+          _buildHeader(),
+          Expanded(child: _buildBody()),
+        ],
       ),
     );
   }
@@ -126,8 +126,8 @@ class _SuggestCategoriesSheetState
         if (_suggestions.isNotEmpty)
           CupertinoButton(
             padding: EdgeInsets.zero,
-            onPressed: _acceptAll,
-            child: const Text('Accept all'),
+            onPressed: _reviewAll,
+            child: Text(_bulkActionLabel),
           ),
       ],
     );
@@ -189,32 +189,58 @@ class _SuggestCategoriesSheetState
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: AppComponents.primaryCard,
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(suggestion.merchant, style: AppText.body.large.semibold),
-                Text(suggestion.categoryName, style: AppText.body.small.accent),
+                Text(
+                  suggestion.createsCategory
+                      ? 'New · ${suggestion.categoryName}'
+                      : suggestion.categoryName,
+                  style: suggestion.createsCategory
+                      ? AppText.body.small.copyWith(
+                          color: AppColors.accentSecondary,
+                        )
+                      : AppText.body.small.accent,
+                ),
+                if (suggestion.transactionAmountCents.isNotEmpty) ...[
+                  VSpace.xs,
+                  Text(
+                    _amountsLabel(suggestion),
+                    style: AppText.body.medium.semibold,
+                  ),
+                ],
               ],
             ),
           ),
           CupertinoButton(
             padding: EdgeInsets.zero,
-            onPressed: () => _acceptOne(suggestion),
-            child: const Text('Accept'),
+            onPressed: () => _reviewOne(suggestion),
+            child: Text(_primaryActionLabel),
           ),
         ],
       ),
     );
   }
 
-  Future<void> _acceptAll() async {
+  static String _amountsLabel(CategorySuggestion suggestion) {
+    final amounts = suggestion.transactionAmountCents;
+    if (amounts.length == 1) return formatCents(amounts.first);
+    if (amounts.length <= 3) {
+      return amounts.map(formatCents).join(' · ');
+    }
+    return '${amounts.length} txns · ${formatCents(suggestion.totalAmountCents)}';
+  }
+
+  Future<void> _reviewAll() async {
     final applied = await _apply(_suggestions);
     if (applied && mounted) Navigator.of(context).pop();
   }
 
-  Future<void> _acceptOne(CategorySuggestion suggestion) async {
+  Future<void> _reviewOne(CategorySuggestion suggestion) async {
     final applied = await _apply([suggestion]);
     if (!applied || !mounted) return;
     setState(() {
@@ -226,16 +252,18 @@ class _SuggestCategoriesSheetState
 
   /// Returns false if the user cancelled the rule-impact confirm sheet.
   Future<bool> _apply(List<CategorySuggestion> suggestions) async {
-    final suggester = await ref.read(llmCategorySuggesterProvider.future);
+    final suggester = await ref.read(suggestMerchantCategoriesProvider.future);
     if (suggester == null) return false;
 
+    final resolved = await suggester.createMissingCategories(suggestions);
+
     if (!_createRules) {
-      await suggester.applySuggestions(suggestions);
-      ref.read(dataRevisionProvider.notifier).bump();
+      await suggester.applyToUncategorized(resolved);
+      ref.read(spendDataChangedProvider.notifier).notify();
       return true;
     }
 
-    return _applyWithRules(suggestions);
+    return _applyWithRules(resolved);
   }
 
   Future<bool> _applyWithRules(List<CategorySuggestion> suggestions) async {
@@ -243,14 +271,18 @@ class _SuggestCategoriesSheetState
     final groups = await _buildImpactGroups(categorizer, suggestions);
     if (!mounted) return false;
 
-    final selectedIds = await RuleImpactConfirmSheet.show(
+    final result = await RuleImpactConfirmSheet.show(
       context,
       groups: groups,
     );
-    if (selectedIds == null) return false;
+    if (result == null) return false;
 
-    await _persistRulesAndCategories(categorizer, groups, selectedIds);
-    ref.read(dataRevisionProvider.notifier).bump();
+    await _persistRulesAndCategories(
+      categorizer,
+      result.groups,
+      result.selectedTransactionIds,
+    );
+    ref.read(spendDataChangedProvider.notifier).notify();
     return true;
   }
 
@@ -261,11 +293,12 @@ class _SuggestCategoriesSheetState
     final groups = <RuleImpactGroup>[];
     for (final suggestion in suggestions) {
       final pattern = suggestion.merchant.trim();
-      if (pattern.isEmpty) continue;
+      final categoryId = suggestion.categoryId;
+      if (pattern.isEmpty || categoryId == null) continue;
       groups.add(
         RuleImpactGroup(
           pattern: pattern,
-          categoryId: suggestion.categoryId,
+          categoryId: categoryId,
           categoryName: suggestion.categoryName,
           transactions:
               await categorizer.transactionsMatchingContains(pattern),
@@ -281,7 +314,7 @@ class _SuggestCategoriesSheetState
     Set<String> selectedIds,
   ) async {
     for (final group in groups) {
-      await categorizer.ensureContainsRule(
+      await categorizer.upsertMerchantContainsRule(
         pattern: group.pattern,
         categoryId: group.categoryId,
       );

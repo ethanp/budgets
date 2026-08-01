@@ -1,38 +1,6 @@
 import 'package:spend_trends/theme/app_theme.dart';
 import 'package:flutter/cupertino.dart';
 
-/// Content-fit column measurement for dense table-like rows.
-class AppSpreadsheet {
-  AppSpreadsheet._();
-
-  static double measureWidth(
-    String text,
-    TextStyle style, {
-    int maxLines = 1,
-  }) {
-    final textPainter = TextPainter(
-      text: TextSpan(text: text, style: style),
-      textDirection: TextDirection.ltr,
-      maxLines: maxLines,
-    )..layout();
-    return textPainter.width;
-  }
-
-  /// Widest cell among [texts] painted with [style].
-  static double columnWidth(
-    Iterable<String> texts,
-    TextStyle style, {
-    int maxLines = 1,
-  }) {
-    var widest = 0.0;
-    for (final text in texts) {
-      final width = measureWidth(text, style, maxLines: maxLines);
-      if (width > widest) widest = width;
-    }
-    return widest;
-  }
-}
-
 /// Fixed-width cell so sibling rows share a column edge.
 class AppSpreadsheetCell extends StatelessWidget {
   const AppSpreadsheetCell({
@@ -61,7 +29,7 @@ class AppSpreadsheetCell extends StatelessWidget {
 /// Leading content + a shared-width trailing column (right-aligned).
 ///
 /// Use the same [trailingWidth] across sibling rows so values form a column,
-/// sized to the widest cell (see [AppSpreadsheet.columnWidth]).
+/// sized to the widest cell (see [TextsPaintMeasure.maxPaintedWidth]).
 class AppSpreadsheetRow extends StatelessWidget {
   const AppSpreadsheetRow({
     super.key,

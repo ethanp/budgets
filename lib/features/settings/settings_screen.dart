@@ -1,8 +1,8 @@
 import 'package:spend_trends/features/banks/banks_advanced_section.dart';
 import 'package:spend_trends/features/settings/copilot_import_tile.dart';
 import 'package:spend_trends/features/settings/csv_import_sheet.dart';
-import 'package:spend_trends/features/settings/dedupe_copilot_tile.dart';
-import 'package:spend_trends/features/settings/migrate_copilot_rules_tile.dart';
+import 'package:spend_trends/features/settings/remove_duplicate_transactions_tile.dart';
+import 'package:spend_trends/features/settings/unlock_copilot_categories_tile.dart';
 import 'package:spend_trends/features/settings/settings_section.dart';
 import 'package:spend_trends/features/settings/sync_status_tile.dart';
 import 'package:spend_trends/theme/app_theme.dart';
@@ -45,9 +45,9 @@ class SettingsScreen extends ConsumerWidget {
             VSpace.lg,
             const CopilotImportTile(),
             VSpace.lg,
-            const MigrateCopilotRulesTile(),
+            const UnlockCopilotCategoriesTile(),
             VSpace.lg,
-            const DedupeCopilotTile(),
+            const RemoveDuplicateTransactionsTile(),
             VSpace.lg,
             SettingsToolRow(
               icon: CupertinoIcons.doc_text,

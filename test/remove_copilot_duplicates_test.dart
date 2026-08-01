@@ -1,5 +1,6 @@
 import 'package:spend_trends/domain/account.dart';
-import 'package:spend_trends/domain/copilot_simplefin_deduper.dart';
+import 'package:spend_trends/domain/remove_copilot_duplicates.dart';
+import 'package:spend_trends/domain/transaction.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -17,12 +18,19 @@ void main() {
         merchantFingerprint('SENIOR PEPE\'S COCINA'),
       );
     });
+
+    test('collapses Amazon order-id variants used in same-account dupes', () {
+      expect(
+        merchantFingerprint('Amazon.com*hy1oo'),
+        merchantFingerprint('AMAZON.COM*HY1OO'),
+      );
+    });
   });
 
   group('accountMask', () {
     test('reads Copilot external id mask', () {
       expect(
-        CopilotSimplefinDeduper.accountMask(
+        RemoveCopilotDuplicates.accountMask(
           const Account(
             id: '1',
             externalId: 'copilot:Venture X:1298',
@@ -38,7 +46,7 @@ void main() {
 
     test('reads trailing digits from SimpleFIN name', () {
       expect(
-        CopilotSimplefinDeduper.accountMask(
+        RemoveCopilotDuplicates.accountMask(
           const Account(
             id: '2',
             externalId: 'ACT-abc',
@@ -98,13 +106,63 @@ void main() {
         belongsToAccountId: 'parent',
       );
       expect(child.hasParent, isTrue);
-      expect(CopilotSimplefinDeduper.accountMask(parent), isNull);
+      expect(RemoveCopilotDuplicates.accountMask(parent), isNull);
 
-      final linkKeys = CopilotSimplefinDeduper.copilotLinkKeysForTest([
+      final linkKeys = RemoveCopilotDuplicates.copilotLinkKeysForTest([
         parent,
         child,
       ]);
       expect(linkKeys['child'], 'id:parent');
+    });
+  });
+
+  group('bestMerchantMatch', () {
+    test('accepts unique same-day amount candidate without merchant overlap', () {
+      final twin = bestMerchantMatch(
+        normalizedMerchant: 'COMPLETELY DIFFERENT',
+        candidates: [
+          BankTransaction(
+            id: 'sf1',
+            accountId: 'a',
+            externalId: 'e',
+            postedAt: DateTime(2026, 6, 30),
+            amountCents: -5000,
+            rawDescription: 'OTHER',
+            normalizedMerchant: 'OTHER',
+            pending: false,
+          ),
+        ],
+      );
+      expect(twin?.id, 'sf1');
+    });
+
+    test('requires merchant overlap when multiple candidates share day+amount', () {
+      final twin = bestMerchantMatch(
+        normalizedMerchant: 'UBER TRIP',
+        candidates: [
+          BankTransaction(
+            id: 'lyft',
+            accountId: 'a',
+            externalId: 'e1',
+            postedAt: DateTime(2026, 6, 30),
+            amountCents: -5000,
+            rawDescription: 'LYFT',
+            normalizedMerchant: 'LYFT',
+            pending: false,
+          ),
+          BankTransaction(
+            id: 'uber',
+            accountId: 'a',
+            externalId: 'e2',
+            postedAt: DateTime(2026, 6, 30),
+            amountCents: -5000,
+            rawDescription: 'UBER',
+            normalizedMerchant: 'UBER TRIP HELP',
+            pending: false,
+          ),
+        ],
+      );
+      expect(twin?.id, 'uber');
     });
   });
 }

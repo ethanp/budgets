@@ -194,13 +194,12 @@ class CategorySpendTrendBuilder {
           name: '${group.name} · ${member.name}',
           lineColor: memberIsHousing
               ? CategoryColor.housing
-              : _palette[paletteIndex % _palette.length],
+              : CategoryColor.forCategory(member),
           dailyCents: memberDaily,
         );
         if (!TrendSeriesSignificance.hasMeaningfulTrend(builtMember)) {
           continue;
         }
-        if (!memberIsHousing) paletteIndex++;
         memberSeries.add(builtMember);
       }
       if (groupDaily.isEmpty) continue;
@@ -211,11 +210,10 @@ class CategorySpendTrendBuilder {
         name: group.name,
         lineColor: groupIsHousing
             ? CategoryColor.housing
-            : _palette[paletteIndex % _palette.length],
+            : CategoryColor.forGroupId(group.id),
         dailyCents: groupDaily,
       );
       if (!TrendSeriesSignificance.hasMeaningfulTrend(groupSeries)) continue;
-      if (!groupIsHousing) paletteIndex++;
 
       memberSeries.sort(
         (left, right) =>

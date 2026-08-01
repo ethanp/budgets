@@ -20,7 +20,7 @@ class TrendsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final trendsAsync = ref.watch(categoryTrendsProvider);
+    final trendsAsync = ref.watch(trendsChartBundleProvider);
     final transactionsAsync = ref.watch(transactionsListProvider);
     final categoriesAsync = ref.watch(categoriesListProvider);
     final groupsAsync = ref.watch(categoryGroupsProvider);

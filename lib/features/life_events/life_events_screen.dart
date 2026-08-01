@@ -5,6 +5,7 @@ import 'package:spend_trends/features/life_events/life_event_form_sheet.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/theme/app_theme.dart';
 import 'package:spend_trends/widgets/app_card.dart';
+import 'package:spend_trends/widgets/app_primary_button.dart';
 import 'package:spend_trends/widgets/sync_status_nav_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show SelectableText;
@@ -99,7 +100,7 @@ class _LifeEventsBody extends ConsumerWidget {
                   style: AppText.body.small,
                 ),
                 VSpace.md,
-                CupertinoButton.filled(
+                AppPrimaryButton(
                   onPressed: () =>
                       LifeEventFormSheet.show(context, ref: ref),
                   child: const Text('Add life event'),

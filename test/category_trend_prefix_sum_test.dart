@@ -1,7 +1,7 @@
 import 'package:spend_trends/domain/category.dart';
 import 'package:spend_trends/domain/transaction.dart';
 import 'package:spend_trends/features/trends/annual_pace_smoother.dart';
-import 'package:spend_trends/features/trends/category_trend_series_factory.dart';
+import 'package:spend_trends/features/trends/build_trends_charts.dart';
 import 'package:spend_trends/features/trends/hann_annual_pace_kernel.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -23,7 +23,7 @@ void main() {
         userCategoryId: 'cat_dining',
       ),
     );
-    final bundle = const CategoryTrendSeriesFactory().build(
+    final bundle = const BuildTrendsCharts().build(
       transactions: transactions,
       categories: const [
         SpendCategory(
@@ -98,7 +98,7 @@ void main() {
         ),
     ];
 
-    final bundle = const CategoryTrendSeriesFactory().build(
+    final bundle = const BuildTrendsCharts().build(
       transactions: transactions,
       categories: const [
         SpendCategory(

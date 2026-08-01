@@ -6,8 +6,9 @@ import 'package:spend_trends/features/categories/category_editor_sheet.dart';
 import 'package:spend_trends/features/categories/group_editor_sheet.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/theme/app_theme.dart';
-import 'package:spend_trends/util/money_format.dart';
+import 'package:ethan_utils/ethan_utils.dart';
 import 'package:spend_trends/widgets/app_card.dart';
+import 'package:spend_trends/widgets/app_primary_button.dart';
 import 'package:spend_trends/widgets/sync_status_nav_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -207,7 +208,7 @@ class CategoriesScreen extends ConsumerWidget {
               textAlign: TextAlign.center,
             ),
             VSpace.lg,
-            CupertinoButton.filled(
+            AppPrimaryButton(
               onPressed: () => CategoryEditorSheet.show(context, ref: ref),
               child: const Text('Add category'),
             ),

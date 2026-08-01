@@ -3,18 +3,18 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('aliases map onto budgets names', () {
-    expect(budgetsCategoryNameForCopilot('Stuff and Groceries'), 'Shopping');
-    expect(budgetsCategoryNameForCopilot('car'), 'Transport');
+    expect(spendCategoryNameForCopilot('Stuff and Groceries'), 'Shopping');
+    expect(spendCategoryNameForCopilot('car'), 'Transport');
   });
 
   test('unknown names pass through for existing-category lookup', () {
-    expect(budgetsCategoryNameForCopilot('Dining'), 'Dining');
-    expect(budgetsCategoryNameForCopilot('  Travel  '), 'Travel');
+    expect(spendCategoryNameForCopilot('Dining'), 'Dining');
+    expect(spendCategoryNameForCopilot('  Travel  '), 'Travel');
   });
 
   test('empty resolves to null', () {
-    expect(budgetsCategoryNameForCopilot(null), isNull);
-    expect(budgetsCategoryNameForCopilot(''), isNull);
-    expect(budgetsCategoryNameForCopilot('   '), isNull);
+    expect(spendCategoryNameForCopilot(null), isNull);
+    expect(spendCategoryNameForCopilot(''), isNull);
+    expect(spendCategoryNameForCopilot('   '), isNull);
   });
 }

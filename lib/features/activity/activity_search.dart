@@ -1,7 +1,7 @@
 import 'package:spend_trends/domain/account.dart';
 import 'package:spend_trends/domain/category.dart';
 import 'package:spend_trends/domain/transaction.dart';
-import 'package:spend_trends/util/money_format.dart';
+import 'package:ethan_utils/ethan_utils.dart';
 
 /// Case-insensitive substring match; space-separated terms are ANDed.
 bool activityMatchesSearch({

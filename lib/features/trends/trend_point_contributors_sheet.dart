@@ -4,7 +4,8 @@ import 'package:spend_trends/features/activity/recategorize_sheet.dart';
 import 'package:spend_trends/features/trends/trend_point_contributors.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/theme/app_theme.dart';
-import 'package:spend_trends/util/money_format.dart';
+import 'package:ethan_utils/ethan_utils.dart';
+import 'package:spend_trends/widgets/app_sheet_panel.dart';
 import 'package:spend_trends/widgets/app_spreadsheet.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -59,30 +60,24 @@ class _TrendPointContributorsSheetState
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: MediaQuery.sizeOf(context).height * 0.55,
-      decoration: const BoxDecoration(
-        color: AppColors.backgroundDepth2,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Align(
-          alignment: Alignment.topCenter,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: TrendPointContributorsSheet._contentMaxWidth,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _sheetHeader(),
-                if (widget.contributors.isEmpty)
-                  _emptyState()
-                else
-                  _contributorList(),
-              ],
-            ),
+    return AppSheetPanel(
+      heightFraction: 0.55,
+      padForKeyboard: false,
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: TrendPointContributorsSheet._contentMaxWidth,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _sheetHeader(),
+              if (widget.contributors.isEmpty)
+                _emptyState()
+              else
+                _contributorList(),
+            ],
           ),
         ),
       ),
@@ -248,8 +243,8 @@ class _ContributorColumnWidths {
     var rankWidth = 0.0;
     var dateWidth = 0.0;
     var merchantWidth = 0.0;
-    var paceWidth = AppSpreadsheet.measureWidth(paceHeader, headerStyle);
-    var amountWidth = AppSpreadsheet.measureWidth(amountHeader, headerStyle);
+    var paceWidth = paceHeader.measureWidth(headerStyle);
+    var amountWidth = amountHeader.measureWidth(headerStyle);
     var categoryWidth = 0.0;
 
     for (var index = 0; index < contributors.length; index++) {
@@ -290,7 +285,7 @@ class _ContributorColumnWidths {
   }
 
   static double _maxWidth(double current, String text, TextStyle style) {
-    final width = AppSpreadsheet.measureWidth(text, style);
+    final width = text.measureWidth(style);
     return width > current ? width : current;
   }
 }

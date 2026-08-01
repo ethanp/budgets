@@ -14,6 +14,7 @@ class Account {
     required this.status,
     this.statusMessage,
     this.userLabel,
+    this.connUserLabel,
     this.kind = AccountKind.other,
     this.belongsToAccountId,
   });
@@ -35,6 +36,10 @@ class Account {
   /// Optional user-visible name; when set, [displayName] prefers it.
   final String? userLabel;
 
+  /// Optional user-visible bank/institution name; when set,
+  /// [institutionDisplayName] prefers it over [connName].
+  final String? connUserLabel;
+
   /// Persisted account class (Checking, Investment, …); user-editable.
   final AccountKind kind;
 
@@ -46,6 +51,26 @@ class Account {
     final label = userLabel?.trim();
     if (label != null && label.isNotEmpty) return label;
     return name;
+  }
+
+  /// Bank/institution name shown in Banks grouping headers.
+  String get institutionDisplayName {
+    if (isCopilot) return 'Copilot';
+    final label = connUserLabel?.trim();
+    if (label != null && label.isNotEmpty) return label;
+    final official = connName?.trim();
+    if (official != null && official.isNotEmpty) return official;
+    return 'Other';
+  }
+
+  /// Stable key for grouping accounts under one bank (prefers [connId]).
+  String get institutionGroupKey {
+    if (isCopilot) return 'copilot';
+    final id = connId?.trim();
+    if (id != null && id.isNotEmpty) return 'id:$id';
+    final official = connName?.trim();
+    if (official != null && official.isNotEmpty) return 'name:$official';
+    return 'other';
   }
 
   bool get isCopilot => externalId.startsWith('copilot:');
@@ -66,6 +91,8 @@ class Account {
     String? statusMessage,
     String? userLabel,
     bool clearUserLabel = false,
+    String? connUserLabel,
+    bool clearConnUserLabel = false,
     AccountKind? kind,
     String? belongsToAccountId,
     bool clearBelongsTo = false,
@@ -83,6 +110,8 @@ class Account {
       status: status ?? this.status,
       statusMessage: statusMessage ?? this.statusMessage,
       userLabel: clearUserLabel ? null : (userLabel ?? this.userLabel),
+      connUserLabel:
+          clearConnUserLabel ? null : (connUserLabel ?? this.connUserLabel),
       kind: kind ?? this.kind,
       belongsToAccountId: clearBelongsTo
           ? null

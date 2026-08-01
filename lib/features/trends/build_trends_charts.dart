@@ -10,9 +10,9 @@ import 'package:spend_trends/features/trends/trend_chart_catalog.dart';
 import 'package:spend_trends/features/trends/trends_chart_bundle.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 
-/// Orchestrates Trends chart series from transactions, categories, and accounts.
-class CategoryTrendSeriesFactory {
-  const CategoryTrendSeriesFactory();
+/// Builds Trends chart series from transactions, categories, and accounts.
+class BuildTrendsCharts {
+  const BuildTrendsCharts();
 
   TrendsChartBundle build({
     required List<BankTransaction> transactions,

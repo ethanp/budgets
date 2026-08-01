@@ -1,7 +1,7 @@
 import 'package:spend_trends/domain/category.dart';
 import 'package:spend_trends/domain/category_group.dart';
 import 'package:spend_trends/domain/transaction.dart';
-import 'package:spend_trends/features/trends/category_trend_series_factory.dart';
+import 'package:spend_trends/features/trends/build_trends_charts.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:spend_trends/features/trends/trend_chart_catalog.dart';
 
@@ -47,7 +47,7 @@ void main() {
       ),
     ];
 
-    final bundle = const CategoryTrendSeriesFactory().build(
+    final bundle = const BuildTrendsCharts().build(
       transactions: transactions,
       categories: const [
         SpendCategory(

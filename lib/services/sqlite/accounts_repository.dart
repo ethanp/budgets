@@ -56,6 +56,7 @@ class AccountsRepository {
       'status': account.status.storageValue,
       'status_message': account.statusMessage,
       'user_label': account.userLabel,
+      'conn_user_label': account.connUserLabel,
       'account_kind': account.kind.storageValue,
       'belongs_to_account_id':
           account.belongsToAccountId ?? existing?.belongsToAccountId,
@@ -73,6 +74,39 @@ class AccountsRepository {
     await _powerSync.execute(
       'UPDATE accounts SET user_label = ? WHERE id = ?',
       [stored, accountId],
+    );
+  }
+
+  /// Sets or clears the bank/institution label for every account in that bank.
+  Future<void> updateInstitutionUserLabel({
+    required Account account,
+    required String? connUserLabel,
+  }) async {
+    if (account.isCopilot) {
+      throw StateError('Copilot has no editable institution label.');
+    }
+    final trimmed = connUserLabel?.trim();
+    final stored = trimmed == null || trimmed.isEmpty ? null : trimmed;
+    final connId = account.connId?.trim();
+    if (connId != null && connId.isNotEmpty) {
+      await _powerSync.execute(
+        'UPDATE accounts SET conn_user_label = ? WHERE conn_id = ?',
+        [stored, connId],
+      );
+      return;
+    }
+    final connName = account.connName?.trim();
+    if (connName == null || connName.isEmpty) {
+      throw StateError('Account has no institution to rename.');
+    }
+    await _powerSync.execute(
+      '''
+UPDATE accounts
+SET conn_user_label = ?
+WHERE conn_name = ?
+  AND (conn_id IS NULL OR conn_id = '')
+''',
+      [stored, connName],
     );
   }
 
@@ -139,6 +173,7 @@ class AccountsRepository {
       status: AccountStatus.fromStorage(columns['status'] as String),
       statusMessage: columns['status_message'] as String?,
       userLabel: columns['user_label'] as String?,
+      connUserLabel: columns['conn_user_label'] as String?,
       belongsToAccountId: columns['belongs_to_account_id'] as String?,
     );
     final storedKind = AccountKind.tryFromStorage(

@@ -1,11 +1,12 @@
+import 'package:ethan_utils/ethan_utils.dart';
 import 'package:spend_trends/domain/account.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/services/sync/sync_config.dart';
 import 'package:spend_trends/theme/app_theme.dart';
+import 'package:spend_trends/widgets/app_sheet_panel.dart';
 import 'package:ethan_sync/ethan_sync.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 class SyncStatusSheet extends ConsumerWidget {
   const SyncStatusSheet({super.key});
@@ -21,22 +22,16 @@ class SyncStatusSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final connectionAsync = ref.watch(connectionStatusProvider);
 
-    return Container(
-      height: MediaQuery.sizeOf(context).height * 0.55,
-      decoration: const BoxDecoration(
-        color: AppColors.backgroundDepth2,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: connectionAsync.when(
-          loading: () => const Center(child: CupertinoActivityIndicator()),
-          error: (error, _) => Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Text('$error', style: AppText.body.medium.error),
-          ),
-          data: (status) => _SyncStatusBody(status: status),
+    return AppSheetPanel(
+      heightFraction: 0.55,
+      padForKeyboard: false,
+      child: connectionAsync.when(
+        loading: () => const Center(child: CupertinoActivityIndicator()),
+        error: (error, _) => Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Text('$error', style: AppText.body.medium.error),
         ),
+        data: (status) => _SyncStatusBody(status: status),
       ),
     );
   }
@@ -101,7 +96,7 @@ class _SyncStatusBody extends ConsumerWidget {
       label: 'Bank pull',
       value: lastSyncedAt == null
           ? 'Never'
-          : formatRelativeTime(lastSyncedAt),
+          : lastSyncedAt.relativeTimeAgo(includeClock: true),
     );
   }
 
@@ -173,7 +168,7 @@ class _AccountSyncRow extends StatelessWidget {
           Text(
             lastSyncedAt == null
                 ? 'Never'
-                : formatRelativeTime(lastSyncedAt),
+                : lastSyncedAt.relativeTimeAgo(includeClock: true),
             style: AppText.body.small,
           ),
         ],
@@ -182,12 +177,3 @@ class _AccountSyncRow extends StatelessWidget {
   }
 }
 
-String formatRelativeTime(DateTime time) {
-  final local = time.toLocal();
-  final difference = DateTime.now().difference(local);
-  if (difference.inMinutes < 1) return 'just now';
-  if (difference.inHours < 1) return '${difference.inMinutes}m ago';
-  if (difference.inDays < 1) return '${difference.inHours}h ago';
-  if (difference.inDays < 7) return '${difference.inDays}d ago';
-  return DateFormat.MMMd().add_jm().format(local);
-}

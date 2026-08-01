@@ -1,13 +1,15 @@
 import 'package:spend_trends/features/banks/bank_accounts_list.dart';
 import 'package:spend_trends/features/banks/banks_controller.dart';
+import 'package:spend_trends/features/banks/banks_pull_progress_sheet.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/services/simplefin/simplefin_access_store.dart';
 import 'package:spend_trends/theme/app_theme.dart';
+import 'package:spend_trends/widgets/app_primary_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show SelectableText;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Everyday bank UI: connect, accounts, sync latest.
+/// Everyday bank UI: connect, accounts, pull bank transactions.
 class BanksSourceSection extends ConsumerStatefulWidget {
   const BanksSourceSection({super.key});
 
@@ -54,10 +56,10 @@ class _BanksSourceSectionState extends ConsumerState<BanksSourceSection> {
           style: AppText.body.small,
         ),
         VSpace.md,
-        CupertinoButton.filled(
-          onPressed: busy
-              ? null
-              : () => ref.read(banksControllerProvider.notifier).openSimpleFin(),
+        AppPrimaryButton(
+          busy: busy,
+          onPressed: () =>
+              ref.read(banksControllerProvider.notifier).openSimpleFin(),
           child: const Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -84,18 +86,17 @@ class _BanksSourceSectionState extends ConsumerState<BanksSourceSection> {
           ),
         ],
         VSpace.md,
-        CupertinoButton.filled(
-          onPressed: busy ? null : _connect,
-          child: busy
-              ? const CupertinoActivityIndicator()
-              : const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(CupertinoIcons.link, size: 18),
-                    HSpace.sm,
-                    Text('Connect'),
-                  ],
-                ),
+        AppPrimaryButton(
+          busy: busy,
+          onPressed: _connect,
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(CupertinoIcons.link, size: 18),
+              HSpace.sm,
+              Text('Connect'),
+            ],
+          ),
         ),
       ],
     );
@@ -115,22 +116,26 @@ class _BanksSourceSectionState extends ConsumerState<BanksSourceSection> {
           actionError: actionState.actionError,
         ),
         VSpace.md,
-        CupertinoButton.filled(
-          onPressed: busy ? null : controller.syncLatest,
-          child: busy
-              ? const CupertinoActivityIndicator()
-              : const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(CupertinoIcons.arrow_2_circlepath, size: 18),
-                    HSpace.sm,
-                    Text('Sync latest'),
-                  ],
-                ),
+        AppPrimaryButton(
+          busy: busy,
+          onPressed: () => BanksPullProgressSheet.showAndRun(
+            context,
+            run: (onProgress) => controller.syncLatest(onProgress: onProgress),
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(CupertinoIcons.arrow_2_circlepath, size: 18),
+              HSpace.sm,
+              Text('Pull bank transactions'),
+            ],
+          ),
         ),
         VSpace.xs,
         Text(
-          'Pulls new activity since the last sync.',
+          'Since the last SimpleFIN update. Window starts 2 days before that '
+          'pull so late posts aren’t missed. Already-saved rows are updated, '
+          'not duplicated.',
           style: AppText.body.small,
         ),
       ],
@@ -139,11 +144,11 @@ class _BanksSourceSectionState extends ConsumerState<BanksSourceSection> {
 
   Future<void> _connect() async {
     final controller = ref.read(banksControllerProvider.notifier);
-    final claimedAccessUrl = await controller.connect(_tokenController.text);
+    final accessUrl = await controller.connect(_tokenController.text);
     if (ref.read(banksControllerProvider).actionError != null) return;
     _tokenController.clear();
-    if (claimedAccessUrl != null && mounted) {
-      await promptPersistAccessUrl(context, claimedAccessUrl);
+    if (accessUrl != null && mounted) {
+      await promptPersistAccessUrl(context, accessUrl);
     }
   }
 }

@@ -113,6 +113,7 @@ class CsvImporter {
       status: AccountStatus.ok,
       statusMessage: 'Imported from CSV',
       userLabel: existing?.userLabel,
+      connUserLabel: existing?.connUserLabel,
     );
     await _accountsRepository.upsertAccount(
       draft.copyWith(
@@ -187,7 +188,7 @@ class CsvImporter {
   static int _parseAmountCents(String raw) {
     final cleaned = raw.replaceAll('\$', '').replaceAll(',', '').trim();
     if (cleaned.isEmpty) return 0;
-    return amountStringToCents(cleaned);
+    return cleaned.asCents;
   }
 
   static DateTime _parseDate(String raw) {

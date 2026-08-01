@@ -1,8 +1,15 @@
 import 'package:spend_trends/domain/category.dart';
+import 'package:spend_trends/domain/category_group.dart';
 import 'package:spend_trends/domain/transaction.dart';
-import 'package:spend_trends/features/activity/rule_impact_confirm_sheet.dart';
+import 'package:spend_trends/features/activity/contains_pattern_rematch.dart';
+import 'package:spend_trends/features/activity/overlapping_merchant_contains_rules.dart';
+import 'package:spend_trends/features/activity/existing_rule_overlaps.dart';
+import 'package:spend_trends/features/activity/rule_impact_match_row.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/theme/app_theme.dart';
+import 'package:spend_trends/widgets/app_sheet_panel.dart';
+import 'package:spend_trends/widgets/category_picker.dart';
+import 'package:spend_trends/widgets/select_all_none_row.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -29,7 +36,11 @@ class RecategorizeSheet extends ConsumerStatefulWidget {
 
 class _RecategorizeSheetState extends ConsumerState<RecategorizeSheet> {
   bool _createRule = true;
+  bool _savingNote = false;
   late final TextEditingController _patternController;
+  late final TextEditingController _noteController;
+  late final ContainsPatternRematch _patternRematch;
+  final Set<String> _selectedMatchIds = {};
   String? _error;
 
   @override
@@ -38,91 +49,174 @@ class _RecategorizeSheetState extends ConsumerState<RecategorizeSheet> {
     _patternController = TextEditingController(
       text: _defaultContainsPattern(widget.transaction),
     );
+    _noteController = TextEditingController(
+      text: widget.transaction.note ?? '',
+    );
+    _patternRematch = ContainsPatternRematch(
+      fetchMatches: (pattern) async {
+        final categorizer = await ref.read(categorizerProvider.future);
+        return categorizer.transactionsMatchingContains(pattern);
+      },
+      notify: _onRematchUpdated,
+    );
+    _patternRematch.rematch(_patternController.text);
   }
 
   @override
   void dispose() {
+    _patternRematch.dispose();
     _patternController.dispose();
+    _noteController.dispose();
     super.dispose();
+  }
+
+  void _onRematchUpdated() {
+    if (!mounted) return;
+    setState(() {
+      if (_patternRematch.rematching) return;
+      final previousIds = Set<String>.from(_selectedMatchIds);
+      _selectedMatchIds
+        ..removeAll(previousIds)
+        ..addAll([
+          for (final transaction in _patternRematch.matches) transaction.id,
+        ]);
+    });
   }
 
   String get _description => widget.transaction.rawDescription.isEmpty
       ? widget.transaction.normalizedMerchant
       : widget.transaction.rawDescription;
 
+  bool get _noteDirty {
+    final current = _noteController.text.trim();
+    final original = (widget.transaction.note ?? '').trim();
+    return current != original;
+  }
+
   @override
   Widget build(BuildContext context) {
     final categoriesAsync = ref.watch(categoriesListProvider);
-    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+    final groupsAsync = ref.watch(categoryGroupsProvider);
 
-    return Container(
-      padding: EdgeInsets.only(bottom: bottomInset),
-      decoration: const BoxDecoration(
-        color: AppColors.backgroundDepth2,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: categoriesAsync.when(
-          loading: () => const Padding(
-            padding: EdgeInsets.all(AppSpacing.xl),
-            child: Center(child: CupertinoActivityIndicator()),
-          ),
-          error: (error, _) => Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Text('$error', style: AppText.body.medium.error),
-          ),
-          data: _buildContent,
-        ),
-      ),
-    );
+    return AppSheetPanel(child: _sheetBody(categoriesAsync, groupsAsync));
   }
 
-  Widget _buildContent(List<SpendCategory> categories) {
+  Widget _sheetBody(
+    AsyncValue<List<SpendCategory>> categoriesAsync,
+    AsyncValue<List<CategoryGroup>> groupsAsync,
+  ) {
+    if (categoriesAsync.hasError && !categoriesAsync.hasValue) {
+      return Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Text(
+          '${categoriesAsync.error}',
+          style: AppText.body.medium.error,
+        ),
+      );
+    }
+    if (!categoriesAsync.hasValue) {
+      return const Padding(
+        padding: EdgeInsets.all(AppSpacing.xl),
+        child: Center(child: CupertinoActivityIndicator()),
+      );
+    }
+
+    final categories = categoriesAsync.requireValue;
+    final groups = groupsAsync.asData?.value ?? const <CategoryGroup>[];
     return Column(
-      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildForm(),
-        _buildCategoryList(categories),
+        Expanded(
+          child: ListView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.lg,
+              AppSpacing.lg,
+              AppSpacing.md,
+            ),
+            children: [
+              _formHeader(),
+              VSpace.md,
+              _noteField(),
+              VSpace.md,
+              _createRuleToggle(),
+              if (_createRule) ...[
+                VSpace.sm,
+                _patternAndImpactPreview(),
+              ],
+              if (_error != null) ...[
+                VSpace.sm,
+                Text(_error!, style: AppText.body.small.error),
+              ],
+              VSpace.lg,
+              _categoryPicker(categories, groups),
+            ],
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildForm() {
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Categorize', style: AppText.headline.small),
-          VSpace.xs,
-          Text(
-            _description,
-            style: AppText.body.small,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          VSpace.md,
-          _buildCreateRuleToggle(),
-          if (_createRule) ...[
-            VSpace.sm,
-            _buildPatternFields(),
-          ],
-          if (_error != null) ...[
-            VSpace.sm,
-            Text(_error!, style: AppText.body.small.error),
-          ],
-        ],
-      ),
+  Widget _formHeader() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Categorize', style: AppText.headline.small),
+        VSpace.xs,
+        Text(
+          _description,
+          style: AppText.body.small,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
     );
   }
 
-  Widget _buildCreateRuleToggle() {
+  Widget _noteField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Note', style: AppText.body.small),
+        VSpace.xs,
+        CupertinoTextField(
+          controller: _noteController,
+          placeholder: 'Optional note',
+          maxLines: 3,
+          minLines: 1,
+          padding: const EdgeInsets.all(AppSpacing.md),
+          style: AppText.body.large.bright,
+          onChanged: (_) => setState(() {}),
+        ),
+        if (_noteDirty) ...[
+          VSpace.xs,
+          Align(
+            alignment: Alignment.centerRight,
+            child: CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: _savingNote ? null : _saveNoteOnly,
+              child: _savingNote
+                  ? const CupertinoActivityIndicator()
+                  : const Text('Save note'),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _createRuleToggle() {
     return Row(
       children: [
         CupertinoSwitch(
           value: _createRule,
-          onChanged: (value) => setState(() => _createRule = value),
+          onChanged: (value) {
+            setState(() => _createRule = value);
+            if (value) {
+              _patternRematch.rematch(_patternController.text);
+            }
+          },
         ),
         HSpace.sm,
         Expanded(
@@ -132,7 +226,23 @@ class _RecategorizeSheetState extends ConsumerState<RecategorizeSheet> {
     );
   }
 
-  Widget _buildPatternFields() {
+  Widget _patternAndImpactPreview() {
+    final existingRules =
+        ref.watch(categorizationRulesProvider).asData?.value ??
+            const <CategorizationRule>[];
+    final categories =
+        ref.watch(categoriesListProvider).asData?.value ??
+            const <SpendCategory>[];
+    final categoryNameById = {
+      for (final category in categories) category.id: category.name,
+    };
+    final related = overlappingMerchantContainsRules(
+      candidatePattern: _patternController.text,
+      existingRules: existingRules,
+      categoryNameById: categoryNameById,
+    );
+    final matches = _patternRematch.matches;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -146,36 +256,82 @@ class _RecategorizeSheetState extends ConsumerState<RecategorizeSheet> {
           placeholder: 'e.g. bbq',
           padding: const EdgeInsets.all(AppSpacing.md),
           style: AppText.body.large.bright,
+          onChanged: (value) {
+            setState(() {});
+            _patternRematch.schedule(value);
+          },
         ),
         VSpace.xs,
         const Text(
           'Example: "bbq" → Dining matches “Franklin BBQ Austin”.',
           style: AppText.caption,
         ),
+        ExistingRuleOverlaps(overlaps: related),
+        VSpace.md,
+        _matchPreviewHeader(matches.length),
+        if (_patternRematch.rematching) ...[
+          VSpace.sm,
+          const Align(
+            alignment: Alignment.centerLeft,
+            child: CupertinoActivityIndicator(radius: 8),
+          ),
+        ],
+        if (matches.isEmpty && !_patternRematch.rematching)
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.sm),
+            child: Text(
+              'No existing transactions match this pattern.',
+              style: AppText.body.small.copyWith(color: AppColors.textDim),
+            ),
+          ),
+        VSpace.sm,
+        for (final transaction in matches)
+          RuleImpactMatchRow(
+            transaction: transaction,
+            currentCategoryName: RuleImpactMatchRow.categoryLabel(
+              transaction,
+              categoryNameById,
+            ),
+            selected: _selectedMatchIds.contains(transaction.id),
+            onChanged: (selected) => _setSelected(transaction.id, selected),
+          ),
       ],
     );
   }
 
-  Widget _buildCategoryList(List<SpendCategory> categories) {
-    return SizedBox(
-      height: 280,
-      child: ListView.builder(
-        itemCount: categories.length,
-        itemBuilder: (context, index) {
-          final category = categories[index];
-          return CupertinoButton(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.lg,
-              vertical: AppSpacing.md,
-            ),
-            onPressed: () => _assign(category),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(category.name, style: AppText.body.large),
-            ),
-          );
-        },
-      ),
+  Widget _matchPreviewHeader(int matchCount) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          matchCount == 0
+              ? 'Matching transactions appear as you type. The rule still '
+                  'applies to future matches.'
+              : '$matchCount existing '
+                  '${matchCount == 1 ? 'transaction matches' : 'transactions match'}. '
+                  'Deselect any that should keep their current category.',
+          style: AppText.body.small,
+        ),
+        if (matchCount > 0) ...[
+          VSpace.xs,
+          SelectAllNoneRow(
+            onSelectAll: _selectAllMatches,
+            onSelectNone: _selectNoMatches,
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _categoryPicker(
+    List<SpendCategory> categories,
+    List<CategoryGroup> groups,
+  ) {
+    return CategoryPicker(
+      categories: categories,
+      groups: groups,
+      selectedId: widget.transaction.effectiveCategoryId,
+      onPick: _assign,
     );
   }
 
@@ -184,15 +340,9 @@ class _RecategorizeSheetState extends ConsumerState<RecategorizeSheet> {
 
     setState(() => _error = null);
     try {
-      final alsoApplyToTransactionIds = _createRule
-          ? await _confirmRuleImpact(category)
-          : <String>{};
-      if (_createRule && alsoApplyToTransactionIds == null) return;
-
-      await _persistAssignment(
-        category.id,
-        alsoApplyToTransactionIds ?? const {},
-      );
+      final alsoApplyToTransactionIds =
+          _createRule ? Set<String>.from(_selectedMatchIds) : const <String>{};
+      await _persistAssignment(category.id, alsoApplyToTransactionIds);
       if (mounted) Navigator.of(context).pop(category.id);
     } catch (error) {
       setState(() => _error = '$error');
@@ -205,30 +355,11 @@ class _RecategorizeSheetState extends ConsumerState<RecategorizeSheet> {
     return false;
   }
 
-  /// Null means the user cancelled the confirm sheet.
-  Future<Set<String>?> _confirmRuleImpact(SpendCategory category) async {
-    final categorizer = await ref.read(categorizerProvider.future);
-    final pattern = _patternController.text.trim();
-    final matches = await categorizer.transactionsMatchingContains(pattern);
-    if (!mounted) return null;
-
-    return RuleImpactConfirmSheet.show(
-      context,
-      groups: [
-        RuleImpactGroup(
-          pattern: pattern,
-          categoryId: category.id,
-          categoryName: category.name,
-          transactions: matches,
-        ),
-      ],
-    );
-  }
-
   Future<void> _persistAssignment(
     String categoryId,
     Set<String> alsoApplyToTransactionIds,
   ) async {
+    await _persistNoteIfNeeded();
     final categorizer = await ref.read(categorizerProvider.future);
     await categorizer.assignUserCategory(
       transactionId: widget.transaction.id,
@@ -237,7 +368,56 @@ class _RecategorizeSheetState extends ConsumerState<RecategorizeSheet> {
       containsPattern: _createRule ? _patternController.text.trim() : null,
       alsoApplyToTransactionIds: alsoApplyToTransactionIds,
     );
-    ref.read(dataRevisionProvider.notifier).bump();
+    ref.read(spendDataChangedProvider.notifier).notify();
+  }
+
+  Future<void> _saveNoteOnly() async {
+    setState(() {
+      _savingNote = true;
+      _error = null;
+    });
+    try {
+      await _persistNoteIfNeeded();
+      ref.read(spendDataChangedProvider.notifier).notify();
+      if (mounted) Navigator.of(context).pop();
+    } catch (error) {
+      setState(() => _error = '$error');
+    } finally {
+      if (mounted) setState(() => _savingNote = false);
+    }
+  }
+
+  Future<void> _persistNoteIfNeeded() async {
+    if (!_noteDirty) return;
+    final repository = await ref.read(transactionsRepositoryProvider.future);
+    await repository.setNote(
+      transactionId: widget.transaction.id,
+      note: _noteController.text,
+    );
+  }
+
+  void _setSelected(String transactionId, bool selected) {
+    setState(() {
+      if (selected) {
+        _selectedMatchIds.add(transactionId);
+      } else {
+        _selectedMatchIds.remove(transactionId);
+      }
+    });
+  }
+
+  void _selectAllMatches() {
+    setState(() {
+      _selectedMatchIds
+        ..clear()
+        ..addAll([
+          for (final transaction in _patternRematch.matches) transaction.id,
+        ]);
+    });
+  }
+
+  void _selectNoMatches() {
+    setState(_selectedMatchIds.clear);
   }
 
   /// Prefill with a compact token from the txn name so users can trim to e.g. bbq.

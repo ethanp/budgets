@@ -70,10 +70,15 @@ class _SyncStatusTileState extends ConsumerState<SyncStatusTile> {
           activeHost: activeHost,
           hostResolution: hostResolution,
         ),
-        if ((pendingAsync.value ?? 0) > 0) ...[
-          VSpace.xs,
-          _pendingRow(pendingAsync.value!),
-        ],
+        // Always reserve pending-upload row height so count flicker doesn't
+        // shift the rest of Settings.
+        VSpace.xs,
+        SizedBox(
+          height: 18,
+          child: (pendingAsync.value ?? 0) > 0
+              ? _pendingRow(pendingAsync.value!)
+              : const SizedBox.shrink(),
+        ),
       ],
     );
   }

@@ -14,7 +14,7 @@ const Map<String, String> copilotCategoryToBudgetsName = {
   'income taxes': 'Other',
 };
 
-String? budgetsCategoryNameForCopilot(String? copilotCategory) {
+String? spendCategoryNameForCopilot(String? copilotCategory) {
   final trimmed = copilotCategory?.trim() ?? '';
   if (trimmed.isEmpty) return null;
   final key = trimmed.toLowerCase();

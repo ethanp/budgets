@@ -1,6 +1,8 @@
 import 'package:spend_trends/domain/category_group.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/theme/app_theme.dart';
+import 'package:spend_trends/widgets/app_primary_button.dart';
+import 'package:spend_trends/widgets/app_sheet_panel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -49,21 +51,9 @@ class _GroupEditorSheetState extends ConsumerState<GroupEditorSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
-
-    return Container(
-      padding: EdgeInsets.only(
-        left: AppSpacing.lg,
-        right: AppSpacing.lg,
-        top: AppSpacing.lg,
-        bottom: bottomInset + AppSpacing.lg,
-      ),
-      decoration: const BoxDecoration(
-        color: AppColors.backgroundDepth2,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
-      ),
-      child: SafeArea(
-        top: false,
+    return AppSheetPanel.compact(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -85,11 +75,10 @@ class _GroupEditorSheetState extends ConsumerState<GroupEditorSheet> {
               Text(_error!, style: AppText.body.small.error),
             ],
             VSpace.md,
-            CupertinoButton.filled(
-              onPressed: _busy ? null : _save,
-              child: _busy
-                  ? const CupertinoActivityIndicator()
-                  : Text(_isEditing ? 'Save' : 'Create'),
+            AppPrimaryButton(
+              busy: _busy,
+              onPressed: _save,
+              child: Text(_isEditing ? 'Save' : 'Create'),
             ),
             if (_isEditing) ...[
               VSpace.sm,
@@ -126,7 +115,7 @@ class _GroupEditorSheetState extends ConsumerState<GroupEditorSheet> {
       } else {
         await repository.createGroup(name: name);
       }
-      ref.read(dataRevisionProvider.notifier).bump();
+      ref.read(spendDataChangedProvider.notifier).notify();
       if (mounted) Navigator.of(context).pop();
     } catch (error) {
       setState(() => _error = '$error');
@@ -166,7 +155,7 @@ class _GroupEditorSheetState extends ConsumerState<GroupEditorSheet> {
     try {
       final repository = await ref.read(categoriesRepositoryProvider.future);
       await repository.deleteGroup(widget.group!.id);
-      ref.read(dataRevisionProvider.notifier).bump();
+      ref.read(spendDataChangedProvider.notifier).notify();
       if (mounted) Navigator.of(context).pop();
     } catch (error) {
       setState(() => _error = '$error');

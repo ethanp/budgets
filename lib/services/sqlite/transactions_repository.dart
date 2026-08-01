@@ -1,9 +1,18 @@
 import 'package:spend_trends/domain/month_summary.dart';
 import 'package:spend_trends/domain/transaction.dart';
-import 'package:spend_trends/util/merchant_normalize.dart';
 import 'package:ethan_sync/ethan_sync.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:powersync/powersync.dart';
+
+class TransactionPresence {
+  const TransactionPresence({
+    required this.id,
+    required this.hasNote,
+  });
+
+  final String id;
+  final bool hasNote;
+}
 
 class _MonthFlowTotals {
   const _MonthFlowTotals({
@@ -36,7 +45,7 @@ class TransactionsRepository {
     final year = int.parse(parts[0]);
     final month = int.parse(parts[1]);
     final start = DateTime(year, month, 1);
-    return listPostedBetween(start, startOfNextMonth(start));
+    return listPostedBetween(start, start.startOfNextMonth);
   }
 
   /// Inclusive of [start], exclusive of [end], by `posted_at`.
@@ -79,16 +88,74 @@ class TransactionsRepository {
 
   /// Keys are `accountId|externalId` for O(1) resume/skip checks.
   Future<Set<String>> existingAccountExternalKeys() async {
+    final presence = await presenceByAccountExternalKey();
+    return presence.keys.toSet();
+  }
+
+  /// Presence map for import skip + note backfill without per-row lookups.
+  Future<Map<String, TransactionPresence>> presenceByAccountExternalKey() async {
     final rows = await _powerSync.getAll(
-      'SELECT account_id, external_id FROM transactions',
+      'SELECT id, account_id, external_id, note FROM transactions',
     );
     return {
       for (final row in rows)
-        '${row['account_id'] as String}|${row['external_id'] as String}',
+        '${row['account_id'] as String}|${row['external_id'] as String}':
+            TransactionPresence(
+              id: row['id'] as String,
+              hasNote: _normalizedNote(row['note'] as String?) != null,
+            ),
     };
   }
 
-  Future<void> upsertTransaction(
+  /// Inserts rows that are known not to exist yet (no pre-read).
+  Future<void> insertTransactions(List<BankTransaction> transactions) async {
+    if (transactions.isEmpty) return;
+    await _powerSync.writeTransaction((tx) async {
+      for (final transaction in transactions) {
+        await tx.execute(
+          '''
+          INSERT INTO transactions (
+            id, account_id, external_id, posted_at, amount_cents,
+            raw_description, normalized_merchant, pending,
+            user_category_id, suggested_category_id, note,
+            transaction_type, excluded, recurring_series, imported_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ''',
+          [
+            transaction.id,
+            transaction.accountId,
+            transaction.externalId,
+            transaction.postedAt.millisecondsSinceEpoch,
+            transaction.amountCents,
+            transaction.rawDescription,
+            transaction.normalizedMerchant,
+            transaction.pending ? 1 : 0,
+            transaction.userCategoryId,
+            transaction.suggestedCategoryId,
+            _normalizedNote(transaction.note),
+            transaction.transactionType,
+            transaction.excluded ? 1 : 0,
+            transaction.recurringSeries,
+            transaction.importedAt?.millisecondsSinceEpoch,
+          ],
+        );
+      }
+    });
+  }
+
+  Future<void> setExternalIds(Map<String, String> externalIdByTransactionId) async {
+    if (externalIdByTransactionId.isEmpty) return;
+    await _powerSync.writeTransaction((tx) async {
+      for (final entry in externalIdByTransactionId.entries) {
+        await tx.execute(
+          'UPDATE transactions SET external_id = ? WHERE id = ?',
+          [entry.value, entry.key],
+        );
+      }
+    });
+  }
+
+  Future<bool> upsertTransaction(
     BankTransaction transaction, {
     bool overwriteUserCategory = false,
   }) async {
@@ -112,13 +179,59 @@ class TransactionsRepository {
       'suggested_category_id': overwriteUserCategory
           ? transaction.suggestedCategoryId
           : (existing?.suggestedCategoryId ?? transaction.suggestedCategoryId),
-      'note': transaction.note,
+      // Keep an existing note when the incoming row has none (e.g. SimpleFIN sync).
+      'note': _mergedNote(
+        existing: existing?.note,
+        incoming: transaction.note,
+      ),
       'transaction_type': transaction.transactionType,
       'excluded': transaction.excluded ? 1 : 0,
       'recurring_series': transaction.recurringSeries,
       'imported_at': (existing?.importedAt ?? transaction.importedAt)
           ?.millisecondsSinceEpoch,
     });
+    return existing == null;
+  }
+
+  /// Trims and stores [note]; empty/whitespace clears the note.
+  Future<void> setNote({
+    required String transactionId,
+    required String? note,
+  }) async {
+    await _powerSync.execute(
+      'UPDATE transactions SET note = ? WHERE id = ?',
+      [_normalizedNote(note), transactionId],
+    );
+  }
+
+  /// Applies many note updates in one write transaction.
+  Future<void> setNotes(Map<String, String> noteByTransactionId) async {
+    if (noteByTransactionId.isEmpty) return;
+    await _powerSync.writeTransaction((tx) async {
+      for (final entry in noteByTransactionId.entries) {
+        final normalized = _normalizedNote(entry.value);
+        if (normalized == null) continue;
+        await tx.execute(
+          'UPDATE transactions SET note = ? WHERE id = ?',
+          [normalized, entry.key],
+        );
+      }
+    });
+  }
+
+  static String? _mergedNote({
+    required String? existing,
+    required String? incoming,
+  }) {
+    final incomingNote = _normalizedNote(incoming);
+    if (incomingNote != null) return incomingNote;
+    return _normalizedNote(existing);
+  }
+
+  static String? _normalizedNote(String? note) {
+    final trimmed = note?.trim() ?? '';
+    if (trimmed.isEmpty) return null;
+    return trimmed;
   }
 
   Future<void> setUserCategory({
@@ -133,7 +246,7 @@ class TransactionsRepository {
 
   Future<void> setSuggestedCategory({
     required String transactionId,
-    required String categoryId,
+    required String? categoryId,
   }) async {
     await _powerSync.execute(
       '''

@@ -6,26 +6,13 @@ import 'package:spend_trends/features/trends/category_trend_series.dart';
 import 'package:spend_trends/features/trends/centered_moving_average.dart';
 import 'package:spend_trends/features/trends/trend_chart_catalog.dart';
 import 'package:spend_trends/features/trends/trend_series_significance.dart';
+import 'package:spend_trends/util/account_kind_color.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/cupertino.dart';
 
 /// Reconstructs daily net worth from current balances + later transactions.
 class NetWorthTrend {
   NetWorthTrend._();
-
-  /// High-chroma hues for account breakdown lines (not the total NW gold).
-  static const _accountPalette = <Color>[
-    Color(0xFF4CC9F0),
-    Color(0xFFF4A261),
-    Color(0xFFB5179E),
-    Color(0xFF80ED99),
-    Color(0xFF4361EE),
-    Color(0xFFFF6B35),
-    Color(0xFF9B5DE5),
-    Color(0xFF2EC4B6),
-    Color(0xFFF72585),
-    Color(0xFF80FFDB),
-  ];
 
   /// Sum of per-account [accountDailyCents] (keeps total NW consistent with
   /// breakdown lines, including investment accounts with no transaction history).
@@ -141,7 +128,6 @@ class NetWorthTrend {
     if (netWorthSeries == null) return const [];
 
     final accountSeries = <CategoryTrendSeries>[];
-    var paletteIndex = 0;
     for (final group in _accountsByKind(roots)) {
       for (final account in group.accounts) {
         final signedDaily = accountDailyCents(
@@ -157,7 +143,10 @@ class NetWorthTrend {
         final built = _levelSeries(
           id: TrendChartCatalog.accountSeriesId(account.id),
           name: account.displayName,
-          lineColor: _accountPalette[paletteIndex % _accountPalette.length],
+          lineColor: AccountKindColor.forAccount(
+            kind: group.kind,
+            accountId: account.id,
+          ),
           daily: [
             for (final value in signedDaily) value.abs(),
           ],
@@ -165,7 +154,6 @@ class NetWorthTrend {
           dotted: isLiability,
           legendGroup: group.kind.legendLabel,
         );
-        paletteIndex += 1;
         if (built != null) accountSeries.add(built);
       }
     }
@@ -201,7 +189,9 @@ class NetWorthTrend {
           kind: kind,
           accounts: [...byKind[kind]!]
             ..sort(
-              (left, right) => left.displayName.compareTo(right.displayName),
+              (left, right) => right.balanceCents.abs().compareTo(
+                    left.balanceCents.abs(),
+                  ),
             ),
         ),
     ];

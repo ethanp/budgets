@@ -2,11 +2,13 @@ import 'package:spend_trends/domain/stay_chain.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/services/sqlite/chain_stays_repository.dart';
 import 'package:spend_trends/theme/app_theme.dart';
+import 'package:spend_trends/widgets/app_primary_button.dart';
+import 'package:spend_trends/widgets/app_date_field.dart';
 import 'package:spend_trends/widgets/app_date_picker.dart';
+import 'package:spend_trends/widgets/app_sheet_panel.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 class ChainStayFormSheet extends ConsumerStatefulWidget {
   const ChainStayFormSheet({
@@ -73,20 +75,9 @@ class _ChainStayFormSheetState extends ConsumerState<ChainStayFormSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
-    return Container(
-      padding: EdgeInsets.only(
-        left: AppSpacing.lg,
-        right: AppSpacing.lg,
-        top: AppSpacing.lg,
-        bottom: bottomInset + AppSpacing.lg,
-      ),
-      decoration: const BoxDecoration(
-        color: AppColors.backgroundDepth2,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
-      ),
-      child: SafeArea(
-        top: false,
+    return AppSheetPanel.compact(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           child: Column(
@@ -108,7 +99,11 @@ class _ChainStayFormSheetState extends ConsumerState<ChainStayFormSheet> {
                 style: AppText.body.large.bright,
               ),
               VSpace.md,
-              _dateRow(),
+              AppDateField(
+                label: widget.kind.startDateLabel,
+                date: _startedOn,
+                onTap: _pickDate,
+              ),
               VSpace.md,
               CupertinoTextField(
                 controller: _noteController,
@@ -123,11 +118,10 @@ class _ChainStayFormSheetState extends ConsumerState<ChainStayFormSheet> {
                 Text(_error!, style: AppText.body.small.error),
               ],
               VSpace.md,
-              CupertinoButton.filled(
-                onPressed: _busy ? null : _save,
-                child: _busy
-                    ? const CupertinoActivityIndicator()
-                    : Text(_isEditing ? 'Save' : 'Add'),
+              AppPrimaryButton(
+                busy: _busy,
+                onPressed: _save,
+                child: Text(_isEditing ? 'Save' : 'Add'),
               ),
               if (_isEditing) ...[
                 VSpace.sm,
@@ -143,36 +137,6 @@ class _ChainStayFormSheetState extends ConsumerState<ChainStayFormSheet> {
     );
   }
 
-  Widget _dateRow() {
-    return GestureDetector(
-      onTap: _pickDate,
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          color: AppColors.backgroundDepth3,
-          borderRadius: BorderRadius.circular(AppRadius.sm),
-          border: Border.all(color: AppColors.borderDepth1),
-        ),
-        child: Row(
-          children: [
-            Text(widget.kind.startDateLabel, style: AppText.body.medium),
-            const Spacer(),
-            Text(
-              DateFormat.yMMMd().format(_startedOn),
-              style: AppText.body.medium.semibold,
-            ),
-            HSpace.sm,
-            const Icon(
-              CupertinoIcons.calendar,
-              size: 18,
-              color: AppColors.textSupport,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Future<void> _pickDate() async {
     final picked = await pickAppDate(context, initialDate: _startedOn);
     if (picked == null || !mounted) return;
@@ -182,8 +146,8 @@ class _ChainStayFormSheetState extends ConsumerState<ChainStayFormSheet> {
   Future<ChainStaysRepository> _repository() async {
     return switch (widget.kind) {
       LifeChainKind.housing =>
-        ref.read(housingRepositoryProvider.future),
-      LifeChainKind.job => ref.read(jobRepositoryProvider.future),
+        ref.read(housingStaysRepositoryProvider.future),
+      LifeChainKind.job => ref.read(jobStaysRepositoryProvider.future),
     };
   }
 
@@ -216,7 +180,7 @@ class _ChainStayFormSheetState extends ConsumerState<ChainStayFormSheet> {
           note: _noteController.text,
         );
       }
-      ref.read(dataRevisionProvider.notifier).bump();
+      ref.read(spendDataChangedProvider.notifier).notify();
       if (mounted) Navigator.of(context).pop();
     } catch (error) {
       setState(() => _error = '$error');
@@ -253,7 +217,7 @@ class _ChainStayFormSheetState extends ConsumerState<ChainStayFormSheet> {
     try {
       final repository = await _repository();
       await repository.delete(widget.stay!.id);
-      ref.read(dataRevisionProvider.notifier).bump();
+      ref.read(spendDataChangedProvider.notifier).notify();
       if (mounted) Navigator.of(context).pop();
     } catch (error) {
       setState(() => _error = '$error');

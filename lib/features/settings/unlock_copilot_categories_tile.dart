@@ -5,16 +5,16 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Releases Copilot user-locked categories to suggested and removes bad import rules.
-class MigrateCopilotRulesTile extends ConsumerStatefulWidget {
-  const MigrateCopilotRulesTile({super.key});
+class UnlockCopilotCategoriesTile extends ConsumerStatefulWidget {
+  const UnlockCopilotCategoriesTile({super.key});
 
   @override
-  ConsumerState<MigrateCopilotRulesTile> createState() =>
-      _MigrateCopilotRulesTileState();
+  ConsumerState<UnlockCopilotCategoriesTile> createState() =>
+      _UnlockCopilotCategoriesTileState();
 }
 
-class _MigrateCopilotRulesTileState
-    extends ConsumerState<MigrateCopilotRulesTile> {
+class _UnlockCopilotCategoriesTileState
+    extends ConsumerState<UnlockCopilotCategoriesTile> {
   bool _busy = false;
   String? _message;
   CopilotDefaultRuleMigrationProgress? _progress;
@@ -23,7 +23,7 @@ class _MigrateCopilotRulesTileState
   Widget build(BuildContext context) {
     return SettingsToolRow(
       icon: CupertinoIcons.arrow_right_arrow_left,
-      title: 'Migrate Copilot categories',
+      title: 'Unlock Copilot categories',
       caption:
           'Unlock imported overrides to suggested; delete bad default rules.',
       onAction: _run,
@@ -59,7 +59,7 @@ class _MigrateCopilotRulesTileState
           setState(() => _progress = progress);
         },
       );
-      ref.read(dataRevisionProvider.notifier).bump();
+      ref.read(spendDataChangedProvider.notifier).notify();
       setState(() {
         if (result.transactionsReleased == 0 &&
             result.defaultImportRulesDeleted == 0) {

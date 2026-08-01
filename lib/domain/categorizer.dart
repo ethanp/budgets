@@ -180,7 +180,7 @@ class Categorizer {
   }
 
   /// Upserts a case-insensitive contains rule for [pattern] → [categoryId].
-  Future<void> ensureContainsRule({
+  Future<void> upsertMerchantContainsRule({
     required String pattern,
     required String categoryId,
   }) =>
@@ -331,6 +331,68 @@ class Categorizer {
       );
     }
   }
+
+  /// Transactions whose effective category is explained by [rule] as primary.
+  Future<List<BankTransaction>> transactionsExplainedByRule(
+    CategorizationRule rule,
+  ) async {
+    final transactions = await _transactionsRepository.listAll();
+    final rules = await _categoriesRepository.listRules();
+    final ruleMatchIndex = RuleMatchIndex(rules);
+    return [
+      for (final transaction in transactions)
+        if (ruleMatchIndex.explainingRule(transaction)?.id == rule.id)
+          transaction,
+    ];
+  }
+
+  /// Deletes [rule], clears categories on its primary matches, and reapplies
+  /// remaining rules to those transactions as suggested categories.
+  Future<RemoveRuleReclaimResult> removeRuleAndReclaim(
+    CategorizationRule rule,
+  ) async {
+    final primaryMatches = await transactionsExplainedByRule(rule);
+    for (final transaction in primaryMatches) {
+      await _transactionsRepository.setUserCategory(
+        transactionId: transaction.id,
+        categoryId: null,
+      );
+      await _transactionsRepository.setSuggestedCategory(
+        transactionId: transaction.id,
+        categoryId: null,
+      );
+    }
+
+    await _categoriesRepository.deleteRule(rule.id);
+
+    final remainingRules = await _categoriesRepository.listRules();
+    final ruleMatchIndex = RuleMatchIndex(remainingRules);
+    var reclaimedCount = 0;
+    for (final transaction in primaryMatches) {
+      final matchingRule = ruleMatchIndex.bestMatchingRule(transaction);
+      if (matchingRule == null) continue;
+      await _transactionsRepository.setSuggestedCategory(
+        transactionId: transaction.id,
+        categoryId: matchingRule.categoryId,
+      );
+      reclaimedCount++;
+    }
+
+    return RemoveRuleReclaimResult(
+      clearedTransactionCount: primaryMatches.length,
+      reclaimedByOtherRulesCount: reclaimedCount,
+    );
+  }
+}
+
+class RemoveRuleReclaimResult {
+  const RemoveRuleReclaimResult({
+    required this.clearedTransactionCount,
+    required this.reclaimedByOtherRulesCount,
+  });
+
+  final int clearedTransactionCount;
+  final int reclaimedByOtherRulesCount;
 }
 
 /// Pre-normalized rules for repeated matching without re-trimming patterns.

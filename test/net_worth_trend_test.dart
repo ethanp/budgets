@@ -1,8 +1,9 @@
 import 'package:spend_trends/domain/account.dart';
 import 'package:spend_trends/domain/account_kind.dart';
 import 'package:spend_trends/domain/transaction.dart';
-import 'package:spend_trends/features/trends/category_trend_series_factory.dart';
+import 'package:spend_trends/features/trends/build_trends_charts.dart';
 import 'package:spend_trends/features/trends/net_worth_trend.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:spend_trends/features/trends/trend_chart_catalog.dart';
 
@@ -172,7 +173,7 @@ void main() {
     expect(series[2].legendGroup, 'Loans');
   });
 
-  test('account series are ordered by kind then display name', () {
+  test('account series are ordered by kind then balance magnitude', () {
     final day0 = DateTime(2024, 1, 1);
     final chartDates = [
       for (var dayOffset = 0; dayOffset < 10; dayOffset++)
@@ -184,7 +185,7 @@ void main() {
         externalId: 'ext-m1',
         name: 'Account',
         currency: 'USD',
-        balanceCents: 100000,
+        balanceCents: 80000,
         connName: 'M1',
         status: AccountStatus.ok,
         kind: AccountKind.investment,
@@ -194,7 +195,7 @@ void main() {
         externalId: 'ext-ira',
         name: 'Roth IRA',
         currency: 'USD',
-        balanceCents: 80000,
+        balanceCents: 100000,
         status: AccountStatus.ok,
         kind: AccountKind.investment,
       ),
@@ -217,6 +218,15 @@ void main() {
         status: AccountStatus.ok,
         kind: AccountKind.loans,
       ),
+      const Account(
+        id: 'auto',
+        externalId: 'ext-auto',
+        name: 'Auto loan',
+        currency: 'USD',
+        balanceCents: -150000,
+        status: AccountStatus.ok,
+        kind: AccountKind.loans,
+      ),
     ];
 
     final series = NetWorthTrend.series(
@@ -231,11 +241,68 @@ void main() {
 
     expect(
       accountSeries.map((entry) => entry.legendGroup).toList(),
-      ['Checking', 'Investment', 'Investment', 'Loans'],
+      ['Checking', 'Investment', 'Investment', 'Loans', 'Loans'],
     );
     expect(
       accountSeries.map((entry) => entry.name).toList(),
-      ['Checking', 'Account', 'Roth IRA', 'Mortgage'],
+      ['Checking', 'Roth IRA', 'Account', 'Mortgage', 'Auto loan'],
+    );
+  });
+
+  test('account series colors share a kind hue with per-account shades', () {
+    final day0 = DateTime(2024, 1, 1);
+    final chartDates = [
+      for (var dayOffset = 0; dayOffset < 10; dayOffset++)
+        day0.add(Duration(days: dayOffset)),
+    ];
+    final accounts = [
+      const Account(
+        id: 'card-a',
+        externalId: 'ext-ca',
+        name: 'Card A',
+        currency: 'USD',
+        balanceCents: -10000,
+        status: AccountStatus.ok,
+        kind: AccountKind.creditCard,
+      ),
+      const Account(
+        id: 'card-b',
+        externalId: 'ext-cb',
+        name: 'Card B',
+        currency: 'USD',
+        balanceCents: -20000,
+        status: AccountStatus.ok,
+        kind: AccountKind.creditCard,
+      ),
+      const Account(
+        id: 'check',
+        externalId: 'ext-ch',
+        name: 'Checking',
+        currency: 'USD',
+        balanceCents: 50000,
+        status: AccountStatus.ok,
+        kind: AccountKind.checking,
+      ),
+    ];
+
+    final series = NetWorthTrend.series(
+      accounts: accounts,
+      transactions: const [],
+      chartDates: chartDates,
+    );
+    final cardA = series.firstWhere((entry) => entry.name == 'Card A');
+    final cardB = series.firstWhere((entry) => entry.name == 'Card B');
+    final checking = series.firstWhere((entry) => entry.name == 'Checking');
+
+    expect(cardA.lineColor, isNot(cardB.lineColor));
+    expect(cardA.lineColor, isNot(checking.lineColor));
+    expect(
+      HSLColor.fromColor(cardA.lineColor).hue,
+      closeTo(HSLColor.fromColor(cardB.lineColor).hue, 1.0),
+    );
+    expect(
+      HSLColor.fromColor(cardA.lineColor).hue,
+      isNot(closeTo(HSLColor.fromColor(checking.lineColor).hue, 20.0)),
     );
   });
 
@@ -267,7 +334,7 @@ void main() {
         ),
     ];
 
-    final bundle = const CategoryTrendSeriesFactory().build(
+    final bundle = const BuildTrendsCharts().build(
       transactions: transactions,
       categories: const [],
       accounts: accounts,

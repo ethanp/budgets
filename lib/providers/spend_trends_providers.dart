@@ -1,16 +1,17 @@
+import 'package:ethan_utils/ethan_utils.dart';
 import 'package:spend_trends/domain/account.dart';
 import 'package:spend_trends/domain/budget_month.dart';
 import 'package:spend_trends/domain/categorizer.dart';
 import 'package:spend_trends/domain/category.dart';
 import 'package:spend_trends/domain/category_group.dart';
-import 'package:spend_trends/domain/copilot_simplefin_deduper.dart';
+import 'package:spend_trends/domain/remove_copilot_duplicates.dart';
 import 'package:spend_trends/domain/life_event.dart';
 import 'package:spend_trends/domain/month_summary.dart';
 import 'package:spend_trends/domain/stay_chain.dart';
 import 'package:spend_trends/domain/transaction.dart';
-import 'package:spend_trends/domain/transaction_ingest.dart';
+import 'package:spend_trends/domain/pull_simplefin_transactions.dart';
 import 'package:spend_trends/domain/trend_spend_rate.dart';
-import 'package:spend_trends/features/trends/category_trend_series_factory.dart';
+import 'package:spend_trends/features/trends/build_trends_charts.dart';
 import 'package:spend_trends/features/trends/trends_chart_bundle.dart';
 import 'package:spend_trends/services/simplefin/simplefin_access_store.dart';
 import 'package:spend_trends/services/simplefin/simplefin_client.dart';
@@ -19,10 +20,9 @@ import 'package:spend_trends/services/sqlite/accounts_repository.dart';
 import 'package:spend_trends/services/sqlite/categories_repository.dart';
 import 'package:spend_trends/services/sqlite/chain_stays_repository.dart';
 import 'package:spend_trends/services/sqlite/life_events_repository.dart';
-import 'package:spend_trends/services/sqlite/sync_state_store.dart';
+import 'package:spend_trends/services/sqlite/simplefin_pull_history.dart';
 import 'package:spend_trends/services/sqlite/transactions_repository.dart';
 import 'package:spend_trends/services/sync/powersync_database_provider.dart';
-import 'package:spend_trends/util/merchant_normalize.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final simpleFinClientProvider = Provider<SimpleFinClient>((ref) {
@@ -64,51 +64,52 @@ final lifeEventsRepositoryProvider = FutureProvider<LifeEventsRepository>((
 });
 
 final lifeEventsProvider = FutureProvider<List<LifeEvent>>((ref) async {
-  ref.watch(dataRevisionProvider);
+  ref.watch(spendDataChangedProvider);
   final repository = await ref.watch(lifeEventsRepositoryProvider.future);
   return repository.listNewestFirst();
 });
 
-final housingRepositoryProvider = FutureProvider<ChainStaysRepository>((
+final housingStaysRepositoryProvider = FutureProvider<ChainStaysRepository>((
   ref,
 ) async {
   final database = await ref.watch(powerSyncDatabaseProvider.future);
   return ChainStaysRepository(database, tableName: 'housing_stays');
 });
 
-final jobRepositoryProvider = FutureProvider<ChainStaysRepository>((ref) async {
+final jobStaysRepositoryProvider = FutureProvider<ChainStaysRepository>((ref) async {
   final database = await ref.watch(powerSyncDatabaseProvider.future);
   return ChainStaysRepository(database, tableName: 'job_stays');
 });
 
 final housingChainProvider = FutureProvider<StayChain>((ref) async {
-  ref.watch(dataRevisionProvider);
-  final repository = await ref.watch(housingRepositoryProvider.future);
+  ref.watch(spendDataChangedProvider);
+  final repository = await ref.watch(housingStaysRepositoryProvider.future);
   return repository.loadChain();
 });
 
 final jobChainProvider = FutureProvider<StayChain>((ref) async {
-  ref.watch(dataRevisionProvider);
-  final repository = await ref.watch(jobRepositoryProvider.future);
+  ref.watch(spendDataChangedProvider);
+  final repository = await ref.watch(jobStaysRepositoryProvider.future);
   return repository.loadChain();
 });
 
-final syncStateStoreProvider = FutureProvider<SyncStateStore>((ref) async {
-  final database = await ref.watch(powerSyncDatabaseProvider.future);
-  return SyncStateStore(database);
-});
-
-final transactionIngestProvider = FutureProvider<TransactionIngest>((
+final simpleFinPullHistoryProvider = FutureProvider<SimpleFinPullHistory>((
   ref,
 ) async {
-  return TransactionIngest(
+  final database = await ref.watch(powerSyncDatabaseProvider.future);
+  return SimpleFinPullHistory(database);
+});
+
+final pullSimpleFinTransactionsProvider =
+    FutureProvider<PullSimpleFinTransactions>((ref) async {
+  return PullSimpleFinTransactions(
     client: ref.watch(simpleFinClientProvider),
     accessStore: ref.watch(simpleFinAccessStoreProvider),
     accountsRepository: await ref.watch(accountsRepositoryProvider.future),
     transactionsRepository: await ref.watch(
       transactionsRepositoryProvider.future,
     ),
-    syncStateStore: await ref.watch(syncStateStoreProvider.future),
+    simpleFinPullHistory: await ref.watch(simpleFinPullHistoryProvider.future),
   );
 });
 
@@ -122,9 +123,9 @@ final categorizerProvider = FutureProvider<Categorizer>((ref) async {
   );
 });
 
-final copilotSimplefinDeduperProvider =
-    FutureProvider<CopilotSimplefinDeduper>((ref) async {
-  return CopilotSimplefinDeduper(
+final removeCopilotDuplicatesProvider =
+    FutureProvider<RemoveCopilotDuplicates>((ref) async {
+  return RemoveCopilotDuplicates(
     accountsRepository: await ref.watch(accountsRepositoryProvider.future),
     transactionsRepository: await ref.watch(
       transactionsRepositoryProvider.future,
@@ -139,19 +140,19 @@ final budgetMonthProvider = FutureProvider<BudgetMonth>((ref) async {
       transactionsRepositoryProvider.future,
     ),
     categoriesRepository: await ref.watch(categoriesRepositoryProvider.future),
-    syncStateStore: await ref.watch(syncStateStoreProvider.future),
+    simpleFinPullHistory: await ref.watch(simpleFinPullHistoryProvider.future),
   );
 });
 
-final dataRevisionProvider = NotifierProvider<DataRevision, int>(
-  DataRevision.new,
+final spendDataChangedProvider = NotifierProvider<SpendDataChanged, int>(
+  SpendDataChanged.new,
 );
 
-class DataRevision extends Notifier<int> {
+class SpendDataChanged extends Notifier<int> {
   @override
   int build() => 0;
 
-  void bump() => state = state + 1;
+  void notify() => state = state + 1;
 }
 
 /// Shared yr/mo/day display rate for both Trends charts.
@@ -184,29 +185,30 @@ class ConnectionStatus {
 }
 
 final connectionStatusProvider = FutureProvider<ConnectionStatus>((ref) async {
-  ref.watch(dataRevisionProvider);
+  ref.watch(spendDataChangedProvider);
   final accessStore = ref.watch(simpleFinAccessStoreProvider);
   final accountsRepository = await ref.watch(accountsRepositoryProvider.future);
-  final syncStateStore = await ref.watch(syncStateStoreProvider.future);
+  final simpleFinPullHistory =
+      await ref.watch(simpleFinPullHistoryProvider.future);
   return ConnectionStatus(
     isConnected: await accessStore.isConnected,
     fromEnv: accessStore.isConfiguredInEnv,
     accounts: await accountsRepository.listAccounts(),
-    errors: await syncStateStore.lastErrors(),
-    lastSyncedAt: await syncStateStore.lastSuccessfulPullAt(),
+    errors: await simpleFinPullHistory.lastErrors(),
+    lastSyncedAt: await simpleFinPullHistory.lastSuccessfulPullAt(),
   );
 });
 
 final transactionsListProvider = FutureProvider<List<BankTransaction>>((
   ref,
 ) async {
-  ref.watch(dataRevisionProvider);
+  ref.watch(spendDataChangedProvider);
   final repository = await ref.watch(transactionsRepositoryProvider.future);
   return repository.listAll();
 });
 
 final accountsMapProvider = FutureProvider<Map<String, Account>>((ref) async {
-  ref.watch(dataRevisionProvider);
+  ref.watch(spendDataChangedProvider);
   final repository = await ref.watch(accountsRepositoryProvider.future);
   final accounts = await repository.listAccounts();
   return {for (final account in accounts) account.id: account};
@@ -217,45 +219,45 @@ final categoryMonthRowsProvider =
   ref,
   yearMonth,
 ) async {
-  ref.watch(dataRevisionProvider);
+  ref.watch(spendDataChangedProvider);
   final budgetMonth = await ref.watch(budgetMonthProvider.future);
   return budgetMonth.categoryRows(yearMonth);
 });
 
 final categoriesListProvider = FutureProvider<List<SpendCategory>>((ref) async {
-  ref.watch(dataRevisionProvider);
+  ref.watch(spendDataChangedProvider);
   final repository = await ref.watch(categoriesRepositoryProvider.future);
   return repository.listActive();
 });
 
 final categoryGroupsProvider = FutureProvider<List<CategoryGroup>>((ref) async {
-  ref.watch(dataRevisionProvider);
+  ref.watch(spendDataChangedProvider);
   final repository = await ref.watch(categoriesRepositoryProvider.future);
   return repository.listGroups();
 });
 
 final categorizationRulesProvider =
     FutureProvider<List<CategorizationRule>>((ref) async {
-  ref.watch(dataRevisionProvider);
+  ref.watch(spendDataChangedProvider);
   final repository = await ref.watch(categoriesRepositoryProvider.future);
   return repository.listRules();
 });
 
 final currentYearMonthProvider = Provider<String>((ref) {
-  return yearMonthKey(DateTime.now());
+  return DateTime.now().yearMonthKey;
 });
 
-final categoryTrendsProvider = FutureProvider<TrendsChartBundle>((ref) async {
-  // Keep across tab switches; rebuilds when [dataRevisionProvider] bumps.
+final trendsChartBundleProvider = FutureProvider<TrendsChartBundle>((ref) async {
+  // Keep across tab switches; rebuilds when [spendDataChangedProvider] notifies.
   ref.keepAlive();
-  ref.watch(dataRevisionProvider);
+  ref.watch(spendDataChangedProvider);
   final transactionsRepository =
       await ref.watch(transactionsRepositoryProvider.future);
   final categoriesRepository =
       await ref.watch(categoriesRepositoryProvider.future);
   final accountsRepository =
       await ref.watch(accountsRepositoryProvider.future);
-  return const CategoryTrendSeriesFactory().build(
+  return const BuildTrendsCharts().build(
     transactions: await transactionsRepository.listAll(),
     categories: await categoriesRepository.listActive(),
     groups: await categoriesRepository.listGroups(),

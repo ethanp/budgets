@@ -1,3 +1,4 @@
+import 'package:spend_trends/domain/pull_simplefin_transactions.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/services/simplefin/simplefin_access_store.dart';
 import 'package:spend_trends/services/simplefin/simplefin_client.dart';
@@ -13,7 +14,11 @@ class BanksActionState {
   final bool busy;
   final String? actionError;
 
-  BanksActionState copyWith({bool? busy, String? actionError, bool clearError = false}) {
+  BanksActionState copyWith({
+    bool? busy,
+    String? actionError,
+    bool clearError = false,
+  }) {
     return BanksActionState(
       busy: busy ?? this.busy,
       actionError: clearError ? null : (actionError ?? this.actionError),
@@ -44,33 +49,46 @@ class BanksController extends Notifier<BanksActionState> {
   }
 
   /// Claims a Setup Token and pulls. Returns a new Access URL when claim created one.
-  Future<Uri?> connect(String setupToken) async {
-    Uri? claimedAccessUrl;
+  Future<Uri?> connect(
+    String setupToken, {
+    void Function(SimpleFinPullProgress progress)? onProgress,
+  }) async {
+    Uri? accessUrl;
     await _runBusyAction(() async {
-      final ingest = await ref.read(transactionIngestProvider.future);
-      final result = await ingest.claimAndPull(setupToken);
+      final puller = await ref.read(pullSimpleFinTransactionsProvider.future);
+      final result = await puller.connectWithSetupToken(
+        setupToken,
+        onProgress: onProgress,
+      );
       await _applyCategoryRules();
-      ref.read(dataRevisionProvider.notifier).bump();
-      claimedAccessUrl = result.claimedAccessUrl;
+      ref.read(spendDataChangedProvider.notifier).notify();
+      accessUrl = result.accessUrl;
     });
-    return claimedAccessUrl;
+    return accessUrl;
   }
 
-  Future<void> syncLatest() async {
+  Future<void> syncLatest({
+    void Function(SimpleFinPullProgress progress)? onProgress,
+  }) async {
     await _runBusyAction(() async {
-      final ingest = await ref.read(transactionIngestProvider.future);
-      await ingest.pullAndUpsert();
+      final puller = await ref.read(pullSimpleFinTransactionsProvider.future);
+      await puller.pull(onProgress: onProgress);
       await _applyCategoryRules();
-      ref.read(dataRevisionProvider.notifier).bump();
+      ref.read(spendDataChangedProvider.notifier).notify();
     });
   }
 
-  Future<void> refreshFullHistory() async {
+  Future<void> refreshFullHistory({
+    void Function(SimpleFinPullProgress progress)? onProgress,
+  }) async {
     await _runBusyAction(() async {
-      final ingest = await ref.read(transactionIngestProvider.future);
-      final result = await ingest.pullAndUpsert(fullHistory: true);
+      final puller = await ref.read(pullSimpleFinTransactionsProvider.future);
+      final result = await puller.pull(
+        fullHistory: true,
+        onProgress: onProgress,
+      );
       await _applyCategoryRules();
-      ref.read(dataRevisionProvider.notifier).bump();
+      ref.read(spendDataChangedProvider.notifier).notify();
       if (result.errors.isNotEmpty) {
         state = state.copyWith(
           actionError:
@@ -95,9 +113,9 @@ class BanksController extends Notifier<BanksActionState> {
     if (!confirmed) return false;
 
     await _runBusyAction(() async {
-      final ingest = await ref.read(transactionIngestProvider.future);
-      await ingest.disconnect(wipeLocalData: true);
-      ref.read(dataRevisionProvider.notifier).bump();
+      final puller = await ref.read(pullSimpleFinTransactionsProvider.future);
+      await puller.disconnect(wipeLocalData: true);
+      ref.read(spendDataChangedProvider.notifier).notify();
     });
     return true;
   }
