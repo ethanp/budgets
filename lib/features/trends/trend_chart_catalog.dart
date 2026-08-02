@@ -48,7 +48,7 @@ class TrendChartCatalog {
 
   static final fireSavingsGuideLineColor = Color.lerp(
         savingsLineColor,
-        AppColors.success,
+        EColors.success,
         0.45,
       )!;
 }

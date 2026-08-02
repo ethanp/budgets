@@ -31,18 +31,18 @@ class BankAccountsList extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(_caption, style: AppText.caption),
-        const SizedBox(height: AppMetrics.spaceMd),
+        Text(_caption, style: EText.caption),
+        const SizedBox(height: ELayout.spaceMd),
         ..._institutionGroups(),
         if (status.errors.isNotEmpty) ...[
-          const SizedBox(height: AppMetrics.spaceMd),
+          const SizedBox(height: ELayout.spaceMd),
           ...status.errors.map(_bridgeError),
         ],
         if (actionError != null) ...[
-          const SizedBox(height: AppMetrics.spaceSm),
+          const SizedBox(height: ELayout.spaceSm),
           SelectableText(
             actionError!,
-            style: AppText.caption.copyWith(color: AppColors.danger),
+            style: EText.caption.copyWith(color: EColors.danger),
           ),
         ],
       ],
@@ -91,7 +91,7 @@ class BankAccountsList extends ConsumerWidget {
     final widgets = <Widget>[];
     for (var groupIndex = 0; groupIndex < groups.length; groupIndex++) {
       final group = groups[groupIndex];
-      if (groupIndex > 0) widgets.add(const SizedBox(height: AppMetrics.spaceMd));
+      if (groupIndex > 0) widgets.add(const SizedBox(height: ELayout.spaceMd));
       if (showInstitutionLabels) {
         widgets.add(
           BankInstitutionHeader(
@@ -100,10 +100,10 @@ class BankAccountsList extends ConsumerWidget {
             accentColor: accentColor,
           ),
         );
-        widgets.add(const SizedBox(height: AppMetrics.spaceXs));
+        widgets.add(const SizedBox(height: ELayout.spaceXs));
       }
       for (var rowIndex = 0; rowIndex < group.accounts.length; rowIndex++) {
-        if (rowIndex > 0) widgets.add(const SizedBox(height: AppMetrics.spaceXs));
+        if (rowIndex > 0) widgets.add(const SizedBox(height: ELayout.spaceXs));
         final account = group.accounts[rowIndex];
         widgets.add(
           BankAccountBalanceRow(
@@ -122,10 +122,10 @@ class BankAccountsList extends ConsumerWidget {
 
   Widget _bridgeError(SimpleFinError error) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppMetrics.spaceXs),
+      padding: const EdgeInsets.only(bottom: ELayout.spaceXs),
       child: SelectableText(
         error.message,
-        style: AppText.caption.copyWith(color: AppColors.danger),
+        style: EText.caption.copyWith(color: EColors.danger),
       ),
     );
   }

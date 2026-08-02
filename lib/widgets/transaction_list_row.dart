@@ -29,11 +29,11 @@ class TransactionListRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppSurface(
-      kind: selected ? AppSurfaceKind.tinted : AppSurfaceKind.row,
+    return ESurface(
+      kind: selected ? ESurfaceKind.tinted : ESurfaceKind.row,
       accent: selected ? FinanceColors.accentPrimary : null,
       onTap: onTap,
-      borderRadius: BorderRadius.circular(AppMetrics.radiusMd),
+      borderRadius: BorderRadius.circular(ELayout.radiusMd),
       child: IntrinsicHeight(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -42,30 +42,30 @@ class TransactionListRow extends StatelessWidget {
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: AppMetrics.spaceMd,
-                  vertical: AppMetrics.spaceMd,
+                  horizontal: ELayout.spaceMd,
+                  vertical: ELayout.spaceMd,
                 ),
                 child: Row(
                   children: [
                     for (final cell in leadingCells) ...[
                       cell,
-                      const SizedBox(width: AppMetrics.spaceSm),
+                      const SizedBox(width: ELayout.spaceSm),
                     ],
                     Expanded(
                       child: Text(
                         title,
-                        style: AppText.body.copyWith(
+                        style: EText.body.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
+                          color: EColors.textPrimary,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const SizedBox(width: AppMetrics.spaceMd),
+                    const SizedBox(width: ELayout.spaceMd),
                     Text(
                       formatCents(amountCents),
-                      style: AppText.body.copyWith(
+                      style: EText.body.copyWith(
                         fontWeight: FontWeight.w600,
                         color: amountColor,
                         fontFeatures: const [FontFeature.tabularFigures()],
@@ -73,7 +73,7 @@ class TransactionListRow extends StatelessWidget {
                       maxLines: 1,
                     ),
                     if (trailing != null) ...[
-                      const SizedBox(width: AppMetrics.spaceSm),
+                      const SizedBox(width: ELayout.spaceSm),
                       trailing!,
                     ],
                   ],

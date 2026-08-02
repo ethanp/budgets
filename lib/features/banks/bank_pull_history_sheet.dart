@@ -44,10 +44,10 @@ class _BankPullHistorySheetState extends ConsumerState<BankPullHistorySheet> {
       child: pullsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Padding(
-          padding: const EdgeInsets.all(AppMetrics.spaceLg),
+          padding: const EdgeInsets.all(ELayout.spaceLg),
           child: Text(
             '$error',
-            style: AppText.body.copyWith(color: AppColors.danger),
+            style: EText.body.copyWith(color: EColors.danger),
           ),
         ),
         data: (pulls) => _body(
@@ -69,25 +69,25 @@ class _BankPullHistorySheetState extends ConsumerState<BankPullHistorySheet> {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(
-            AppMetrics.spaceLg,
-            AppMetrics.spaceLg,
-            AppMetrics.spaceLg,
-            AppMetrics.spaceSm,
+            ELayout.spaceLg,
+            ELayout.spaceLg,
+            ELayout.spaceLg,
+            ELayout.spaceSm,
           ),
-          child: Text('Bank pulls', style: AppText.section),
+          child: Text('Bank pulls', style: EText.section),
         ),
         Expanded(
           child: pulls.isEmpty
               ? Padding(
-                  padding: const EdgeInsets.all(AppMetrics.spaceLg),
+                  padding: const EdgeInsets.all(ELayout.spaceLg),
                   child: Text(
                     'No bank pulls yet. Pull from the Banks tab.',
-                    style: AppText.body,
+                    style: EText.body,
                   ),
                 )
               : ListView.builder(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: AppMetrics.spaceLg,
+                    horizontal: ELayout.spaceLg,
                   ),
                   itemCount: pulls.length,
                   itemBuilder: (context, index) {
@@ -107,7 +107,7 @@ class _BankPullHistorySheetState extends ConsumerState<BankPullHistorySheet> {
         ),
         if (isConnected)
           Padding(
-            padding: const EdgeInsets.all(AppMetrics.spaceLg),
+            padding: const EdgeInsets.all(ELayout.spaceLg),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -122,7 +122,7 @@ class _BankPullHistorySheetState extends ConsumerState<BankPullHistorySheet> {
                           ),
                   child: const Text('Pull latest'),
                 ),
-                const SizedBox(height: AppMetrics.spaceSm),
+                const SizedBox(height: ELayout.spaceSm),
                 TextButton(
                   onPressed: busy
                       ? null
@@ -134,7 +134,7 @@ class _BankPullHistorySheetState extends ConsumerState<BankPullHistorySheet> {
                           ),
                   child: Text(
                     'Re-download all history',
-                    style: AppText.body.copyWith(
+                    style: EText.body.copyWith(
                       color: FinanceColors.accentPrimary,
                     ),
                   ),
@@ -163,7 +163,7 @@ class _PullHistoryRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppMetrics.spaceMd),
+      padding: const EdgeInsets.only(bottom: ELayout.spaceMd),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -180,32 +180,32 @@ class _PullHistoryRow extends StatelessWidget {
                     color: _leadingColor,
                   ),
                 ),
-                const SizedBox(width: AppMetrics.spaceSm),
+                const SizedBox(width: ELayout.spaceSm),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         pull.kind.displayLabel,
-                        style: AppText.section.copyWith(fontSize: AppMetrics.typeSize(17)),
+                        style: EText.section.copyWith(fontSize: ELayout.typeSize(17)),
                       ),
-                      Text(_subtitle, style: AppText.caption),
+                      Text(_subtitle, style: EText.caption),
                     ],
                   ),
                 ),
                 if (pull.transactionCount != null)
-                  Text('${pull.transactionCount} txs', style: AppText.caption),
-                const SizedBox(width: AppMetrics.spaceXs),
+                  Text('${pull.transactionCount} txs', style: EText.caption),
+                const SizedBox(width: ELayout.spaceXs),
                 Icon(
                   expanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
                   size: 14,
-                  color: AppColors.textMuted,
+                  color: EColors.textMuted,
                 ),
               ],
             ),
           ),
           if (expanded) ...[
-            const SizedBox(height: AppMetrics.spaceSm),
+            const SizedBox(height: ELayout.spaceSm),
             _PullDetail(pull: pull),
           ],
         ],
@@ -227,10 +227,10 @@ class _PullHistoryRow extends StatelessWidget {
   }
 
   Color get _leadingColor {
-    if (pull.status == SimpleFinPullStatus.failed) return AppColors.danger;
-    if (pull.isPartialSuccess) return AppColors.warning;
-    if (pull.status == SimpleFinPullStatus.success) return AppColors.success;
-    return AppColors.textMuted;
+    if (pull.status == SimpleFinPullStatus.failed) return EColors.danger;
+    if (pull.isPartialSuccess) return EColors.warning;
+    if (pull.status == SimpleFinPullStatus.success) return EColors.success;
+    return EColors.textMuted;
   }
 
   String get _subtitle {
@@ -277,26 +277,26 @@ class _PullDetail extends StatelessWidget {
           Text(
             '$accountCount ${accountCount == 1 ? 'account' : 'accounts'} · '
             '$transactionCount ${transactionCount == 1 ? 'transaction' : 'transactions'}',
-            style: AppText.caption,
+            style: EText.caption,
           ),
           if (pull.errors.isNotEmpty) ...[
-            const SizedBox(height: AppMetrics.spaceSm),
+            const SizedBox(height: ELayout.spaceSm),
             for (final error in pull.errors)
               Padding(
-                padding: const EdgeInsets.only(bottom: AppMetrics.spaceXs),
+                padding: const EdgeInsets.only(bottom: ELayout.spaceXs),
                 child: SelectableText(
                   error.message,
-                  style: AppText.caption.copyWith(color: AppColors.danger),
+                  style: EText.caption.copyWith(color: EColors.danger),
                 ),
               ),
           ],
           if (sortedAccounts.isNotEmpty) ...[
-            const SizedBox(height: AppMetrics.spaceSm),
+            const SizedBox(height: ELayout.spaceSm),
             Text(
               'Accounts in this pull',
-              style: AppText.caption.copyWith(fontWeight: FontWeight.w600),
+              style: EText.caption.copyWith(fontWeight: FontWeight.w600),
             ),
-            const SizedBox(height: AppMetrics.spaceXs),
+            const SizedBox(height: ELayout.spaceXs),
             ..._groupedAccountRows(sortedAccounts),
           ],
         ],
@@ -326,8 +326,8 @@ class _PullDetail extends StatelessWidget {
             : sample;
         widgets.add(
           Padding(
-            padding: const EdgeInsets.only(top: AppMetrics.spaceXs),
-            child: Text(institution, style: AppText.caption),
+            padding: const EdgeInsets.only(top: ELayout.spaceXs),
+            child: Text(institution, style: EText.caption),
           ),
         );
       }
@@ -341,9 +341,9 @@ class _PullDetail extends StatelessWidget {
   Widget _accountRow(SimpleFinPullAccountRecord account) {
     final statusStyle = account.status.isIssue
         ? (account.status == SimpleFinPullAccountStatus.needsRelink
-            ? AppText.caption.copyWith(color: AppColors.warning)
-            : AppText.caption.copyWith(color: AppColors.danger))
-        : AppText.caption;
+            ? EText.caption.copyWith(color: EColors.warning)
+            : EText.caption.copyWith(color: EColors.danger))
+        : EText.caption;
     final detail = account.status.isIssue
         ? (account.errorMessage?.trim().isNotEmpty == true
             ? account.errorMessage!
@@ -351,14 +351,14 @@ class _PullDetail extends StatelessWidget {
         : '${account.transactionCount} txs';
 
     return Padding(
-      padding: const EdgeInsets.only(top: AppMetrics.spaceXs),
+      padding: const EdgeInsets.only(top: ELayout.spaceXs),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            child: Text(account.accountLabel, style: AppText.caption),
+            child: Text(account.accountLabel, style: EText.caption),
           ),
-          const SizedBox(width: AppMetrics.spaceSm),
+          const SizedBox(width: ELayout.spaceSm),
           Flexible(
             child: Text(
               detail,

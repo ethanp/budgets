@@ -87,24 +87,24 @@ class _ManageRuleSheetState extends ConsumerState<ManageRuleSheet> {
   Widget _header(String categoryName) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
-        AppMetrics.spaceLg,
-        AppMetrics.spaceLg,
-        AppMetrics.spaceLg,
-        AppMetrics.spaceMd,
+        ELayout.spaceLg,
+        ELayout.spaceLg,
+        ELayout.spaceLg,
+        ELayout.spaceMd,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Rule', style: AppText.section),
-          const SizedBox(height: AppMetrics.spaceSm),
+          Text('Rule', style: EText.section),
+          const SizedBox(height: ELayout.spaceSm),
           Text(
             'contains “${_rule.pattern}”',
-            style: AppText.body.copyWith(
+            style: EText.body.copyWith(
               fontWeight: FontWeight.w600,
               color: FinanceColors.accentPrimary,
             ),
           ),
-          const SizedBox(height: AppMetrics.spaceXs),
+          const SizedBox(height: ELayout.spaceXs),
           TextButton(
             onPressed: _busy ? null : _pickTargetCategory,
             style: TextButton.styleFrom(
@@ -118,12 +118,12 @@ class _ManageRuleSheetState extends ConsumerState<ManageRuleSheet> {
               children: [
                 Text(
                   '→ $categoryName',
-                  style: AppText.caption.copyWith(
+                  style: EText.caption.copyWith(
                     fontWeight: FontWeight.w600,
                     color: FinanceColors.accentPrimary,
                   ),
                 ),
-                const SizedBox(width: AppMetrics.spaceXs),
+                const SizedBox(width: ELayout.spaceXs),
                 const Icon(
                   Icons.keyboard_arrow_down,
                   size: 16,
@@ -141,10 +141,10 @@ class _ManageRuleSheetState extends ConsumerState<ManageRuleSheet> {
     if (_loadError != null) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(AppMetrics.spaceLg),
+          padding: const EdgeInsets.all(ELayout.spaceLg),
           child: Text(
             '$_loadError',
-            style: AppText.body.copyWith(color: AppColors.danger),
+            style: EText.body.copyWith(color: EColors.danger),
           ),
         ),
       );
@@ -157,28 +157,28 @@ class _ManageRuleSheetState extends ConsumerState<ManageRuleSheet> {
       return Center(
         child: Text(
           'No transactions currently use this rule.',
-          style: AppText.body.copyWith(color: AppColors.textMuted),
+          style: EText.body.copyWith(color: EColors.textMuted),
         ),
       );
     }
 
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(
-        AppMetrics.spaceLg,
+        ELayout.spaceLg,
         0,
-        AppMetrics.spaceLg,
-        AppMetrics.spaceMd,
+        ELayout.spaceLg,
+        ELayout.spaceMd,
       ),
       itemCount: matches.length + 1,
       itemBuilder: (context, index) {
         if (index == 0) {
           return Padding(
-            padding: const EdgeInsets.only(bottom: AppMetrics.spaceMd),
+            padding: const EdgeInsets.only(bottom: ELayout.spaceMd),
             child: Text(
               '${matches.length} '
               '${matches.length == 1 ? 'transaction' : 'transactions'} '
               'where this rule is primary',
-              style: AppText.caption.copyWith(color: AppColors.textMuted),
+              style: EText.caption.copyWith(color: EColors.textMuted),
             ),
           );
         }
@@ -193,7 +193,7 @@ class _ManageRuleSheetState extends ConsumerState<ManageRuleSheet> {
 
   Widget _actions() {
     return Padding(
-      padding: const EdgeInsets.all(AppMetrics.spaceLg),
+      padding: const EdgeInsets.all(ELayout.spaceLg),
       child: Row(
         children: [
           Expanded(
@@ -213,9 +213,9 @@ class _ManageRuleSheetState extends ConsumerState<ManageRuleSheet> {
                     )
                   : Text(
                       'Remove rule',
-                      style: AppText.body.copyWith(
+                      style: EText.body.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: AppColors.danger,
+                        color: EColors.danger,
                       ),
                     ),
             ),
@@ -336,7 +336,7 @@ class _ManageRuleSheetState extends ConsumerState<ManageRuleSheet> {
               onPressed: () => Navigator.of(dialogContext).pop(true),
               child: const Text(
                 'Remove',
-                style: TextStyle(color: AppColors.danger),
+                style: TextStyle(color: EColors.danger),
               ),
             ),
           ],
@@ -403,16 +403,16 @@ class _TargetCategoryPickerSheet extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.all(AppMetrics.spaceLg),
-            child: Text('Target category', style: AppText.section),
+            padding: const EdgeInsets.all(ELayout.spaceLg),
+            child: Text('Target category', style: EText.section),
           ),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.fromLTRB(
-                AppMetrics.spaceLg,
+                ELayout.spaceLg,
                 0,
-                AppMetrics.spaceLg,
-                AppMetrics.spaceLg,
+                ELayout.spaceLg,
+                ELayout.spaceLg,
               ),
               children: [
                 CategoryPicker(
@@ -448,12 +448,12 @@ class _PrimaryMatchRow extends StatelessWidget {
     final dateLabel =
         DateFormat.yMMMd().format(transaction.postedAt.toLocal());
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppMetrics.spaceSm),
-      child: AppSurface(
-        kind: AppSurfaceKind.row,
+      padding: const EdgeInsets.only(bottom: ELayout.spaceSm),
+      child: ESurface(
+        kind: ESurfaceKind.row,
         padding: const EdgeInsets.symmetric(
-          horizontal: AppMetrics.spaceMd,
-          vertical: AppMetrics.spaceSm,
+          horizontal: ELayout.spaceMd,
+          vertical: ELayout.spaceSm,
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -464,14 +464,14 @@ class _PrimaryMatchRow extends StatelessWidget {
                 children: [
                   Text(
                     _title,
-                    style: AppText.body.copyWith(fontWeight: FontWeight.w600),
+                    style: EText.body.copyWith(fontWeight: FontWeight.w600),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 2),
                   Text(
                     '$categoryName · $dateLabel',
-                    style: AppText.caption.copyWith(
+                    style: EText.caption.copyWith(
                       fontWeight: FontWeight.w600,
                       color: FinanceColors.accentPrimary,
                     ),
@@ -481,10 +481,10 @@ class _PrimaryMatchRow extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: AppMetrics.spaceSm),
+            const SizedBox(width: ELayout.spaceSm),
             Text(
               formatCents(transaction.amountCents),
-              style: AppText.body.copyWith(fontWeight: FontWeight.w600),
+              style: EText.body.copyWith(fontWeight: FontWeight.w600),
               maxLines: 1,
             ),
           ],

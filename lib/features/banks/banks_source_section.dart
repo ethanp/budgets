@@ -42,7 +42,7 @@ class _BanksSourceSectionState extends ConsumerState<BanksSourceSection> {
       loading: () => const CircularProgressIndicator(),
       error: (error, _) => SelectableText(
         '$error',
-        style: AppText.body.copyWith(color: AppColors.danger),
+        style: EText.body.copyWith(color: EColors.danger),
       ),
       data: (status) {
         if (!status.isConnected) return _disconnectedBody(actionState);
@@ -59,9 +59,9 @@ class _BanksSourceSectionState extends ConsumerState<BanksSourceSection> {
         Text(
           'Paste a Setup Token from SimpleFIN, or set '
           '${SimpleFinAccessStore.envAccessUrlKey} in .env.',
-          style: AppText.caption,
+          style: EText.caption,
         ),
-        const SizedBox(height: AppMetrics.spaceMd),
+        const SizedBox(height: ELayout.spaceMd),
         AppPrimaryButton(
           busy: busy,
           onPressed: () =>
@@ -70,45 +70,45 @@ class _BanksSourceSectionState extends ConsumerState<BanksSourceSection> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.open_in_new, size: 18),
-              SizedBox(width: AppMetrics.spaceSm),
+              SizedBox(width: ELayout.spaceSm),
               Text('Open SimpleFIN'),
             ],
           ),
         ),
-        const SizedBox(height: AppMetrics.spaceMd),
+        const SizedBox(height: ELayout.spaceMd),
         TextField(
           controller: _tokenController,
           maxLines: 4,
           minLines: 3,
-          style: AppText.body.copyWith(color: AppColors.textPrimary),
+          style: EText.body.copyWith(color: EColors.textPrimary),
           decoration: InputDecoration(
             hintText: 'Paste Setup Token',
-            hintStyle: AppText.body.copyWith(color: AppColors.textMuted),
+            hintStyle: EText.body.copyWith(color: EColors.textMuted),
             filled: true,
-            fillColor: AppColors.surfaceInset,
-            contentPadding: const EdgeInsets.all(AppMetrics.spaceMd),
+            fillColor: EColors.surfaceInset,
+            contentPadding: const EdgeInsets.all(ELayout.spaceMd),
             border: OutlineInputBorder(
-              borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderRadius: ELayout.borderRadius(ELayout.radiusSm),
+              borderSide: const BorderSide(color: EColors.border),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderRadius: ELayout.borderRadius(ELayout.radiusSm),
+              borderSide: const BorderSide(color: EColors.border),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
+              borderRadius: ELayout.borderRadius(ELayout.radiusSm),
               borderSide: const BorderSide(color: FinanceColors.accentPrimary),
             ),
           ),
         ),
         if (actionState.actionError != null) ...[
-          const SizedBox(height: AppMetrics.spaceSm),
+          const SizedBox(height: ELayout.spaceSm),
           SelectableText(
             actionState.actionError!,
-            style: AppText.caption.copyWith(color: AppColors.danger),
+            style: EText.caption.copyWith(color: EColors.danger),
           ),
         ],
-        const SizedBox(height: AppMetrics.spaceMd),
+        const SizedBox(height: ELayout.spaceMd),
         AppPrimaryButton(
           busy: busy,
           onPressed: _connect,
@@ -116,7 +116,7 @@ class _BanksSourceSectionState extends ConsumerState<BanksSourceSection> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.link, size: 18),
-              SizedBox(width: AppMetrics.spaceSm),
+              SizedBox(width: ELayout.spaceSm),
               Text('Connect'),
             ],
           ),
@@ -140,7 +140,7 @@ class _BanksSourceSectionState extends ConsumerState<BanksSourceSection> {
           selectedAccountId: widget.selectedAccountId,
           onAccountSelected: widget.onAccountSelected,
         ),
-        const SizedBox(height: AppMetrics.spaceMd),
+        const SizedBox(height: ELayout.spaceMd),
         AppPrimaryButton(
           busy: busy,
           onPressed: () => BanksPullProgressSheet.showAndRun(
@@ -151,17 +151,17 @@ class _BanksSourceSectionState extends ConsumerState<BanksSourceSection> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.sync, size: 18),
-              SizedBox(width: AppMetrics.spaceSm),
+              SizedBox(width: ELayout.spaceSm),
               Text('Pull bank transactions'),
             ],
           ),
         ),
-        const SizedBox(height: AppMetrics.spaceXs),
+        const SizedBox(height: ELayout.spaceXs),
         Text(
           'Since the last SimpleFIN update. Window starts 2 days before that '
           'pull so late posts aren\'t missed. Already-saved rows are updated, '
           'not duplicated.',
-          style: AppText.caption,
+          style: EText.caption,
         ),
       ],
     );

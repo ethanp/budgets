@@ -54,13 +54,13 @@ class _SyncStatusTileState extends ConsumerState<SyncStatusTile> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _header(offline: offline, isProbing: health.isProbing),
-        const SizedBox(height: AppMetrics.spaceMd),
+        const SizedBox(height: ELayout.spaceMd),
         _statusRow(
           isConnected: isConnected,
           isConnecting: isConnecting,
           description: description,
         ),
-        const SizedBox(height: AppMetrics.spaceSm),
+        const SizedBox(height: ELayout.spaceSm),
         ..._hostRows(
           activeHost: activeHost,
           health: health,
@@ -70,7 +70,7 @@ class _SyncStatusTileState extends ConsumerState<SyncStatusTile> {
           activeHost: activeHost,
           hostResolution: hostResolution,
         ),
-        const SizedBox(height: AppMetrics.spaceXs),
+        const SizedBox(height: ELayout.spaceXs),
         SizedBox(
           height: 18,
           child: (pendingAsync.value ?? 0) > 0
@@ -95,7 +95,7 @@ class _SyncStatusTileState extends ConsumerState<SyncStatusTile> {
             style: _style,
           ),
         ),
-        const SizedBox(width: AppMetrics.spaceSm),
+        const SizedBox(width: ELayout.spaceSm),
         _probeButton(isProbing),
       ],
     );
@@ -108,11 +108,11 @@ class _SyncStatusTileState extends ConsumerState<SyncStatusTile> {
           : () => ref.read(syncEnsureProvider).ensureConnected(),
       style: OutlinedButton.styleFrom(
         padding: const EdgeInsets.symmetric(
-          horizontal: AppMetrics.spaceMd,
-          vertical: AppMetrics.spaceXs,
+          horizontal: ELayout.spaceMd,
+          vertical: ELayout.spaceXs,
         ),
-        backgroundColor: AppColors.backgroundLift,
-        side: const BorderSide(color: AppColors.border),
+        backgroundColor: EColors.backgroundLift,
+        side: const BorderSide(color: EColors.border),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -132,10 +132,10 @@ class _SyncStatusTileState extends ConsumerState<SyncStatusTile> {
               size: 14,
               color: _style.accent,
             ),
-          const SizedBox(width: AppMetrics.spaceXs),
+          const SizedBox(width: ELayout.spaceXs),
           Text(
             'Probe',
-            style: AppText.caption.copyWith(
+            style: EText.caption.copyWith(
               fontWeight: FontWeight.w600,
               color: _style.accent,
             ),
@@ -151,8 +151,8 @@ class _SyncStatusTileState extends ConsumerState<SyncStatusTile> {
     required String description,
   }) {
     final dotColor = isConnected
-        ? AppColors.success
-        : (isConnecting ? _style.accent : AppColors.warning);
+        ? EColors.success
+        : (isConnecting ? _style.accent : EColors.warning);
     return Row(
       children: [
         Container(
@@ -163,11 +163,11 @@ class _SyncStatusTileState extends ConsumerState<SyncStatusTile> {
             color: dotColor,
           ),
         ),
-        const SizedBox(width: AppMetrics.spaceSm),
+        const SizedBox(width: ELayout.spaceSm),
         Expanded(
           child: Text(
             description,
-            style: AppText.body.copyWith(color: AppColors.textMuted),
+            style: EText.body.copyWith(color: EColors.textMuted),
           ),
         ),
       ],
@@ -181,7 +181,7 @@ class _SyncStatusTileState extends ConsumerState<SyncStatusTile> {
   }) {
     final rows = <Widget>[];
     for (var index = 0; index < hostResolution.candidates.length; index++) {
-      if (index > 0) rows.add(const SizedBox(height: AppMetrics.spaceXs));
+      if (index > 0) rows.add(const SizedBox(height: ELayout.spaceXs));
       final host = hostResolution.candidates[index];
       rows.add(
         _hostRow(
@@ -206,12 +206,12 @@ class _SyncStatusTileState extends ConsumerState<SyncStatusTile> {
     final statusIcon = _probeIcon(probe: probe, isProbing: isProbing);
     final statusColor = _probeColor(probe: probe, isProbing: isProbing);
     return Padding(
-      padding: const EdgeInsets.only(left: AppMetrics.spaceLg),
+      padding: const EdgeInsets.only(left: ELayout.spaceLg),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(statusIcon, size: 14, color: statusColor),
-          const SizedBox(width: AppMetrics.spaceSm),
+          const SizedBox(width: ELayout.spaceSm),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -220,17 +220,17 @@ class _SyncStatusTileState extends ConsumerState<SyncStatusTile> {
                   children: [
                     Text(
                       label,
-                      style: AppText.caption.copyWith(
-                        color: AppColors.textMuted,
+                      style: EText.caption.copyWith(
+                        color: EColors.textMuted,
                         fontWeight:
                             isActive ? FontWeight.w600 : FontWeight.w400,
                       ),
                     ),
                     if (isActive) ...[
-                      const SizedBox(width: AppMetrics.spaceXs),
+                      const SizedBox(width: ELayout.spaceXs),
                       Text(
                         '· selected',
-                        style: AppText.caption.copyWith(
+                        style: EText.caption.copyWith(
                           fontWeight: FontWeight.w600,
                           color: _style.accent,
                         ),
@@ -240,12 +240,12 @@ class _SyncStatusTileState extends ConsumerState<SyncStatusTile> {
                 ),
                 Text(
                   host.isEmpty ? '(not configured)' : host,
-                  style: AppText.caption.copyWith(color: AppColors.textMuted),
+                  style: EText.caption.copyWith(color: EColors.textMuted),
                 ),
                 if (probe != null && !isProbing)
                   Text(
                     probe.summary,
-                    style: AppText.caption.copyWith(color: statusColor),
+                    style: EText.caption.copyWith(color: statusColor),
                   ),
               ],
             ),
@@ -265,20 +265,20 @@ class _SyncStatusTileState extends ConsumerState<SyncStatusTile> {
     );
     if (alternate == null) return const [];
     return [
-      const SizedBox(height: AppMetrics.spaceMd),
+      const SizedBox(height: ELayout.spaceMd),
       SizedBox(
         width: double.infinity,
         child: OutlinedButton(
           onPressed: () =>
               ref.read(syncEnsureProvider).switchHost(alternate.host),
           style: OutlinedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: AppMetrics.spaceSm),
-            backgroundColor: AppColors.backgroundLift,
-            side: const BorderSide(color: AppColors.border),
+            padding: const EdgeInsets.symmetric(vertical: ELayout.spaceSm),
+            backgroundColor: EColors.backgroundLift,
+            side: const BorderSide(color: EColors.border),
           ),
           child: Text(
             'Switch to ${alternate.label}',
-            style: AppText.body.copyWith(
+            style: EText.body.copyWith(
               fontWeight: FontWeight.w600,
               color: _style.accent,
             ),
@@ -316,26 +316,26 @@ class _SyncStatusTileState extends ConsumerState<SyncStatusTile> {
     required HostCandidateHealth? probe,
     required bool isProbing,
   }) {
-    if (isProbing || probe == null) return AppColors.textMuted;
-    if (probe.reachable) return AppColors.success;
-    return AppColors.warning;
+    if (isProbing || probe == null) return EColors.textMuted;
+    if (probe.reachable) return EColors.success;
+    return EColors.warning;
   }
 
   Widget _pendingRow(int pending) {
     return Padding(
-      padding: const EdgeInsets.only(left: AppMetrics.spaceLg),
+      padding: const EdgeInsets.only(left: ELayout.spaceLg),
       child: Row(
         children: [
           const Icon(
             Icons.upload,
             size: 14,
-            color: AppColors.textMuted,
+            color: EColors.textMuted,
           ),
-          const SizedBox(width: AppMetrics.spaceSm),
+          const SizedBox(width: ELayout.spaceSm),
           Expanded(
             child: Text(
               '$pending pending upload${pending == 1 ? '' : 's'}',
-              style: AppText.caption.copyWith(color: AppColors.textMuted),
+              style: EText.caption.copyWith(color: EColors.textMuted),
             ),
           ),
         ],

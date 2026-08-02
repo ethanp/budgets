@@ -14,13 +14,13 @@ class SelectAllNoneRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Wrap(
-      spacing: AppMetrics.spaceMd,
-      runSpacing: AppMetrics.spaceXs,
+      spacing: ELayout.spaceMd,
+      runSpacing: ELayout.spaceXs,
       children: [
         TextButton(
           onPressed: onSelectAll,
           style: TextButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: AppMetrics.spaceSm),
+            padding: const EdgeInsets.symmetric(horizontal: ELayout.spaceSm),
             minimumSize: Size.zero,
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             visualDensity: VisualDensity.compact,
@@ -30,7 +30,7 @@ class SelectAllNoneRow extends StatelessWidget {
         TextButton(
           onPressed: onSelectNone,
           style: TextButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: AppMetrics.spaceSm),
+            padding: const EdgeInsets.symmetric(horizontal: ELayout.spaceSm),
             minimumSize: Size.zero,
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             visualDensity: VisualDensity.compact,

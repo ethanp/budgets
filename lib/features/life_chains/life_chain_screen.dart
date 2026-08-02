@@ -19,16 +19,16 @@ class LifeChainScreen extends ConsumerWidget {
       LifeChainKind.job => ref.watch(jobChainProvider),
     };
 
-    return AppScaffoldShell(
+    return EScaffoldShell(
       appBar: AppBar(title: Text(kind.screenTitle)),
       body: chainAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(
           child: Padding(
-            padding: const EdgeInsets.all(AppMetrics.spaceLg),
+            padding: const EdgeInsets.all(ELayout.spaceLg),
             child: Text(
               '$error',
-              style: AppText.body.copyWith(color: AppColors.danger),
+              style: EText.body.copyWith(color: EColors.danger),
             ),
           ),
         ),
@@ -48,24 +48,24 @@ class _ChainBody extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return ListView(
       padding: const EdgeInsets.fromLTRB(
-        AppMetrics.spaceLg,
-        AppMetrics.spaceMd,
-        AppMetrics.spaceLg,
-        AppMetrics.spaceXl,
+        ELayout.spaceLg,
+        ELayout.spaceMd,
+        ELayout.spaceLg,
+        ELayout.spaceXl,
       ),
       children: [
         Text(
           kind == LifeChainKind.housing
               ? 'Where you’ve lived — a path of places over time.'
               : 'Where you’ve worked — a path of roles over time.',
-          style: AppText.body.copyWith(color: AppColors.textMuted),
+          style: EText.body.copyWith(color: EColors.textMuted),
         ),
-        const SizedBox(height: AppMetrics.spaceLg),
+        const SizedBox(height: ELayout.spaceLg),
         if (chain.isEmpty)
           _EmptyChain(kind: kind)
         else
           _ChainPath(kind: kind, chain: chain),
-        const SizedBox(height: AppMetrics.spaceXl),
+        const SizedBox(height: ELayout.spaceXl),
         AppPrimaryButton(
           onPressed: () {
             final oldestStartedOn = chain.oldest?.stay.startedOn.startOfDay;
@@ -95,22 +95,22 @@ class _EmptyChain extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(
         vertical: 32,
-        horizontal: AppMetrics.spaceLg,
+        horizontal: ELayout.spaceLg,
       ),
       decoration: BoxDecoration(
-        color: AppColors.backgroundLift,
-        borderRadius: AppMetrics.borderRadius(AppMetrics.radiusMd),
-        border: Border.all(color: AppColors.border),
+        color: EColors.backgroundLift,
+        borderRadius: ELayout.borderRadius(ELayout.radiusMd),
+        border: Border.all(color: EColors.border),
       ),
       child: Column(
         children: [
           Icon(kind.icon, size: 36, color: kind.trendBandColor),
-          const SizedBox(height: AppMetrics.spaceMd),
-          Text(kind.emptyHeroCaption, style: AppText.section),
-          const SizedBox(height: AppMetrics.spaceSm),
+          const SizedBox(height: ELayout.spaceMd),
+          Text(kind.emptyHeroCaption, style: EText.section),
+          const SizedBox(height: ELayout.spaceSm),
           Text(
             'Add the first link to start the chain.',
-            style: AppText.caption,
+            style: EText.caption,
             textAlign: TextAlign.center,
           ),
         ],
@@ -198,16 +198,16 @@ class _StayNode extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: const EdgeInsets.all(AppMetrics.spaceMd),
+        padding: const EdgeInsets.all(ELayout.spaceMd),
         decoration: BoxDecoration(
           color: isCurrent
               ? accent.withValues(alpha: 0.12)
-              : AppColors.backgroundLift,
-          borderRadius: AppMetrics.borderRadius(AppMetrics.radiusMd),
+              : EColors.backgroundLift,
+          borderRadius: ELayout.borderRadius(ELayout.radiusMd),
           border: Border.all(
             color: isCurrent
                 ? accent.withValues(alpha: 0.55)
-                : AppColors.border,
+                : EColors.border,
             width: isCurrent ? 1.5 : 1,
           ),
         ),
@@ -221,18 +221,18 @@ class _StayNode extends StatelessWidget {
                 shape: BoxShape.circle,
                 color: isCurrent
                     ? accent.withValues(alpha: 0.28)
-                    : AppColors.surfaceRaised,
+                    : EColors.surfaceRaised,
                 border: Border.all(
-                  color: isCurrent ? accent : AppColors.borderStrong,
+                  color: isCurrent ? accent : EColors.borderStrong,
                 ),
               ),
               child: Icon(
                 kind.icon,
                 size: isCurrent ? 22 : 18,
-                color: isCurrent ? accent : AppColors.textMuted,
+                color: isCurrent ? accent : EColors.textMuted,
               ),
             ),
-            const SizedBox(width: AppMetrics.spaceMd),
+            const SizedBox(width: ELayout.spaceMd),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -240,7 +240,7 @@ class _StayNode extends StatelessWidget {
                   if (isCurrent) ...[
                     Text(
                       kind.currentCaption,
-                      style: AppText.caption.copyWith(
+                      style: EText.caption.copyWith(
                         color: accent,
                         fontWeight: FontWeight.w600,
                       ),
@@ -249,25 +249,25 @@ class _StayNode extends StatelessWidget {
                   ],
                   Text(
                     segment.stay.label,
-                    style: AppText.section.copyWith(
+                    style: EText.section.copyWith(
                       fontWeight: FontWeight.w600,
                       color: isCurrent
-                          ? AppColors.textPrimary
-                          : AppColors.textSecondary,
+                          ? EColors.textPrimary
+                          : EColors.textSecondary,
                     ),
                   ),
-                  const SizedBox(height: AppMetrics.spaceXs),
+                  const SizedBox(height: ELayout.spaceXs),
                   Text(
                     segment.dateCaption,
-                    style: AppText.caption.copyWith(
+                    style: EText.caption.copyWith(
                       color: isCurrent
-                          ? AppColors.textSecondary
-                          : AppColors.textMuted,
+                          ? EColors.textSecondary
+                          : EColors.textMuted,
                     ),
                   ),
                   if (segment.stay.note != null) ...[
-                    const SizedBox(height: AppMetrics.spaceXs),
-                    Text(segment.stay.note!, style: AppText.caption),
+                    const SizedBox(height: ELayout.spaceXs),
+                    Text(segment.stay.note!, style: EText.caption),
                   ],
                 ],
               ),
@@ -275,7 +275,7 @@ class _StayNode extends StatelessWidget {
             const Icon(
               Icons.chevron_right,
               size: 16,
-              color: AppColors.textMuted,
+              color: EColors.textMuted,
             ),
           ],
         ),

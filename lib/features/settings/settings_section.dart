@@ -18,14 +18,14 @@ class SettingsSectionStyle {
   static const maintenance = SettingsSectionStyle(accent: Color(0xFF9A7B6A));
 }
 
-/// Emphatic type roles for Settings (stronger than global AppText defaults).
+/// Emphatic type roles for Settings (stronger than global EText defaults).
 class SettingsType {
   SettingsType._();
 
   static const sectionTitle = TextStyle(
     fontSize: 26,
     fontWeight: FontWeight.w700,
-    color: AppColors.textPrimary,
+    color: EColors.textPrimary,
     height: 1.15,
     letterSpacing: -0.4,
   );
@@ -33,14 +33,14 @@ class SettingsType {
   static const sectionMeta = TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w400,
-    color: AppColors.textMuted,
+    color: EColors.textMuted,
     height: 1.35,
   );
 
   static const institution = TextStyle(
     fontSize: 13,
     fontWeight: FontWeight.w700,
-    color: AppColors.textMuted,
+    color: EColors.textMuted,
     height: 1.2,
     letterSpacing: 0.9,
   );
@@ -48,35 +48,35 @@ class SettingsType {
   static const rowTitle = TextStyle(
     fontSize: 17,
     fontWeight: FontWeight.w400,
-    color: AppColors.textSecondary,
+    color: EColors.textSecondary,
     height: 1.3,
   );
 
   static const rowTitleEmphasis = TextStyle(
     fontSize: 17,
     fontWeight: FontWeight.w600,
-    color: AppColors.textPrimary,
+    color: EColors.textPrimary,
     height: 1.3,
   );
 
   static const toolTitle = TextStyle(
     fontSize: 18,
     fontWeight: FontWeight.w600,
-    color: AppColors.textPrimary,
+    color: EColors.textPrimary,
     height: 1.25,
   );
 
   static const toolCaption = TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w400,
-    color: AppColors.textMuted,
+    color: EColors.textMuted,
     height: 1.35,
   );
 
   static const amount = TextStyle(
     fontSize: 17,
     fontWeight: FontWeight.w600,
-    color: AppColors.textPrimary,
+    color: EColors.textPrimary,
     height: 1.3,
     fontFeatures: [FontFeature.tabularFigures()],
   );
@@ -84,7 +84,7 @@ class SettingsType {
   static const amountMuted = TextStyle(
     fontSize: 17,
     fontWeight: FontWeight.w400,
-    color: AppColors.textMuted,
+    color: EColors.textMuted,
     height: 1.3,
     fontFeatures: [FontFeature.tabularFigures()],
   );
@@ -132,14 +132,14 @@ class SettingsSectionHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         SettingsGlyph(icon: icon, style: style),
-        const SizedBox(width: AppMetrics.spaceMd),
+        const SizedBox(width: ELayout.spaceMd),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(title, style: SettingsType.sectionTitle),
               if (caption != null) ...[
-                const SizedBox(height: AppMetrics.spaceXs),
+                const SizedBox(height: ELayout.spaceXs),
                 Text(caption!, style: SettingsType.sectionMeta),
               ],
             ],
@@ -180,20 +180,20 @@ class SettingsToolRow extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: busy ? null : onAction,
-        borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
+        borderRadius: ELayout.borderRadius(ELayout.radiusSm),
         child: AnimatedOpacity(
           duration: const Duration(milliseconds: 150),
           opacity: busy ? 0.7 : 1,
-          child: AppSurface(
-            kind: AppSurfaceKind.tinted,
+          child: ESurface(
+            kind: ESurfaceKind.tinted,
             accent: style.accent,
-            padding: const EdgeInsets.all(AppMetrics.spaceMd),
-            borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
+            padding: const EdgeInsets.all(ELayout.spaceMd),
+            borderRadius: ELayout.borderRadius(ELayout.radiusSm),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SettingsGlyph(icon: icon, style: style),
-                const SizedBox(width: AppMetrics.spaceMd),
+                const SizedBox(width: ELayout.spaceMd),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -204,7 +204,7 @@ class SettingsToolRow extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: AppMetrics.spaceXs),
+                      const SizedBox(height: ELayout.spaceXs),
                       Text(
                         caption,
                         style: SettingsType.toolCaption,
@@ -212,30 +212,30 @@ class SettingsToolRow extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       if (progress != null) ...[
-                        const SizedBox(height: AppMetrics.spaceSm),
+                        const SizedBox(height: ELayout.spaceSm),
                         progress!,
                       ],
                       if (message != null) ...[
-                        const SizedBox(height: AppMetrics.spaceXs),
+                        const SizedBox(height: ELayout.spaceXs),
                         Text(message!, style: SettingsType.sectionMeta),
                       ],
                     ],
                   ),
                 ),
                 if (busy && onCancel != null) ...[
-                  const SizedBox(width: AppMetrics.spaceSm),
+                  const SizedBox(width: ELayout.spaceSm),
                   TextButton(
                     onPressed: onCancel,
                     child: Text(
                       'Cancel',
-                      style: AppText.caption.copyWith(
+                      style: EText.caption.copyWith(
                         fontWeight: FontWeight.w600,
                         color: style.accent,
                       ),
                     ),
                   ),
                 ] else if (busy) ...[
-                  const SizedBox(width: AppMetrics.spaceSm),
+                  const SizedBox(width: ELayout.spaceSm),
                   SizedBox(
                     width: 16,
                     height: 16,
@@ -245,7 +245,7 @@ class SettingsToolRow extends StatelessWidget {
                     ),
                   ),
                 ] else ...[
-                  const SizedBox(width: AppMetrics.spaceSm),
+                  const SizedBox(width: ELayout.spaceSm),
                   Icon(
                     Icons.chevron_right,
                     size: 14,
@@ -269,7 +269,7 @@ class SettingsHairline extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = style == null
-        ? AppColors.border
+        ? EColors.border
         : style!.accent.withValues(alpha: 0.35);
     return Container(height: 1, color: color);
   }
@@ -298,7 +298,7 @@ class SettingsProgressBar extends StatelessWidget {
             height: 6,
             child: Stack(
               children: [
-                Container(color: AppColors.surfaceInset),
+                Container(color: EColors.surfaceInset),
                 FractionallySizedBox(
                   widthFactor: fraction.clamp(0.0, 1.0),
                   child: Container(color: style.accent),
@@ -307,7 +307,7 @@ class SettingsProgressBar extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: AppMetrics.spaceXs),
+        const SizedBox(height: ELayout.spaceXs),
         Text(label, style: SettingsType.sectionMeta),
       ],
     );

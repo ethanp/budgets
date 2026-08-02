@@ -9,7 +9,7 @@ class SpendTrendsApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Spend Trends',
-      theme: AppTheme.build(),
+      theme: ETheme.build(),
       debugShowCheckedModeBanner: false,
       home: const MainTabScreen(),
     );

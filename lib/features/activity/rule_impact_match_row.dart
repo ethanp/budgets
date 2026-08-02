@@ -39,16 +39,16 @@ class RuleImpactMatchRow extends StatelessWidget {
     final dateLabel =
         DateFormat.yMMMd().format(transaction.postedAt.toLocal());
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppMetrics.spaceSm),
+      padding: const EdgeInsets.only(bottom: ELayout.spaceSm),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () => onChanged(!selected),
-        child: AppSurface(
-          kind: selected ? AppSurfaceKind.tinted : AppSurfaceKind.row,
+        child: ESurface(
+          kind: selected ? ESurfaceKind.tinted : ESurfaceKind.row,
           accent: selected ? FinanceColors.accentPrimary : null,
           padding: const EdgeInsets.symmetric(
-            horizontal: AppMetrics.spaceMd,
-            vertical: AppMetrics.spaceSm,
+            horizontal: ELayout.spaceMd,
+            vertical: ELayout.spaceSm,
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,7 +59,7 @@ class RuleImpactMatchRow extends StatelessWidget {
                 value: selected,
                 onChanged: (value) => onChanged(value ?? false),
               ),
-              const SizedBox(width: AppMetrics.spaceSm),
+              const SizedBox(width: ELayout.spaceSm),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -69,17 +69,17 @@ class RuleImpactMatchRow extends StatelessWidget {
                         Expanded(
                           child: Text(
                             _title,
-                            style: AppText.body.copyWith(
+                            style: EText.body.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const SizedBox(width: AppMetrics.spaceSm),
+                        const SizedBox(width: ELayout.spaceSm),
                         Text(
                           formatCents(transaction.amountCents),
-                          style: AppText.body.copyWith(
+                          style: EText.body.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
                           maxLines: 1,
@@ -89,9 +89,9 @@ class RuleImpactMatchRow extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       '$currentCategoryName · $dateLabel',
-                      style: AppText.caption.copyWith(
+                      style: EText.caption.copyWith(
                         color: currentCategoryName == 'Uncategorized'
-                            ? AppColors.textMuted
+                            ? EColors.textMuted
                             : FinanceColors.accentPrimary,
                         fontWeight: FontWeight.w600,
                       ),

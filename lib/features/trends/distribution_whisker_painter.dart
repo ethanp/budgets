@@ -117,7 +117,7 @@ class DistributionWhiskerPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final color = isDimmed ? AppColors.textMuted : seriesColor;
+    final color = isDimmed ? EColors.textMuted : seriesColor;
     final stemColor = color.withValues(alpha: isDimmed ? 0.45 : 0.85);
 
     final centerX = size.width / 2;
@@ -147,7 +147,7 @@ class DistributionWhiskerPainter extends CustomPainter {
       canvas,
       center: Offset(centerX, currentY),
       color: color,
-      ringColor: isDimmed ? null : AppColors.backgroundLift,
+      ringColor: isDimmed ? null : EColors.backgroundLift,
     );
   }
 
@@ -203,7 +203,7 @@ class _GlyphPainter extends CustomPainter {
           canvas,
           center: center,
           color: color,
-          ringColor: AppColors.surface,
+          ringColor: EColors.surface,
         );
     }
   }
@@ -222,7 +222,7 @@ class DistributionWhiskerGridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = AppColors.border.withValues(alpha: 0.7)
+      ..color = EColors.border.withValues(alpha: 0.7)
       ..strokeWidth = 0.75
       ..strokeCap = StrokeCap.round;
     for (final tickCents in scale.tickCents) {
@@ -274,14 +274,14 @@ class DistributionWhiskerSymbolKey extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppMetrics.spaceSm,
-        vertical: AppMetrics.spaceXs,
+        horizontal: ELayout.spaceSm,
+        vertical: ELayout.spaceXs,
       ),
       decoration: BoxDecoration(
-        color: AppColors.surface.withValues(alpha: 0.65),
-        borderRadius: BorderRadius.circular(AppMetrics.radiusSm),
+        color: EColors.surface.withValues(alpha: 0.65),
+        borderRadius: BorderRadius.circular(ELayout.radiusSm),
         border: Border.all(
-          color: AppColors.border.withValues(alpha: 0.75),
+          color: EColors.border.withValues(alpha: 0.75),
         ),
       ),
       child: Column(
@@ -293,13 +293,13 @@ class DistributionWhiskerSymbolKey extends StatelessWidget {
             children: [
               for (var index = 0; index < _entries.length; index++) ...[
                 if (index > 0) ...[
-                  const SizedBox(width: AppMetrics.spaceSm),
+                  const SizedBox(width: ELayout.spaceSm),
                   Container(
                     width: 1,
                     height: 14,
-                    color: AppColors.border.withValues(alpha: 0.7),
+                    color: EColors.border.withValues(alpha: 0.7),
                   ),
-                  const SizedBox(width: AppMetrics.spaceSm),
+                  const SizedBox(width: ELayout.spaceSm),
                 ],
                 _keyItem(glyph: _entries[index].$1, label: _entries[index].$2),
               ],
@@ -308,8 +308,8 @@ class DistributionWhiskerSymbolKey extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             'Pair: all-time (left) · past year (right)',
-            style: AppText.caption.copyWith(
-              color: AppColors.textMuted,
+            style: EText.caption.copyWith(
+              color: EColors.textMuted,
               fontSize: 10,
               height: 1.1,
             ),
@@ -330,14 +330,14 @@ class DistributionWhiskerSymbolKey extends StatelessWidget {
           width: glyph == DistributionWhiskerGlyph.range ? 12 : 14,
           height: glyph == DistributionWhiskerGlyph.range ? 16 : 14,
           child: CustomPaint(
-            painter: _GlyphPainter(glyph, AppColors.textSecondary),
+            painter: _GlyphPainter(glyph, EColors.textSecondary),
           ),
         ),
         const SizedBox(width: 5),
         Text(
           label,
-          style: AppText.caption.copyWith(
-            color: AppColors.textMuted,
+          style: EText.caption.copyWith(
+            color: EColors.textMuted,
             fontSize: 11,
             height: 1.1,
           ),

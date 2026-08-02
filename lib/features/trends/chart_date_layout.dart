@@ -98,7 +98,7 @@ class ChartDateLayout {
   void drawDateLabels(Canvas canvas, {required TextStyle labelStyle}) {
     final spanDays = maxDate.difference(minDate).inDays;
     final tickPaint = Paint()
-      ..color = AppColors.textMuted
+      ..color = EColors.textMuted
       ..strokeWidth = 1
       ..strokeCap = StrokeCap.round;
     const tickLength = 5.0;
@@ -131,7 +131,7 @@ class ChartDateLayout {
 
   void drawAxes(Canvas canvas) {
     final axisPaint = Paint()
-      ..color = AppColors.textMuted.withValues(alpha: 0.5)
+      ..color = EColors.textMuted.withValues(alpha: 0.5)
       ..strokeWidth = 1;
     canvas.drawLine(Offset(left, bottom), Offset(right, bottom), axisPaint);
     canvas.drawLine(Offset(left, top), Offset(left, bottom), axisPaint);
@@ -156,7 +156,7 @@ class ChartDateLayout {
     if (boundaryXs.isEmpty) return;
 
     final linePaint = Paint()
-      ..color = AppColors.textMuted.withValues(alpha: 0.3)
+      ..color = EColors.textMuted.withValues(alpha: 0.3)
       ..strokeWidth = 1;
 
     for (var index = 0; index < boundaryXs.length; index++) {

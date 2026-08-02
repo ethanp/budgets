@@ -18,21 +18,21 @@ class ExistingRuleOverlaps extends StatelessWidget {
       child: overlaps.isEmpty
           ? const SizedBox(width: double.infinity)
           : Padding(
-              padding: const EdgeInsets.only(top: AppMetrics.spaceSm),
+              padding: const EdgeInsets.only(top: ELayout.spaceSm),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Overlaps existing rules',
-                    style: AppText.caption.copyWith(
-                      color: AppColors.textMuted,
+                    style: EText.caption.copyWith(
+                      color: EColors.textMuted,
                       letterSpacing: 0.2,
                     ),
                   ),
-                  const SizedBox(height: AppMetrics.spaceXs),
+                  const SizedBox(height: ELayout.spaceXs),
                   Wrap(
-                    spacing: AppMetrics.spaceSm,
-                    runSpacing: AppMetrics.spaceSm,
+                    spacing: ELayout.spaceSm,
+                    runSpacing: ELayout.spaceSm,
                     children: [
                       for (final entry in overlaps)
                         _RelatedRuleChip(entry: entry),
@@ -59,12 +59,12 @@ class _RelatedRuleChip extends StatelessWidget {
     };
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppMetrics.spaceMd,
-        vertical: AppMetrics.spaceSm,
+        horizontal: ELayout.spaceMd,
+        vertical: ELayout.spaceSm,
       ),
       decoration: BoxDecoration(
         color: accent.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppMetrics.radiusSm),
+        borderRadius: BorderRadius.circular(ELayout.radiusSm),
         border: Border.all(color: accent.withValues(alpha: 0.35)),
       ),
       child: Text.rich(
@@ -72,14 +72,14 @@ class _RelatedRuleChip extends StatelessWidget {
           children: [
             TextSpan(
               text: '${entry.relation.label} · ',
-              style: AppText.caption.copyWith(
+              style: EText.caption.copyWith(
                 color: accent,
                 fontWeight: FontWeight.w600,
               ),
             ),
             TextSpan(
               text: '“${entry.rule.pattern}” → ${entry.categoryName}',
-              style: AppText.caption.copyWith(color: AppColors.textSecondary),
+              style: EText.caption.copyWith(color: EColors.textSecondary),
             ),
           ],
         ),

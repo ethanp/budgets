@@ -70,7 +70,7 @@ class _MainTabScreenState extends State<MainTabScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: EColors.background,
       body: IndexedStack(
         index: _selectedIndex,
         children: [
@@ -89,9 +89,9 @@ class _MainTabScreenState extends State<MainTabScreen> {
         currentIndex: _selectedIndex,
         onTap: (index) => setState(() => _selectedIndex = index),
         type: BottomNavigationBarType.fixed,
-        backgroundColor: AppColors.frostFill,
-        selectedItemColor: AppColors.accentGlow,
-        unselectedItemColor: AppColors.textMuted,
+        backgroundColor: EColors.frostFill,
+        selectedItemColor: EColors.accentGlow,
+        unselectedItemColor: EColors.textMuted,
         items: mainTabs.map((tab) => tab.navigationItem).toList(),
       ),
     );
@@ -110,7 +110,7 @@ class _TabChrome extends StatelessWidget {
       children: [
         const DecoratedBox(
           decoration: BoxDecoration(
-            gradient: AppColors.scaffoldGradient,
+            gradient: EColors.scaffoldGradient,
           ),
         ),
         const Align(
@@ -120,7 +120,7 @@ class _TabChrome extends StatelessWidget {
             width: double.infinity,
             child: DecoratedBox(
               decoration: BoxDecoration(
-                gradient: AppColors.ambientGlowGradient,
+                gradient: EColors.ambientGlowGradient,
               ),
             ),
           ),

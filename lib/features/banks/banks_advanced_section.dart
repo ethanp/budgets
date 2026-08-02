@@ -27,13 +27,13 @@ class BanksAdvancedSection extends ConsumerWidget {
           title: 'Banks',
           style: _style,
         ),
-        const SizedBox(height: AppMetrics.spaceMd),
+        const SizedBox(height: ELayout.spaceMd),
         connectionAsync.when(
           skipLoadingOnReload: true,
           loading: () => const CircularProgressIndicator(),
           error: (error, _) => SelectableText(
             '$error',
-            style: AppText.body.copyWith(color: AppColors.danger),
+            style: EText.body.copyWith(color: EColors.danger),
           ),
           data: (status) => _body(context, ref, status, actionState),
         ),
@@ -59,7 +59,7 @@ class BanksAdvancedSection extends ConsumerWidget {
       children: [
         Text(_connectedCaption(status), style: SettingsType.sectionMeta),
         if (status.fromEnv) ...[
-          const SizedBox(height: AppMetrics.spaceSm),
+          const SizedBox(height: ELayout.spaceSm),
           const Text(
             'Access URL comes from '
             '${SimpleFinAccessStore.envAccessUrlKey} in .env. '
@@ -68,13 +68,13 @@ class BanksAdvancedSection extends ConsumerWidget {
           ),
         ],
         if (actionState.actionError != null) ...[
-          const SizedBox(height: AppMetrics.spaceSm),
+          const SizedBox(height: ELayout.spaceSm),
           SelectableText(
             actionState.actionError!,
-            style: AppText.caption.copyWith(color: AppColors.danger),
+            style: EText.caption.copyWith(color: EColors.danger),
           ),
         ],
-        const SizedBox(height: AppMetrics.spaceLg),
+        const SizedBox(height: ELayout.spaceLg),
         SettingsToolRow(
           icon: Icons.add_circle,
           title: 'Add account',
@@ -85,7 +85,7 @@ class BanksAdvancedSection extends ConsumerWidget {
           style: _style,
           busy: actionState.busy,
         ),
-        const SizedBox(height: AppMetrics.spaceLg),
+        const SizedBox(height: ELayout.spaceLg),
         SettingsToolRow(
           icon: Icons.history,
           title: 'Pull history',
@@ -96,7 +96,7 @@ class BanksAdvancedSection extends ConsumerWidget {
           style: _style,
           busy: actionState.busy,
         ),
-        const SizedBox(height: AppMetrics.spaceLg),
+        const SizedBox(height: ELayout.spaceLg),
         SettingsToolRow(
           icon: Icons.cloud_download,
           title: 'Re-download all history',
@@ -113,7 +113,7 @@ class BanksAdvancedSection extends ConsumerWidget {
           style: _style,
           busy: actionState.busy,
         ),
-        const SizedBox(height: AppMetrics.spaceLg),
+        const SizedBox(height: ELayout.spaceLg),
         SettingsToolRow(
           icon: Icons.delete,
           title: 'Disconnect & erase',

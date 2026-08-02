@@ -99,7 +99,7 @@ class CategoryPicker extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         for (var index = 0; index < sections.length; index++) ...[
-          if (index > 0) const SizedBox(height: AppMetrics.spaceMd),
+          if (index > 0) const SizedBox(height: ELayout.spaceMd),
           _CategoryPickerSectionBlock(
             section: sections[index],
             selectedId: selectedId,
@@ -130,16 +130,16 @@ class _CategoryPickerSectionBlock extends StatelessWidget {
         if (section.title != null) ...[
           Text(
             section.title!,
-            style: AppText.caption.copyWith(
+            style: EText.caption.copyWith(
               fontWeight: FontWeight.w600,
               color: FinanceColors.accentPrimary,
             ),
           ),
-          const SizedBox(height: AppMetrics.spaceXs),
+          const SizedBox(height: ELayout.spaceXs),
         ],
         Wrap(
-          spacing: AppMetrics.spaceSm,
-          runSpacing: AppMetrics.spaceSm,
+          spacing: ELayout.spaceSm,
+          runSpacing: ELayout.spaceSm,
           children: [
             for (final category in section.categories)
               CategoryPickChip(

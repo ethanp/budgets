@@ -58,7 +58,7 @@ class _BankInstitutionHeaderState extends ConsumerState<BankInstitutionHeader> {
 
   @override
   Widget build(BuildContext context) {
-    final titleStyle = AppText.caption.copyWith(
+    final titleStyle = EText.caption.copyWith(
       fontWeight: FontWeight.w600,
       color: widget.accentColor,
     );
@@ -75,23 +75,23 @@ class _BankInstitutionHeaderState extends ConsumerState<BankInstitutionHeader> {
           hintText: widget.sampleAccount.connName?.trim().isNotEmpty == true
               ? widget.sampleAccount.connName
               : 'Bank name',
-          hintStyle: titleStyle.copyWith(color: AppColors.textMuted),
+          hintStyle: titleStyle.copyWith(color: EColors.textMuted),
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: AppMetrics.spaceSm,
-            vertical: AppMetrics.spaceXs,
+            horizontal: ELayout.spaceSm,
+            vertical: ELayout.spaceXs,
           ),
           filled: true,
-          fillColor: AppColors.surfaceInset,
+          fillColor: EColors.surfaceInset,
           border: OutlineInputBorder(
-            borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
-            borderSide: const BorderSide(color: AppColors.border),
+            borderRadius: ELayout.borderRadius(ELayout.radiusSm),
+            borderSide: const BorderSide(color: EColors.border),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
-            borderSide: const BorderSide(color: AppColors.border),
+            borderRadius: ELayout.borderRadius(ELayout.radiusSm),
+            borderSide: const BorderSide(color: EColors.border),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
+            borderRadius: ELayout.borderRadius(ELayout.radiusSm),
             borderSide: BorderSide(color: widget.accentColor),
           ),
         ),

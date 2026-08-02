@@ -13,9 +13,9 @@ import 'package:flutter/material.dart';
 class CategoryColor {
   CategoryColor._();
 
-  static const uncategorized = AppColors.textMuted;
+  static const uncategorized = EColors.textMuted;
   static const housing = FinanceColors.housing;
-  static const income = AppColors.success;
+  static const income = EColors.success;
   static const transfer = FinanceColors.accentSecondary;
 
   /// Same palette as Trends series (readable on dark surfaces).

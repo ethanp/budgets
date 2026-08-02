@@ -34,7 +34,7 @@ class AppSpreadsheetRow extends StatelessWidget {
     required this.leading,
     required this.trailing,
     required this.trailingWidth,
-    this.gap = AppMetrics.spaceMd,
+    this.gap = ELayout.spaceMd,
     this.crossAxisAlignment = CrossAxisAlignment.center,
   });
 

@@ -19,25 +19,25 @@ class AppDateField extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(AppMetrics.spaceMd),
+        padding: const EdgeInsets.all(ELayout.spaceMd),
         decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
-          border: Border.all(color: AppColors.border),
+          color: EColors.surface,
+          borderRadius: ELayout.borderRadius(ELayout.radiusSm),
+          border: Border.all(color: EColors.border),
         ),
         child: Row(
           children: [
-            Text(label, style: AppText.body),
+            Text(label, style: EText.body),
             const Spacer(),
             Text(
               DateFormat.yMMMd().format(date),
-              style: AppText.body.copyWith(fontWeight: FontWeight.w600),
+              style: EText.body.copyWith(fontWeight: FontWeight.w600),
             ),
-            const SizedBox(width: AppMetrics.spaceSm),
+            const SizedBox(width: ELayout.spaceSm),
             const Icon(
               Icons.calendar_today,
               size: 18,
-              color: AppColors.textMuted,
+              color: EColors.textMuted,
             ),
           ],
         ),

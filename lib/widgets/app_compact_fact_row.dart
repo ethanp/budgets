@@ -12,9 +12,9 @@ BoxDecoration appTintedCardDecoration({
   return BoxDecoration(
     color: Color.alphaBlend(
       tint.withValues(alpha: fillAlpha),
-      AppColors.surface,
+      EColors.surface,
     ),
-    borderRadius: AppMetrics.borderRadius(AppMetrics.radiusMd),
+    borderRadius: ELayout.borderRadius(ELayout.radiusMd),
     border: Border.all(
       color: tint.withValues(alpha: borderAlpha),
       width: selected ? 1.5 : 1,
@@ -40,7 +40,7 @@ class AppCompactFactRow extends StatelessWidget {
     this.selected = false,
     this.decorate = true,
     this.onTap,
-    this.padding = const EdgeInsets.all(AppMetrics.spaceMd),
+    this.padding = const EdgeInsets.all(ELayout.spaceMd),
   });
 
   final Widget? leading;
@@ -68,14 +68,14 @@ class AppCompactFactRow extends StatelessWidget {
         children: [
           if (leading != null) ...[
             leading!,
-            const SizedBox(width: AppMetrics.spaceMd),
+            const SizedBox(width: ELayout.spaceMd),
           ],
           ConstrainedBox(
             constraints: BoxConstraints(maxWidth: titleMaxWidth),
             child: _titleColumn(),
           ),
           if (amount != null) ...[
-            const SizedBox(width: AppMetrics.spaceMd),
+            const SizedBox(width: ELayout.spaceMd),
             if (amountWidth != null)
               SizedBox(
                 width: amountWidth,
@@ -88,7 +88,7 @@ class AppCompactFactRow extends StatelessWidget {
               amount!,
           ],
           if (trailing != null) ...[
-            const SizedBox(width: AppMetrics.spaceSm),
+            const SizedBox(width: ELayout.spaceSm),
             trailing!,
           ],
         ],
@@ -107,8 +107,8 @@ class AppCompactFactRow extends StatelessWidget {
         child: row,
       );
     } else {
-      body = AppSurface(
-        kind: selected ? AppSurfaceKind.tinted : AppSurfaceKind.row,
+      body = ESurface(
+        kind: selected ? ESurfaceKind.tinted : ESurfaceKind.row,
         accent: selected ? FinanceColors.accentPrimary : null,
         child: row,
       );
@@ -129,14 +129,14 @@ class AppCompactFactRow extends StatelessWidget {
       children: [
         Text(
           title,
-          style: AppText.section.copyWith(fontWeight: FontWeight.w600),
+          style: EText.section.copyWith(fontWeight: FontWeight.w600),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
         if (caption != null)
           Text(
             caption!,
-            style: AppText.caption,
+            style: EText.caption,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),

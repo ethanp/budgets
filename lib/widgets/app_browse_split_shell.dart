@@ -191,7 +191,7 @@ class _ResizeDivider extends StatelessWidget {
         child: SizedBox(
           width: AppBrowseSplitShell.dividerHitWidth,
           child: Center(
-            child: Container(width: 1, color: AppColors.border),
+            child: Container(width: 1, color: EColors.border),
           ),
         ),
       ),

@@ -320,37 +320,37 @@ class _BanksPullProgressSheetState
         heightFraction: 0.85,
         padForKeyboard: false,
         child: Padding(
-          padding: const EdgeInsets.all(AppMetrics.spaceLg),
+          padding: const EdgeInsets.all(ELayout.spaceLg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _headerRow(),
-              const SizedBox(height: AppMetrics.spaceSm),
-              Text(_statusLine, style: AppText.caption),
+              const SizedBox(height: ELayout.spaceSm),
+              Text(_statusLine, style: EText.caption),
               if (_queryWindowLine != null) ...[
-                const SizedBox(height: AppMetrics.spaceXs),
+                const SizedBox(height: ELayout.spaceXs),
                 Text(
                   _queryWindowLine!,
-                  style: AppText.caption.copyWith(fontWeight: FontWeight.w600),
+                  style: EText.caption.copyWith(fontWeight: FontWeight.w600),
                 ),
               ],
               if (displayError != null) ...[
-                const SizedBox(height: AppMetrics.spaceSm),
+                const SizedBox(height: ELayout.spaceSm),
                 Text(
                   displayError,
-                  style: AppText.caption.copyWith(color: AppColors.danger),
+                  style: EText.caption.copyWith(color: EColors.danger),
                 ),
               ],
-              const SizedBox(height: AppMetrics.spaceMd),
+              const SizedBox(height: ELayout.spaceMd),
               Expanded(child: _accountList()),
               if (_finished && !_failed && _categorizationReady) ...[
-                const SizedBox(height: AppMetrics.spaceMd),
+                const SizedBox(height: ELayout.spaceMd),
                 _categorizationSummary(),
               ],
-              const SizedBox(height: AppMetrics.spaceMd),
+              const SizedBox(height: ELayout.spaceMd),
               _overallFooter(),
               if (_finished) ...[
-                const SizedBox(height: AppMetrics.spaceMd),
+                const SizedBox(height: ELayout.spaceMd),
                 AppPrimaryButton(
                   onPressed: () => Navigator.of(context).pop(),
                   child: const Text('Done'),
@@ -372,14 +372,14 @@ class _BanksPullProgressSheetState
       textBaseline: TextBaseline.alphabetic,
       children: [
         Expanded(
-          child: Text(title, style: AppText.section),
+          child: Text(title, style: EText.section),
         ),
         if (!_finished)
           Text(
             _displayedElapsed.formattedElapsed,
-            style: AppText.body.copyWith(
+            style: EText.body.copyWith(
               fontWeight: FontWeight.w600,
-              color: AppColors.textMuted,
+              color: EColors.textMuted,
               fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
@@ -393,7 +393,7 @@ class _BanksPullProgressSheetState
     }
     return ListView.separated(
       itemCount: _accounts.length,
-      separatorBuilder: (_, _) => const SizedBox(height: AppMetrics.spaceMd),
+      separatorBuilder: (_, _) => const SizedBox(height: ELayout.spaceMd),
       itemBuilder: (context, index) => _accountSummary(_accounts[index]),
     );
   }
@@ -414,7 +414,7 @@ class _BanksPullProgressSheetState
               child: account.done
                   ? const Icon(
                       Icons.check_circle,
-                      color: AppColors.success,
+                      color: EColors.success,
                       size: 22,
                     )
                   : const Padding(
@@ -426,26 +426,26 @@ class _BanksPullProgressSheetState
                       ),
                     ),
             ),
-            const SizedBox(width: AppMetrics.spaceSm),
+            const SizedBox(width: ELayout.spaceSm),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     account.label,
-                    style: AppText.body.copyWith(fontWeight: FontWeight.w600),
+                    style: EText.body.copyWith(fontWeight: FontWeight.w600),
                   ),
-                  Text(countLabel, style: AppText.caption),
+                  Text(countLabel, style: EText.caption),
                 ],
               ),
             ),
           ],
         ),
         if (account.transactions.isNotEmpty) ...[
-          const SizedBox(height: AppMetrics.spaceSm),
+          const SizedBox(height: ELayout.spaceSm),
           for (final transaction in account.transactions)
             Padding(
-              padding: const EdgeInsets.only(bottom: AppMetrics.spaceSm),
+              padding: const EdgeInsets.only(bottom: ELayout.spaceSm),
               child: _pulledTransactionRow(transaction),
             ),
         ],
@@ -461,7 +461,7 @@ class _BanksPullProgressSheetState
             ? _categoryCaption(transaction)
             : 'Uncategorized';
     final categoryColor = !_categorizationReady
-        ? AppColors.textMuted
+        ? EColors.textMuted
         : CategoryColor.forCategoryId(
             transaction.categoryId,
             categoryName: transaction.categoryName,
@@ -476,7 +476,7 @@ class _BanksPullProgressSheetState
           width: 120,
           child: Text(
             categoryLabel,
-            style: AppText.caption.copyWith(
+            style: EText.caption.copyWith(
               fontWeight: FontWeight.w600,
               color: categoryColor,
             ),
@@ -488,7 +488,7 @@ class _BanksPullProgressSheetState
           width: 72,
           child: Text(
             dateLabel,
-            style: AppText.caption.copyWith(color: AppColors.textMuted),
+            style: EText.caption.copyWith(color: EColors.textMuted),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -498,7 +498,7 @@ class _BanksPullProgressSheetState
           ? const Icon(
               Icons.schedule,
               size: 15,
-              color: AppColors.warning,
+              color: EColors.warning,
             )
           : null,
     );
@@ -510,9 +510,9 @@ class _BanksPullProgressSheetState
     }
     if (transaction.isInflow ||
         SpecialCategory.isIncomeId(transaction.categoryId)) {
-      return AppColors.success;
+      return EColors.success;
     }
-    return AppColors.danger;
+    return EColors.danger;
   }
 
   static String _categoryCaption(SimpleFinPulledTransaction transaction) {
@@ -535,29 +535,29 @@ class _BanksPullProgressSheetState
         if (ruleSummaries.isNotEmpty) ...[
           Text(
             'Rules applied',
-            style: AppText.caption.copyWith(fontWeight: FontWeight.w600),
+            style: EText.caption.copyWith(fontWeight: FontWeight.w600),
           ),
-          const SizedBox(height: AppMetrics.spaceXs),
+          const SizedBox(height: ELayout.spaceXs),
           for (final summary in ruleSummaries)
             Padding(
-              padding: const EdgeInsets.only(bottom: AppMetrics.spaceXs),
+              padding: const EdgeInsets.only(bottom: ELayout.spaceXs),
               child: Text(
                 '${summary.pattern} → ${summary.categoryName} · '
                 '${summary.transactionCount}',
-                style: AppText.caption,
+                style: EText.caption,
               ),
             ),
         ],
         if (uncategorized.isNotEmpty) ...[
-          if (ruleSummaries.isNotEmpty) const SizedBox(height: AppMetrics.spaceSm),
+          if (ruleSummaries.isNotEmpty) const SizedBox(height: ELayout.spaceSm),
           Text(
             'Uncategorized (${uncategorized.length})',
-            style: AppText.caption.copyWith(fontWeight: FontWeight.w600),
+            style: EText.caption.copyWith(fontWeight: FontWeight.w600),
           ),
-          const SizedBox(height: AppMetrics.spaceXs),
+          const SizedBox(height: ELayout.spaceXs),
           for (final transaction in uncategorized)
             Padding(
-              padding: const EdgeInsets.only(bottom: AppMetrics.spaceSm),
+              padding: const EdgeInsets.only(bottom: ELayout.spaceSm),
               child: _pulledTransactionRow(transaction),
             ),
         ],
@@ -573,7 +573,7 @@ class _BanksPullProgressSheetState
             : '${_accounts.length} accounts so far · '
                 '${_accounts.fold<int>(0, (sum, row) => sum + row.transactionCount)} '
                 'transactions',
-        style: AppText.body.copyWith(fontWeight: FontWeight.w600),
+        style: EText.body.copyWith(fontWeight: FontWeight.w600),
       );
     }
     final accounts = _overallAccounts!;
@@ -584,13 +584,13 @@ class _BanksPullProgressSheetState
     if (_bridgeWarningCount == 0) {
       return Text(
         base,
-        style: AppText.body.copyWith(fontWeight: FontWeight.w600),
+        style: EText.body.copyWith(fontWeight: FontWeight.w600),
       );
     }
     return Text(
       '$base · $_bridgeWarningCount bridge '
       '${_bridgeWarningCount == 1 ? 'warning' : 'warnings'}',
-      style: AppText.body.copyWith(fontWeight: FontWeight.w600),
+      style: EText.body.copyWith(fontWeight: FontWeight.w600),
     );
   }
 }

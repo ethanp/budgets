@@ -67,7 +67,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
     if (_isFlowBuiltin) {
       return AppSheetPanel.compact(
         child: Padding(
-          padding: const EdgeInsets.all(AppMetrics.spaceLg),
+          padding: const EdgeInsets.all(ELayout.spaceLg),
           child: _flowBuiltinBody(),
         ),
       );
@@ -75,7 +75,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
     if (!_isEditing) {
       return AppSheetPanel.compact(
         child: Padding(
-          padding: const EdgeInsets.all(AppMetrics.spaceLg),
+          padding: const EdgeInsets.all(ELayout.spaceLg),
           child: _createBody(),
         ),
       );
@@ -83,7 +83,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
     return AppSheetPanel(
       heightFraction: 0.72,
       child: Padding(
-        padding: const EdgeInsets.all(AppMetrics.spaceLg),
+        padding: const EdgeInsets.all(ELayout.spaceLg),
         child: _editBody(),
       ),
     );
@@ -94,20 +94,20 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Built-in category', style: AppText.section),
-        const SizedBox(height: AppMetrics.spaceMd),
+        Text('Built-in category', style: EText.section),
+        const SizedBox(height: ELayout.spaceMd),
         Text(
           widget.category!.name,
-          style: AppText.section.copyWith(fontWeight: FontWeight.w600),
+          style: EText.section.copyWith(fontWeight: FontWeight.w600),
         ),
-        const SizedBox(height: AppMetrics.spaceSm),
+        const SizedBox(height: ELayout.spaceSm),
         Text(
           'Cash flow · excluded from spend trends. '
           'It cannot be renamed or deleted. '
           'Use it when categorizing income or transfers.',
-          style: AppText.caption,
+          style: EText.caption,
         ),
-        const SizedBox(height: AppMetrics.spaceMd),
+        const SizedBox(height: ELayout.spaceMd),
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Done'),
@@ -121,16 +121,16 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('New category', style: AppText.section),
-        const SizedBox(height: AppMetrics.spaceMd),
+        Text('New category', style: EText.section),
+        const SizedBox(height: ELayout.spaceMd),
         _nameField(autofocus: true),
-        const SizedBox(height: AppMetrics.spaceMd),
+        const SizedBox(height: ELayout.spaceMd),
         _groupPicker(),
         if (_error != null) ...[
-          const SizedBox(height: AppMetrics.spaceSm),
+          const SizedBox(height: ELayout.spaceSm),
           _errorMessage(),
         ],
-        const SizedBox(height: AppMetrics.spaceMd),
+        const SizedBox(height: ELayout.spaceMd),
         AppPrimaryButton(
           busy: _busy,
           onPressed: _save,
@@ -162,46 +162,46 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
 
     return ListView(
       children: [
-        Text(category.name, style: AppText.section),
+        Text(category.name, style: EText.section),
         if (category.isHousing) ...[
-          const SizedBox(height: AppMetrics.spaceXs),
-          Text('Built-in · housing', style: AppText.caption),
+          const SizedBox(height: ELayout.spaceXs),
+          Text('Built-in · housing', style: EText.caption),
         ],
-        const SizedBox(height: AppMetrics.spaceLg),
+        const SizedBox(height: ELayout.spaceLg),
         Text(
           'Identity',
-          style: AppText.caption.copyWith(fontWeight: FontWeight.w600),
+          style: EText.caption.copyWith(fontWeight: FontWeight.w600),
         ),
-        const SizedBox(height: AppMetrics.spaceSm),
+        const SizedBox(height: ELayout.spaceSm),
         _nameField(autofocus: false),
-        const SizedBox(height: AppMetrics.spaceMd),
+        const SizedBox(height: ELayout.spaceMd),
         _groupPicker(),
-        const SizedBox(height: AppMetrics.spaceLg),
+        const SizedBox(height: ELayout.spaceLg),
         Text(
           'This month',
-          style: AppText.caption.copyWith(fontWeight: FontWeight.w600),
+          style: EText.caption.copyWith(fontWeight: FontWeight.w600),
         ),
-        const SizedBox(height: AppMetrics.spaceSm),
+        const SizedBox(height: ELayout.spaceSm),
         _monthSpendLine(monthRow),
-        const SizedBox(height: AppMetrics.spaceLg),
+        const SizedBox(height: ELayout.spaceLg),
         Text(
           'Rules',
-          style: AppText.caption.copyWith(fontWeight: FontWeight.w600),
+          style: EText.caption.copyWith(fontWeight: FontWeight.w600),
         ),
-        const SizedBox(height: AppMetrics.spaceSm),
+        const SizedBox(height: ELayout.spaceSm),
         _rulesPeek(categoryRules),
         if (_error != null) ...[
-          const SizedBox(height: AppMetrics.spaceMd),
+          const SizedBox(height: ELayout.spaceMd),
           _errorMessage(),
         ],
-        const SizedBox(height: AppMetrics.spaceLg),
+        const SizedBox(height: ELayout.spaceLg),
         AppPrimaryButton(
           busy: _busy,
           onPressed: _save,
           child: const Text('Save'),
         ),
         if (!category.isHousing) ...[
-          const SizedBox(height: AppMetrics.spaceMd),
+          const SizedBox(height: ELayout.spaceMd),
           _retireSection(),
         ],
       ],
@@ -215,7 +215,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
       annual == 0
           ? '${formatCents(spent)} this month'
           : '${formatCents(spent)} this month · ${formatCents(annual)} / yr',
-      style: AppText.body,
+      style: EText.body,
     );
   }
 
@@ -223,7 +223,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
     if (categoryRules.isEmpty) {
       return Text(
         'No merchant rules yet. Add them from Activity when categorizing.',
-        style: AppText.caption,
+        style: EText.caption,
       );
     }
     final preview = categoryRules.take(5).toList();
@@ -234,21 +234,21 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
           categoryRules.length == 1
               ? '1 rule'
               : '${categoryRules.length} rules',
-          style: AppText.body,
+          style: EText.body,
         ),
-        const SizedBox(height: AppMetrics.spaceXs),
+        const SizedBox(height: ELayout.spaceXs),
         for (final rule in preview)
           Padding(
-            padding: const EdgeInsets.only(bottom: AppMetrics.spaceXs),
+            padding: const EdgeInsets.only(bottom: ELayout.spaceXs),
             child: Text(
               _ruleCaption(rule),
-              style: AppText.caption,
+              style: EText.caption,
             ),
           ),
         if (categoryRules.length > preview.length)
           Text(
             '+${categoryRules.length - preview.length} more',
-            style: AppText.caption.copyWith(color: AppColors.textMuted),
+            style: EText.caption.copyWith(color: EColors.textMuted),
           ),
       ],
     );
@@ -268,20 +268,20 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
       children: [
         Text(
           'Retire',
-          style: AppText.caption.copyWith(fontWeight: FontWeight.w600),
+          style: EText.caption.copyWith(fontWeight: FontWeight.w600),
         ),
-        const SizedBox(height: AppMetrics.spaceXs),
+        const SizedBox(height: ELayout.spaceXs),
         Text(
           'Merge this category into another. Transactions and rules move '
           'to the survivor, then this category is removed.',
-          style: AppText.caption,
+          style: EText.caption,
         ),
-        const SizedBox(height: AppMetrics.spaceSm),
+        const SizedBox(height: ELayout.spaceSm),
         TextButton(
           onPressed: _busy ? null : _startMergeAndDelete,
           style: TextButton.styleFrom(
             alignment: Alignment.centerLeft,
-            foregroundColor: AppColors.danger,
+            foregroundColor: EColors.danger,
           ),
           child: const Text('Merge into…'),
         ),
@@ -293,7 +293,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
     return TextField(
       controller: _nameController,
       autofocus: autofocus,
-      style: AppText.body.copyWith(color: AppColors.textPrimary),
+      style: EText.body.copyWith(color: EColors.textPrimary),
       decoration: _fieldDecoration('Name'),
     );
   }
@@ -302,19 +302,19 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
     return InputDecoration(
       hintText: hint,
       filled: true,
-      fillColor: AppColors.surface,
-      contentPadding: const EdgeInsets.all(AppMetrics.spaceMd),
+      fillColor: EColors.surface,
+      contentPadding: const EdgeInsets.all(ELayout.spaceMd),
       border: OutlineInputBorder(
-        borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderRadius: ELayout.borderRadius(ELayout.radiusSm),
+        borderSide: const BorderSide(color: EColors.border),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderRadius: ELayout.borderRadius(ELayout.radiusSm),
+        borderSide: const BorderSide(color: EColors.border),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
-        borderSide: const BorderSide(color: AppColors.accentGlow),
+        borderRadius: ELayout.borderRadius(ELayout.radiusSm),
+        borderSide: const BorderSide(color: EColors.accentGlow),
       ),
     );
   }
@@ -325,11 +325,11 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Group', style: AppText.caption),
-        const SizedBox(height: AppMetrics.spaceXs),
+        Text('Group', style: EText.caption),
+        const SizedBox(height: ELayout.spaceXs),
         Wrap(
-          spacing: AppMetrics.spaceSm,
-          runSpacing: AppMetrics.spaceSm,
+          spacing: ELayout.spaceSm,
+          runSpacing: ELayout.spaceSm,
           children: [
             _groupChip(label: 'None', groupId: null),
             for (final group in groups)
@@ -346,20 +346,20 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
       onTap: () => setState(() => _selectedGroupId = groupId),
       child: Container(
         padding: const EdgeInsets.symmetric(
-          horizontal: AppMetrics.spaceMd,
-          vertical: AppMetrics.spaceSm,
+          horizontal: ELayout.spaceMd,
+          vertical: ELayout.spaceSm,
         ),
         decoration: BoxDecoration(
-          color: isSelected ? FinanceColors.accentPrimary : AppColors.surface,
-          borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
+          color: isSelected ? FinanceColors.accentPrimary : EColors.surface,
+          borderRadius: ELayout.borderRadius(ELayout.radiusSm),
           border: Border.all(
-            color: isSelected ? FinanceColors.accentPrimary : AppColors.border,
+            color: isSelected ? FinanceColors.accentPrimary : EColors.border,
           ),
         ),
         child: Text(
           label,
-          style: AppText.caption.copyWith(
-            color: isSelected ? AppColors.textPrimary : AppColors.textSecondary,
+          style: EText.caption.copyWith(
+            color: isSelected ? EColors.textPrimary : EColors.textSecondary,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
           ),
         ),
@@ -370,7 +370,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
   Widget _errorMessage() {
     return Text(
       _error!,
-      style: AppText.caption.copyWith(color: AppColors.danger),
+      style: EText.caption.copyWith(color: EColors.danger),
     );
   }
 
@@ -473,19 +473,19 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
 
   Widget _mergePickerHeader(SpendCategory category) {
     return Padding(
-      padding: const EdgeInsets.all(AppMetrics.spaceLg),
+      padding: const EdgeInsets.all(ELayout.spaceLg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Retire ${category.name} into…',
-            style: AppText.section,
+            style: EText.section,
           ),
-          const SizedBox(height: AppMetrics.spaceXs),
+          const SizedBox(height: ELayout.spaceXs),
           Text(
             'Retire ${category.name} into the survivor · moves transactions '
             'and rules, then removes ${category.name}.',
-            style: AppText.caption,
+            style: EText.caption,
           ),
         ],
       ),
@@ -501,7 +501,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
       itemBuilder: (context, index) {
         final target = mergeTargets[index];
         return ListTile(
-          title: Text(target.name, style: AppText.section),
+          title: Text(target.name, style: EText.section),
           onTap: () {
             Navigator.of(pickerContext).pop();
             _confirmMerge(target);
@@ -557,7 +557,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
             ),
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(true),
-              style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+              style: TextButton.styleFrom(foregroundColor: EColors.danger),
               child: const Text('Merge & delete'),
             ),
           ],

@@ -35,15 +35,15 @@ class _BanksScreenState extends ConsumerState<BanksScreen> {
           error: (error, _) => Center(
             child: Text(
               '$error',
-              style: AppText.body.copyWith(color: AppColors.danger),
+              style: EText.body.copyWith(color: EColors.danger),
             ),
           ),
           data: (status) {
             final left = ListView(
               padding: const EdgeInsets.fromLTRB(
-                AppMetrics.spaceLg,
-                AppMetrics.spaceMd,
-                AppMetrics.spaceLg,
+                ELayout.spaceLg,
+                ELayout.spaceMd,
+                ELayout.spaceLg,
                 32,
               ),
               children: [

@@ -67,8 +67,8 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
     final exceptionLabel = _exceptionLabel(_account);
     final isZero = _account.balanceCents == 0;
     final nameStyle = exceptionLabel != null
-        ? AppText.body.copyWith(fontWeight: FontWeight.w600)
-        : AppText.body;
+        ? EText.body.copyWith(fontWeight: FontWeight.w600)
+        : EText.body;
 
     final nameRow = Row(
       mainAxisSize: MainAxisSize.min,
@@ -83,30 +83,30 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
                   ? TextField(
                       controller: _nameController,
                       focusNode: _focusNode,
-                      style: nameStyle.copyWith(color: AppColors.textPrimary),
+                      style: nameStyle.copyWith(color: EColors.textPrimary),
                       decoration: InputDecoration(
                         isDense: true,
                         hintText: _account.name,
-                        hintStyle: nameStyle.copyWith(color: AppColors.textMuted),
+                        hintStyle: nameStyle.copyWith(color: EColors.textMuted),
                         contentPadding: const EdgeInsets.symmetric(
-                          horizontal: AppMetrics.spaceSm,
-                          vertical: AppMetrics.spaceXs,
+                          horizontal: ELayout.spaceSm,
+                          vertical: ELayout.spaceXs,
                         ),
                         filled: true,
-                        fillColor: AppColors.surfaceInset,
+                        fillColor: EColors.surfaceInset,
                         border: OutlineInputBorder(
                           borderRadius:
-                              AppMetrics.borderRadius(AppMetrics.radiusSm),
-                          borderSide: const BorderSide(color: AppColors.border),
+                              ELayout.borderRadius(ELayout.radiusSm),
+                          borderSide: const BorderSide(color: EColors.border),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius:
-                              AppMetrics.borderRadius(AppMetrics.radiusSm),
-                          borderSide: const BorderSide(color: AppColors.border),
+                              ELayout.borderRadius(ELayout.radiusSm),
+                          borderSide: const BorderSide(color: EColors.border),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius:
-                              AppMetrics.borderRadius(AppMetrics.radiusSm),
+                              ELayout.borderRadius(ELayout.radiusSm),
                           borderSide: const BorderSide(
                             color: FinanceColors.accentPrimary,
                           ),
@@ -125,7 +125,7 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-              const SizedBox(height: AppMetrics.spaceXs),
+              const SizedBox(height: ELayout.spaceXs),
               GestureDetector(
                 onTap: _saving ? null : () => _pickKind(context),
                 behavior: HitTestBehavior.opaque,
@@ -134,8 +134,8 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
                     Flexible(
                       child: Text(
                         _account.kind.legendLabel,
-                        style: AppText.caption.copyWith(
-                          color: AppColors.textMuted,
+                        style: EText.caption.copyWith(
+                          color: EColors.textMuted,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -145,13 +145,13 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
                     const Icon(
                       Icons.keyboard_arrow_down,
                       size: 15,
-                      color: AppColors.textMuted,
+                      color: EColors.textMuted,
                     ),
                   ],
                 ),
               ),
               if (_account.isCopilot) ...[
-                const SizedBox(height: AppMetrics.spaceXs),
+                const SizedBox(height: ELayout.spaceXs),
                 GestureDetector(
                   onTap: _saving ? null : () => _pickBelongsTo(context),
                   behavior: HitTestBehavior.opaque,
@@ -160,8 +160,8 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
                       Flexible(
                         child: Text(
                           _belongsToCaption(ref),
-                          style: AppText.caption.copyWith(
-                            color: AppColors.textMuted,
+                          style: EText.caption.copyWith(
+                            color: EColors.textMuted,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -171,7 +171,7 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
                       const Icon(
                         Icons.keyboard_arrow_down,
                         size: 15,
-                        color: AppColors.textMuted,
+                        color: EColors.textMuted,
                       ),
                     ],
                   ),
@@ -180,7 +180,7 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
             ],
           ),
         ),
-        const SizedBox(width: AppMetrics.spaceMd),
+        const SizedBox(width: ELayout.spaceMd),
         SizedBox(
           width: widget.amountColumnWidth,
           child: Align(
@@ -188,8 +188,8 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
             child: Text(
               formatCents(_account.balanceCents),
               style: isZero
-                  ? AppText.body.copyWith(color: AppColors.textMuted)
-                  : AppText.body.copyWith(fontWeight: FontWeight.w600),
+                  ? EText.body.copyWith(color: EColors.textMuted)
+                  : EText.body.copyWith(fontWeight: FontWeight.w600),
               maxLines: 1,
               textAlign: TextAlign.right,
             ),
@@ -206,26 +206,26 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
               nameRow,
               Text(
                 exceptionLabel,
-                style: AppText.caption.copyWith(color: AppColors.warning),
+                style: EText.caption.copyWith(color: EColors.warning),
               ),
             ],
           );
 
     final decorated = widget.selected
-        ? AppSurface(
-            kind: AppSurfaceKind.tinted,
+        ? ESurface(
+            kind: ESurfaceKind.tinted,
             accent: FinanceColors.accentPrimary,
             padding: const EdgeInsets.symmetric(
-              horizontal: AppMetrics.spaceSm,
-              vertical: AppMetrics.spaceXs,
+              horizontal: ELayout.spaceSm,
+              vertical: ELayout.spaceXs,
             ),
-            borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
+            borderRadius: ELayout.borderRadius(ELayout.radiusSm),
             child: body,
           )
         : Padding(
             padding: const EdgeInsets.symmetric(
-              horizontal: AppMetrics.spaceSm,
-              vertical: AppMetrics.spaceXs,
+              horizontal: ELayout.spaceSm,
+              vertical: ELayout.spaceXs,
             ),
             child: body,
           );
@@ -257,14 +257,14 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(
-                AppMetrics.spaceLg,
-                AppMetrics.spaceLg,
-                AppMetrics.spaceLg,
-                AppMetrics.spaceSm,
+                ELayout.spaceLg,
+                ELayout.spaceLg,
+                ELayout.spaceLg,
+                ELayout.spaceSm,
               ),
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: Text('Account type', style: AppText.section),
+                child: Text('Account type', style: EText.section),
               ),
             ),
             for (final kind in AccountKind.values)
@@ -272,19 +272,19 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
                 title: Text(
                   kind.legendLabel,
                   style: kind == _account.kind
-                      ? AppText.body.copyWith(fontWeight: FontWeight.w600)
-                      : AppText.body,
+                      ? EText.body.copyWith(fontWeight: FontWeight.w600)
+                      : EText.body,
                 ),
                 onTap: () => Navigator.of(sheetContext).pop(kind),
               ),
             ListTile(
               title: Text(
                 'Cancel',
-                style: AppText.body.copyWith(color: AppColors.textMuted),
+                style: EText.body.copyWith(color: EColors.textMuted),
               ),
               onTap: () => Navigator.of(sheetContext).pop(),
             ),
-            const SizedBox(height: AppMetrics.spaceMd),
+            const SizedBox(height: ELayout.spaceMd),
           ],
         ),
       ),
@@ -325,19 +325,19 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(
-                AppMetrics.spaceLg,
-                AppMetrics.spaceLg,
-                AppMetrics.spaceLg,
-                AppMetrics.spaceSm,
+                ELayout.spaceLg,
+                ELayout.spaceLg,
+                ELayout.spaceLg,
+                ELayout.spaceSm,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Belongs to', style: AppText.section),
-                  const SizedBox(height: AppMetrics.spaceXs),
+                  Text('Belongs to', style: EText.section),
+                  const SizedBox(height: ELayout.spaceXs),
                   Text(
                     'Combine this Copilot history with a SimpleFIN account in Trends.',
-                    style: AppText.caption,
+                    style: EText.caption,
                   ),
                 ],
               ),
@@ -346,8 +346,8 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
               title: Text(
                 'None',
                 style: _account.belongsToAccountId == null
-                    ? AppText.body.copyWith(fontWeight: FontWeight.w600)
-                    : AppText.body,
+                    ? EText.body.copyWith(fontWeight: FontWeight.w600)
+                    : EText.body,
               ),
               onTap: () => Navigator.of(sheetContext).pop(''),
             ),
@@ -356,19 +356,19 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
                 title: Text(
                   parent.displayNameWithInstitution,
                   style: parent.id == _account.belongsToAccountId
-                      ? AppText.body.copyWith(fontWeight: FontWeight.w600)
-                      : AppText.body,
+                      ? EText.body.copyWith(fontWeight: FontWeight.w600)
+                      : EText.body,
                 ),
                 onTap: () => Navigator.of(sheetContext).pop(parent.id),
               ),
             ListTile(
               title: Text(
                 'Cancel',
-                style: AppText.body.copyWith(color: AppColors.textMuted),
+                style: EText.body.copyWith(color: EColors.textMuted),
               ),
               onTap: () => Navigator.of(sheetContext).pop(),
             ),
-            const SizedBox(height: AppMetrics.spaceMd),
+            const SizedBox(height: ELayout.spaceMd),
           ],
         ),
       ),

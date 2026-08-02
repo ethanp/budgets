@@ -25,13 +25,13 @@ class ActivityFilterBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: AppColors.background,
+      color: EColors.background,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(
-          AppMetrics.spaceLg,
-          AppMetrics.spaceLg,
-          AppMetrics.spaceLg,
-          AppMetrics.spaceSm,
+          ELayout.spaceLg,
+          ELayout.spaceLg,
+          ELayout.spaceLg,
+          ELayout.spaceSm,
         ),
         child: Column(
           children: [
@@ -42,27 +42,27 @@ class ActivityFilterBar extends StatelessWidget {
                 hintText: 'Search description, category, account…',
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
-                fillColor: AppColors.surface,
+                fillColor: EColors.surface,
                 border: OutlineInputBorder(
                   borderRadius:
-                      BorderRadius.circular(AppMetrics.radiusMd),
-                  borderSide: const BorderSide(color: AppColors.border),
+                      BorderRadius.circular(ELayout.radiusMd),
+                  borderSide: const BorderSide(color: EColors.border),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius:
-                      BorderRadius.circular(AppMetrics.radiusMd),
-                  borderSide: const BorderSide(color: AppColors.border),
+                      BorderRadius.circular(ELayout.radiusMd),
+                  borderSide: const BorderSide(color: EColors.border),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius:
-                      BorderRadius.circular(AppMetrics.radiusMd),
+                      BorderRadius.circular(ELayout.radiusMd),
                   borderSide: const BorderSide(
-                    color: AppColors.accentGlow,
+                    color: EColors.accentGlow,
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: AppMetrics.spaceSm),
+            const SizedBox(height: ELayout.spaceSm),
             _RuleMatchFilterToggle(
               hideRuleMatched: hideRuleMatched,
               hiddenCount: searchMatchCount - visibleCount,
@@ -93,8 +93,8 @@ class _RuleMatchFilterToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppCard(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppMetrics.spaceMd,
-        vertical: AppMetrics.spaceSm,
+        horizontal: ELayout.spaceMd,
+        vertical: ELayout.spaceSm,
       ),
       child: Row(
         children: [
@@ -104,13 +104,13 @@ class _RuleMatchFilterToggle extends StatelessWidget {
               children: [
                 Text(
                   'Hide auto-categorized',
-                  style: AppText.body.copyWith(fontWeight: FontWeight.w600),
+                  style: EText.body.copyWith(fontWeight: FontWeight.w600),
                 ),
                 Text(
                   hideRuleMatched
                       ? '$visibleCount shown · $hiddenCount hidden'
                       : 'Showing all loaded transactions',
-                  style: AppText.caption,
+                  style: EText.caption,
                 ),
               ],
             ),
@@ -148,48 +148,48 @@ class ActivityVisibleSumBar extends StatelessWidget {
     }
 
     final netColor = netCents > 0
-        ? AppColors.success
+        ? EColors.success
         : netCents < 0
-            ? AppColors.danger
-            : AppColors.textSecondary;
+            ? EColors.danger
+            : EColors.textSecondary;
 
     return AppCard(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppMetrics.spaceMd,
-        vertical: AppMetrics.spaceSm,
+        horizontal: ELayout.spaceMd,
+        vertical: ELayout.spaceSm,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
             'Sum visible list',
-            style: AppText.body.copyWith(fontWeight: FontWeight.w600),
+            style: EText.body.copyWith(fontWeight: FontWeight.w600),
           ),
-          const SizedBox(height: AppMetrics.spaceXs),
+          const SizedBox(height: ELayout.spaceXs),
           Row(
             children: [
               Expanded(
                 child: Text(
                   '${visibleTransactions.length} '
                   '${visibleTransactions.length == 1 ? 'transaction' : 'transactions'}',
-                  style: AppText.caption,
+                  style: EText.caption,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(width: AppMetrics.spaceMd),
+              const SizedBox(width: ELayout.spaceMd),
               Text(
                 formatCents(netCents),
-                style: AppText.section.copyWith(color: netColor),
+                style: EText.section.copyWith(color: netColor),
                 maxLines: 1,
               ),
             ],
           ),
           if (inflowCents != 0 || outflowCents != 0) ...[
-            const SizedBox(height: AppMetrics.spaceXs),
+            const SizedBox(height: ELayout.spaceXs),
             Text(
               'In ${formatCents(inflowCents)} · Out ${formatCents(outflowCents)}',
-              style: AppText.caption,
+              style: EText.caption,
             ),
           ],
         ],

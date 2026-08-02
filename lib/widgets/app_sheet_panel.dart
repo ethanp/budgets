@@ -36,12 +36,12 @@ class AppSheetPanel extends StatelessWidget {
           : MediaQuery.sizeOf(context).height * heightFraction!,
       padding: EdgeInsets.only(bottom: bottomInset),
       decoration: const BoxDecoration(
-        gradient: AppColors.metalPanelGradient,
+        gradient: EColors.metalPanelGradient,
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(AppMetrics.radiusLg),
+          top: Radius.circular(ELayout.radiusLg),
         ),
         border: Border(
-          top: BorderSide(color: AppColors.frostBorder),
+          top: BorderSide(color: EColors.frostBorder),
         ),
       ),
       child: SafeArea(top: false, child: child),

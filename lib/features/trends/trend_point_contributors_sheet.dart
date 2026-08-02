@@ -90,24 +90,24 @@ class _TrendPointContributorsSheetState
     final linePaceLabel = _ContributorRow.formatPaceCents(widget.linePaceCents);
     return Padding(
       padding: const EdgeInsets.fromLTRB(
-        AppMetrics.spaceLg,
-        AppMetrics.spaceLg,
-        AppMetrics.spaceLg,
-        AppMetrics.spaceSm,
+        ELayout.spaceLg,
+        ELayout.spaceLg,
+        ELayout.spaceLg,
+        ELayout.spaceSm,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Top contributors',
-            style: AppText.section,
+            style: EText.section,
           ),
-          const SizedBox(height: AppMetrics.spaceXs),
+          const SizedBox(height: ELayout.spaceXs),
           Text(
             '${widget.seriesName} · '
             '${DateFormat.yMMMd().format(widget.tapDate)} · '
             'line $linePaceLabel',
-            style: AppText.caption,
+            style: EText.caption,
           ),
         ],
       ),
@@ -119,7 +119,7 @@ class _TrendPointContributorsSheetState
       child: Center(
         child: Text(
           'No transactions in this window.',
-          style: AppText.body,
+          style: EText.body,
         ),
       ),
     );
@@ -143,9 +143,9 @@ class _TrendPointContributorsSheetState
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(
-              AppMetrics.spaceLg,
-              AppMetrics.spaceXs,
-              AppMetrics.spaceLg,
+              ELayout.spaceLg,
+              ELayout.spaceXs,
+              ELayout.spaceLg,
               0,
             ),
             child: _ContributorHeaderRow(columnWidths: columnWidths),
@@ -153,10 +153,10 @@ class _TrendPointContributorsSheetState
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.fromLTRB(
-                AppMetrics.spaceLg,
+                ELayout.spaceLg,
                 0,
-                AppMetrics.spaceLg,
-                AppMetrics.spaceLg,
+                ELayout.spaceLg,
+                ELayout.spaceLg,
               ),
               itemCount: widget.contributors.length,
               itemBuilder: (context, index) {
@@ -226,22 +226,22 @@ class _ContributorColumnWidths {
     required List<TrendPointContributor> contributors,
     required String Function(TrendPointContributor contributor) categoryNameFor,
   }) {
-    final rankStyle = AppText.body.copyWith(
+    final rankStyle = EText.body.copyWith(
       fontWeight: FontWeight.w600,
-      color: AppColors.textMuted,
+      color: EColors.textMuted,
     );
-    final dateStyle = AppText.body.copyWith(color: AppColors.textMuted);
-    final merchantStyle = AppText.body.copyWith(fontWeight: FontWeight.w600);
-    final paceStyle = AppText.body.copyWith(
+    final dateStyle = EText.body.copyWith(color: EColors.textMuted);
+    final merchantStyle = EText.body.copyWith(fontWeight: FontWeight.w600);
+    final paceStyle = EText.body.copyWith(
       fontWeight: FontWeight.w600,
-      color: AppColors.textMuted,
+      color: EColors.textMuted,
     );
-    final amountStyle = AppText.body.copyWith(fontWeight: FontWeight.w600);
-    final categoryStyle = AppText.caption.copyWith(
+    final amountStyle = EText.body.copyWith(fontWeight: FontWeight.w600);
+    final categoryStyle = EText.caption.copyWith(
       fontWeight: FontWeight.w600,
       color: FinanceColors.accentPrimary,
     );
-    final headerStyle = AppText.caption;
+    final headerStyle = EText.caption;
 
     var rankWidth = 0.0;
     var dateWidth = 0.0;
@@ -301,13 +301,13 @@ class _ContributorHeaderRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppMetrics.spaceXs),
+      padding: const EdgeInsets.only(bottom: ELayout.spaceXs),
       child: Row(
         children: [
           AppSpreadsheetCell(width: columnWidths.rank, child: const SizedBox()),
-          const SizedBox(width: AppMetrics.spaceSm),
+          const SizedBox(width: ELayout.spaceSm),
           AppSpreadsheetCell(width: columnWidths.date, child: const SizedBox()),
-          const SizedBox(width: AppMetrics.spaceSm),
+          const SizedBox(width: ELayout.spaceSm),
           Flexible(
             fit: FlexFit.loose,
             child: LayoutBuilder(
@@ -319,29 +319,29 @@ class _ContributorHeaderRow extends StatelessWidget {
               },
             ),
           ),
-          const SizedBox(width: AppMetrics.spaceMd),
+          const SizedBox(width: ELayout.spaceMd),
           AppSpreadsheetCell(
             width: columnWidths.pace,
             alignment: Alignment.centerRight,
             child: Text(
               _ContributorColumnWidths.paceHeader,
-              style: AppText.caption,
+              style: EText.caption,
               maxLines: 1,
               textAlign: TextAlign.right,
             ),
           ),
-          const SizedBox(width: AppMetrics.spaceMd),
+          const SizedBox(width: ELayout.spaceMd),
           AppSpreadsheetCell(
             width: columnWidths.amount,
             alignment: Alignment.centerRight,
             child: Text(
               _ContributorColumnWidths.amountHeader,
-              style: AppText.caption,
+              style: EText.caption,
               maxLines: 1,
               textAlign: TextAlign.right,
             ),
           ),
-          const SizedBox(width: AppMetrics.spaceSm),
+          const SizedBox(width: ELayout.spaceSm),
           AppSpreadsheetCell(
             width: columnWidths.category,
             child: const SizedBox(),
@@ -372,21 +372,21 @@ class _ContributorRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: AppMetrics.spaceSm),
+      padding: const EdgeInsets.symmetric(vertical: ELayout.spaceSm),
       decoration: showDivider ? _rowDivider : null,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           _rankLabel(),
-          const SizedBox(width: AppMetrics.spaceSm),
+          const SizedBox(width: ELayout.spaceSm),
           _postedDateLabel(),
-          const SizedBox(width: AppMetrics.spaceSm),
+          const SizedBox(width: ELayout.spaceSm),
           _merchantTitle(),
-          const SizedBox(width: AppMetrics.spaceMd),
+          const SizedBox(width: ELayout.spaceMd),
           _paceLabel(),
-          const SizedBox(width: AppMetrics.spaceMd),
+          const SizedBox(width: ELayout.spaceMd),
           _amountLabel(),
-          const SizedBox(width: AppMetrics.spaceSm),
+          const SizedBox(width: ELayout.spaceSm),
           _categoryPicker(),
         ],
       ),
@@ -395,7 +395,7 @@ class _ContributorRow extends StatelessWidget {
 
   static const _rowDivider = BoxDecoration(
     border: Border(
-      bottom: BorderSide(color: AppColors.border, width: 0.5),
+      bottom: BorderSide(color: EColors.border, width: 0.5),
     ),
   );
 
@@ -404,9 +404,9 @@ class _ContributorRow extends StatelessWidget {
       width: columnWidths.rank,
       child: Text(
         '$rank',
-        style: AppText.body.copyWith(
+        style: EText.body.copyWith(
           fontWeight: FontWeight.w600,
-          color: AppColors.textMuted,
+          color: EColors.textMuted,
         ),
         maxLines: 1,
       ),
@@ -418,7 +418,7 @@ class _ContributorRow extends StatelessWidget {
       width: columnWidths.date,
       child: Text(
         DateFormat.yMMMd().format(contributor.transaction.postedAt),
-        style: AppText.body.copyWith(color: AppColors.textMuted),
+        style: EText.body.copyWith(color: EColors.textMuted),
         maxLines: 1,
       ),
     );
@@ -434,7 +434,7 @@ class _ContributorRow extends StatelessWidget {
             width: width,
             child: Text(
               _merchantName,
-              style: AppText.body.copyWith(fontWeight: FontWeight.w600),
+              style: EText.body.copyWith(fontWeight: FontWeight.w600),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -450,9 +450,9 @@ class _ContributorRow extends StatelessWidget {
       alignment: Alignment.centerRight,
       child: Text(
         formatPaceCents(contributor.smoothedContributionCents.round()),
-        style: AppText.body.copyWith(
+        style: EText.body.copyWith(
           fontWeight: FontWeight.w600,
-          color: AppColors.textMuted,
+          color: EColors.textMuted,
         ),
         maxLines: 1,
         textAlign: TextAlign.right,
@@ -466,7 +466,7 @@ class _ContributorRow extends StatelessWidget {
       alignment: Alignment.centerRight,
       child: Text(
         formatCents(contributor.transaction.amountCents),
-        style: AppText.body.copyWith(fontWeight: FontWeight.w600),
+        style: EText.body.copyWith(fontWeight: FontWeight.w600),
         maxLines: 1,
         textAlign: TextAlign.right,
       ),
@@ -485,7 +485,7 @@ class _ContributorRow extends StatelessWidget {
             children: [
               Text(
                 category?.name ?? 'Uncategorized',
-                style: AppText.caption.copyWith(
+                style: EText.caption.copyWith(
                   fontWeight: FontWeight.w600,
                   color: FinanceColors.accentPrimary,
                 ),

@@ -32,10 +32,10 @@ class SyncStatusSheet extends ConsumerWidget {
       child: connectionAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Padding(
-          padding: const EdgeInsets.all(AppMetrics.spaceLg),
+          padding: const EdgeInsets.all(ELayout.spaceLg),
           child: Text(
             '$error',
-            style: AppText.body.copyWith(color: AppColors.danger),
+            style: EText.body.copyWith(color: EColors.danger),
           ),
         ),
         data: (status) => _SyncStatusBody(status: status),
@@ -63,29 +63,29 @@ class _SyncStatusBody extends ConsumerWidget {
     }
 
     return ListView(
-      padding: const EdgeInsets.all(AppMetrics.spaceLg),
+      padding: const EdgeInsets.all(ELayout.spaceLg),
       children: [
-        Text('Sync status', style: AppText.section),
-        const SizedBox(height: AppMetrics.spaceLg),
+        Text('Sync status', style: EText.section),
+        const SizedBox(height: ELayout.spaceLg),
         _deviceSyncSection(ref),
-        const SizedBox(height: AppMetrics.spaceLg),
+        const SizedBox(height: ELayout.spaceLg),
         _bankSyncSection(context),
         if (status.errors.isNotEmpty) ...[
-          const SizedBox(height: AppMetrics.spaceLg),
+          const SizedBox(height: ELayout.spaceLg),
           _bridgeErrorsSection(),
         ],
-        const SizedBox(height: AppMetrics.spaceLg),
+        const SizedBox(height: ELayout.spaceLg),
         Text(
           'Accounts',
-          style: AppText.section.copyWith(fontWeight: FontWeight.w600),
+          style: EText.section.copyWith(fontWeight: FontWeight.w600),
         ),
-        const SizedBox(height: AppMetrics.spaceSm),
+        const SizedBox(height: ELayout.spaceSm),
         if (!status.isConnected || status.accounts.isEmpty)
           Text(
             status.isConnected
                 ? 'No accounts yet.'
                 : 'Connect a bank on the Banks tab to sync accounts.',
-            style: AppText.body,
+            style: EText.body,
           )
         else
           ...status.accounts.map(
@@ -133,21 +133,21 @@ class _SyncStatusBody extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Bank pull', style: AppText.body),
+                Text('Bank pull', style: EText.body),
                 Text(
                   primary,
-                  style: AppText.body.copyWith(fontWeight: FontWeight.w600),
+                  style: EText.body.copyWith(fontWeight: FontWeight.w600),
                 ),
                 if (secondary != null)
                   Text(
                     secondary.text,
                     style: secondary.isError
-                        ? AppText.caption.copyWith(color: AppColors.danger)
+                        ? EText.caption.copyWith(color: EColors.danger)
                         : secondary.isWarning
-                            ? AppText.caption.copyWith(
-                                color: AppColors.warning,
+                            ? EText.caption.copyWith(
+                                color: EColors.warning,
                               )
-                            : AppText.caption,
+                            : EText.caption,
                   ),
               ],
             ),
@@ -155,7 +155,7 @@ class _SyncStatusBody extends ConsumerWidget {
           const Icon(
             Icons.chevron_right,
             size: 16,
-            color: AppColors.textMuted,
+            color: EColors.textMuted,
           ),
         ],
       ),
@@ -198,15 +198,15 @@ class _SyncStatusBody extends ConsumerWidget {
       children: [
         Text(
           'Bridge warnings',
-          style: AppText.section.copyWith(fontWeight: FontWeight.w600),
+          style: EText.section.copyWith(fontWeight: FontWeight.w600),
         ),
-        const SizedBox(height: AppMetrics.spaceSm),
+        const SizedBox(height: ELayout.spaceSm),
         for (final error in status.errors)
           Padding(
-            padding: const EdgeInsets.only(bottom: AppMetrics.spaceXs),
+            padding: const EdgeInsets.only(bottom: ELayout.spaceXs),
             child: Text(
               error.message,
-              style: AppText.caption.copyWith(color: AppColors.danger),
+              style: EText.caption.copyWith(color: EColors.danger),
             ),
           ),
       ],
@@ -216,10 +216,10 @@ class _SyncStatusBody extends ConsumerWidget {
   Widget _statusLine({required String label, required String value}) {
     return Row(
       children: [
-        Expanded(child: Text(label, style: AppText.body)),
+        Expanded(child: Text(label, style: EText.body)),
         Text(
           value,
-          style: AppText.body.copyWith(fontWeight: FontWeight.w600),
+          style: EText.body.copyWith(fontWeight: FontWeight.w600),
         ),
       ],
     );
@@ -265,7 +265,7 @@ class _AccountSyncRow extends StatelessWidget {
     final issue = lastPullIssue;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppMetrics.spaceMd),
+      padding: const EdgeInsets.only(bottom: ELayout.spaceMd),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -275,20 +275,20 @@ class _AccountSyncRow extends StatelessWidget {
               children: [
                 Text(
                   account.displayNameWithInstitution,
-                  style: AppText.section.copyWith(fontWeight: FontWeight.w600),
+                  style: EText.section.copyWith(fontWeight: FontWeight.w600),
                 ),
                 Text(
                   needsRelink ? 'Needs re-link' : account.status.name,
                   style: needsRelink
-                      ? AppText.caption.copyWith(color: AppColors.warning)
-                      : AppText.caption,
+                      ? EText.caption.copyWith(color: EColors.warning)
+                      : EText.caption,
                 ),
                 if (issue != null)
                   Text(
                     'Last pull: ${_issueCaption(issue)}',
                     style: issue.status == SimpleFinPullAccountStatus.needsRelink
-                        ? AppText.caption.copyWith(color: AppColors.warning)
-                        : AppText.caption.copyWith(color: AppColors.danger),
+                        ? EText.caption.copyWith(color: EColors.warning)
+                        : EText.caption.copyWith(color: EColors.danger),
                   ),
               ],
             ),
@@ -297,7 +297,7 @@ class _AccountSyncRow extends StatelessWidget {
             lastSyncedAt == null
                 ? 'Never'
                 : lastSyncedAt.relativeTimeAgo(includeClock: true),
-            style: AppText.caption,
+            style: EText.caption,
           ),
         ],
       ),

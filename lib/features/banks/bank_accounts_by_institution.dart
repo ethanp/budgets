@@ -47,8 +47,8 @@ class BankAccountsByInstitution {
     var widest = 0.0;
     for (final account in accounts) {
       final amountStyle = account.balanceCents == 0
-          ? AppText.body.copyWith(color: AppColors.textMuted)
-          : AppText.body.copyWith(fontWeight: FontWeight.w600);
+          ? EText.body.copyWith(color: EColors.textMuted)
+          : EText.body.copyWith(fontWeight: FontWeight.w600);
       final width = formatCents(account.balanceCents).measureWidth(amountStyle);
       if (width > widest) widest = width;
     }

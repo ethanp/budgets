@@ -22,12 +22,12 @@ class CategoryPickChip extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: Container(
         padding: const EdgeInsets.symmetric(
-          horizontal: AppMetrics.spaceMd,
-          vertical: AppMetrics.spaceSm,
+          horizontal: ELayout.spaceMd,
+          vertical: ELayout.spaceSm,
         ),
         decoration: BoxDecoration(
           color: color.withValues(alpha: selected ? 0.28 : 0.14),
-          borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
+          borderRadius: ELayout.borderRadius(ELayout.radiusSm),
           border: Border.all(
             color: color.withValues(alpha: selected ? 0.85 : 0.35),
             width: selected ? 1.5 : 1,
@@ -35,7 +35,7 @@ class CategoryPickChip extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: AppText.caption.copyWith(
+          style: EText.caption.copyWith(
             fontWeight: FontWeight.w600,
             color: color,
             height: 1.2,

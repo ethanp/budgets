@@ -47,7 +47,7 @@ class ActivityScreen extends ConsumerWidget {
           error: (error, _) => Center(
             child: Text(
               '$error',
-              style: AppText.body.copyWith(color: AppColors.danger),
+              style: EText.body.copyWith(color: EColors.danger),
             ),
           ),
           data: (transactions) => _ActivityBody(transactions: transactions),
@@ -162,10 +162,10 @@ class _ActivityBodyState extends ConsumerState<_ActivityBody> {
           if (!isSplit)
             Padding(
               padding: const EdgeInsets.fromLTRB(
-                AppMetrics.spaceLg,
+                ELayout.spaceLg,
                 0,
-                AppMetrics.spaceLg,
-                AppMetrics.spaceSm,
+                ELayout.spaceLg,
+                ELayout.spaceSm,
               ),
               child: ActivityVisibleSumBar(
                 visibleTransactions: filtered.visible,
@@ -261,10 +261,10 @@ class _ActivityBodyState extends ConsumerState<_ActivityBody> {
             : 'All loaded transactions are already categorized. '
                 'Turn off the filter to see them.';
     return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: AppMetrics.spaceLg),
+      padding: const EdgeInsets.symmetric(horizontal: ELayout.spaceLg),
       sliver: SliverToBoxAdapter(
         child: AppCard(
-          child: Text(message, style: AppText.body),
+          child: Text(message, style: EText.body),
         ),
       ),
     );
@@ -274,14 +274,14 @@ class _ActivityBodyState extends ConsumerState<_ActivityBody> {
     final connected =
         ref.watch(connectionStatusProvider).asData?.value.isConnected ?? false;
     return ListView(
-      padding: const EdgeInsets.all(AppMetrics.spaceLg),
+      padding: const EdgeInsets.all(ELayout.spaceLg),
       children: [
         AppCard(
           child: Text(
             connected
                 ? 'No transactions yet.'
                 : 'Connect a bank on the Banks tab to see activity.',
-            style: AppText.body,
+            style: EText.body,
           ),
         ),
       ],

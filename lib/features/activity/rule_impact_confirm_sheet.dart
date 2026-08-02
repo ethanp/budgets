@@ -19,19 +19,19 @@ export 'package:spend_trends/features/activity/overlapping_merchant_contains_rul
 
 InputDecoration _filledFieldDecoration({String? hintText}) {
   final border = OutlineInputBorder(
-    borderRadius: BorderRadius.circular(AppMetrics.radiusMd),
-    borderSide: const BorderSide(color: AppColors.border),
+    borderRadius: BorderRadius.circular(ELayout.radiusMd),
+    borderSide: const BorderSide(color: EColors.border),
   );
   return InputDecoration(
     hintText: hintText,
     filled: true,
-    fillColor: AppColors.surface,
+    fillColor: EColors.surface,
     border: border,
     enabledBorder: border,
     focusedBorder: border.copyWith(
-      borderSide: const BorderSide(color: AppColors.accentGlow),
+      borderSide: const BorderSide(color: EColors.accentGlow),
     ),
-    contentPadding: const EdgeInsets.all(AppMetrics.spaceMd),
+    contentPadding: const EdgeInsets.all(ELayout.spaceMd),
   );
 }
 
@@ -224,16 +224,16 @@ class _RuleImpactConfirmSheetState
   Widget _header() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
-        AppMetrics.spaceLg,
-        AppMetrics.spaceLg,
-        AppMetrics.spaceLg,
-        AppMetrics.spaceSm,
+        ELayout.spaceLg,
+        ELayout.spaceLg,
+        ELayout.spaceLg,
+        ELayout.spaceSm,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Apply rule to existing?', style: AppText.section),
-          const SizedBox(height: AppMetrics.spaceXs),
+          Text('Apply rule to existing?', style: EText.section),
+          const SizedBox(height: ELayout.spaceXs),
           Text(
             _matchCount == 0
                 ? 'Edit the contains pattern below. Matching transactions '
@@ -241,9 +241,9 @@ class _RuleImpactConfirmSheetState
                 : 'These $_matchCount existing transactions match. '
                     'Edit the pattern to refine, turn off any that should stay, '
                     'and the rule will still apply to future matches.',
-            style: AppText.caption,
+            style: EText.caption,
           ),
-          const SizedBox(height: AppMetrics.spaceMd),
+          const SizedBox(height: ELayout.spaceMd),
           _selectionShortcuts(),
         ],
       ),
@@ -265,7 +265,7 @@ class _RuleImpactConfirmSheetState
   }) {
     return ListView(
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-      padding: const EdgeInsets.symmetric(horizontal: AppMetrics.spaceLg),
+      padding: const EdgeInsets.symmetric(horizontal: ELayout.spaceLg),
       children: [
         for (var groupIndex = 0; groupIndex < _groups.length; groupIndex++)
           ..._groupSection(
@@ -303,12 +303,12 @@ class _RuleImpactConfirmSheetState
           categoryGroups: categoryGroups,
         ),
       ),
-      const SizedBox(height: AppMetrics.spaceXs),
+      const SizedBox(height: ELayout.spaceXs),
       TextField(
         controller: _patternControllers[groupIndex],
         focusNode: _patternFocusNodes[groupIndex],
         decoration: _filledFieldDecoration(hintText: 'contains pattern'),
-        style: AppText.body.copyWith(color: AppColors.textPrimary),
+        style: EText.body.copyWith(color: EColors.textPrimary),
         onChanged: (value) {
           setState(() {});
           rematch.schedule(value);
@@ -316,7 +316,7 @@ class _RuleImpactConfirmSheetState
       ),
       ExistingRuleOverlaps(overlaps: related),
       if (rematch.rematching) ...[
-        const SizedBox(height: AppMetrics.spaceSm),
+        const SizedBox(height: ELayout.spaceSm),
         const Align(
           alignment: Alignment.centerLeft,
           child: SizedBox(
@@ -326,13 +326,13 @@ class _RuleImpactConfirmSheetState
           ),
         ),
       ],
-      const SizedBox(height: AppMetrics.spaceSm),
+      const SizedBox(height: ELayout.spaceSm),
       if (group.transactions.isEmpty && !rematch.rematching)
         Padding(
-          padding: const EdgeInsets.only(bottom: AppMetrics.spaceMd),
+          padding: const EdgeInsets.only(bottom: ELayout.spaceMd),
           child: Text(
             'No existing transactions match this pattern.',
-            style: AppText.caption.copyWith(color: AppColors.textMuted),
+            style: EText.caption.copyWith(color: EColors.textMuted),
           ),
         ),
       for (final transaction in group.transactions)
@@ -345,7 +345,7 @@ class _RuleImpactConfirmSheetState
           selected: _selectedIds.contains(transaction.id),
           onChanged: (selected) => _setSelected(transaction.id, selected),
         ),
-      const SizedBox(height: AppMetrics.spaceLg),
+      const SizedBox(height: ELayout.spaceLg),
     ];
   }
 
@@ -376,7 +376,7 @@ class _RuleImpactConfirmSheetState
 
   Widget _actions() {
     return Padding(
-      padding: const EdgeInsets.all(AppMetrics.spaceLg),
+      padding: const EdgeInsets.all(ELayout.spaceLg),
       child: Row(
         children: [
           Expanded(
@@ -462,12 +462,12 @@ class _TargetCategoryButton extends StatelessWidget {
         children: [
           Text(
             '→ ',
-            style: AppText.body.copyWith(fontWeight: FontWeight.w600),
+            style: EText.body.copyWith(fontWeight: FontWeight.w600),
           ),
           Flexible(
             child: Text(
               categoryName,
-              style: AppText.body.copyWith(
+              style: EText.body.copyWith(
                 fontWeight: FontWeight.w600,
                 color: FinanceColors.accentPrimary,
               ),
@@ -509,16 +509,16 @@ class _TargetCategoryPickerSheet extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.all(AppMetrics.spaceLg),
-            child: Text('Target category', style: AppText.section),
+            padding: const EdgeInsets.all(ELayout.spaceLg),
+            child: Text('Target category', style: EText.section),
           ),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.fromLTRB(
-                AppMetrics.spaceLg,
+                ELayout.spaceLg,
                 0,
-                AppMetrics.spaceLg,
-                AppMetrics.spaceLg,
+                ELayout.spaceLg,
+                ELayout.spaceLg,
               ),
               children: [
                 CategoryPicker(

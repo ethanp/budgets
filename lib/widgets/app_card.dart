@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class AppCard extends StatelessWidget {
   const AppCard({
     required this.child,
-    this.padding = const EdgeInsets.all(AppMetrics.spaceLg),
+    this.padding = const EdgeInsets.all(ELayout.spaceLg),
     this.margin,
   });
 
@@ -14,8 +14,8 @@ class AppCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final surface = AppSurface(
-      kind: AppSurfaceKind.row,
+    final surface = ESurface(
+      kind: ESurfaceKind.row,
       padding: padding,
       child: child,
     );

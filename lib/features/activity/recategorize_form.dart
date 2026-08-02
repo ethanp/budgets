@@ -17,19 +17,19 @@ import 'package:spend_trends/widgets/select_all_none_row.dart';
 
 InputDecoration _filledFieldDecoration({String? hintText}) {
   final border = OutlineInputBorder(
-    borderRadius: BorderRadius.circular(AppMetrics.radiusMd),
-    borderSide: const BorderSide(color: AppColors.border),
+    borderRadius: BorderRadius.circular(ELayout.radiusMd),
+    borderSide: const BorderSide(color: EColors.border),
   );
   return InputDecoration(
     hintText: hintText,
     filled: true,
-    fillColor: AppColors.surface,
+    fillColor: EColors.surface,
     border: border,
     enabledBorder: border,
     focusedBorder: border.copyWith(
-      borderSide: const BorderSide(color: AppColors.accentGlow),
+      borderSide: const BorderSide(color: EColors.accentGlow),
     ),
-    contentPadding: const EdgeInsets.all(AppMetrics.spaceMd),
+    contentPadding: const EdgeInsets.all(ELayout.spaceMd),
   );
 }
 
@@ -119,16 +119,16 @@ class _RecategorizeFormState extends ConsumerState<RecategorizeForm> {
 
     if (categoriesAsync.hasError && !categoriesAsync.hasValue) {
       return Padding(
-        padding: const EdgeInsets.all(AppMetrics.spaceLg),
+        padding: const EdgeInsets.all(ELayout.spaceLg),
         child: Text(
           '${categoriesAsync.error}',
-          style: AppText.body.copyWith(color: AppColors.danger),
+          style: EText.body.copyWith(color: EColors.danger),
         ),
       );
     }
     if (!categoriesAsync.hasValue) {
       return const Padding(
-        padding: EdgeInsets.all(AppMetrics.spaceXl),
+        padding: EdgeInsets.all(ELayout.spaceXl),
         child: Center(child: CircularProgressIndicator()),
       );
     }
@@ -138,29 +138,29 @@ class _RecategorizeFormState extends ConsumerState<RecategorizeForm> {
     return ListView(
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       padding: const EdgeInsets.fromLTRB(
-        AppMetrics.spaceLg,
-        AppMetrics.spaceLg,
-        AppMetrics.spaceLg,
-        AppMetrics.spaceMd,
+        ELayout.spaceLg,
+        ELayout.spaceLg,
+        ELayout.spaceLg,
+        ELayout.spaceMd,
       ),
       children: [
         _formHeader(),
-        const SizedBox(height: AppMetrics.spaceMd),
+        const SizedBox(height: ELayout.spaceMd),
         _noteField(),
-        const SizedBox(height: AppMetrics.spaceMd),
+        const SizedBox(height: ELayout.spaceMd),
         _createRuleToggle(),
         if (_createRule) ...[
-          const SizedBox(height: AppMetrics.spaceSm),
+          const SizedBox(height: ELayout.spaceSm),
           _patternAndImpactPreview(),
         ],
         if (_error != null) ...[
-          const SizedBox(height: AppMetrics.spaceSm),
+          const SizedBox(height: ELayout.spaceSm),
           Text(
             _error!,
-            style: AppText.caption.copyWith(color: AppColors.danger),
+            style: EText.caption.copyWith(color: EColors.danger),
           ),
         ],
-        const SizedBox(height: AppMetrics.spaceLg),
+        const SizedBox(height: ELayout.spaceLg),
         _categoryPicker(categories, groups),
       ],
     );
@@ -172,18 +172,18 @@ class _RecategorizeFormState extends ConsumerState<RecategorizeForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Categorize', style: AppText.section),
-        const SizedBox(height: AppMetrics.spaceXs),
+        Text('Categorize', style: EText.section),
+        const SizedBox(height: ELayout.spaceXs),
         Text(
           _description,
-          style: AppText.body.copyWith(fontWeight: FontWeight.w600),
+          style: EText.body.copyWith(fontWeight: FontWeight.w600),
           maxLines: 3,
           overflow: TextOverflow.ellipsis,
         ),
-        const SizedBox(height: AppMetrics.spaceXs),
+        const SizedBox(height: ELayout.spaceXs),
         Text(
           '${formatCents(widget.transaction.amountCents)} · $dateLabel',
-          style: AppText.caption,
+          style: EText.caption,
         ),
       ],
     );
@@ -193,18 +193,18 @@ class _RecategorizeFormState extends ConsumerState<RecategorizeForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Note', style: AppText.caption),
-        const SizedBox(height: AppMetrics.spaceXs),
+        Text('Note', style: EText.caption),
+        const SizedBox(height: ELayout.spaceXs),
         TextField(
           controller: _noteController,
           decoration: _filledFieldDecoration(hintText: 'Optional note'),
           maxLines: 3,
           minLines: 1,
-          style: AppText.body.copyWith(color: AppColors.textPrimary),
+          style: EText.body.copyWith(color: EColors.textPrimary),
           onChanged: (_) => setState(() {}),
         ),
         if (_noteDirty) ...[
-          const SizedBox(height: AppMetrics.spaceXs),
+          const SizedBox(height: ELayout.spaceXs),
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
@@ -235,9 +235,9 @@ class _RecategorizeFormState extends ConsumerState<RecategorizeForm> {
             }
           },
         ),
-        const SizedBox(width: AppMetrics.spaceSm),
+        const SizedBox(width: ELayout.spaceSm),
         Expanded(
-          child: Text('Also create a rule', style: AppText.body),
+          child: Text('Also create a rule', style: EText.body),
         ),
       ],
     );
@@ -265,28 +265,28 @@ class _RecategorizeFormState extends ConsumerState<RecategorizeForm> {
       children: [
         Text(
           'If description contains (ignore case)',
-          style: AppText.caption,
+          style: EText.caption,
         ),
-        const SizedBox(height: AppMetrics.spaceXs),
+        const SizedBox(height: ELayout.spaceXs),
         TextField(
           controller: _patternController,
           decoration: _filledFieldDecoration(hintText: 'e.g. bbq'),
-          style: AppText.body.copyWith(color: AppColors.textPrimary),
+          style: EText.body.copyWith(color: EColors.textPrimary),
           onChanged: (value) {
             setState(() {});
             _patternRematch.schedule(value);
           },
         ),
-        const SizedBox(height: AppMetrics.spaceXs),
+        const SizedBox(height: ELayout.spaceXs),
         Text(
           'Example: "bbq" → Dining matches “Franklin BBQ Austin”.',
-          style: AppText.caption,
+          style: EText.caption,
         ),
         ExistingRuleOverlaps(overlaps: related),
-        const SizedBox(height: AppMetrics.spaceMd),
+        const SizedBox(height: ELayout.spaceMd),
         _matchPreviewHeader(matches.length),
         if (_patternRematch.rematching) ...[
-          const SizedBox(height: AppMetrics.spaceSm),
+          const SizedBox(height: ELayout.spaceSm),
           const Align(
             alignment: Alignment.centerLeft,
             child: SizedBox(
@@ -298,13 +298,13 @@ class _RecategorizeFormState extends ConsumerState<RecategorizeForm> {
         ],
         if (matches.isEmpty && !_patternRematch.rematching)
           Padding(
-            padding: const EdgeInsets.only(top: AppMetrics.spaceSm),
+            padding: const EdgeInsets.only(top: ELayout.spaceSm),
             child: Text(
               'No existing transactions match this pattern.',
-              style: AppText.caption.copyWith(color: AppColors.textMuted),
+              style: EText.caption.copyWith(color: EColors.textMuted),
             ),
           ),
-        const SizedBox(height: AppMetrics.spaceSm),
+        const SizedBox(height: ELayout.spaceSm),
         for (final transaction in matches)
           RuleImpactMatchRow(
             transaction: transaction,
@@ -330,10 +330,10 @@ class _RecategorizeFormState extends ConsumerState<RecategorizeForm> {
               : '$matchCount existing '
                   '${matchCount == 1 ? 'transaction matches' : 'transactions match'}. '
                   'Deselect any that should keep their current category.',
-          style: AppText.caption,
+          style: EText.caption,
         ),
         if (matchCount > 0) ...[
-          const SizedBox(height: AppMetrics.spaceXs),
+          const SizedBox(height: ELayout.spaceXs),
           SelectAllNoneRow(
             onSelectAll: _selectAllMatches,
             onSelectNone: _selectNoMatches,

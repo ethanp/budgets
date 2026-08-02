@@ -47,7 +47,7 @@ enum LifeChainKind {
   /// Base Trends band color for this chain (distinct from life-event gold).
   Color get trendBandColor => switch (this) {
         LifeChainKind.housing => FinanceColors.housing,
-        LifeChainKind.job => AppColors.success,
+        LifeChainKind.job => EColors.success,
       };
 
   /// Mild per-era accent for labels/edges — tiny hue nudge, odd eras slightly darker.

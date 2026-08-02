@@ -43,10 +43,10 @@ class TrendsScreen extends ConsumerWidget {
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => Center(
             child: Padding(
-              padding: const EdgeInsets.all(AppMetrics.spaceLg),
+              padding: const EdgeInsets.all(ELayout.spaceLg),
               child: Text(
                 '$error',
-                style: AppText.body.copyWith(color: AppColors.danger),
+                style: EText.body.copyWith(color: EColors.danger),
               ),
             ),
           ),
@@ -80,11 +80,11 @@ class TrendsScreen extends ConsumerWidget {
     if (bundle.isEmpty) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(AppMetrics.spaceXl),
+          padding: const EdgeInsets.all(ELayout.spaceXl),
           child: Text(
             'Connect a bank on the Banks tab and sync, or import CSV in '
             'Settings, to see long-term trends.',
-            style: AppText.body,
+            style: EText.body,
             textAlign: TextAlign.center,
           ),
         ),
@@ -92,7 +92,7 @@ class TrendsScreen extends ConsumerWidget {
     }
 
     return ListView(
-      padding: const EdgeInsets.all(AppMetrics.spaceLg),
+      padding: const EdgeInsets.all(ELayout.spaceLg),
       children: [
         if (bundle.categorySpend.isNotEmpty)
           CategoryTrendChart(
@@ -111,7 +111,7 @@ class TrendsScreen extends ConsumerWidget {
             },
           ),
         if (bundle.categorySpend.isNotEmpty && bundle.cashFlows.isNotEmpty)
-          const SizedBox(height: AppMetrics.spaceLg),
+          const SizedBox(height: ELayout.spaceLg),
         if (bundle.cashFlows.isNotEmpty)
           CategoryTrendChart(
             title: 'Income · Spending · Savings',
@@ -133,7 +133,7 @@ class TrendsScreen extends ConsumerWidget {
           ),
         if (bundle.netWorth.isNotEmpty) ...[
           if (bundle.categorySpend.isNotEmpty || bundle.cashFlows.isNotEmpty)
-            const SizedBox(height: AppMetrics.spaceLg),
+            const SizedBox(height: ELayout.spaceLg),
           CategoryTrendChart(
             title: 'Net worth',
             headlineFigures: _netWorthHeadlines(

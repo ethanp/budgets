@@ -85,9 +85,9 @@ class CategoryTrendSeriesLegend extends StatelessWidget {
             onSoloSeries: onSoloSeries,
           ),
           if (rankedSeries.isNotEmpty) ...[
-            const SizedBox(width: AppMetrics.spaceMd),
+            const SizedBox(width: ELayout.spaceMd),
             _LegendColumnDivider(height: needsWidthLayout ? 72 : null),
-            const SizedBox(width: AppMetrics.spaceMd),
+            const SizedBox(width: ELayout.spaceMd),
           ],
         ],
         if (rankedSeries.isNotEmpty)
@@ -168,8 +168,8 @@ class TrendLegendChip extends StatelessWidget {
         ? ''
         : ' ${spendRate.shortLabel}';
     final nameStyle = isHidden
-        ? AppText.caption.copyWith(color: AppColors.textMuted)
-        : AppText.caption;
+        ? EText.caption.copyWith(color: EColors.textMuted)
+        : EText.caption;
     final amountStyle = valueKind == TrendValueKind.level
         ? _signedAmountStyle(cents, isHidden: isHidden)
         : nameStyle;
@@ -192,7 +192,7 @@ class TrendLegendChip extends StatelessWidget {
         mainAxisSize: expandLabel ? MainAxisSize.max : MainAxisSize.min,
         children: [
           TrendLegendSwatch(series: series, isHidden: isHidden),
-          const SizedBox(width: AppMetrics.spaceXs),
+          const SizedBox(width: ELayout.spaceXs),
           if (expandLabel) Expanded(child: label) else label,
         ],
       ),
@@ -221,20 +221,20 @@ class _MetaLegendColumn extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppMetrics.spaceSm,
-        vertical: AppMetrics.spaceXs,
+        horizontal: ELayout.spaceSm,
+        vertical: ELayout.spaceXs,
       ),
       decoration: BoxDecoration(
-        color: AppColors.surface.withValues(alpha: 0.55),
-        borderRadius: BorderRadius.circular(AppMetrics.radiusSm),
-        border: Border.all(color: AppColors.border.withValues(alpha: 0.7)),
+        color: EColors.surface.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(ELayout.radiusSm),
+        border: Border.all(color: EColors.border.withValues(alpha: 0.7)),
       ),
       child: IntrinsicWidth(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             for (var index = 0; index < metaSeries.length; index++) ...[
-              if (index > 0) const SizedBox(height: AppMetrics.spaceSm),
+              if (index > 0) const SizedBox(height: ELayout.spaceSm),
               TrendLegendChip(
                 series: metaSeries[index],
                 isHidden: hiddenSeriesIds.contains(metaSeries[index].id),
@@ -263,7 +263,7 @@ class _LegendColumnDivider extends StatelessWidget {
     return Container(
       width: 1,
       height: height,
-      color: AppColors.border.withValues(alpha: 0.8),
+      color: EColors.border.withValues(alpha: 0.8),
     );
   }
 }
@@ -290,7 +290,7 @@ class _ColumnMajorLegend extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const minColumnWidth = 148.0;
-    const columnGap = AppMetrics.spaceMd;
+    const columnGap = ELayout.spaceMd;
     final columnCount = math.max(
       1,
       ((maxWidth + columnGap) / (minColumnWidth + columnGap)).floor(),
@@ -324,7 +324,7 @@ class _ColumnMajorLegend extends StatelessWidget {
     for (var rowIndex = 0; rowIndex < rowCount; rowIndex++) {
       final seriesIndex = columnIndex * rowCount + rowIndex;
       if (seriesIndex >= seriesList.length) break;
-      if (rowIndex > 0) chips.add(const SizedBox(height: AppMetrics.spaceSm));
+      if (rowIndex > 0) chips.add(const SizedBox(height: ELayout.spaceSm));
       final series = seriesList[seriesIndex];
       chips.add(
         TrendLegendChip(
@@ -365,13 +365,13 @@ class _NetWorthLegendTable extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppMetrics.spaceSm,
-        vertical: AppMetrics.spaceXs,
+        horizontal: ELayout.spaceSm,
+        vertical: ELayout.spaceXs,
       ),
       decoration: BoxDecoration(
-        color: AppColors.surface.withValues(alpha: 0.55),
-        borderRadius: BorderRadius.circular(AppMetrics.radiusSm),
-        border: Border.all(color: AppColors.border.withValues(alpha: 0.7)),
+        color: EColors.surface.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(ELayout.radiusSm),
+        border: Border.all(color: EColors.border.withValues(alpha: 0.7)),
       ),
       child: Table(
         columnWidths: const {
@@ -399,12 +399,12 @@ class _NetWorthLegendTable extends StatelessWidget {
       children: [
         Padding(
           padding: EdgeInsets.only(
-            top: padTop ? AppMetrics.spaceSm : 0,
-            bottom: AppMetrics.spaceXs,
+            top: padTop ? ELayout.spaceSm : 0,
+            bottom: ELayout.spaceXs,
           ),
           child: Text(
             sectionName,
-            style: AppText.caption.copyWith(
+            style: EText.caption.copyWith(
               fontWeight: FontWeight.w600,
               color: FinanceColors.accentPrimary,
             ),
@@ -425,17 +425,17 @@ class _NetWorthLegendTable extends StatelessWidget {
           onDoubleTap: () => onSoloSeries(series.id),
           behavior: HitTestBehavior.opaque,
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: AppMetrics.spaceXs),
+            padding: const EdgeInsets.symmetric(vertical: ELayout.spaceXs),
             child: Row(
               children: [
                 TrendLegendSwatch(series: series, isHidden: isHidden),
-                const SizedBox(width: AppMetrics.spaceSm),
+                const SizedBox(width: ELayout.spaceSm),
                 Expanded(
                   child: Text(
                     series.name,
                     style: isHidden
-                        ? AppText.caption.copyWith(color: AppColors.textMuted)
-                        : AppText.caption.copyWith(color: AppColors.textPrimary),
+                        ? EText.caption.copyWith(color: EColors.textMuted)
+                        : EText.caption.copyWith(color: EColors.textPrimary),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -450,9 +450,9 @@ class _NetWorthLegendTable extends StatelessWidget {
           behavior: HitTestBehavior.opaque,
           child: Padding(
             padding: const EdgeInsets.only(
-              left: AppMetrics.spaceMd,
-              top: AppMetrics.spaceXs,
-              bottom: AppMetrics.spaceXs,
+              left: ELayout.spaceMd,
+              top: ELayout.spaceXs,
+              bottom: ELayout.spaceXs,
             ),
             child: Text(
               formatCentsWholeDollars(cents),
@@ -543,11 +543,11 @@ bool _isNetWorthLiability(CategoryTrendSeries series) {
 }
 
 TextStyle _signedAmountStyle(int cents, {required bool isHidden}) {
-  final base = AppText.caption.copyWith(fontWeight: FontWeight.w600);
+  final base = EText.caption.copyWith(fontWeight: FontWeight.w600);
   if (isHidden) {
-    return base.copyWith(color: AppColors.textMuted);
+    return base.copyWith(color: EColors.textMuted);
   }
-  if (cents > 0) return base.copyWith(color: AppColors.success);
-  if (cents < 0) return base.copyWith(color: AppColors.danger);
+  if (cents > 0) return base.copyWith(color: EColors.success);
+  if (cents < 0) return base.copyWith(color: EColors.danger);
   return base;
 }

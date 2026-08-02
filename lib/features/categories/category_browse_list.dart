@@ -32,7 +32,7 @@ class CategoryBrowseList extends StatelessWidget {
     List<CategoryListSection> sections,
     Map<String, CategoryMonthRow> rowsById,
   ) {
-    final semiboldCaption = AppText.caption.copyWith(fontWeight: FontWeight.w600);
+    final semiboldCaption = EText.caption.copyWith(fontWeight: FontWeight.w600);
     var widest = formatCents(0).measureWidth(semiboldCaption);
     for (final section in sections) {
       if (section.title != 'Cash flow') {
@@ -54,15 +54,15 @@ class CategoryBrowseList extends StatelessWidget {
   Widget build(BuildContext context) {
     final amountWidth = amountColumnWidth(sections, rowsById);
     return ListView(
-      padding: const EdgeInsets.all(AppMetrics.spaceLg),
+      padding: const EdgeInsets.all(ELayout.spaceLg),
       children: [
         Text(
           'This month · $yearMonthLabel',
-          style: AppText.caption,
+          style: EText.caption,
         ),
-        const SizedBox(height: AppMetrics.spaceMd),
+        const SizedBox(height: ELayout.spaceMd),
         for (var index = 0; index < sections.length; index++) ...[
-          if (index > 0) const SizedBox(height: AppMetrics.spaceLg),
+          if (index > 0) const SizedBox(height: ELayout.spaceLg),
           CategoryBrowseSection(
             section: sections[index],
             rowsById: rowsById,
@@ -108,14 +108,14 @@ class CategoryBrowseSection extends StatelessWidget {
       children: [
         _sectionHeader(),
         if (section.categories.isEmpty) ...[
-          const SizedBox(height: AppMetrics.spaceSm),
+          const SizedBox(height: ELayout.spaceSm),
           Text(
             'No categories · tap to edit',
-            style: AppText.caption.copyWith(color: AppColors.textMuted),
+            style: EText.caption.copyWith(color: EColors.textMuted),
           ),
         ],
         for (final category in section.categories) ...[
-          const SizedBox(height: AppMetrics.spaceSm),
+          const SizedBox(height: ELayout.spaceSm),
           CategoryBrowseFactRow(
             category: category,
             row: rowsById[category.id],
@@ -136,7 +136,7 @@ class CategoryBrowseSection extends StatelessWidget {
           ? null
           : Text(
               formatCents(section.monthTotalCents),
-              style: AppText.caption.copyWith(fontWeight: FontWeight.w600),
+              style: EText.caption.copyWith(fontWeight: FontWeight.w600),
               maxLines: 1,
             ),
       amountWidth: _isCashFlow ? null : amountWidth,
@@ -145,7 +145,7 @@ class CategoryBrowseSection extends StatelessWidget {
           : const Icon(
               Icons.chevron_right,
               size: 17,
-              color: AppColors.textMuted,
+              color: EColors.textMuted,
             ),
       titleMaxWidth: 200,
       decorate: false,
@@ -189,7 +189,7 @@ class CategoryBrowseFactRow extends StatelessWidget {
           ? null
           : Text(
               formatCents(row?.spentCents ?? 0),
-              style: AppText.body.copyWith(fontWeight: FontWeight.w600),
+              style: EText.body.copyWith(fontWeight: FontWeight.w600),
               maxLines: 1,
             ),
       amountWidth: _isFlow ? null : amountWidth,
@@ -198,7 +198,7 @@ class CategoryBrowseFactRow extends StatelessWidget {
         child: const Icon(
           Icons.chevron_right,
           size: 16,
-          color: AppColors.textMuted,
+          color: EColors.textMuted,
         ),
       ),
       tintColor: tint,

@@ -41,26 +41,26 @@ class _CsvImportSheetState extends ConsumerState<CsvImportSheet> {
   Widget build(BuildContext context) {
     return AppSheetPanel.compact(
       child: Padding(
-        padding: const EdgeInsets.all(AppMetrics.spaceLg),
+        padding: const EdgeInsets.all(ELayout.spaceLg),
         child: SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Import CSV', style: AppText.section),
-              const SizedBox(height: AppMetrics.spaceSm),
+              Text('Import CSV', style: EText.section),
+              const SizedBox(height: ELayout.spaceSm),
               Text(
                 'Needs columns for date, amount, and description.',
-                style: AppText.caption,
+                style: EText.caption,
               ),
-              const SizedBox(height: AppMetrics.spaceMd),
+              const SizedBox(height: ELayout.spaceMd),
               _buildAccountField(),
               if (_message != null) ...[
-                const SizedBox(height: AppMetrics.spaceSm),
-                Text(_message!, style: AppText.caption),
+                const SizedBox(height: ELayout.spaceSm),
+                Text(_message!, style: EText.caption),
               ],
-              const SizedBox(height: AppMetrics.spaceMd),
+              const SizedBox(height: ELayout.spaceMd),
               _buildChooseFileButton(),
             ],
           ),
@@ -72,23 +72,23 @@ class _CsvImportSheetState extends ConsumerState<CsvImportSheet> {
   Widget _buildAccountField() {
     return TextField(
       controller: _accountController,
-      style: AppText.body.copyWith(color: AppColors.textPrimary),
+      style: EText.body.copyWith(color: EColors.textPrimary),
       decoration: InputDecoration(
         hintText: 'Account name',
         filled: true,
-        fillColor: AppColors.surface,
-        contentPadding: const EdgeInsets.all(AppMetrics.spaceMd),
+        fillColor: EColors.surface,
+        contentPadding: const EdgeInsets.all(ELayout.spaceMd),
         border: OutlineInputBorder(
-          borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderRadius: ELayout.borderRadius(ELayout.radiusSm),
+          borderSide: const BorderSide(color: EColors.border),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderRadius: ELayout.borderRadius(ELayout.radiusSm),
+          borderSide: const BorderSide(color: EColors.border),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
-          borderSide: const BorderSide(color: AppColors.accentGlow),
+          borderRadius: ELayout.borderRadius(ELayout.radiusSm),
+          borderSide: const BorderSide(color: EColors.accentGlow),
         ),
       ),
     );

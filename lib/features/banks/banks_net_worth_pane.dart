@@ -27,7 +27,7 @@ class BanksNetWorthPane extends StatelessWidget {
     }
 
     return ListView(
-      padding: const EdgeInsets.all(AppMetrics.spaceLg),
+      padding: const EdgeInsets.all(ELayout.spaceLg),
       children: [
         if (selected == null) _netWorthOverview() else _accountDetail(selected),
       ],
@@ -55,32 +55,32 @@ class BanksNetWorthPane extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Net worth now', style: AppText.section),
-        const SizedBox(height: AppMetrics.spaceSm),
-        Text(formatCents(totalCents), style: AppText.title),
+        Text('Net worth now', style: EText.section),
+        const SizedBox(height: ELayout.spaceSm),
+        Text(formatCents(totalCents), style: EText.title),
         Text(
           '${accounts.length} '
           '${accounts.length == 1 ? 'account' : 'accounts'}',
-          style: AppText.caption,
+          style: EText.caption,
         ),
         if (kindLines.isNotEmpty) ...[
-          const SizedBox(height: AppMetrics.spaceLg),
+          const SizedBox(height: ELayout.spaceLg),
           Text(
             'By type',
-            style: AppText.caption.copyWith(fontWeight: FontWeight.w600),
+            style: EText.caption.copyWith(fontWeight: FontWeight.w600),
           ),
-          const SizedBox(height: AppMetrics.spaceSm),
+          const SizedBox(height: ELayout.spaceSm),
           for (final line in kindLines)
             Padding(
-              padding: const EdgeInsets.only(bottom: AppMetrics.spaceXs),
-              child: Text(line, style: AppText.body),
+              padding: const EdgeInsets.only(bottom: ELayout.spaceXs),
+              child: Text(line, style: EText.body),
             ),
         ],
-        const SizedBox(height: AppMetrics.spaceLg),
+        const SizedBox(height: ELayout.spaceLg),
         Text(
           'Net worth plus annual burn will power FI runway later. '
           'Select an account for its balance details.',
-          style: AppText.caption,
+          style: EText.caption,
         ),
       ],
     );
@@ -90,21 +90,21 @@ class BanksNetWorthPane extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(account.displayName, style: AppText.section),
-        const SizedBox(height: AppMetrics.spaceXs),
-        Text(account.kind.legendLabel, style: AppText.caption),
-        const SizedBox(height: AppMetrics.spaceLg),
+        Text(account.displayName, style: EText.section),
+        const SizedBox(height: ELayout.spaceXs),
+        Text(account.kind.legendLabel, style: EText.caption),
+        const SizedBox(height: ELayout.spaceLg),
         Text(
           'Balance',
-          style: AppText.caption.copyWith(fontWeight: FontWeight.w600),
+          style: EText.caption.copyWith(fontWeight: FontWeight.w600),
         ),
-        const SizedBox(height: AppMetrics.spaceXs),
-        Text(formatCents(account.balanceCents), style: AppText.title),
-        const SizedBox(height: AppMetrics.spaceMd),
-        Text(account.institutionDisplayName, style: AppText.body),
+        const SizedBox(height: ELayout.spaceXs),
+        Text(formatCents(account.balanceCents), style: EText.title),
+        const SizedBox(height: ELayout.spaceMd),
+        Text(account.institutionDisplayName, style: EText.body),
         if (account.isCopilot) ...[
-          const SizedBox(height: AppMetrics.spaceXs),
-          Text('Copilot import', style: AppText.caption),
+          const SizedBox(height: ELayout.spaceXs),
+          Text('Copilot import', style: EText.caption),
         ],
       ],
     );

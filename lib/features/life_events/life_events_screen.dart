@@ -42,10 +42,10 @@ class LifeEventsScreen extends ConsumerWidget {
             _logger.log('LifeEventsProvider error: $error\n$stackTrace');
             return Center(
               child: Padding(
-                padding: const EdgeInsets.all(AppMetrics.spaceLg),
+                padding: const EdgeInsets.all(ELayout.spaceLg),
                 child: SelectableText(
                   '$error',
-                  style: AppText.body.copyWith(color: AppColors.danger),
+                  style: EText.body.copyWith(color: EColors.danger),
                 ),
               ),
             );
@@ -75,23 +75,23 @@ class _LifeEventsBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return ListView(
-      padding: const EdgeInsets.all(AppMetrics.spaceLg),
+      padding: const EdgeInsets.all(ELayout.spaceLg),
       children: [
         _LifeChainHeroCard(
           kind: LifeChainKind.housing,
           chain: housingChain,
         ),
-        const SizedBox(height: AppMetrics.spaceSm),
+        const SizedBox(height: ELayout.spaceSm),
         _LifeChainHeroCard(
           kind: LifeChainKind.job,
           chain: jobChain,
         ),
-        const SizedBox(height: AppMetrics.spaceLg),
+        const SizedBox(height: ELayout.spaceLg),
         Text(
           'Milestones',
-          style: AppText.body.copyWith(fontWeight: FontWeight.w600),
+          style: EText.body.copyWith(fontWeight: FontWeight.w600),
         ),
-        const SizedBox(height: AppMetrics.spaceSm),
+        const SizedBox(height: ELayout.spaceSm),
         if (lifeEvents.isEmpty)
           AppCard(
             child: Column(
@@ -99,14 +99,14 @@ class _LifeEventsBody extends ConsumerWidget {
               children: [
                 Text(
                   'No milestones yet',
-                  style: AppText.section.copyWith(fontWeight: FontWeight.w600),
+                  style: EText.section.copyWith(fontWeight: FontWeight.w600),
                 ),
-                const SizedBox(height: AppMetrics.spaceXs),
+                const SizedBox(height: ELayout.spaceXs),
                 Text(
                   'One-off dates and ranges still show on Trends.',
-                  style: AppText.caption,
+                  style: EText.caption,
                 ),
-                const SizedBox(height: AppMetrics.spaceMd),
+                const SizedBox(height: ELayout.spaceMd),
                 AppPrimaryButton(
                   onPressed: () =>
                       LifeEventFormSheet.show(context, ref: ref),
@@ -117,7 +117,7 @@ class _LifeEventsBody extends ConsumerWidget {
           )
         else
           for (var index = 0; index < lifeEvents.length; index++) ...[
-            if (index > 0) const SizedBox(height: AppMetrics.spaceSm),
+            if (index > 0) const SizedBox(height: ELayout.spaceSm),
             _LifeEventListTile(
               lifeEvent: lifeEvents[index],
               onTap: () => LifeEventFormSheet.show(
@@ -159,17 +159,17 @@ class _LifeChainHeroCard extends StatelessWidget {
         );
       },
       child: Container(
-        padding: const EdgeInsets.all(AppMetrics.spaceMd),
+        padding: const EdgeInsets.all(ELayout.spaceMd),
         decoration: BoxDecoration(
-          color: AppColors.backgroundLift,
-          borderRadius: AppMetrics.borderRadius(AppMetrics.radiusMd),
+          color: EColors.backgroundLift,
+          borderRadius: ELayout.borderRadius(ELayout.radiusMd),
           border: Border.all(color: accent.withValues(alpha: 0.4)),
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
               accent.withValues(alpha: 0.14),
-              AppColors.backgroundLift,
+              EColors.backgroundLift,
             ],
           ),
         ),
@@ -184,20 +184,20 @@ class _LifeChainHeroCard extends StatelessWidget {
               ),
               child: Icon(kind.icon, color: accent, size: 22),
             ),
-            const SizedBox(width: AppMetrics.spaceMd),
+            const SizedBox(width: ELayout.spaceMd),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     kind.screenTitle,
-                    style: AppText.section.copyWith(fontWeight: FontWeight.w600),
+                    style: EText.section.copyWith(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     caption,
-                    style: AppText.caption.copyWith(
-                      color: AppColors.textSecondary,
+                    style: EText.caption.copyWith(
+                      color: EColors.textSecondary,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -208,7 +208,7 @@ class _LifeChainHeroCard extends StatelessWidget {
             const Icon(
               Icons.chevron_right,
               size: 16,
-              color: AppColors.textMuted,
+              color: EColors.textMuted,
             ),
           ],
         ),
@@ -231,22 +231,22 @@ class _LifeEventListTile extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: AppCard(
-        padding: const EdgeInsets.all(AppMetrics.spaceMd),
+        padding: const EdgeInsets.all(ELayout.spaceMd),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               lifeEvent.title,
-              style: AppText.section.copyWith(fontWeight: FontWeight.w600),
+              style: EText.section.copyWith(fontWeight: FontWeight.w600),
             ),
-            const SizedBox(height: AppMetrics.spaceXs),
+            const SizedBox(height: ELayout.spaceXs),
             Text(
               lifeEvent.dateCaption,
-              style: AppText.caption,
+              style: EText.caption,
             ),
             if (lifeEvent.note != null) ...[
-              const SizedBox(height: AppMetrics.spaceXs),
-              Text(lifeEvent.note!, style: AppText.caption),
+              const SizedBox(height: ELayout.spaceXs),
+              Text(lifeEvent.note!, style: EText.caption),
             ],
           ],
         ),

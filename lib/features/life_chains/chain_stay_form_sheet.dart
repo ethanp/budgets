@@ -78,7 +78,7 @@ class _ChainStayFormSheetState extends ConsumerState<ChainStayFormSheet> {
   Widget build(BuildContext context) {
     return AppSheetPanel.compact(
       child: Padding(
-        padding: const EdgeInsets.all(AppMetrics.spaceLg),
+        padding: const EdgeInsets.all(ELayout.spaceLg),
         child: SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           child: Column(
@@ -89,48 +89,48 @@ class _ChainStayFormSheetState extends ConsumerState<ChainStayFormSheet> {
                 _isEditing
                     ? 'Edit ${widget.kind.screenTitle.toLowerCase()}'
                     : widget.kind.addCta,
-                style: AppText.section,
+                style: EText.section,
               ),
-              const SizedBox(height: AppMetrics.spaceMd),
+              const SizedBox(height: ELayout.spaceMd),
               TextField(
                 controller: _labelController,
                 autofocus: !_isEditing,
-                style: AppText.body.copyWith(color: AppColors.textPrimary),
+                style: EText.body.copyWith(color: EColors.textPrimary),
                 decoration: _fieldDecoration(widget.kind.labelPlaceholder),
               ),
-              const SizedBox(height: AppMetrics.spaceMd),
+              const SizedBox(height: ELayout.spaceMd),
               AppDateField(
                 label: widget.kind.startDateLabel,
                 date: _startedOn,
                 onTap: _pickDate,
               ),
-              const SizedBox(height: AppMetrics.spaceMd),
+              const SizedBox(height: ELayout.spaceMd),
               TextField(
                 controller: _noteController,
                 maxLines: 3,
                 minLines: 2,
-                style: AppText.body.copyWith(color: AppColors.textPrimary),
+                style: EText.body.copyWith(color: EColors.textPrimary),
                 decoration: _fieldDecoration('Note (optional)'),
               ),
               if (_error != null) ...[
-                const SizedBox(height: AppMetrics.spaceSm),
+                const SizedBox(height: ELayout.spaceSm),
                 Text(
                   _error!,
-                  style: AppText.caption.copyWith(color: AppColors.danger),
+                  style: EText.caption.copyWith(color: EColors.danger),
                 ),
               ],
-              const SizedBox(height: AppMetrics.spaceMd),
+              const SizedBox(height: ELayout.spaceMd),
               AppPrimaryButton(
                 busy: _busy,
                 onPressed: _save,
                 child: Text(_isEditing ? 'Save' : 'Add'),
               ),
               if (_isEditing) ...[
-                const SizedBox(height: AppMetrics.spaceSm),
+                const SizedBox(height: ELayout.spaceSm),
                 TextButton(
                   onPressed: _busy ? null : _confirmDelete,
                   style: TextButton.styleFrom(
-                    foregroundColor: AppColors.danger,
+                    foregroundColor: EColors.danger,
                   ),
                   child: const Text('Delete'),
                 ),
@@ -146,19 +146,19 @@ class _ChainStayFormSheetState extends ConsumerState<ChainStayFormSheet> {
     return InputDecoration(
       hintText: hint,
       filled: true,
-      fillColor: AppColors.surface,
-      contentPadding: const EdgeInsets.all(AppMetrics.spaceMd),
+      fillColor: EColors.surface,
+      contentPadding: const EdgeInsets.all(ELayout.spaceMd),
       border: OutlineInputBorder(
-        borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderRadius: ELayout.borderRadius(ELayout.radiusSm),
+        borderSide: const BorderSide(color: EColors.border),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderRadius: ELayout.borderRadius(ELayout.radiusSm),
+        borderSide: const BorderSide(color: EColors.border),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
-        borderSide: const BorderSide(color: AppColors.accentGlow),
+        borderRadius: ELayout.borderRadius(ELayout.radiusSm),
+        borderSide: const BorderSide(color: EColors.accentGlow),
       ),
     );
   }
@@ -228,7 +228,7 @@ class _ChainStayFormSheetState extends ConsumerState<ChainStayFormSheet> {
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+            style: TextButton.styleFrom(foregroundColor: EColors.danger),
             child: const Text('Delete'),
           ),
         ],

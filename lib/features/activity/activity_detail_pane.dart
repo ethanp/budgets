@@ -34,10 +34,10 @@ class ActivityDetailPane extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(
-            AppMetrics.spaceLg,
-            AppMetrics.spaceLg,
-            AppMetrics.spaceLg,
-            AppMetrics.spaceSm,
+            ELayout.spaceLg,
+            ELayout.spaceLg,
+            ELayout.spaceLg,
+            ELayout.spaceSm,
           ),
           child: ActivityVisibleSumBar(
             visibleTransactions: visibleTransactions,
@@ -63,10 +63,10 @@ class ActivityDetailPane extends StatelessWidget {
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(
-        AppMetrics.spaceLg,
-        AppMetrics.spaceSm,
-        AppMetrics.spaceLg,
-        AppMetrics.spaceLg,
+        ELayout.spaceLg,
+        ELayout.spaceSm,
+        ELayout.spaceLg,
+        ELayout.spaceLg,
       ),
       children: [_uncategorizedOverview()],
     );
@@ -96,16 +96,16 @@ class ActivityDetailPane extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Uncategorized', style: AppText.section),
-        const SizedBox(height: AppMetrics.spaceSm),
+        Text('Uncategorized', style: EText.section),
+        const SizedBox(height: ELayout.spaceSm),
         Text(
           totalCount == 0
               ? 'No uncategorized transactions.'
               : '$totalCount uncategorized · ${formatCents(totalCents)}',
-          style: AppText.section.copyWith(fontWeight: FontWeight.w600),
+          style: EText.section.copyWith(fontWeight: FontWeight.w600),
         ),
         if (totalCount > 0) ...[
-          const SizedBox(height: AppMetrics.spaceXs),
+          const SizedBox(height: ELayout.spaceXs),
           Text(
             _uncategorizedBreakdown(
               thisMonthCount: thisMonthCount,
@@ -113,24 +113,24 @@ class ActivityDetailPane extends StatelessWidget {
               earlierCount: earlierCount,
               earlierCents: earlierCents,
             ),
-            style: AppText.caption,
+            style: EText.caption,
           ),
           if (outflowCents > 0) ...[
-            const SizedBox(height: AppMetrics.spaceXs),
+            const SizedBox(height: ELayout.spaceXs),
             Text(
               '${formatCents(outflowCents)} outflow',
-              style: AppText.caption,
+              style: EText.caption,
             ),
           ],
         ],
-        const SizedBox(height: AppMetrics.spaceSm),
+        const SizedBox(height: ELayout.spaceSm),
         Text(
           'Unlabeled activity — especially outflows — skews the annual spend '
           'pace that FI timelines will use. Clear every month, not just the '
           'current one.',
-          style: AppText.caption,
+          style: EText.caption,
         ),
-        const SizedBox(height: AppMetrics.spaceLg),
+        const SizedBox(height: ELayout.spaceLg),
         if (uncategorizedOnly)
           TextButton(
             onPressed: onClearUncategorizedFilter,

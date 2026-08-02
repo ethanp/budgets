@@ -188,7 +188,7 @@ Future<bool> confirmDisconnectAndErase(BuildContext context) async {
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+            style: TextButton.styleFrom(foregroundColor: EColors.danger),
             child: const Text('Disconnect & erase'),
           ),
         ],

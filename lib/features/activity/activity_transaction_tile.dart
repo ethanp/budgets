@@ -52,7 +52,7 @@ class ActivityTransactionTile extends StatelessWidget {
           width: columnWidths.category,
           child: Text(
             category?.name ?? 'Uncategorized',
-            style: AppText.caption.copyWith(
+            style: EText.caption.copyWith(
               fontWeight: FontWeight.w600,
               color: categoryColor,
             ),
@@ -64,8 +64,8 @@ class ActivityTransactionTile extends StatelessWidget {
           width: columnWidths.account,
           child: Text(
             account?.displayNameWithInstitution ?? '—',
-            style: AppText.caption.copyWith(
-              color: AppColors.textMuted,
+            style: EText.caption.copyWith(
+              color: EColors.textMuted,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -87,7 +87,7 @@ class ActivityTransactionTile extends StatelessWidget {
               style: TextButton.styleFrom(
                 foregroundColor: FinanceColors.accentPrimary,
                 padding: const EdgeInsets.symmetric(
-                  horizontal: AppMetrics.spaceSm,
+                  horizontal: ELayout.spaceSm,
                 ),
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -95,7 +95,7 @@ class ActivityTransactionTile extends StatelessWidget {
               ),
               child: Text(
                 'Rule',
-                style: AppText.caption.copyWith(
+                style: EText.caption.copyWith(
                   fontWeight: FontWeight.w600,
                   color: FinanceColors.accentPrimary,
                 ),
@@ -108,7 +108,7 @@ class ActivityTransactionTile extends StatelessWidget {
       children: [
         ?statusIcons,
         if (statusIcons != null && ruleButton != null)
-          const SizedBox(width: AppMetrics.spaceXs),
+          const SizedBox(width: ELayout.spaceXs),
         ?ruleButton,
       ],
     );
@@ -127,13 +127,13 @@ class ActivityTransactionTile extends StatelessWidget {
           const Icon(
             Icons.schedule,
             size: 15,
-            color: AppColors.warning,
+            color: EColors.warning,
           ),
         if (transaction.excluded)
           const Icon(
             Icons.visibility_off,
             size: 15,
-            color: AppColors.danger,
+            color: EColors.danger,
           ),
         if (transaction.recurringSeries != null)
           const Icon(
@@ -150,8 +150,8 @@ class ActivityTransactionTile extends StatelessWidget {
       return FinanceColors.accentSecondary;
     }
     if (transaction.isInflow || category?.isIncome == true) {
-      return AppColors.success;
+      return EColors.success;
     }
-    return AppColors.danger;
+    return EColors.danger;
   }
 }

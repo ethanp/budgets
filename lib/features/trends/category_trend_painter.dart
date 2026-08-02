@@ -12,9 +12,9 @@ import 'package:spend_trends/features/trends/trend_value_scale.dart';
 import 'package:spend_trends/theme/draw/date_range_band.dart';
 import 'package:spend_trends/theme/finance_colors.dart';
 
-TextStyle get _chartAxisLabelStyle => AppText.caption.copyWith(
+TextStyle get _chartAxisLabelStyle => EText.caption.copyWith(
       fontWeight: FontWeight.w500,
-      color: AppColors.textSecondary,
+      color: EColors.textSecondary,
       letterSpacing: 0.15,
       height: 1.1,
     );
@@ -189,7 +189,7 @@ class _CategoryTrendPaintSession {
 
   void _drawBackground() {
     final gridPaint = Paint()
-      ..color = AppColors.border.withValues(alpha: 0.55)
+      ..color = EColors.border.withValues(alpha: 0.55)
       ..strokeWidth = 0.75
       ..strokeCap = StrokeCap.round;
     for (final tickCents in scale.tickCents) {
@@ -711,7 +711,7 @@ class _CategoryTrendPaintSession {
     final hoverDate = layout.dateForX(position.dx);
     final hoveredX = layout.xForDate(hoverDate);
     final markerPaint = Paint()
-      ..color = AppColors.textMuted.withValues(alpha: 0.6)
+      ..color = EColors.textMuted.withValues(alpha: 0.6)
       ..strokeWidth = 1;
     canvas.drawLine(
       Offset(hoveredX, layout.top),

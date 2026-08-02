@@ -71,7 +71,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
       return Center(
         child: Text(
           '${categoriesAsync.error}',
-          style: AppText.body.copyWith(color: AppColors.danger),
+          style: EText.body.copyWith(color: EColors.danger),
         ),
       );
     }
@@ -79,7 +79,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
       return Center(
         child: Text(
           '${groupsAsync.error}',
-          style: AppText.body.copyWith(color: AppColors.danger),
+          style: EText.body.copyWith(color: EColors.danger),
         ),
       );
     }
@@ -185,18 +185,18 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
   Widget _emptyState(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppMetrics.spaceXl),
+        padding: const EdgeInsets.all(ELayout.spaceXl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('No categories yet', style: AppText.section),
-            const SizedBox(height: AppMetrics.spaceSm),
+            Text('No categories yet', style: EText.section),
+            const SizedBox(height: ELayout.spaceSm),
             Text(
               'Add categories to organize spending.',
-              style: AppText.body,
+              style: EText.body,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: AppMetrics.spaceLg),
+            const SizedBox(height: ELayout.spaceLg),
             AppPrimaryButton(
               onPressed: () => CategoryEditorSheet.show(context, ref: ref),
               child: const Text('Add category'),

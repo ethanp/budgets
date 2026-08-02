@@ -38,10 +38,10 @@ class ActivityDayListSliver extends StatelessWidget {
     final listItems = ActivityDayGrouping.items(transactions);
     return SliverPadding(
       padding: const EdgeInsets.fromLTRB(
-        AppMetrics.spaceLg,
+        ELayout.spaceLg,
         0,
-        AppMetrics.spaceLg,
-        AppMetrics.spaceLg,
+        ELayout.spaceLg,
+        ELayout.spaceLg,
       ),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate(
@@ -60,7 +60,7 @@ class ActivityDayListSliver extends StatelessWidget {
             final explainingRule = explainingByTransactionId[transaction.id] ??
                 ruleMatchIndex.explainingRule(transaction);
             return Padding(
-              padding: const EdgeInsets.only(bottom: AppMetrics.spaceSm),
+              padding: const EdgeInsets.only(bottom: ELayout.spaceSm),
               child: ActivityTransactionTile(
                 transaction: transaction,
                 account: account,
@@ -148,24 +148,24 @@ class _ActivityDayHeaderTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(
-        top: isFirst ? AppMetrics.spaceXs : AppMetrics.spaceLg,
-        bottom: AppMetrics.spaceSm,
+        top: isFirst ? ELayout.spaceXs : ELayout.spaceLg,
+        bottom: ELayout.spaceSm,
       ),
       child: Row(
         children: [
           Text(
             label,
-            style: AppText.body.copyWith(
+            style: EText.body.copyWith(
               fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary,
+              color: EColors.textSecondary,
               letterSpacing: 0.2,
             ),
           ),
-          const SizedBox(width: AppMetrics.spaceMd),
+          const SizedBox(width: ELayout.spaceMd),
           Expanded(
             child: Container(
               height: 1,
-              color: AppColors.border,
+              color: EColors.border,
             ),
           ),
         ],

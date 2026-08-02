@@ -54,40 +54,40 @@ class _GroupEditorSheetState extends ConsumerState<GroupEditorSheet> {
   Widget build(BuildContext context) {
     return AppSheetPanel.compact(
       child: Padding(
-        padding: const EdgeInsets.all(AppMetrics.spaceLg),
+        padding: const EdgeInsets.all(ELayout.spaceLg),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
               _isEditing ? 'Edit group' : 'New group',
-              style: AppText.section,
+              style: EText.section,
             ),
-            const SizedBox(height: AppMetrics.spaceMd),
+            const SizedBox(height: ELayout.spaceMd),
             TextField(
               controller: _nameController,
               autofocus: !_isEditing,
-              style: AppText.body.copyWith(color: AppColors.textPrimary),
+              style: EText.body.copyWith(color: EColors.textPrimary),
               decoration: _fieldDecoration('Name (e.g. Wants)'),
             ),
             if (_error != null) ...[
-              const SizedBox(height: AppMetrics.spaceSm),
+              const SizedBox(height: ELayout.spaceSm),
               Text(
                 _error!,
-                style: AppText.caption.copyWith(color: AppColors.danger),
+                style: EText.caption.copyWith(color: EColors.danger),
               ),
             ],
-            const SizedBox(height: AppMetrics.spaceMd),
+            const SizedBox(height: ELayout.spaceMd),
             AppPrimaryButton(
               busy: _busy,
               onPressed: _save,
               child: Text(_isEditing ? 'Save' : 'Create'),
             ),
             if (_isEditing) ...[
-              const SizedBox(height: AppMetrics.spaceSm),
+              const SizedBox(height: ELayout.spaceSm),
               TextButton(
                 onPressed: _busy ? null : _confirmDelete,
-                style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+                style: TextButton.styleFrom(foregroundColor: EColors.danger),
                 child: const Text('Delete group'),
               ),
             ],
@@ -101,19 +101,19 @@ class _GroupEditorSheetState extends ConsumerState<GroupEditorSheet> {
     return InputDecoration(
       hintText: hint,
       filled: true,
-      fillColor: AppColors.surface,
-      contentPadding: const EdgeInsets.all(AppMetrics.spaceMd),
+      fillColor: EColors.surface,
+      contentPadding: const EdgeInsets.all(ELayout.spaceMd),
       border: OutlineInputBorder(
-        borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderRadius: ELayout.borderRadius(ELayout.radiusSm),
+        borderSide: const BorderSide(color: EColors.border),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderRadius: ELayout.borderRadius(ELayout.radiusSm),
+        borderSide: const BorderSide(color: EColors.border),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
-        borderSide: const BorderSide(color: AppColors.accentGlow),
+        borderRadius: ELayout.borderRadius(ELayout.radiusSm),
+        borderSide: const BorderSide(color: EColors.accentGlow),
       ),
     );
   }
@@ -165,7 +165,7 @@ class _GroupEditorSheetState extends ConsumerState<GroupEditorSheet> {
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+            style: TextButton.styleFrom(foregroundColor: EColors.danger),
             child: const Text('Delete'),
           ),
         ],

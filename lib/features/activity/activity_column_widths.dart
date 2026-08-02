@@ -30,9 +30,9 @@ class ActivityColumnWidths {
   static const _scrollbarGutter = 16.0;
   static const _fitSlack = 32.0;
   static const _ruleTrailing = 72.0;
-  static const _listHorizontalPad = AppMetrics.spaceLg * 2;
-  static const _rowHorizontalPad = AppMetrics.spaceMd * 2;
-  static const _gaps = AppMetrics.spaceSm * 2 + AppMetrics.spaceMd;
+  static const _listHorizontalPad = ELayout.spaceLg * 2;
+  static const _rowHorizontalPad = ELayout.spaceMd * 2;
+  static const _gaps = ELayout.spaceSm * 2 + ELayout.spaceMd;
 
   /// Inflate painted widths slightly — fallback fonts and subpixel rounding
   /// otherwise make [contentFitWidth] stop short while cells still ellipsize.
@@ -58,10 +58,10 @@ class ActivityColumnWidths {
     required Map<String, SpendCategory> categories,
   }) {
     final categoryStyle =
-        AppText.caption.copyWith(fontWeight: FontWeight.w600);
-    final accountStyle = AppText.caption;
-    final titleStyle = AppText.body.copyWith(fontWeight: FontWeight.w600);
-    final amountStyle = AppText.body.copyWith(
+        EText.caption.copyWith(fontWeight: FontWeight.w600);
+    final accountStyle = EText.caption;
+    final titleStyle = EText.body.copyWith(fontWeight: FontWeight.w600);
+    final amountStyle = EText.body.copyWith(
       fontWeight: FontWeight.w600,
       fontFeatures: const [FontFeature.tabularFigures()],
     );

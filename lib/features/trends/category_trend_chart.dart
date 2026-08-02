@@ -88,7 +88,7 @@ class CategoryTrendChart extends ConsumerStatefulWidget {
 class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
   static const _tapSlop = 18.0;
 
-  static final _headlineAmountStyle = AppText.section.copyWith(fontSize: 22);
+  static final _headlineAmountStyle = EText.section.copyWith(fontSize: 22);
 
   late final Set<String> _hiddenSeriesIds = {
     ...widget.initiallyHiddenSeriesIds,
@@ -107,11 +107,11 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(AppMetrics.spaceMd),
+      padding: const EdgeInsets.all(ELayout.spaceMd),
       decoration: BoxDecoration(
-        color: AppColors.backgroundLift,
-        borderRadius: AppMetrics.borderRadius(AppMetrics.radiusMd),
-        border: Border.all(color: AppColors.border),
+        color: EColors.backgroundLift,
+        borderRadius: ELayout.borderRadius(ELayout.radiusMd),
+        border: Border.all(color: EColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -121,23 +121,23 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
               Expanded(
                 child: Text(
                   widget.title,
-                  style: AppText.section,
+                  style: EText.section,
                 ),
               ),
               if (widget.showSpendRateToggle) _spendRateToggle(),
             ],
           ),
           if (widget.headlineFigures.isNotEmpty) ...[
-            const SizedBox(height: AppMetrics.spaceSm),
+            const SizedBox(height: ELayout.spaceSm),
             _headlineFigures(widget.headlineFigures),
           ],
-          const SizedBox(height: AppMetrics.spaceXs),
-          Text(widget.subtitle, style: AppText.caption),
-          const SizedBox(height: AppMetrics.spaceMd),
+          const SizedBox(height: ELayout.spaceXs),
+          Text(widget.subtitle, style: EText.caption),
+          const SizedBox(height: ELayout.spaceMd),
           _chartArea(),
-          const SizedBox(height: AppMetrics.spaceSm),
+          const SizedBox(height: ELayout.spaceSm),
           _inspectCaption(),
-          const SizedBox(height: AppMetrics.spaceMd),
+          const SizedBox(height: ELayout.spaceMd),
           CategoryTrendSeriesLegend(
             seriesList: widget.seriesList,
             hiddenSeriesIds: _hiddenSeriesIds,
@@ -157,7 +157,7 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         for (var figureIndex = 0; figureIndex < figures.length; figureIndex++) ...[
-          if (figureIndex > 0) const SizedBox(width: AppMetrics.spaceXl),
+          if (figureIndex > 0) const SizedBox(width: ELayout.spaceXl),
           Expanded(
             child: _headlineFigure(figures[figureIndex]),
           ),
@@ -170,12 +170,12 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(figure.label, style: AppText.caption),
-        const SizedBox(height: AppMetrics.spaceXs),
+        Text(figure.label, style: EText.caption),
+        const SizedBox(height: ELayout.spaceXs),
         Text(
           formatCents(figure.cents),
           style: figure.cents < 0
-              ? _headlineAmountStyle.copyWith(color: AppColors.danger)
+              ? _headlineAmountStyle.copyWith(color: EColors.danger)
               : _headlineAmountStyle,
         ),
       ],
@@ -188,7 +188,7 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
       children: [
         for (final rate in TrendSpendRate.values) ...[
           if (rate != TrendSpendRate.values.first)
-            const SizedBox(width: AppMetrics.spaceXs),
+            const SizedBox(width: ELayout.spaceXs),
           _settingsChip(
             label: rate.toggleLabel,
             isSelected: _spendRate == rate,
@@ -209,26 +209,26 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(
-          horizontal: AppMetrics.spaceSm,
+          horizontal: ELayout.spaceSm,
           vertical: 2,
         ),
         decoration: BoxDecoration(
           color: isSelected
               ? FinanceColors.accentPrimary.withValues(alpha: 0.25)
-              : AppColors.surface,
-          borderRadius: BorderRadius.circular(AppMetrics.radiusSm),
+              : EColors.surface,
+          borderRadius: BorderRadius.circular(ELayout.radiusSm),
           border: Border.all(
             color: isSelected
                 ? FinanceColors.accentPrimary
-                : AppColors.border,
+                : EColors.border,
           ),
         ),
         child: Text(
           label,
-          style: AppText.caption.copyWith(
+          style: EText.caption.copyWith(
             color: isSelected
                 ? FinanceColors.accentPrimary
-                : AppColors.textMuted,
+                : EColors.textMuted,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
           ),
         ),
@@ -248,7 +248,7 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
       return SizedBox(
         height: 560,
         child: Center(
-          child: Text('Need more history', style: AppText.caption),
+          child: Text('Need more history', style: EText.caption),
         ),
       );
     }
@@ -300,7 +300,7 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
             ? 'Drag to inspect all lines at a date · '
                 'tap a line for top contributors'
             : 'Drag to inspect at a date',
-        style: AppText.caption,
+        style: EText.caption,
       );
     }
 
@@ -317,7 +317,7 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
         : ' (${_spendRate.shortLabel.trim()})';
     return Text(
       '${DateFormat.MMMd().format(hoverDate)} · $values$rateSuffix',
-      style: AppText.caption,
+      style: EText.caption,
       maxLines: 4,
       overflow: TextOverflow.ellipsis,
     );

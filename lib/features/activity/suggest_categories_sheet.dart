@@ -100,19 +100,19 @@ class _SuggestCategoriesSheetState
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.all(AppMetrics.spaceLg),
+      padding: const EdgeInsets.all(ELayout.spaceLg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildTitleRow(),
-          const SizedBox(height: AppMetrics.spaceMd),
+          const SizedBox(height: ELayout.spaceMd),
           _buildCreateRulesToggle(),
           if (_createRules) ...[
-            const SizedBox(height: AppMetrics.spaceXs),
+            const SizedBox(height: ELayout.spaceXs),
             Text(
               'You’ll confirm which existing transactions each rule '
               'should update.',
-              style: AppText.caption,
+              style: EText.caption,
             ),
           ],
         ],
@@ -124,7 +124,7 @@ class _SuggestCategoriesSheetState
     return Row(
       children: [
         Expanded(
-          child: Text('Suggested categories', style: AppText.section),
+          child: Text('Suggested categories', style: EText.section),
         ),
         if (_suggestions.isNotEmpty)
           TextButton(
@@ -142,11 +142,11 @@ class _SuggestCategoriesSheetState
           value: _createRules,
           onChanged: (value) => setState(() => _createRules = value),
         ),
-        const SizedBox(width: AppMetrics.spaceSm),
+        const SizedBox(width: ELayout.spaceSm),
         Expanded(
           child: Text(
             'Also create a rule for each merchant',
-            style: AppText.body,
+            style: EText.body,
           ),
         ),
       ],
@@ -159,19 +159,19 @@ class _SuggestCategoriesSheetState
     }
     if (_error != null) {
       return Padding(
-        padding: const EdgeInsets.all(AppMetrics.spaceLg),
+        padding: const EdgeInsets.all(ELayout.spaceLg),
         child: Text(
           _error!,
-          style: AppText.body.copyWith(color: AppColors.danger),
+          style: EText.body.copyWith(color: EColors.danger),
         ),
       );
     }
     if (_suggestions.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.all(AppMetrics.spaceLg),
+        padding: const EdgeInsets.all(ELayout.spaceLg),
         child: Text(
           'Nothing uncategorized to suggest.',
-          style: AppText.body,
+          style: EText.body,
         ),
       );
     }
@@ -180,19 +180,19 @@ class _SuggestCategoriesSheetState
 
   Widget _buildSuggestionList() {
     return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: AppMetrics.spaceLg),
+      padding: const EdgeInsets.symmetric(horizontal: ELayout.spaceLg),
       itemCount: _suggestions.length,
       separatorBuilder: (context, index) =>
-          const SizedBox(height: AppMetrics.spaceSm),
+          const SizedBox(height: ELayout.spaceSm),
       itemBuilder: (context, index) =>
           _buildSuggestionRow(_suggestions[index]),
     );
   }
 
   Widget _buildSuggestionRow(CategorySuggestion suggestion) {
-    return AppSurface(
-      kind: AppSurfaceKind.row,
-      padding: const EdgeInsets.all(AppMetrics.spaceMd),
+    return ESurface(
+      kind: ESurfaceKind.row,
+      padding: const EdgeInsets.all(ELayout.spaceMd),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -202,25 +202,25 @@ class _SuggestCategoriesSheetState
               children: [
                 Text(
                   suggestion.merchant,
-                  style: AppText.section.copyWith(fontWeight: FontWeight.w600),
+                  style: EText.section.copyWith(fontWeight: FontWeight.w600),
                 ),
                 Text(
                   suggestion.createsCategory
                       ? 'New · ${suggestion.categoryName}'
                       : suggestion.categoryName,
                   style: suggestion.createsCategory
-                      ? AppText.caption.copyWith(
+                      ? EText.caption.copyWith(
                           color: FinanceColors.accentSecondary,
                         )
-                      : AppText.caption.copyWith(
+                      : EText.caption.copyWith(
                           color: FinanceColors.accentPrimary,
                         ),
                 ),
                 if (suggestion.transactionAmountCents.isNotEmpty) ...[
-                  const SizedBox(height: AppMetrics.spaceXs),
+                  const SizedBox(height: ELayout.spaceXs),
                   Text(
                     _amountsLabel(suggestion),
-                    style: AppText.body.copyWith(fontWeight: FontWeight.w600),
+                    style: EText.body.copyWith(fontWeight: FontWeight.w600),
                   ),
                 ],
               ],

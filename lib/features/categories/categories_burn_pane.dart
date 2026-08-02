@@ -27,7 +27,7 @@ class CategoriesBurnPane extends ConsumerWidget {
         ? null
         : categoriesById[selectedCategoryId];
     return ListView(
-      padding: const EdgeInsets.all(AppMetrics.spaceLg),
+      padding: const EdgeInsets.all(ELayout.spaceLg),
       children: [
         if (selected == null)
           _burnOverview()
@@ -62,23 +62,23 @@ class CategoriesBurnPane extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Annual burn', style: AppText.section),
-        const SizedBox(height: AppMetrics.spaceSm),
+        Text('Annual burn', style: EText.section),
+        const SizedBox(height: ELayout.spaceSm),
         Text(
           totalBurn == 0 ? '—' : formatCents(totalBurn),
-          style: AppText.title,
+          style: EText.title,
         ),
-        Text('/ yr across spend categories', style: AppText.caption),
-        const SizedBox(height: AppMetrics.spaceLg),
+        Text('/ yr across spend categories', style: EText.caption),
+        const SizedBox(height: ELayout.spaceLg),
         Text(
           'Top burn lines',
-          style: AppText.caption.copyWith(fontWeight: FontWeight.w600),
+          style: EText.caption.copyWith(fontWeight: FontWeight.w600),
         ),
-        const SizedBox(height: AppMetrics.spaceSm),
+        const SizedBox(height: ELayout.spaceSm),
         if (top.isEmpty)
           Text(
             'No annualized spend yet.',
-            style: AppText.caption,
+            style: EText.caption,
           )
         else
           for (final row in top) ...[
@@ -88,15 +88,15 @@ class CategoriesBurnPane extends ConsumerWidget {
                   : '${row.categoryName} · '
                       '${_percentOf(row.annualizedSpendCents, totalBurn)} · '
                       '${formatCents(row.annualizedSpendCents)} / yr',
-              style: AppText.body,
+              style: EText.body,
             ),
-            const SizedBox(height: AppMetrics.spaceXs),
+            const SizedBox(height: ELayout.spaceXs),
           ],
-        const SizedBox(height: AppMetrics.spaceLg),
+        const SizedBox(height: ELayout.spaceLg),
         Text(
           'This burn rate is what future FI timelines will use — '
           'select a category to see its share.',
-          style: AppText.caption,
+          style: EText.caption,
         ),
       ],
     );
@@ -117,66 +117,66 @@ class CategoriesBurnPane extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(category.name, style: AppText.section),
-        const SizedBox(height: AppMetrics.spaceXs),
+        Text(category.name, style: EText.section),
+        const SizedBox(height: ELayout.spaceXs),
         Text(
           category.isFlow
               ? 'Cash flow · excluded from burn'
               : 'Burn component',
-          style: AppText.caption,
+          style: EText.caption,
         ),
-        const SizedBox(height: AppMetrics.spaceLg),
+        const SizedBox(height: ELayout.spaceLg),
         Text(
           'This month',
-          style: AppText.caption.copyWith(fontWeight: FontWeight.w600),
+          style: EText.caption.copyWith(fontWeight: FontWeight.w600),
         ),
-        const SizedBox(height: AppMetrics.spaceXs),
+        const SizedBox(height: ELayout.spaceXs),
         Text(
           formatCents(spent),
-          style: AppText.section.copyWith(fontWeight: FontWeight.w600),
+          style: EText.section.copyWith(fontWeight: FontWeight.w600),
         ),
-        const SizedBox(height: AppMetrics.spaceMd),
+        const SizedBox(height: ELayout.spaceMd),
         Text(
           'Annual pace',
-          style: AppText.caption.copyWith(fontWeight: FontWeight.w600),
+          style: EText.caption.copyWith(fontWeight: FontWeight.w600),
         ),
-        const SizedBox(height: AppMetrics.spaceXs),
+        const SizedBox(height: ELayout.spaceXs),
         Text(
           annual == 0 ? '—' : '${formatCents(annual)} / yr',
-          style: AppText.section.copyWith(fontWeight: FontWeight.w600),
+          style: EText.section.copyWith(fontWeight: FontWeight.w600),
         ),
         if (!category.isFlow && totalBurn > 0) ...[
-          const SizedBox(height: AppMetrics.spaceXs),
+          const SizedBox(height: ELayout.spaceXs),
           Text(
             '${_percentOf(annual, totalBurn)} of annual burn',
-            style: AppText.caption,
+            style: EText.caption,
           ),
         ],
-        const SizedBox(height: AppMetrics.spaceLg),
+        const SizedBox(height: ELayout.spaceLg),
         Text(
           'Rules',
-          style: AppText.caption.copyWith(fontWeight: FontWeight.w600),
+          style: EText.caption.copyWith(fontWeight: FontWeight.w600),
         ),
-        const SizedBox(height: AppMetrics.spaceXs),
+        const SizedBox(height: ELayout.spaceXs),
         if (categoryRules.isEmpty)
           Text(
             'No merchant rules yet.',
-            style: AppText.caption,
+            style: EText.caption,
           )
         else ...[
           Text(
             categoryRules.length == 1
                 ? '1 rule'
                 : '${categoryRules.length} rules',
-            style: AppText.body,
+            style: EText.body,
           ),
           for (final rule in categoryRules.take(5))
             Text(
               _ruleCaption(rule),
-              style: AppText.caption,
+              style: EText.caption,
             ),
         ],
-        const SizedBox(height: AppMetrics.spaceLg),
+        const SizedBox(height: ELayout.spaceLg),
         AppPrimaryButton(
           onPressed: () => onEdit(category),
           child: const Text('Edit'),
