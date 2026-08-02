@@ -173,7 +173,7 @@ class RemoveCopilotDuplicates {
         }
         final categoryToCopy =
             duplicate.userCategoryId ?? duplicate.suggestedCategoryId;
-        if (categoryToCopy != null && keeper.effectiveCategoryId == null) {
+        if (categoryToCopy != null && keeper.isUncategorized) {
           await _transactionsRepository.setSuggestedCategory(
             transactionId: keeper.id,
             categoryId: categoryToCopy,
@@ -229,7 +229,7 @@ class RemoveCopilotDuplicates {
       // Copilot provenance is always suggested — never a user lock on SimpleFIN.
       final categoryToCopy =
           transaction.userCategoryId ?? transaction.suggestedCategoryId;
-      if (categoryToCopy != null && match.effectiveCategoryId == null) {
+      if (categoryToCopy != null && match.isUncategorized) {
         await _transactionsRepository.setSuggestedCategory(
           transactionId: match.id,
           categoryId: categoryToCopy,
@@ -285,7 +285,7 @@ class RemoveCopilotDuplicates {
 
   static int _keepScore(BankTransaction transaction) {
     var score = 0;
-    if (transaction.userCategoryId != null) score += 100;
+    if (transaction.hasUserCategory) score += 100;
     if ((transaction.note?.trim() ?? '').isNotEmpty) score += 50;
     if (transaction.suggestedCategoryId != null) score += 10;
     // Prefer live-bank rows over Copilot re-imports when external ids differ.

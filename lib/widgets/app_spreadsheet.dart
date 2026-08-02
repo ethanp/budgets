@@ -1,10 +1,9 @@
-import 'package:spend_trends/theme/app_theme.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:ethan_ui/ethan_ui.dart';
+import 'package:flutter/material.dart';
 
 /// Fixed-width cell so sibling rows share a column edge.
 class AppSpreadsheetCell extends StatelessWidget {
   const AppSpreadsheetCell({
-    super.key,
     required this.width,
     required this.child,
     this.alignment = Alignment.centerLeft,
@@ -32,11 +31,10 @@ class AppSpreadsheetCell extends StatelessWidget {
 /// sized to the widest cell (see [TextsPaintMeasure.maxPaintedWidth]).
 class AppSpreadsheetRow extends StatelessWidget {
   const AppSpreadsheetRow({
-    super.key,
     required this.leading,
     required this.trailing,
     required this.trailingWidth,
-    this.gap = AppSpacing.md,
+    this.gap = AppMetrics.spaceMd,
     this.crossAxisAlignment = CrossAxisAlignment.center,
   });
 

@@ -1,12 +1,12 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spend_trends/domain/remove_copilot_duplicates.dart';
 import 'package:spend_trends/features/settings/settings_section.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/services/csv/import_copilot_transactions_csv.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class CopilotImportTile extends ConsumerStatefulWidget {
-  const CopilotImportTile({super.key});
+  const CopilotImportTile();
 
   @override
   ConsumerState<CopilotImportTile> createState() => _CopilotImportTileState();
@@ -21,7 +21,7 @@ class _CopilotImportTileState extends ConsumerState<CopilotImportTile> {
   @override
   Widget build(BuildContext context) {
     return SettingsToolRow(
-      icon: CupertinoIcons.square_arrow_down,
+      icon: Icons.download,
       title: 'Import Copilot CSV',
       caption:
           'Load $copilotTransactionsRelativePath (gitignored). '
@@ -147,10 +147,10 @@ class _CopilotImportTileState extends ConsumerState<CopilotImportTile> {
   ) async {
     final importer = ImportCopilotTransactionsCsv(
       accountsRepository: await ref.read(accountsRepositoryProvider.future),
-      categoriesRepository:
-          await ref.read(categoriesRepositoryProvider.future),
-      transactionsRepository:
-          await ref.read(transactionsRepositoryProvider.future),
+      categoriesRepository: await ref.read(categoriesRepositoryProvider.future),
+      transactionsRepository: await ref.read(
+        transactionsRepositoryProvider.future,
+      ),
     );
     return importer.importLocalFile(
       cancellation: cancellation,

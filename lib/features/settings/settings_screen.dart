@@ -1,3 +1,6 @@
+import 'package:ethan_ui/ethan_ui.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spend_trends/features/banks/banks_advanced_section.dart';
 import 'package:spend_trends/features/settings/copilot_import_tile.dart';
 import 'package:spend_trends/features/settings/csv_import_sheet.dart';
@@ -5,60 +8,58 @@ import 'package:spend_trends/features/settings/remove_duplicate_transactions_til
 import 'package:spend_trends/features/settings/unlock_copilot_categories_tile.dart';
 import 'package:spend_trends/features/settings/settings_section.dart';
 import 'package:spend_trends/features/settings/sync_status_tile.dart';
-import 'package:spend_trends/theme/app_theme.dart';
 import 'package:spend_trends/widgets/sync_status_nav_button.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SettingsScreen extends ConsumerWidget {
-  const SettingsScreen({super.key});
+  const SettingsScreen();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return CupertinoPageScaffold(
-      navigationBar: const CupertinoNavigationBar(
-        leading: SyncStatusNavButton(),
-        middle: Text('Settings'),
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        leading: const SyncStatusNavButton(),
+        title: const Text('Settings'),
       ),
-      child: SafeArea(
+      body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(
-            AppSpacing.lg,
-            AppSpacing.md,
-            AppSpacing.lg,
-            AppSpacing.xxl,
+            AppMetrics.spaceLg,
+            AppMetrics.spaceMd,
+            AppMetrics.spaceLg,
+            32,
           ),
           children: [
             const BanksAdvancedSection(),
-            VSpace.xl,
+            const SizedBox(height: AppMetrics.spaceXl),
             const SettingsHairline(style: SettingsSectionStyle.banks),
-            VSpace.xl,
+            const SizedBox(height: AppMetrics.spaceXl),
             const SyncStatusTile(),
-            VSpace.xl,
+            const SizedBox(height: AppMetrics.spaceXl),
             const SettingsHairline(style: SettingsSectionStyle.sync),
-            VSpace.xl,
+            const SizedBox(height: AppMetrics.spaceXl),
             const SettingsSectionHeader(
-              icon: CupertinoIcons.wrench,
+              icon: Icons.build,
               title: 'Maintenance',
               style: SettingsSectionStyle.maintenance,
             ),
-            VSpace.lg,
+            const SizedBox(height: AppMetrics.spaceLg),
             const CopilotImportTile(),
-            VSpace.lg,
+            const SizedBox(height: AppMetrics.spaceLg),
             const UnlockCopilotCategoriesTile(),
-            VSpace.lg,
+            const SizedBox(height: AppMetrics.spaceLg),
             const RemoveDuplicateTransactionsTile(),
-            VSpace.lg,
+            const SizedBox(height: AppMetrics.spaceLg),
             SettingsToolRow(
-              icon: CupertinoIcons.doc_text,
+              icon: Icons.description,
               title: 'Import CSV',
               caption: 'Escape hatch when a bank connection is broken.',
               onAction: () => CsvImportSheet.show(context),
               style: SettingsSectionStyle.maintenance,
             ),
-            VSpace.xl,
+            const SizedBox(height: AppMetrics.spaceXl),
             const SettingsHairline(style: SettingsSectionStyle.maintenance),
-            VSpace.lg,
+            const SizedBox(height: AppMetrics.spaceLg),
             const Text(
               'Budgets — personal spending by category with SimpleFIN.',
               style: SettingsType.sectionMeta,

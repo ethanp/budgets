@@ -1,15 +1,23 @@
 import 'dart:math' as math;
 
+import 'package:ethan_ui/ethan_ui.dart';
+import 'package:ethan_utils/ethan_utils.dart';
+import 'package:flutter/material.dart';
 import 'package:spend_trends/domain/life_event.dart';
 import 'package:spend_trends/domain/stay_chain.dart';
 import 'package:spend_trends/features/trends/category_trend_point.dart';
 import 'package:spend_trends/features/trends/category_trend_series.dart';
 import 'package:spend_trends/features/trends/chart_date_layout.dart';
 import 'package:spend_trends/features/trends/trend_value_scale.dart';
-import 'package:spend_trends/theme/app_theme.dart';
 import 'package:spend_trends/theme/draw/date_range_band.dart';
-import 'package:ethan_utils/ethan_utils.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:spend_trends/theme/finance_colors.dart';
+
+TextStyle get _chartAxisLabelStyle => AppText.caption.copyWith(
+      fontWeight: FontWeight.w500,
+      color: AppColors.textSecondary,
+      letterSpacing: 0.15,
+      height: 1.1,
+    );
 
 class CategoryTrendPainter extends CustomPainter {
   CategoryTrendPainter({
@@ -181,7 +189,7 @@ class _CategoryTrendPaintSession {
 
   void _drawBackground() {
     final gridPaint = Paint()
-      ..color = AppColors.borderDepth1.withValues(alpha: 0.55)
+      ..color = AppColors.border.withValues(alpha: 0.55)
       ..strokeWidth = 0.75
       ..strokeCap = StrokeCap.round;
     for (final tickCents in scale.tickCents) {
@@ -197,9 +205,9 @@ class _CategoryTrendPaintSession {
     layout.drawYearBoundaries(
       canvas,
       yearLabelY: _laneLabelY(CategoryTrendPainter.dateLane),
-      labelStyle: AppText.chartAxis,
+      labelStyle: _chartAxisLabelStyle,
     );
-    layout.drawDateLabels(canvas, labelStyle: AppText.chartAxis);
+    layout.drawDateLabels(canvas, labelStyle: _chartAxisLabelStyle);
   }
 
   /// Area under the curve: vertical fade to the baseline, with opacity set by
@@ -559,7 +567,7 @@ class _CategoryTrendPaintSession {
     if (kind != LifeChainKind.housing) {
       return TextSpan(text: label, style: labelStyle);
     }
-    const houseIcon = CupertinoIcons.house_fill;
+    const houseIcon = Icons.home;
     return TextSpan(
       children: [
         TextSpan(
@@ -585,13 +593,13 @@ class _CategoryTrendPaintSession {
     final baseLabelY = _laneLabelY(CategoryTrendPainter.lifeEventLane);
 
     final bandFillPaint = Paint()
-      ..color = AppColors.accentSecondary.withValues(alpha: 0.14)
+      ..color = FinanceColors.accentSecondary.withValues(alpha: 0.14)
       ..style = PaintingStyle.fill;
     final bandEdgePaint = Paint()
-      ..color = AppColors.accentSecondary.withValues(alpha: _eraEdgeAlpha)
+      ..color = FinanceColors.accentSecondary.withValues(alpha: _eraEdgeAlpha)
       ..strokeWidth = _eraEdgeStroke;
     final linePaint = Paint()
-      ..color = AppColors.accentSecondary.withValues(alpha: _eraEdgeAlpha)
+      ..color = FinanceColors.accentSecondary.withValues(alpha: _eraEdgeAlpha)
       ..strokeWidth = _eraEdgeStroke;
 
     final labelLeftXs = <double>[];
@@ -602,7 +610,7 @@ class _CategoryTrendPaintSession {
         text: TextSpan(
           text: lifeEvent.title,
           style: const TextStyle(
-            color: AppColors.accentSecondary,
+            color: FinanceColors.accentSecondary,
             fontSize: 9,
             fontWeight: FontWeight.w600,
           ),
@@ -703,7 +711,7 @@ class _CategoryTrendPaintSession {
     final hoverDate = layout.dateForX(position.dx);
     final hoveredX = layout.xForDate(hoverDate);
     final markerPaint = Paint()
-      ..color = AppColors.textSupport.withValues(alpha: 0.6)
+      ..color = AppColors.textMuted.withValues(alpha: 0.6)
       ..strokeWidth = 1;
     canvas.drawLine(
       Offset(hoveredX, layout.top),
@@ -727,7 +735,7 @@ class _CategoryTrendPaintSession {
   }
 
   void _drawAxisLabels() {
-    final axisStyle = AppText.chartAxis;
+    final axisStyle = _chartAxisLabelStyle;
     for (final tickCents in scale.tickCents) {
       final label = formatAxisCents(tickCents);
       final textPainter = TextPainter(

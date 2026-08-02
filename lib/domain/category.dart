@@ -75,6 +75,10 @@ class CategorizationRule {
   final String pattern;
   final String categoryId;
   final int priority;
+
+  bool get isDefaultImport => priority == defaultImportPriority;
+
+  bool get beatsImportDefault => priority > defaultImportPriority;
 }
 
 enum RuleMatchType {

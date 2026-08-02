@@ -1,6 +1,7 @@
-import 'package:spend_trends/theme/app_theme.dart';
+import 'package:spend_trends/theme/finance_colors.dart';
+import 'package:ethan_ui/ethan_ui.dart';
 import 'package:ethan_utils/ethan_utils.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 /// Which life-chain timeline a stay belongs to.
@@ -39,13 +40,13 @@ enum LifeChainKind {
       };
 
   IconData get icon => switch (this) {
-        LifeChainKind.housing => CupertinoIcons.house_fill,
-        LifeChainKind.job => CupertinoIcons.briefcase_fill,
+        LifeChainKind.housing => Icons.home,
+        LifeChainKind.job => Icons.work,
       };
 
   /// Base Trends band color for this chain (distinct from life-event gold).
   Color get trendBandColor => switch (this) {
-        LifeChainKind.housing => AppColors.housing,
+        LifeChainKind.housing => FinanceColors.housing,
         LifeChainKind.job => AppColors.success,
       };
 

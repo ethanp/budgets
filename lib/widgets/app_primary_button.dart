@@ -1,9 +1,8 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
 /// App primary (filled) action button; shows a spinner while [busy].
 class AppPrimaryButton extends StatelessWidget {
   const AppPrimaryButton({
-    super.key,
     this.busy = false,
     required this.onPressed,
     required this.child,
@@ -15,9 +14,15 @@ class AppPrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoButton.filled(
+    return FilledButton(
       onPressed: busy ? null : onPressed,
-      child: busy ? const CupertinoActivityIndicator() : child,
+      child: busy
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : child,
     );
   }
 }

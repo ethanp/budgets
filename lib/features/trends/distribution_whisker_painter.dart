@@ -1,7 +1,7 @@
+import 'package:ethan_ui/ethan_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:spend_trends/features/trends/category_trend_distribution.dart';
 import 'package:spend_trends/features/trends/trend_value_scale.dart';
-import 'package:spend_trends/theme/app_theme.dart';
-import 'package:flutter/cupertino.dart';
 
 /// Shared stroke/mark drawing for whiskers and the symbol key.
 class DistributionWhiskerMarks {
@@ -117,7 +117,7 @@ class DistributionWhiskerPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final color = isDimmed ? AppColors.textDim : seriesColor;
+    final color = isDimmed ? AppColors.textMuted : seriesColor;
     final stemColor = color.withValues(alpha: isDimmed ? 0.45 : 0.85);
 
     final centerX = size.width / 2;
@@ -147,7 +147,7 @@ class DistributionWhiskerPainter extends CustomPainter {
       canvas,
       center: Offset(centerX, currentY),
       color: color,
-      ringColor: isDimmed ? null : AppColors.backgroundDepth2,
+      ringColor: isDimmed ? null : AppColors.backgroundLift,
     );
   }
 
@@ -203,7 +203,7 @@ class _GlyphPainter extends CustomPainter {
           canvas,
           center: center,
           color: color,
-          ringColor: AppColors.backgroundDepth3,
+          ringColor: AppColors.surface,
         );
     }
   }
@@ -222,7 +222,7 @@ class DistributionWhiskerGridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = AppColors.borderDepth1.withValues(alpha: 0.7)
+      ..color = AppColors.border.withValues(alpha: 0.7)
       ..strokeWidth = 0.75
       ..strokeCap = StrokeCap.round;
     for (final tickCents in scale.tickCents) {
@@ -261,7 +261,7 @@ class DistributionWhiskerGridPainter extends CustomPainter {
 
 /// Compact key explaining whisker marks (range / med / avg / now).
 class DistributionWhiskerSymbolKey extends StatelessWidget {
-  const DistributionWhiskerSymbolKey({super.key});
+  const DistributionWhiskerSymbolKey();
 
   static const _entries = <(DistributionWhiskerGlyph, String)>[
     (DistributionWhiskerGlyph.range, 'min–max'),
@@ -274,14 +274,14 @@ class DistributionWhiskerSymbolKey extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.xs,
+        horizontal: AppMetrics.spaceSm,
+        vertical: AppMetrics.spaceXs,
       ),
       decoration: BoxDecoration(
-        color: AppColors.backgroundDepth3.withValues(alpha: 0.65),
-        borderRadius: BorderRadius.circular(AppRadius.sm),
+        color: AppColors.surface.withValues(alpha: 0.65),
+        borderRadius: BorderRadius.circular(AppMetrics.radiusSm),
         border: Border.all(
-          color: AppColors.borderDepth1.withValues(alpha: 0.75),
+          color: AppColors.border.withValues(alpha: 0.75),
         ),
       ),
       child: Column(
@@ -293,13 +293,13 @@ class DistributionWhiskerSymbolKey extends StatelessWidget {
             children: [
               for (var index = 0; index < _entries.length; index++) ...[
                 if (index > 0) ...[
-                  HSpace.sm,
+                  const SizedBox(width: AppMetrics.spaceSm),
                   Container(
                     width: 1,
                     height: 14,
-                    color: AppColors.borderDepth1.withValues(alpha: 0.7),
+                    color: AppColors.border.withValues(alpha: 0.7),
                   ),
-                  HSpace.sm,
+                  const SizedBox(width: AppMetrics.spaceSm),
                 ],
                 _keyItem(glyph: _entries[index].$1, label: _entries[index].$2),
               ],
@@ -309,7 +309,7 @@ class DistributionWhiskerSymbolKey extends StatelessWidget {
           Text(
             'Pair: all-time (left) · past year (right)',
             style: AppText.caption.copyWith(
-              color: AppColors.textDim,
+              color: AppColors.textMuted,
               fontSize: 10,
               height: 1.1,
             ),
@@ -330,14 +330,14 @@ class DistributionWhiskerSymbolKey extends StatelessWidget {
           width: glyph == DistributionWhiskerGlyph.range ? 12 : 14,
           height: glyph == DistributionWhiskerGlyph.range ? 16 : 14,
           child: CustomPaint(
-            painter: _GlyphPainter(glyph, AppColors.textBody),
+            painter: _GlyphPainter(glyph, AppColors.textSecondary),
           ),
         ),
         const SizedBox(width: 5),
         Text(
           label,
           style: AppText.caption.copyWith(
-            color: AppColors.textSupport,
+            color: AppColors.textMuted,
             fontSize: 11,
             height: 1.1,
           ),

@@ -1,11 +1,10 @@
-import 'package:spend_trends/theme/app_theme.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:ethan_ui/ethan_ui.dart';
+import 'package:flutter/material.dart';
 
 class AppCard extends StatelessWidget {
   const AppCard({
-    super.key,
     required this.child,
-    this.padding = const EdgeInsets.all(AppSpacing.lg),
+    this.padding = const EdgeInsets.all(AppMetrics.spaceLg),
     this.margin,
   });
 
@@ -15,11 +14,12 @@ class AppCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: margin,
+    final surface = AppSurface(
+      kind: AppSurfaceKind.row,
       padding: padding,
-      decoration: AppComponents.primaryCard,
       child: child,
     );
+    if (margin == null) return surface;
+    return Padding(padding: margin!, child: surface);
   }
 }

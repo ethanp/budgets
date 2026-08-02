@@ -37,13 +37,13 @@ SimpleFIN Bridge ──HTTP──► App (claim + /accounts)
 
 | Dir | Role |
 |-----|------|
-| `features/shell/` | `CupertinoApp` + tab shell |
+| `features/shell/` | `MaterialApp` + tab shell |
 | `features/trends/` | Smoothed category trend charts (primary tab) |
 | `features/*/` | Activity, Categories, Settings UI |
 | `domain/` | Models + use cases (ingest, categorize, spend rollups) |
 | `services/` | SimpleFIN, PowerSync repos, CSV, LLM, ethan_sync config |
 | `providers/` | Riverpod wiring |
-| `theme/` | Cupertino theme tokens |
+| `theme/` | Finance accent overlay (`FinanceColors`); chrome via `ethan_ui` |
 | `widgets/`, `util/` | Shared UI/helpers |
 
 ## Setup
@@ -52,6 +52,7 @@ Sibling path packages (same layout as your other Flutter apps):
 
 - `../ethan_utils`
 - `../ethan_sync`
+- `../ethan_ui`
 
 ```bash
 cd ~/code/my-code/Active/Flutter/spend_trends

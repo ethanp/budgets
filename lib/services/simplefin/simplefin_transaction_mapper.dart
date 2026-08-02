@@ -34,6 +34,7 @@ class SimpleFinTransactionMapper {
       if (!wasInserted) continue;
       newlyInserted.add(
         SimpleFinPulledTransaction(
+          id: bankTransaction.id,
           externalId: bankTransaction.externalId,
           description: bankTransaction.rawDescription.isEmpty
               ? bankTransaction.normalizedMerchant

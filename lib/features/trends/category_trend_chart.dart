@@ -1,5 +1,8 @@
-import 'dart:math' as math;
-
+import 'package:ethan_ui/ethan_ui.dart';
+import 'package:ethan_utils/ethan_utils.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:spend_trends/domain/category.dart';
 import 'package:spend_trends/domain/category_group.dart';
 import 'package:spend_trends/domain/life_event.dart';
@@ -11,16 +14,14 @@ import 'package:spend_trends/features/trends/category_trend_point.dart';
 import 'package:spend_trends/features/trends/category_trend_series.dart';
 import 'package:spend_trends/features/trends/category_trend_series_legend.dart';
 import 'package:spend_trends/features/trends/chart_date_layout.dart';
+import 'package:spend_trends/features/trends/trend_chart_catalog.dart';
 import 'package:spend_trends/features/trends/trend_point_contributors.dart';
 import 'package:spend_trends/features/trends/trend_point_contributors_sheet.dart';
 import 'package:spend_trends/features/trends/trend_value_scale.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
-import 'package:spend_trends/theme/app_theme.dart';
-import 'package:ethan_utils/ethan_utils.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
-import 'package:spend_trends/features/trends/trend_chart_catalog.dart';
+import 'package:spend_trends/theme/finance_colors.dart';
+
+import 'dart:math' as math;
 
 /// Labeled amount shown under a Trends chart title.
 class ChartHeadlineFigure {
@@ -36,7 +37,6 @@ class ChartHeadlineFigure {
 /// One SimCity-style multi-line chart with a color legend.
 class CategoryTrendChart extends ConsumerStatefulWidget {
   const CategoryTrendChart({
-    super.key,
     required this.title,
     required this.seriesList,
     required this.transactions,
@@ -88,6 +88,8 @@ class CategoryTrendChart extends ConsumerStatefulWidget {
 class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
   static const _tapSlop = 18.0;
 
+  static final _headlineAmountStyle = AppText.section.copyWith(fontSize: 22);
+
   late final Set<String> _hiddenSeriesIds = {
     ...widget.initiallyHiddenSeriesIds,
   };
@@ -105,11 +107,11 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: const EdgeInsets.all(AppMetrics.spaceMd),
       decoration: BoxDecoration(
-        color: AppColors.backgroundDepth2,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: AppColors.borderDepth1),
+        color: AppColors.backgroundLift,
+        borderRadius: AppMetrics.borderRadius(AppMetrics.radiusMd),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -117,22 +119,25 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
           Row(
             children: [
               Expanded(
-                child: Text(widget.title, style: AppText.body.large.semibold),
+                child: Text(
+                  widget.title,
+                  style: AppText.section,
+                ),
               ),
               if (widget.showSpendRateToggle) _spendRateToggle(),
             ],
           ),
           if (widget.headlineFigures.isNotEmpty) ...[
-            VSpace.sm,
+            const SizedBox(height: AppMetrics.spaceSm),
             _headlineFigures(widget.headlineFigures),
           ],
-          VSpace.xs,
+          const SizedBox(height: AppMetrics.spaceXs),
           Text(widget.subtitle, style: AppText.caption),
-          VSpace.md,
+          const SizedBox(height: AppMetrics.spaceMd),
           _chartArea(),
-          VSpace.sm,
+          const SizedBox(height: AppMetrics.spaceSm),
           _inspectCaption(),
-          VSpace.md,
+          const SizedBox(height: AppMetrics.spaceMd),
           CategoryTrendSeriesLegend(
             seriesList: widget.seriesList,
             hiddenSeriesIds: _hiddenSeriesIds,
@@ -152,7 +157,7 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         for (var figureIndex = 0; figureIndex < figures.length; figureIndex++) ...[
-          if (figureIndex > 0) HSpace.xl,
+          if (figureIndex > 0) const SizedBox(width: AppMetrics.spaceXl),
           Expanded(
             child: _headlineFigure(figures[figureIndex]),
           ),
@@ -166,12 +171,12 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(figure.label, style: AppText.caption),
-        VSpace.xs,
+        const SizedBox(height: AppMetrics.spaceXs),
         Text(
           formatCents(figure.cents),
           style: figure.cents < 0
-              ? AppText.headline.medium.error
-              : AppText.headline.medium,
+              ? _headlineAmountStyle.copyWith(color: AppColors.danger)
+              : _headlineAmountStyle,
         ),
       ],
     );
@@ -182,7 +187,8 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
       mainAxisSize: MainAxisSize.min,
       children: [
         for (final rate in TrendSpendRate.values) ...[
-          if (rate != TrendSpendRate.values.first) HSpace.xs,
+          if (rate != TrendSpendRate.values.first)
+            const SizedBox(width: AppMetrics.spaceXs),
           _settingsChip(
             label: rate.toggleLabel,
             isSelected: _spendRate == rate,
@@ -203,26 +209,26 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm,
+          horizontal: AppMetrics.spaceSm,
           vertical: 2,
         ),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.accentPrimary.withValues(alpha: 0.25)
-              : AppColors.backgroundDepth3,
-          borderRadius: BorderRadius.circular(AppRadius.sm),
+              ? FinanceColors.accentPrimary.withValues(alpha: 0.25)
+              : AppColors.surface,
+          borderRadius: BorderRadius.circular(AppMetrics.radiusSm),
           border: Border.all(
             color: isSelected
-                ? AppColors.accentPrimary
-                : AppColors.borderDepth1,
+                ? FinanceColors.accentPrimary
+                : AppColors.border,
           ),
         ),
         child: Text(
           label,
-          style: AppText.body.small.copyWith(
+          style: AppText.caption.copyWith(
             color: isSelected
-                ? AppColors.accentPrimary
-                : AppColors.textSupport,
+                ? FinanceColors.accentPrimary
+                : AppColors.textMuted,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
           ),
         ),
@@ -239,7 +245,7 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
 
   Widget _chartArea() {
     if (!_visibleSeries.any((series) => series.points.length >= 2)) {
-      return const SizedBox(
+      return SizedBox(
         height: 560,
         child: Center(
           child: Text('Need more history', style: AppText.caption),

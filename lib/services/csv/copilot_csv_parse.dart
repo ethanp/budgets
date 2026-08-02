@@ -5,10 +5,7 @@ import 'package:csv/csv.dart';
 
 /// Parsed Copilot Money CSV table (header map + data rows).
 class CopilotCsvTable {
-  const CopilotCsvTable({
-    required this.columns,
-    required this.dataRows,
-  });
+  const CopilotCsvTable({required this.columns, required this.dataRows});
 
   final CopilotCsvColumns columns;
   final List<List<dynamic>> dataRows;
@@ -61,7 +58,8 @@ class CopilotCsvColumns {
   final int excluded;
   final int recurring;
 
-  int get minimumWidth => [
+  int get minimumWidth =>
+      [
         date,
         name,
         amount,

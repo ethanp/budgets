@@ -1,0 +1,451 @@
+import 'package:ethan_ui/ethan_ui.dart';
+import 'package:ethan_utils/ethan_utils.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:spend_trends/domain/account.dart';
+import 'package:spend_trends/domain/account_kind.dart';
+import 'package:spend_trends/providers/spend_trends_providers.dart';
+import 'package:spend_trends/theme/finance_colors.dart';
+import 'package:spend_trends/widgets/app_sheet_panel.dart';
+
+class BankAccountBalanceRow extends ConsumerStatefulWidget {
+  const BankAccountBalanceRow({
+    required this.account,
+    required this.amountColumnWidth,
+    this.selected = false,
+    this.onSelected,
+  });
+
+  final Account account;
+  final double amountColumnWidth;
+  final bool selected;
+  final VoidCallback? onSelected;
+
+  @override
+  ConsumerState<BankAccountBalanceRow> createState() =>
+      _BankAccountBalanceRowState();
+}
+
+class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
+  late final TextEditingController _nameController;
+  late final FocusNode _focusNode;
+  bool _editing = false;
+  bool _saving = false;
+
+  Account get _account => widget.account;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: _account.displayName);
+    _focusNode = FocusNode()..addListener(_onFocusChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant BankAccountBalanceRow oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!_editing && oldWidget.account.displayName != _account.displayName) {
+      _nameController.text = _account.displayName;
+    }
+  }
+
+  @override
+  void dispose() {
+    _focusNode.removeListener(_onFocusChanged);
+    _focusNode.dispose();
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  void _onFocusChanged() {
+    if (_focusNode.hasFocus || !_editing) return;
+    _commitRename();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final exceptionLabel = _exceptionLabel(_account);
+    final isZero = _account.balanceCents == 0;
+    final nameStyle = exceptionLabel != null
+        ? AppText.body.copyWith(fontWeight: FontWeight.w600)
+        : AppText.body;
+
+    final nameRow = Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 280),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _editing
+                  ? TextField(
+                      controller: _nameController,
+                      focusNode: _focusNode,
+                      style: nameStyle.copyWith(color: AppColors.textPrimary),
+                      decoration: InputDecoration(
+                        isDense: true,
+                        hintText: _account.name,
+                        hintStyle: nameStyle.copyWith(color: AppColors.textMuted),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: AppMetrics.spaceSm,
+                          vertical: AppMetrics.spaceXs,
+                        ),
+                        filled: true,
+                        fillColor: AppColors.surfaceInset,
+                        border: OutlineInputBorder(
+                          borderRadius:
+                              AppMetrics.borderRadius(AppMetrics.radiusSm),
+                          borderSide: const BorderSide(color: AppColors.border),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius:
+                              AppMetrics.borderRadius(AppMetrics.radiusSm),
+                          borderSide: const BorderSide(color: AppColors.border),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius:
+                              AppMetrics.borderRadius(AppMetrics.radiusSm),
+                          borderSide: const BorderSide(
+                            color: FinanceColors.accentPrimary,
+                          ),
+                        ),
+                      ),
+                      enabled: !_saving,
+                      onSubmitted: (_) => _commitRename(),
+                    )
+                  : GestureDetector(
+                      onTap: _beginEditing,
+                      behavior: HitTestBehavior.opaque,
+                      child: Text(
+                        _account.displayName,
+                        style: nameStyle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+              const SizedBox(height: AppMetrics.spaceXs),
+              GestureDetector(
+                onTap: _saving ? null : () => _pickKind(context),
+                behavior: HitTestBehavior.opaque,
+                child: Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        _account.kind.legendLabel,
+                        style: AppText.caption.copyWith(
+                          color: AppColors.textMuted,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 2),
+                    const Icon(
+                      Icons.keyboard_arrow_down,
+                      size: 15,
+                      color: AppColors.textMuted,
+                    ),
+                  ],
+                ),
+              ),
+              if (_account.isCopilot) ...[
+                const SizedBox(height: AppMetrics.spaceXs),
+                GestureDetector(
+                  onTap: _saving ? null : () => _pickBelongsTo(context),
+                  behavior: HitTestBehavior.opaque,
+                  child: Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          _belongsToCaption(ref),
+                          style: AppText.caption.copyWith(
+                            color: AppColors.textMuted,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 2),
+                      const Icon(
+                        Icons.keyboard_arrow_down,
+                        size: 15,
+                        color: AppColors.textMuted,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(width: AppMetrics.spaceMd),
+        SizedBox(
+          width: widget.amountColumnWidth,
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              formatCents(_account.balanceCents),
+              style: isZero
+                  ? AppText.body.copyWith(color: AppColors.textMuted)
+                  : AppText.body.copyWith(fontWeight: FontWeight.w600),
+              maxLines: 1,
+              textAlign: TextAlign.right,
+            ),
+          ),
+        ),
+      ],
+    );
+
+    final body = exceptionLabel == null
+        ? nameRow
+        : Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              nameRow,
+              Text(
+                exceptionLabel,
+                style: AppText.caption.copyWith(color: AppColors.warning),
+              ),
+            ],
+          );
+
+    final decorated = widget.selected
+        ? AppSurface(
+            kind: AppSurfaceKind.tinted,
+            accent: FinanceColors.accentPrimary,
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppMetrics.spaceSm,
+              vertical: AppMetrics.spaceXs,
+            ),
+            borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
+            child: body,
+          )
+        : Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppMetrics.spaceSm,
+              vertical: AppMetrics.spaceXs,
+            ),
+            child: body,
+          );
+
+    if (widget.onSelected == null) return decorated;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: widget.onSelected,
+      child: decorated,
+    );
+  }
+
+  String _belongsToCaption(WidgetRef ref) {
+    final parentId = _account.belongsToAccountId;
+    if (parentId == null) return 'Belongs to: None';
+    final accounts = ref.watch(accountsMapProvider).asData?.value;
+    final parentName = accounts?[parentId]?.displayNameWithInstitution;
+    return 'Belongs to: ${parentName ?? 'Unknown'}';
+  }
+
+  Future<void> _pickKind(BuildContext context) async {
+    final selected = await showModalBottomSheet<AccountKind>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => AppSheetPanel.compact(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppMetrics.spaceLg,
+                AppMetrics.spaceLg,
+                AppMetrics.spaceLg,
+                AppMetrics.spaceSm,
+              ),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text('Account type', style: AppText.section),
+              ),
+            ),
+            for (final kind in AccountKind.values)
+              ListTile(
+                title: Text(
+                  kind.legendLabel,
+                  style: kind == _account.kind
+                      ? AppText.body.copyWith(fontWeight: FontWeight.w600)
+                      : AppText.body,
+                ),
+                onTap: () => Navigator.of(sheetContext).pop(kind),
+              ),
+            ListTile(
+              title: Text(
+                'Cancel',
+                style: AppText.body.copyWith(color: AppColors.textMuted),
+              ),
+              onTap: () => Navigator.of(sheetContext).pop(),
+            ),
+            const SizedBox(height: AppMetrics.spaceMd),
+          ],
+        ),
+      ),
+    );
+    if (selected == null || selected == _account.kind || !mounted) return;
+
+    setState(() => _saving = true);
+    try {
+      final repository = await ref.read(accountsRepositoryProvider.future);
+      await repository.updateKind(accountId: _account.id, kind: selected);
+      ref.read(spendDataChangedProvider.notifier).notify();
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _pickBelongsTo(BuildContext context) async {
+    final Map<String, Account>? accounts =
+        ref.read(accountsMapProvider).asData?.value;
+    if (accounts == null) return;
+
+    final parents = [
+      for (final account in accounts.values)
+        if (!account.isCopilot) account,
+    ]..sort(
+        (left, right) => left.displayName.toLowerCase().compareTo(
+              right.displayName.toLowerCase(),
+            ),
+      );
+
+    final selected = await showModalBottomSheet<String?>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => AppSheetPanel.compact(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppMetrics.spaceLg,
+                AppMetrics.spaceLg,
+                AppMetrics.spaceLg,
+                AppMetrics.spaceSm,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Belongs to', style: AppText.section),
+                  const SizedBox(height: AppMetrics.spaceXs),
+                  Text(
+                    'Combine this Copilot history with a SimpleFIN account in Trends.',
+                    style: AppText.caption,
+                  ),
+                ],
+              ),
+            ),
+            ListTile(
+              title: Text(
+                'None',
+                style: _account.belongsToAccountId == null
+                    ? AppText.body.copyWith(fontWeight: FontWeight.w600)
+                    : AppText.body,
+              ),
+              onTap: () => Navigator.of(sheetContext).pop(''),
+            ),
+            for (final parent in parents)
+              ListTile(
+                title: Text(
+                  parent.displayNameWithInstitution,
+                  style: parent.id == _account.belongsToAccountId
+                      ? AppText.body.copyWith(fontWeight: FontWeight.w600)
+                      : AppText.body,
+                ),
+                onTap: () => Navigator.of(sheetContext).pop(parent.id),
+              ),
+            ListTile(
+              title: Text(
+                'Cancel',
+                style: AppText.body.copyWith(color: AppColors.textMuted),
+              ),
+              onTap: () => Navigator.of(sheetContext).pop(),
+            ),
+            const SizedBox(height: AppMetrics.spaceMd),
+          ],
+        ),
+      ),
+    );
+    if (selected == null || !mounted) return;
+
+    final nextParentId = selected.isEmpty ? null : selected;
+    if (nextParentId == _account.belongsToAccountId) return;
+
+    setState(() => _saving = true);
+    try {
+      final repository = await ref.read(accountsRepositoryProvider.future);
+      await repository.updateBelongsTo(
+        accountId: _account.id,
+        belongsToAccountId: nextParentId,
+      );
+      ref.read(spendDataChangedProvider.notifier).notify();
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  void _beginEditing() {
+    setState(() {
+      _editing = true;
+      _nameController.text = _account.displayName;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _focusNode.requestFocus();
+      _nameController.selection = TextSelection(
+        baseOffset: 0,
+        extentOffset: _nameController.text.length,
+      );
+    });
+  }
+
+  Future<void> _commitRename() async {
+    if (!_editing || _saving) return;
+    final nextLabel = _nameController.text.trim();
+    final unchanged = nextLabel == _account.displayName ||
+        (nextLabel.isEmpty &&
+            (_account.userLabel == null || _account.userLabel!.isEmpty));
+    if (unchanged) {
+      setState(() => _editing = false);
+      return;
+    }
+
+    setState(() => _saving = true);
+    try {
+      final repository = await ref.read(accountsRepositoryProvider.future);
+      // Empty field clears custom label back to the official bank name.
+      final storedLabel =
+          nextLabel.isEmpty || nextLabel == _account.name ? null : nextLabel;
+      await repository.updateUserLabel(
+        accountId: _account.id,
+        userLabel: storedLabel,
+      );
+      ref.read(spendDataChangedProvider.notifier).notify();
+    } finally {
+      if (mounted) {
+        setState(() {
+          _saving = false;
+          _editing = false;
+        });
+      }
+    }
+  }
+
+  static String? _exceptionLabel(Account account) {
+    return switch (account.status) {
+      AccountStatus.ok => null,
+      AccountStatus.needsRelink => 'Needs re-link',
+      AccountStatus.stale => 'Stale',
+      AccountStatus.error => account.statusMessage?.trim().isNotEmpty == true
+          ? account.statusMessage
+          : 'Error',
+    };
+  }
+}

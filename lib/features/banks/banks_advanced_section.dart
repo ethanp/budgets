@@ -1,17 +1,16 @@
+import 'package:ethan_ui/ethan_ui.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spend_trends/features/banks/bank_pull_history_sheet.dart';
 import 'package:spend_trends/features/banks/banks_controller.dart';
 import 'package:spend_trends/features/banks/banks_pull_progress_sheet.dart';
 import 'package:spend_trends/features/settings/settings_section.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/services/simplefin/simplefin_access_store.dart';
-import 'package:spend_trends/theme/app_theme.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart' show SelectableText;
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Settings-only bank maintenance: full history re-fetch and disconnect.
 class BanksAdvancedSection extends ConsumerWidget {
-  const BanksAdvancedSection({super.key});
+  const BanksAdvancedSection();
 
   static const _style = SettingsSectionStyle.banks;
 
@@ -24,17 +23,17 @@ class BanksAdvancedSection extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SettingsSectionHeader(
-          icon: CupertinoIcons.building_2_fill,
+          icon: Icons.apartment,
           title: 'Banks',
           style: _style,
         ),
-        VSpace.md,
+        const SizedBox(height: AppMetrics.spaceMd),
         connectionAsync.when(
           skipLoadingOnReload: true,
-          loading: () => const CupertinoActivityIndicator(),
+          loading: () => const CircularProgressIndicator(),
           error: (error, _) => SelectableText(
             '$error',
-            style: AppText.body.medium.error,
+            style: AppText.body.copyWith(color: AppColors.danger),
           ),
           data: (status) => _body(context, ref, status, actionState),
         ),
@@ -60,7 +59,7 @@ class BanksAdvancedSection extends ConsumerWidget {
       children: [
         Text(_connectedCaption(status), style: SettingsType.sectionMeta),
         if (status.fromEnv) ...[
-          VSpace.sm,
+          const SizedBox(height: AppMetrics.spaceSm),
           const Text(
             'Access URL comes from '
             '${SimpleFinAccessStore.envAccessUrlKey} in .env. '
@@ -69,15 +68,15 @@ class BanksAdvancedSection extends ConsumerWidget {
           ),
         ],
         if (actionState.actionError != null) ...[
-          VSpace.sm,
+          const SizedBox(height: AppMetrics.spaceSm),
           SelectableText(
             actionState.actionError!,
-            style: AppText.body.small.error,
+            style: AppText.caption.copyWith(color: AppColors.danger),
           ),
         ],
-        VSpace.lg,
+        const SizedBox(height: AppMetrics.spaceLg),
         SettingsToolRow(
-          icon: CupertinoIcons.plus_circle,
+          icon: Icons.add_circle,
           title: 'Add account',
           caption: 'Opens SimpleFIN Bridge to link another institution.',
           onAction: () => ref
@@ -86,9 +85,9 @@ class BanksAdvancedSection extends ConsumerWidget {
           style: _style,
           busy: actionState.busy,
         ),
-        VSpace.lg,
+        const SizedBox(height: AppMetrics.spaceLg),
         SettingsToolRow(
-          icon: CupertinoIcons.clock,
+          icon: Icons.history,
           title: 'Pull history',
           caption:
               'Recent SimpleFIN pulls, including per-account outages and '
@@ -97,13 +96,13 @@ class BanksAdvancedSection extends ConsumerWidget {
           style: _style,
           busy: actionState.busy,
         ),
-        VSpace.lg,
+        const SizedBox(height: AppMetrics.spaceLg),
         SettingsToolRow(
-          icon: CupertinoIcons.cloud_download,
+          icon: Icons.cloud_download,
           title: 'Re-download all history',
           caption:
-              'Fetches ~2 years from SimpleFIN again. Everyday “Pull bank '
-              'transactions” only covers since the last SimpleFIN update '
+              'Fetches ~2 years from SimpleFIN again. Everyday "Pull bank '
+              'transactions" only covers since the last SimpleFIN update '
               '(window starts 2 days earlier).',
           onAction: () => BanksPullProgressSheet.showAndRun(
             context,
@@ -114,9 +113,9 @@ class BanksAdvancedSection extends ConsumerWidget {
           style: _style,
           busy: actionState.busy,
         ),
-        VSpace.lg,
+        const SizedBox(height: AppMetrics.spaceLg),
         SettingsToolRow(
-          icon: CupertinoIcons.trash,
+          icon: Icons.delete,
           title: 'Disconnect & erase',
           caption: 'Removes the connection and local accounts/transactions.',
           onAction: () => _disconnect(context, ref),

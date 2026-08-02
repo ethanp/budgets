@@ -1,10 +1,11 @@
 import 'package:spend_trends/domain/category.dart';
 import 'package:spend_trends/domain/category_group.dart';
 import 'package:spend_trends/domain/special_category.dart';
-import 'package:spend_trends/theme/app_theme.dart';
+import 'package:spend_trends/theme/finance_colors.dart';
 import 'package:spend_trends/util/category_color.dart';
 import 'package:spend_trends/widgets/category_pick_chip.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:ethan_ui/ethan_ui.dart';
+import 'package:flutter/material.dart';
 
 /// One titled block of category chips (group, ungrouped, or cash flow).
 class CategoryPickerSection {
@@ -34,7 +35,7 @@ class CategoryPickerSections {
     final flow = <SpendCategory>[];
 
     for (final category in categories) {
-      if (SpecialCategory.isFlowId(category.id)) {
+      if (category.isFlow) {
         flow.add(category);
         continue;
       }
@@ -77,7 +78,6 @@ class CategoryPickerSections {
 /// Renders [CategoryPickerSections] as titled chip wraps.
 class CategoryPicker extends StatelessWidget {
   const CategoryPicker({
-    super.key,
     required this.categories,
     required this.groups,
     required this.selectedId,
@@ -99,7 +99,7 @@ class CategoryPicker extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         for (var index = 0; index < sections.length; index++) ...[
-          if (index > 0) VSpace.md,
+          if (index > 0) const SizedBox(height: AppMetrics.spaceMd),
           _CategoryPickerSectionBlock(
             section: sections[index],
             selectedId: selectedId,
@@ -130,15 +130,16 @@ class _CategoryPickerSectionBlock extends StatelessWidget {
         if (section.title != null) ...[
           Text(
             section.title!,
-            style: AppText.body.small.semibold.copyWith(
-              color: AppColors.accentPrimary,
+            style: AppText.caption.copyWith(
+              fontWeight: FontWeight.w600,
+              color: FinanceColors.accentPrimary,
             ),
           ),
-          VSpace.xs,
+          const SizedBox(height: AppMetrics.spaceXs),
         ],
         Wrap(
-          spacing: AppSpacing.sm,
-          runSpacing: AppSpacing.sm,
+          spacing: AppMetrics.spaceSm,
+          runSpacing: AppMetrics.spaceSm,
           children: [
             for (final category in section.categories)
               CategoryPickChip(

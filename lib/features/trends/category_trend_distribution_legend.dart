@@ -1,19 +1,18 @@
 import 'dart:math' as math;
 
+import 'package:ethan_ui/ethan_ui.dart';
+import 'package:ethan_utils/ethan_utils.dart';
+import 'package:flutter/material.dart';
 import 'package:spend_trends/domain/trend_spend_rate.dart';
 import 'package:spend_trends/features/trends/category_trend_distribution.dart';
 import 'package:spend_trends/features/trends/category_trend_series.dart';
 import 'package:spend_trends/features/trends/distribution_whisker_painter.dart';
 import 'package:spend_trends/features/trends/trend_legend_swatch.dart';
 import 'package:spend_trends/features/trends/trend_value_scale.dart';
-import 'package:spend_trends/theme/app_theme.dart';
-import 'package:ethan_utils/ethan_utils.dart';
-import 'package:flutter/cupertino.dart';
 
 /// Shared-scale min/med/avg/max/now whiskers for ranked category/group series.
 class CategoryTrendDistributionLegend extends StatelessWidget {
   const CategoryTrendDistributionLegend({
-    super.key,
     required this.seriesList,
     required this.hiddenSeriesIds,
     required this.spendRate,
@@ -31,7 +30,7 @@ class CategoryTrendDistributionLegend extends StatelessWidget {
   static const _labelBlockHeight = 66.0;
   static const _columnWidth = 96.0;
   static const _axisWidth = 44.0;
-  static const _columnGap = AppSpacing.sm;
+  static const _columnGap = AppMetrics.spaceSm;
   static const _gridOverhang = 12.0;
 
   @override
@@ -66,7 +65,7 @@ class CategoryTrendDistributionLegend extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const DistributionWhiskerSymbolKey(),
-        VSpace.sm,
+        const SizedBox(height: AppMetrics.spaceSm),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -84,7 +83,7 @@ class CategoryTrendDistributionLegend extends StatelessWidget {
                 ],
               ),
             ),
-            HSpace.xs,
+            const SizedBox(width: AppMetrics.spaceXs),
             Expanded(
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -217,7 +216,7 @@ class _DistributionColumn extends StatelessWidget {
     final nowLabel =
         nowCents == null ? '—' : formatAnnualized(nowCents.round());
     final periodLabelStyle = AppText.caption.copyWith(
-      color: isHidden ? AppColors.textDim : AppColors.textSupport,
+      color: isHidden ? AppColors.textMuted : AppColors.textMuted,
       fontSize: 9,
       height: 1,
     );
@@ -241,11 +240,11 @@ class _DistributionColumn extends StatelessWidget {
                       child: Text(
                         series.name,
                         style: isHidden
-                            ? AppText.body.small.copyWith(
-                                color: AppColors.textDim,
+                            ? AppText.caption.copyWith(
+                                color: AppColors.textMuted,
                                 fontSize: 11,
                               )
-                            : AppText.body.small.copyWith(fontSize: 11),
+                            : AppText.caption.copyWith(fontSize: 11),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -255,8 +254,8 @@ class _DistributionColumn extends StatelessWidget {
                 Text(
                   nowLabel,
                   style: isHidden
-                      ? AppText.caption.copyWith(color: AppColors.textDim)
-                      : AppText.caption.copyWith(color: AppColors.textBody),
+                      ? AppText.caption.copyWith(color: AppColors.textMuted)
+                      : AppText.caption.copyWith(color: AppColors.textSecondary),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
@@ -287,12 +286,12 @@ class _DistributionColumn extends StatelessWidget {
                         pastYearTotalLabel,
                         style: isHidden
                             ? AppText.caption.copyWith(
-                                color: AppColors.textDim,
+                                color: AppColors.textMuted,
                                 fontSize: 10,
                                 height: 1.1,
                               )
                             : AppText.caption.copyWith(
-                                color: AppColors.textBody,
+                                color: AppColors.textSecondary,
                                 fontSize: 10,
                                 height: 1.1,
                                 fontWeight: FontWeight.w600,
@@ -320,7 +319,7 @@ class _DistributionColumn extends StatelessWidget {
   Widget _buildWhiskerPair() {
     final distributionPair = pair;
     if (distributionPair == null || distributionPair.isEmpty) {
-      return const Center(
+      return Center(
         child: Text('—', style: AppText.caption),
       );
     }
@@ -363,7 +362,7 @@ class _DistributionWhisker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (distribution == null) {
-      return const Center(child: Text('—', style: AppText.caption));
+      return Center(child: Text('—', style: AppText.caption));
     }
     return CustomPaint(
       painter: DistributionWhiskerPainter(

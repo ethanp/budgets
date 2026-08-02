@@ -1,12 +1,12 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spend_trends/domain/categorizer.dart';
 import 'package:spend_trends/features/settings/settings_section.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Releases Copilot user-locked categories to suggested and removes bad import rules.
 class UnlockCopilotCategoriesTile extends ConsumerStatefulWidget {
-  const UnlockCopilotCategoriesTile({super.key});
+  const UnlockCopilotCategoriesTile();
 
   @override
   ConsumerState<UnlockCopilotCategoriesTile> createState() =>
@@ -22,7 +22,7 @@ class _UnlockCopilotCategoriesTileState
   @override
   Widget build(BuildContext context) {
     return SettingsToolRow(
-      icon: CupertinoIcons.arrow_right_arrow_left,
+      icon: Icons.swap_horiz,
       title: 'Unlock Copilot categories',
       caption:
           'Unlock imported overrides to suggested; delete bad default rules.',

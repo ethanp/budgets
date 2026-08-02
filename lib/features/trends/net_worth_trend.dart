@@ -5,10 +5,9 @@ import 'package:spend_trends/features/trends/category_trend_point.dart';
 import 'package:spend_trends/features/trends/category_trend_series.dart';
 import 'package:spend_trends/features/trends/centered_moving_average.dart';
 import 'package:spend_trends/features/trends/trend_chart_catalog.dart';
-import 'package:spend_trends/features/trends/trend_series_significance.dart';
 import 'package:spend_trends/util/account_kind_color.dart';
 import 'package:ethan_utils/ethan_utils.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
 /// Reconstructs daily net worth from current balances + later transactions.
 class NetWorthTrend {
@@ -142,7 +141,7 @@ class NetWorthTrend {
         final isLiability = account.balanceCents < 0;
         final built = _levelSeries(
           id: TrendChartCatalog.accountSeriesId(account.id),
-          name: account.displayName,
+          name: account.displayNameWithInstitution,
           lineColor: AccountKindColor.forAccount(
             kind: group.kind,
             accountId: account.id,
@@ -224,7 +223,7 @@ class NetWorthTrend {
       legendGroup: legendGroup,
       points: CenteredMovingAverage.standard.smoothPoints(rawPoints),
     );
-    if (!TrendSeriesSignificance.hasMeaningfulTrend(built)) return null;
+    if (!built.hasMeaningfulTrend) return null;
     return built;
   }
 }

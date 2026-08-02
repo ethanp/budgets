@@ -1,22 +1,16 @@
+import 'package:ethan_ui/ethan_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:spend_trends/features/shell/main_tab_screen.dart';
-import 'package:spend_trends/theme/app_theme.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart' show DefaultMaterialLocalizations;
 
 class SpendTrendsApp extends StatelessWidget {
-  const SpendTrendsApp({super.key});
+  const SpendTrendsApp();
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoApp(
+    return MaterialApp(
       title: 'Spend Trends',
-      theme: buildAppTheme(),
+      theme: AppTheme.build(),
       debugShowCheckedModeBanner: false,
-      localizationsDelegates: const [
-        DefaultMaterialLocalizations.delegate,
-        DefaultCupertinoLocalizations.delegate,
-        DefaultWidgetsLocalizations.delegate,
-      ],
       home: const MainTabScreen(),
     );
   }

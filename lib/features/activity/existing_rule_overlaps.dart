@@ -1,10 +1,11 @@
+import 'package:ethan_ui/ethan_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:spend_trends/features/activity/overlapping_merchant_contains_rules.dart';
-import 'package:spend_trends/theme/app_theme.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:spend_trends/theme/finance_colors.dart';
 
 /// Chips for existing contains-rules that overlap a candidate pattern.
 class ExistingRuleOverlaps extends StatelessWidget {
-  const ExistingRuleOverlaps({super.key, required this.overlaps});
+  const ExistingRuleOverlaps({required this.overlaps});
 
   final List<RelatedExistingRule> overlaps;
 
@@ -17,21 +18,21 @@ class ExistingRuleOverlaps extends StatelessWidget {
       child: overlaps.isEmpty
           ? const SizedBox(width: double.infinity)
           : Padding(
-              padding: const EdgeInsets.only(top: AppSpacing.sm),
+              padding: const EdgeInsets.only(top: AppMetrics.spaceSm),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Overlaps existing rules',
                     style: AppText.caption.copyWith(
-                      color: AppColors.textDim,
+                      color: AppColors.textMuted,
                       letterSpacing: 0.2,
                     ),
                   ),
-                  VSpace.xs,
+                  const SizedBox(height: AppMetrics.spaceXs),
                   Wrap(
-                    spacing: AppSpacing.sm,
-                    runSpacing: AppSpacing.sm,
+                    spacing: AppMetrics.spaceSm,
+                    runSpacing: AppMetrics.spaceSm,
                     children: [
                       for (final entry in overlaps)
                         _RelatedRuleChip(entry: entry),
@@ -52,18 +53,18 @@ class _RelatedRuleChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = switch (entry.relation) {
-      RelatedRuleRelation.same => AppColors.accentPrimary,
-      RelatedRuleRelation.broader => AppColors.accentSecondary,
-      RelatedRuleRelation.narrower => AppColors.housing,
+      RelatedRuleRelation.same => FinanceColors.accentPrimary,
+      RelatedRuleRelation.broader => FinanceColors.accentSecondary,
+      RelatedRuleRelation.narrower => FinanceColors.housing,
     };
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
+        horizontal: AppMetrics.spaceMd,
+        vertical: AppMetrics.spaceSm,
       ),
       decoration: BoxDecoration(
         color: accent.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppRadius.sm),
+        borderRadius: BorderRadius.circular(AppMetrics.radiusSm),
         border: Border.all(color: accent.withValues(alpha: 0.35)),
       ),
       child: Text.rich(
@@ -78,7 +79,7 @@ class _RelatedRuleChip extends StatelessWidget {
             ),
             TextSpan(
               text: '“${entry.rule.pattern}” → ${entry.categoryName}',
-              style: AppText.caption.copyWith(color: AppColors.textBody),
+              style: AppText.caption.copyWith(color: AppColors.textSecondary),
             ),
           ],
         ),

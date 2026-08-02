@@ -1,5 +1,5 @@
+import 'package:flutter/material.dart';
 import 'package:spend_trends/features/trends/category_trend_point.dart';
-import 'package:flutter/cupertino.dart';
 
 class CategoryTrendSeries {
   const CategoryTrendSeries({
@@ -36,4 +36,21 @@ class CategoryTrendSeries {
 
   double get latestRollingCents =>
       points.isEmpty ? 0 : points.last.rollingCents;
+
+  static const minMeaningfulCents = 100.0;
+
+  /// Enough magnitude to show in Trends (smoothed or rolling).
+  bool get hasMeaningfulTrend {
+    for (final point in points) {
+      if (point.smoothedCents.abs() >= minMeaningfulCents ||
+          point.rollingCents.abs() >= minMeaningfulCents) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Catch-all "Other" category series (by id or display name).
+  bool get isOtherCategory =>
+      id == 'cat_other' || name.toLowerCase() == 'other';
 }

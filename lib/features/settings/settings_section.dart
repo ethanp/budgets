@@ -1,5 +1,6 @@
-import 'package:spend_trends/theme/app_theme.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:ethan_ui/ethan_ui.dart';
+import 'package:flutter/material.dart';
+import 'package:spend_trends/theme/finance_colors.dart';
 
 /// Per-section accent used for icons, links, and hairlines.
 class SettingsSectionStyle {
@@ -8,9 +9,9 @@ class SettingsSectionStyle {
   final Color accent;
 
   /// Banks — teal (money / SimpleFIN).
-  static const banks = SettingsSectionStyle(accent: AppColors.accentPrimary);
+  static const banks = SettingsSectionStyle(accent: FinanceColors.accentPrimary);
 
-  /// Sync — cool indigo.
+  /// Sync — cool indigo (near console chrome).
   static const sync = SettingsSectionStyle(accent: Color(0xFF7B8CDE));
 
   /// Maintenance — muted clay (not bright yellow).
@@ -22,68 +23,68 @@ class SettingsType {
   SettingsType._();
 
   static const sectionTitle = TextStyle(
-    fontSize: 22,
+    fontSize: 26,
     fontWeight: FontWeight.w700,
-    color: AppColors.textBright,
+    color: AppColors.textPrimary,
     height: 1.15,
     letterSpacing: -0.4,
   );
 
   static const sectionMeta = TextStyle(
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: FontWeight.w400,
-    color: AppColors.textDim,
+    color: AppColors.textMuted,
     height: 1.35,
   );
 
   static const institution = TextStyle(
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: FontWeight.w700,
-    color: AppColors.textSupport,
+    color: AppColors.textMuted,
     height: 1.2,
     letterSpacing: 0.9,
   );
 
   static const rowTitle = TextStyle(
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: FontWeight.w400,
-    color: AppColors.textBody,
+    color: AppColors.textSecondary,
     height: 1.3,
   );
 
   static const rowTitleEmphasis = TextStyle(
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: FontWeight.w600,
-    color: AppColors.textBright,
+    color: AppColors.textPrimary,
     height: 1.3,
   );
 
   static const toolTitle = TextStyle(
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: FontWeight.w600,
-    color: AppColors.textBright,
+    color: AppColors.textPrimary,
     height: 1.25,
   );
 
   static const toolCaption = TextStyle(
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: FontWeight.w400,
-    color: AppColors.textDim,
+    color: AppColors.textMuted,
     height: 1.35,
   );
 
   static const amount = TextStyle(
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: FontWeight.w600,
-    color: AppColors.textBright,
+    color: AppColors.textPrimary,
     height: 1.3,
     fontFeatures: [FontFeature.tabularFigures()],
   );
 
   static const amountMuted = TextStyle(
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: FontWeight.w400,
-    color: AppColors.textDim,
+    color: AppColors.textMuted,
     height: 1.3,
     fontFeatures: [FontFeature.tabularFigures()],
   );
@@ -92,10 +93,9 @@ class SettingsType {
 /// Bare accent icon — no chip background.
 class SettingsGlyph extends StatelessWidget {
   const SettingsGlyph({
-    super.key,
     required this.icon,
     required this.style,
-    this.size = 22,
+    this.size = 26,
   });
 
   final IconData icon;
@@ -115,7 +115,6 @@ class SettingsGlyph extends StatelessWidget {
 /// Icon + title (+ optional caption) for a Settings page section.
 class SettingsSectionHeader extends StatelessWidget {
   const SettingsSectionHeader({
-    super.key,
     required this.icon,
     required this.title,
     required this.style,
@@ -133,14 +132,14 @@ class SettingsSectionHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         SettingsGlyph(icon: icon, style: style),
-        HSpace.md,
+        const SizedBox(width: AppMetrics.spaceMd),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(title, style: SettingsType.sectionTitle),
               if (caption != null) ...[
-                VSpace.xs,
+                const SizedBox(height: AppMetrics.spaceXs),
                 Text(caption!, style: SettingsType.sectionMeta),
               ],
             ],
@@ -151,10 +150,9 @@ class SettingsSectionHeader extends StatelessWidget {
   }
 }
 
-/// Full-row maintenance control with a left-weighted accent gradient.
+/// Full-row maintenance control with metal fill + finance accent overlay.
 class SettingsToolRow extends StatelessWidget {
   const SettingsToolRow({
-    super.key,
     required this.icon,
     required this.title,
     required this.caption,
@@ -178,97 +176,84 @@ class SettingsToolRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoButton(
-      padding: EdgeInsets.zero,
-      minimumSize: Size.zero,
-      onPressed: busy ? null : onAction,
-      child: AnimatedOpacity(
-        duration: const Duration(milliseconds: 150),
-        opacity: busy ? 0.7 : 1,
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppRadius.sm),
-            border: Border.all(
-              color: style.accent.withValues(alpha: 0.28),
-            ),
-            gradient: LinearGradient(
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-              colors: [
-                style.accent.withValues(alpha: 0.22),
-                style.accent.withValues(alpha: 0.08),
-                AppColors.backgroundDepth2.withValues(alpha: 0.55),
-                AppColors.backgroundDepth1.withValues(alpha: 0.2),
-              ],
-              stops: const [0.0, 0.22, 0.65, 1.0],
-            ),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SettingsGlyph(icon: icon, style: style),
-              HSpace.md,
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: SettingsType.toolTitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    VSpace.xs,
-                    Text(
-                      caption,
-                      style: SettingsType.toolCaption,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (progress != null) ...[
-                      VSpace.sm,
-                      progress!,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: busy ? null : onAction,
+        borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
+        child: AnimatedOpacity(
+          duration: const Duration(milliseconds: 150),
+          opacity: busy ? 0.7 : 1,
+          child: AppSurface(
+            kind: AppSurfaceKind.tinted,
+            accent: style.accent,
+            padding: const EdgeInsets.all(AppMetrics.spaceMd),
+            borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SettingsGlyph(icon: icon, style: style),
+                const SizedBox(width: AppMetrics.spaceMd),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: SettingsType.toolTitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: AppMetrics.spaceXs),
+                      Text(
+                        caption,
+                        style: SettingsType.toolCaption,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (progress != null) ...[
+                        const SizedBox(height: AppMetrics.spaceSm),
+                        progress!,
+                      ],
+                      if (message != null) ...[
+                        const SizedBox(height: AppMetrics.spaceXs),
+                        Text(message!, style: SettingsType.sectionMeta),
+                      ],
                     ],
-                    if (message != null) ...[
-                      VSpace.xs,
-                      Text(message!, style: SettingsType.sectionMeta),
-                    ],
-                  ],
-                ),
-              ),
-              if (busy && onCancel != null) ...[
-                HSpace.sm,
-                CupertinoButton(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.sm,
-                    vertical: AppSpacing.xs,
                   ),
-                  minimumSize: Size.zero,
-                  onPressed: onCancel,
-                  child: Text(
-                    'Cancel',
-                    style: AppText.body.small.semibold.copyWith(
+                ),
+                if (busy && onCancel != null) ...[
+                  const SizedBox(width: AppMetrics.spaceSm),
+                  TextButton(
+                    onPressed: onCancel,
+                    child: Text(
+                      'Cancel',
+                      style: AppText.caption.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: style.accent,
+                      ),
+                    ),
+                  ),
+                ] else if (busy) ...[
+                  const SizedBox(width: AppMetrics.spaceSm),
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
                       color: style.accent,
                     ),
                   ),
-                ),
-              ] else if (busy) ...[
-                HSpace.sm,
-                CupertinoActivityIndicator(
-                  radius: 8,
-                  color: style.accent,
-                ),
-              ] else ...[
-                HSpace.sm,
-                Icon(
-                  CupertinoIcons.chevron_right,
-                  size: 14,
-                  color: style.accent.withValues(alpha: 0.7),
-                ),
+                ] else ...[
+                  const SizedBox(width: AppMetrics.spaceSm),
+                  Icon(
+                    Icons.chevron_right,
+                    size: 14,
+                    color: style.accent.withValues(alpha: 0.7),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
@@ -277,14 +262,14 @@ class SettingsToolRow extends StatelessWidget {
 }
 
 class SettingsHairline extends StatelessWidget {
-  const SettingsHairline({super.key, this.style});
+  const SettingsHairline({this.style});
 
   final SettingsSectionStyle? style;
 
   @override
   Widget build(BuildContext context) {
     final color = style == null
-        ? AppColors.borderDepth1
+        ? AppColors.border
         : style!.accent.withValues(alpha: 0.35);
     return Container(height: 1, color: color);
   }
@@ -293,7 +278,6 @@ class SettingsHairline extends StatelessWidget {
 /// Thin accent progress bar shared by long-running maintenance tools.
 class SettingsProgressBar extends StatelessWidget {
   const SettingsProgressBar({
-    super.key,
     required this.fraction,
     required this.label,
     required this.style,
@@ -314,7 +298,7 @@ class SettingsProgressBar extends StatelessWidget {
             height: 6,
             child: Stack(
               children: [
-                Container(color: AppColors.backgroundDepth5),
+                Container(color: AppColors.surfaceInset),
                 FractionallySizedBox(
                   widthFactor: fraction.clamp(0.0, 1.0),
                   child: Container(color: style.accent),
@@ -323,7 +307,7 @@ class SettingsProgressBar extends StatelessWidget {
             ),
           ),
         ),
-        VSpace.xs,
+        const SizedBox(height: AppMetrics.spaceXs),
         Text(label, style: SettingsType.sectionMeta),
       ],
     );

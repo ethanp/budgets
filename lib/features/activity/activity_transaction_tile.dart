@@ -1,30 +1,33 @@
+import 'package:ethan_ui/ethan_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:spend_trends/domain/account.dart';
 import 'package:spend_trends/domain/category.dart';
 import 'package:spend_trends/domain/special_category.dart';
 import 'package:spend_trends/domain/transaction.dart';
-import 'package:spend_trends/theme/app_theme.dart';
+import 'package:spend_trends/features/activity/activity_column_widths.dart';
+import 'package:spend_trends/theme/finance_colors.dart';
 import 'package:spend_trends/util/category_color.dart';
-import 'package:ethan_utils/ethan_utils.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:spend_trends/widgets/transaction_list_row.dart';
 
-/// One Activity row: merchant + amount first, then category, then metadata.
+/// One Activity row: [category | account | title | amount].
 class ActivityTransactionTile extends StatelessWidget {
   const ActivityTransactionTile({
-    super.key,
     required this.transaction,
     required this.account,
     required this.category,
-    required this.categorySourceLabel,
     required this.onTap,
+    required this.columnWidths,
     this.onRuleTap,
+    this.selected = false,
   });
 
   final BankTransaction transaction;
   final Account? account;
   final SpendCategory? category;
-  final String? categorySourceLabel;
   final VoidCallback onTap;
   final VoidCallback? onRuleTap;
+  final bool selected;
+  final ActivityColumnWidths columnWidths;
 
   @override
   Widget build(BuildContext context) {
@@ -33,231 +36,122 @@ class ActivityTransactionTile extends StatelessWidget {
       categoryName: category?.name,
       groupId: category?.groupId,
     );
-
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.backgroundDepth3,
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(color: AppColors.borderDepth1),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Container(width: 4, color: categoryColor),
-              Expanded(child: _buildBody(categoryColor)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBody(Color categoryColor) {
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildMerchantAmountRow(),
-          VSpace.sm,
-          _buildCategoryChip(categoryColor),
-          if (_hasSecondaryBlock) ...[
-            VSpace.sm,
-            Container(
-              height: 1,
-              color: AppColors.borderDepth1.withValues(alpha: 0.7),
-            ),
-            VSpace.sm,
-            if (_hasMetaRow) _buildMetaChips(),
-            if (categorySourceLabel != null) ...[
-              if (_hasMetaRow) VSpace.xs,
-              _buildProvenanceLine(),
-            ],
-            if (_hasNote) ...[
-              VSpace.xs,
-              _buildNoteLine(),
-            ],
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMerchantAmountRow() {
     final merchantName = transaction.rawDescription.isEmpty
         ? transaction.normalizedMerchant
         : transaction.rawDescription;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
+    return TransactionListRow(
+      categoryColor: categoryColor,
+      title: merchantName,
+      amountCents: transaction.amountCents,
+      amountColor: _amountColor,
+      selected: selected,
+      onTap: onTap,
+      leadingCells: [
+        TransactionListRow.cell(
+          width: columnWidths.category,
           child: Text(
-            merchantName,
-            style: AppText.body.large.semibold.copyWith(
-              color: AppColors.textBright,
-              height: 1.25,
+            category?.name ?? 'Uncategorized',
+            style: AppText.caption.copyWith(
+              fontWeight: FontWeight.w600,
+              color: categoryColor,
             ),
-            maxLines: 2,
+            maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        HSpace.md,
-        Text(
-          formatCents(transaction.amountCents),
-          style: AppText.body.large.semibold.copyWith(
-            color: _amountColor,
-            height: 1.25,
-            fontFeatures: const [FontFeature.tabularFigures()],
+        TransactionListRow.cell(
+          width: columnWidths.account,
+          child: Text(
+            account?.displayNameWithInstitution ?? '—',
+            style: AppText.caption.copyWith(
+              color: AppColors.textMuted,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
+      trailing: _trailing(),
     );
   }
 
-  Widget _buildCategoryChip(Color categoryColor) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: categoryColor.withValues(alpha: 0.16),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: categoryColor.withValues(alpha: 0.35)),
-      ),
-      child: Text(
-        category?.name ?? 'Uncategorized',
-        style: AppText.body.small.semibold.copyWith(
-          color: categoryColor,
-          fontSize: 12,
-          height: 1.2,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMetaChips() {
-    return Wrap(
-      spacing: AppSpacing.xs,
-      runSpacing: AppSpacing.xs,
+  Widget? _trailing() {
+    final statusIcons = _statusIcons();
+    final ruleButton = onRuleTap == null
+        ? null
+        : Tooltip(
+            message: 'Manage categorization rule',
+            child: TextButton(
+              onPressed: onRuleTap,
+              style: TextButton.styleFrom(
+                foregroundColor: FinanceColors.accentPrimary,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppMetrics.spaceSm,
+                ),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                visualDensity: VisualDensity.compact,
+              ),
+              child: Text(
+                'Rule',
+                style: AppText.caption.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: FinanceColors.accentPrimary,
+                ),
+              ),
+            ),
+          );
+    if (statusIcons == null && ruleButton == null) return null;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        if (account != null)
-          _MetaChip(label: account!.displayName, tone: _MetaChipTone.neutral),
-        if (transaction.pending)
-          const _MetaChip(label: 'Pending', tone: _MetaChipTone.warning),
-        if (transaction.excluded)
-          const _MetaChip(label: 'Excluded', tone: _MetaChipTone.danger),
-        if (transaction.recurringSeries != null)
-          const _MetaChip(label: 'Recurring', tone: _MetaChipTone.accent),
+        ?statusIcons,
+        if (statusIcons != null && ruleButton != null)
+          const SizedBox(width: AppMetrics.spaceXs),
+        ?ruleButton,
       ],
     );
   }
 
-  Widget _buildProvenanceLine() {
-    final label = Text(
-      categorySourceLabel!,
-      style: AppText.caption.copyWith(
-        color: AppColors.accentPrimary.withValues(alpha: 0.9),
-        height: 1.25,
-      ),
-      maxLines: 2,
-      overflow: TextOverflow.ellipsis,
-    );
-    if (onRuleTap == null) return label;
-    return GestureDetector(
-      onTap: onRuleTap,
-      behavior: HitTestBehavior.opaque,
-      child: label,
+  Widget? _statusIcons() {
+    if (!transaction.pending &&
+        !transaction.excluded &&
+        transaction.recurringSeries == null) {
+      return null;
+    }
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (transaction.pending)
+          const Icon(
+            Icons.schedule,
+            size: 15,
+            color: AppColors.warning,
+          ),
+        if (transaction.excluded)
+          const Icon(
+            Icons.visibility_off,
+            size: 15,
+            color: AppColors.danger,
+          ),
+        if (transaction.recurringSeries != null)
+          const Icon(
+            Icons.sync,
+            size: 15,
+            color: FinanceColors.accentPrimary,
+          ),
+      ],
     );
   }
-
-  Widget _buildNoteLine() {
-    return Text(
-      transaction.note!.trim(),
-      style: AppText.caption.copyWith(
-        color: AppColors.textDim,
-        fontStyle: FontStyle.italic,
-      ),
-      maxLines: 2,
-      overflow: TextOverflow.ellipsis,
-    );
-  }
-
-  bool get _hasMetaRow =>
-      account != null ||
-      transaction.pending ||
-      transaction.excluded ||
-      transaction.recurringSeries != null;
-
-  bool get _hasNote =>
-      transaction.note != null && transaction.note!.trim().isNotEmpty;
-
-  bool get _hasSecondaryBlock =>
-      _hasMetaRow || categorySourceLabel != null || _hasNote;
 
   Color get _amountColor {
-    if (SpecialCategory.isTransferId(category?.id)) {
-      return AppColors.accentSecondary;
+    if (category?.isTransfer == true) {
+      return FinanceColors.accentSecondary;
     }
-    if (transaction.isInflow || SpecialCategory.isIncomeId(category?.id)) {
+    if (transaction.isInflow || category?.isIncome == true) {
       return AppColors.success;
     }
-    return AppColors.error;
-  }
-}
-
-enum _MetaChipTone { neutral, warning, danger, accent }
-
-class _MetaChip extends StatelessWidget {
-  const _MetaChip({required this.label, required this.tone});
-
-  final String label;
-  final _MetaChipTone tone;
-
-  @override
-  Widget build(BuildContext context) {
-    final (Color foreground, Color background, Color border) = switch (tone) {
-      _MetaChipTone.neutral => (
-          AppColors.textSupport,
-          AppColors.backgroundDepth5,
-          AppColors.borderDepth1,
-        ),
-      _MetaChipTone.warning => (
-          AppColors.warning,
-          AppColors.warning.withValues(alpha: 0.12),
-          AppColors.warning.withValues(alpha: 0.35),
-        ),
-      _MetaChipTone.danger => (
-          AppColors.error,
-          AppColors.error.withValues(alpha: 0.12),
-          AppColors.error.withValues(alpha: 0.35),
-        ),
-      _MetaChipTone.accent => (
-          AppColors.accentPrimary,
-          AppColors.accentPrimary.withValues(alpha: 0.12),
-          AppColors.accentPrimary.withValues(alpha: 0.35),
-        ),
-    };
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: border),
-      ),
-      child: Text(
-        label,
-        style: AppText.caption.copyWith(
-          color: foreground,
-          fontSize: 11,
-          height: 1.2,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
+    return AppColors.danger;
   }
 }

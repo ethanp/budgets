@@ -111,14 +111,16 @@ class CategoriesRepository {
     required String categoryId,
     required String name,
   }) async {
-    if (SpecialCategory.isSpecialId(categoryId)) {
-      throw StateError('Built-in categories cannot be renamed.');
+    if (SpecialCategory.isFlowId(categoryId)) {
+      throw StateError('Cash-flow categories cannot be renamed.');
     }
     final trimmedName = name.trim();
     if (trimmedName.isEmpty) {
       throw ArgumentError('Category name is required.');
     }
-    if (SpecialCategory.isReservedName(trimmedName)) {
+    if (SpecialCategory.isReservedName(trimmedName) &&
+        !(SpecialCategory.isHousingId(categoryId) &&
+            SpecialCategory.isHousingName(trimmedName))) {
       throw ArgumentError(
         '"$trimmedName" is reserved for a built-in category.',
       );
@@ -149,8 +151,8 @@ class CategoriesRepository {
     required String categoryId,
     String? groupId,
   }) async {
-    if (SpecialCategory.isSpecialId(categoryId)) {
-      throw StateError('Built-in categories cannot join a group.');
+    if (SpecialCategory.isFlowId(categoryId)) {
+      throw StateError('Cash-flow categories cannot join a group.');
     }
     if (groupId != null) {
       await _requireGroup(groupId);

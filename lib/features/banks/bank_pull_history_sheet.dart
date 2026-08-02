@@ -1,22 +1,24 @@
+import 'package:ethan_ui/ethan_ui.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:spend_trends/features/banks/banks_controller.dart';
 import 'package:spend_trends/features/banks/banks_pull_progress_sheet.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/services/sqlite/simplefin_pull_history.dart';
-import 'package:spend_trends/theme/app_theme.dart';
+import 'package:spend_trends/theme/finance_colors.dart';
 import 'package:spend_trends/widgets/app_primary_button.dart';
 import 'package:spend_trends/widgets/app_sheet_panel.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart' show SelectableText;
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 /// Browse recent SimpleFIN pulls and per-account outage outcomes.
 class BankPullHistorySheet extends ConsumerStatefulWidget {
-  const BankPullHistorySheet({super.key});
+  const BankPullHistorySheet();
 
   static Future<void> show(BuildContext context) {
-    return showCupertinoModalPopup<void>(
+    return showModalBottomSheet<void>(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (_) => const BankPullHistorySheet(),
     );
   }
@@ -40,10 +42,13 @@ class _BankPullHistorySheetState extends ConsumerState<BankPullHistorySheet> {
       heightFraction: 0.72,
       padForKeyboard: false,
       child: pullsAsync.when(
-        loading: () => const Center(child: CupertinoActivityIndicator()),
+        loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Padding(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          child: Text('$error', style: AppText.body.medium.error),
+          padding: const EdgeInsets.all(AppMetrics.spaceLg),
+          child: Text(
+            '$error',
+            style: AppText.body.copyWith(color: AppColors.danger),
+          ),
         ),
         data: (pulls) => _body(
           pulls: pulls,
@@ -64,25 +69,25 @@ class _BankPullHistorySheetState extends ConsumerState<BankPullHistorySheet> {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(
-            AppSpacing.lg,
-            AppSpacing.lg,
-            AppSpacing.lg,
-            AppSpacing.sm,
+            AppMetrics.spaceLg,
+            AppMetrics.spaceLg,
+            AppMetrics.spaceLg,
+            AppMetrics.spaceSm,
           ),
-          child: Text('Bank pulls', style: AppText.headline.small),
+          child: Text('Bank pulls', style: AppText.section),
         ),
         Expanded(
           child: pulls.isEmpty
               ? Padding(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  padding: const EdgeInsets.all(AppMetrics.spaceLg),
                   child: Text(
                     'No bank pulls yet. Pull from the Banks tab.',
-                    style: AppText.body.medium,
+                    style: AppText.body,
                   ),
                 )
               : ListView.builder(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.lg,
+                    horizontal: AppMetrics.spaceLg,
                   ),
                   itemCount: pulls.length,
                   itemBuilder: (context, index) {
@@ -102,7 +107,7 @@ class _BankPullHistorySheetState extends ConsumerState<BankPullHistorySheet> {
         ),
         if (isConnected)
           Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
+            padding: const EdgeInsets.all(AppMetrics.spaceLg),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -117,9 +122,8 @@ class _BankPullHistorySheetState extends ConsumerState<BankPullHistorySheet> {
                           ),
                   child: const Text('Pull latest'),
                 ),
-                VSpace.sm,
-                CupertinoButton(
-                  padding: EdgeInsets.zero,
+                const SizedBox(height: AppMetrics.spaceSm),
+                TextButton(
                   onPressed: busy
                       ? null
                       : () => BanksPullProgressSheet.showAndRun(
@@ -130,7 +134,9 @@ class _BankPullHistorySheetState extends ConsumerState<BankPullHistorySheet> {
                           ),
                   child: Text(
                     'Re-download all history',
-                    style: AppText.body.medium.accent,
+                    style: AppText.body.copyWith(
+                      color: FinanceColors.accentPrimary,
+                    ),
                   ),
                 ),
               ],
@@ -157,14 +163,12 @@ class _PullHistoryRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      padding: const EdgeInsets.only(bottom: AppMetrics.spaceMd),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          CupertinoButton(
-            padding: EdgeInsets.zero,
-            minimumSize: Size.zero,
-            onPressed: onToggle,
+          InkWell(
+            onTap: onToggle,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -176,40 +180,32 @@ class _PullHistoryRow extends StatelessWidget {
                     color: _leadingColor,
                   ),
                 ),
-                HSpace.sm,
+                const SizedBox(width: AppMetrics.spaceSm),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         pull.kind.displayLabel,
-                        style: AppText.body.large.semibold,
+                        style: AppText.section.copyWith(fontSize: AppMetrics.typeSize(17)),
                       ),
-                      Text(
-                        _subtitle,
-                        style: AppText.body.small,
-                      ),
+                      Text(_subtitle, style: AppText.caption),
                     ],
                   ),
                 ),
                 if (pull.transactionCount != null)
-                  Text(
-                    '${pull.transactionCount} txs',
-                    style: AppText.body.small,
-                  ),
-                HSpace.xs,
+                  Text('${pull.transactionCount} txs', style: AppText.caption),
+                const SizedBox(width: AppMetrics.spaceXs),
                 Icon(
-                  expanded
-                      ? CupertinoIcons.chevron_up
-                      : CupertinoIcons.chevron_down,
+                  expanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
                   size: 14,
-                  color: AppColors.textSupport,
+                  color: AppColors.textMuted,
                 ),
               ],
             ),
           ),
           if (expanded) ...[
-            VSpace.sm,
+            const SizedBox(height: AppMetrics.spaceSm),
             _PullDetail(pull: pull),
           ],
         ],
@@ -219,22 +215,22 @@ class _PullHistoryRow extends StatelessWidget {
 
   IconData get _leadingIcon {
     if (pull.status == SimpleFinPullStatus.running) {
-      return CupertinoIcons.arrow_2_circlepath;
+      return Icons.sync;
     }
     if (pull.status == SimpleFinPullStatus.failed) {
-      return CupertinoIcons.xmark_circle;
+      return Icons.cancel;
     }
     if (pull.isPartialSuccess) {
-      return CupertinoIcons.exclamationmark_triangle;
+      return Icons.warning;
     }
-    return CupertinoIcons.checkmark_circle;
+    return Icons.check_circle;
   }
 
   Color get _leadingColor {
-    if (pull.status == SimpleFinPullStatus.failed) return AppColors.error;
+    if (pull.status == SimpleFinPullStatus.failed) return AppColors.danger;
     if (pull.isPartialSuccess) return AppColors.warning;
     if (pull.status == SimpleFinPullStatus.success) return AppColors.success;
-    return AppColors.textSupport;
+    return AppColors.textMuted;
   }
 
   String get _subtitle {
@@ -281,23 +277,26 @@ class _PullDetail extends StatelessWidget {
           Text(
             '$accountCount ${accountCount == 1 ? 'account' : 'accounts'} · '
             '$transactionCount ${transactionCount == 1 ? 'transaction' : 'transactions'}',
-            style: AppText.body.small,
+            style: AppText.caption,
           ),
           if (pull.errors.isNotEmpty) ...[
-            VSpace.sm,
+            const SizedBox(height: AppMetrics.spaceSm),
             for (final error in pull.errors)
               Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                padding: const EdgeInsets.only(bottom: AppMetrics.spaceXs),
                 child: SelectableText(
                   error.message,
-                  style: AppText.body.small.error,
+                  style: AppText.caption.copyWith(color: AppColors.danger),
                 ),
               ),
           ],
           if (sortedAccounts.isNotEmpty) ...[
-            VSpace.sm,
-            Text('Accounts in this pull', style: AppText.body.small.semibold),
-            VSpace.xs,
+            const SizedBox(height: AppMetrics.spaceSm),
+            Text(
+              'Accounts in this pull',
+              style: AppText.caption.copyWith(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: AppMetrics.spaceXs),
             ..._groupedAccountRows(sortedAccounts),
           ],
         ],
@@ -327,8 +326,8 @@ class _PullDetail extends StatelessWidget {
             : sample;
         widgets.add(
           Padding(
-            padding: const EdgeInsets.only(top: AppSpacing.xs),
-            child: Text(institution, style: AppText.body.small.support),
+            padding: const EdgeInsets.only(top: AppMetrics.spaceXs),
+            child: Text(institution, style: AppText.caption),
           ),
         );
       }
@@ -342,9 +341,9 @@ class _PullDetail extends StatelessWidget {
   Widget _accountRow(SimpleFinPullAccountRecord account) {
     final statusStyle = account.status.isIssue
         ? (account.status == SimpleFinPullAccountStatus.needsRelink
-            ? AppText.body.small.warning
-            : AppText.body.small.error)
-        : AppText.body.small;
+            ? AppText.caption.copyWith(color: AppColors.warning)
+            : AppText.caption.copyWith(color: AppColors.danger))
+        : AppText.caption;
     final detail = account.status.isIssue
         ? (account.errorMessage?.trim().isNotEmpty == true
             ? account.errorMessage!
@@ -352,14 +351,14 @@ class _PullDetail extends StatelessWidget {
         : '${account.transactionCount} txs';
 
     return Padding(
-      padding: const EdgeInsets.only(top: AppSpacing.xs),
+      padding: const EdgeInsets.only(top: AppMetrics.spaceXs),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            child: Text(account.accountLabel, style: AppText.body.small),
+            child: Text(account.accountLabel, style: AppText.caption),
           ),
-          HSpace.sm,
+          const SizedBox(width: AppMetrics.spaceSm),
           Flexible(
             child: Text(
               detail,

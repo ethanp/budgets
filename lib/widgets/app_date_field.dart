@@ -1,11 +1,10 @@
-import 'package:spend_trends/theme/app_theme.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:ethan_ui/ethan_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 /// Tappable labeled date row that opens the app date picker flow.
 class AppDateField extends StatelessWidget {
   const AppDateField({
-    super.key,
     required this.label,
     required this.date,
     required this.onTap,
@@ -20,25 +19,25 @@ class AppDateField extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: const EdgeInsets.all(AppMetrics.spaceMd),
         decoration: BoxDecoration(
-          color: AppColors.backgroundDepth3,
-          borderRadius: BorderRadius.circular(AppRadius.sm),
-          border: Border.all(color: AppColors.borderDepth1),
+          color: AppColors.surface,
+          borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
+          border: Border.all(color: AppColors.border),
         ),
         child: Row(
           children: [
-            Text(label, style: AppText.body.medium),
+            Text(label, style: AppText.body),
             const Spacer(),
             Text(
               DateFormat.yMMMd().format(date),
-              style: AppText.body.medium.semibold,
+              style: AppText.body.copyWith(fontWeight: FontWeight.w600),
             ),
-            HSpace.sm,
+            const SizedBox(width: AppMetrics.spaceSm),
             const Icon(
-              CupertinoIcons.calendar,
+              Icons.calendar_today,
               size: 18,
-              color: AppColors.textSupport,
+              color: AppColors.textMuted,
             ),
           ],
         ),

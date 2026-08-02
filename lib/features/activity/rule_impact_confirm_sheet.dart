@@ -1,20 +1,39 @@
+import 'package:ethan_ui/ethan_ui.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spend_trends/domain/category.dart';
 import 'package:spend_trends/domain/category_group.dart';
 import 'package:spend_trends/domain/transaction.dart';
 import 'package:spend_trends/features/activity/contains_pattern_rematch.dart';
-import 'package:spend_trends/features/activity/overlapping_merchant_contains_rules.dart';
 import 'package:spend_trends/features/activity/existing_rule_overlaps.dart';
+import 'package:spend_trends/features/activity/overlapping_merchant_contains_rules.dart';
 import 'package:spend_trends/features/activity/rule_impact_match_row.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
-import 'package:spend_trends/theme/app_theme.dart';
+import 'package:spend_trends/theme/finance_colors.dart';
 import 'package:spend_trends/widgets/app_primary_button.dart';
 import 'package:spend_trends/widgets/app_sheet_panel.dart';
 import 'package:spend_trends/widgets/category_picker.dart';
 import 'package:spend_trends/widgets/select_all_none_row.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 export 'package:spend_trends/features/activity/overlapping_merchant_contains_rules.dart';
+
+InputDecoration _filledFieldDecoration({String? hintText}) {
+  final border = OutlineInputBorder(
+    borderRadius: BorderRadius.circular(AppMetrics.radiusMd),
+    borderSide: const BorderSide(color: AppColors.border),
+  );
+  return InputDecoration(
+    hintText: hintText,
+    filled: true,
+    fillColor: AppColors.surface,
+    border: border,
+    enabledBorder: border,
+    focusedBorder: border.copyWith(
+      borderSide: const BorderSide(color: AppColors.accentGlow),
+    ),
+    contentPadding: const EdgeInsets.all(AppMetrics.spaceMd),
+  );
+}
 
 /// One proposed contains-rule and the existing transactions it would match.
 class RuleImpactGroup {
@@ -61,7 +80,7 @@ class RuleImpactConfirmResult {
 /// Lets you edit the contains pattern; rematches live and reveals existing
 /// rules that are a substring or superstring of the candidate.
 class RuleImpactConfirmSheet extends ConsumerStatefulWidget {
-  const RuleImpactConfirmSheet({super.key, required this.groups});
+  const RuleImpactConfirmSheet({required this.groups});
 
   final List<RuleImpactGroup> groups;
 
@@ -78,8 +97,10 @@ class RuleImpactConfirmSheet extends ConsumerStatefulWidget {
       );
     }
 
-    return showCupertinoModalPopup<RuleImpactConfirmResult>(
+    return showModalBottomSheet<RuleImpactConfirmResult>(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (_) => RuleImpactConfirmSheet(groups: groups),
     );
   }
@@ -203,16 +224,16 @@ class _RuleImpactConfirmSheetState
   Widget _header() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
-        AppSpacing.lg,
-        AppSpacing.lg,
-        AppSpacing.lg,
-        AppSpacing.sm,
+        AppMetrics.spaceLg,
+        AppMetrics.spaceLg,
+        AppMetrics.spaceLg,
+        AppMetrics.spaceSm,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Apply rule to existing?', style: AppText.headline.small),
-          VSpace.xs,
+          Text('Apply rule to existing?', style: AppText.section),
+          const SizedBox(height: AppMetrics.spaceXs),
           Text(
             _matchCount == 0
                 ? 'Edit the contains pattern below. Matching transactions '
@@ -220,9 +241,9 @@ class _RuleImpactConfirmSheetState
                 : 'These $_matchCount existing transactions match. '
                     'Edit the pattern to refine, turn off any that should stay, '
                     'and the rule will still apply to future matches.',
-            style: AppText.body.small,
+            style: AppText.caption,
           ),
-          VSpace.md,
+          const SizedBox(height: AppMetrics.spaceMd),
           _selectionShortcuts(),
         ],
       ),
@@ -244,7 +265,7 @@ class _RuleImpactConfirmSheetState
   }) {
     return ListView(
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      padding: const EdgeInsets.symmetric(horizontal: AppMetrics.spaceLg),
       children: [
         for (var groupIndex = 0; groupIndex < _groups.length; groupIndex++)
           ..._groupSection(
@@ -282,13 +303,12 @@ class _RuleImpactConfirmSheetState
           categoryGroups: categoryGroups,
         ),
       ),
-      VSpace.xs,
-      CupertinoTextField(
+      const SizedBox(height: AppMetrics.spaceXs),
+      TextField(
         controller: _patternControllers[groupIndex],
         focusNode: _patternFocusNodes[groupIndex],
-        placeholder: 'contains pattern',
-        padding: const EdgeInsets.all(AppSpacing.md),
-        style: AppText.body.large.bright,
+        decoration: _filledFieldDecoration(hintText: 'contains pattern'),
+        style: AppText.body.copyWith(color: AppColors.textPrimary),
         onChanged: (value) {
           setState(() {});
           rematch.schedule(value);
@@ -296,19 +316,23 @@ class _RuleImpactConfirmSheetState
       ),
       ExistingRuleOverlaps(overlaps: related),
       if (rematch.rematching) ...[
-        VSpace.sm,
+        const SizedBox(height: AppMetrics.spaceSm),
         const Align(
           alignment: Alignment.centerLeft,
-          child: CupertinoActivityIndicator(radius: 8),
+          child: SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
         ),
       ],
-      VSpace.sm,
+      const SizedBox(height: AppMetrics.spaceSm),
       if (group.transactions.isEmpty && !rematch.rematching)
         Padding(
-          padding: const EdgeInsets.only(bottom: AppSpacing.md),
+          padding: const EdgeInsets.only(bottom: AppMetrics.spaceMd),
           child: Text(
             'No existing transactions match this pattern.',
-            style: AppText.body.small.copyWith(color: AppColors.textDim),
+            style: AppText.caption.copyWith(color: AppColors.textMuted),
           ),
         ),
       for (final transaction in group.transactions)
@@ -321,7 +345,7 @@ class _RuleImpactConfirmSheetState
           selected: _selectedIds.contains(transaction.id),
           onChanged: (selected) => _setSelected(transaction.id, selected),
         ),
-      VSpace.lg,
+      const SizedBox(height: AppMetrics.spaceLg),
     ];
   }
 
@@ -330,8 +354,10 @@ class _RuleImpactConfirmSheetState
     required List<SpendCategory> categories,
     required List<CategoryGroup> categoryGroups,
   }) async {
-    final selected = await showCupertinoModalPopup<SpendCategory>(
+    final selected = await showModalBottomSheet<SpendCategory>(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (sheetContext) => _TargetCategoryPickerSheet(
         categories: categories,
         groups: categoryGroups,
@@ -350,11 +376,11 @@ class _RuleImpactConfirmSheetState
 
   Widget _actions() {
     return Padding(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.all(AppMetrics.spaceLg),
       child: Row(
         children: [
           Expanded(
-            child: CupertinoButton(
+            child: TextButton(
               onPressed: () => Navigator.of(context).pop(),
               child: const Text('Cancel'),
             ),
@@ -434,20 +460,26 @@ class _TargetCategoryButton extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: Row(
         children: [
-          Text('→ ', style: AppText.body.medium.semibold),
+          Text(
+            '→ ',
+            style: AppText.body.copyWith(fontWeight: FontWeight.w600),
+          ),
           Flexible(
             child: Text(
               categoryName,
-              style: AppText.body.medium.semibold.accent,
+              style: AppText.body.copyWith(
+                fontWeight: FontWeight.w600,
+                color: FinanceColors.accentPrimary,
+              ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
           ),
           const SizedBox(width: 2),
           const Icon(
-            CupertinoIcons.chevron_down,
+            Icons.keyboard_arrow_down,
             size: 14,
-            color: AppColors.accentPrimary,
+            color: FinanceColors.accentPrimary,
           ),
         ],
       ),
@@ -477,16 +509,16 @@ class _TargetCategoryPickerSheet extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Text('Target category', style: AppText.headline.small),
+            padding: const EdgeInsets.all(AppMetrics.spaceLg),
+            child: Text('Target category', style: AppText.section),
           ),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg,
+                AppMetrics.spaceLg,
                 0,
-                AppSpacing.lg,
-                AppSpacing.lg,
+                AppMetrics.spaceLg,
+                AppMetrics.spaceLg,
               ),
               children: [
                 CategoryPicker(

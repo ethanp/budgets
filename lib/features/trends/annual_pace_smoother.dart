@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:spend_trends/features/trends/category_trend_point.dart';
 import 'package:spend_trends/features/trends/category_trend_series.dart';
 import 'package:spend_trends/features/trends/hann_annual_pace_kernel.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
 /// Inclusive index span where a kernel centered at a day has support.
 class KernelSupportSpan {

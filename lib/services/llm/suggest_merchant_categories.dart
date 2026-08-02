@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:spend_trends/domain/account_kind.dart';
 import 'package:spend_trends/domain/canceling_merchant_pairs.dart';
 import 'package:spend_trends/domain/category.dart';
 import 'package:spend_trends/domain/special_category.dart';
@@ -86,7 +85,7 @@ class SuggestMerchantCategories {
     final categories = await _categoriesRepository.listActive();
     final suggestableCategories = [
       for (final category in categories)
-        if (!_isCatchAllCategory(category)) category,
+        if (!category.isCatchAll) category,
     ];
     final categoryByName = {
       for (final category in suggestableCategories)
@@ -169,7 +168,7 @@ class SuggestMerchantCategories {
   }) async {
     final investmentAccountIds = {
       for (final account in await _accountsRepository.listAccounts())
-        if (account.kind == AccountKind.investment) account.id,
+        if (account.isInvestment) account.id,
     };
     final withoutNoise = CancelingMerchantPairs.excludingCancelingPairs(
       await _transactionsRepository.listAll(limit: limit),
@@ -177,7 +176,7 @@ class SuggestMerchantCategories {
     );
     return [
       for (final transaction in withoutNoise)
-        if (transaction.effectiveCategoryId == null &&
+        if (transaction.isUncategorized &&
             transaction.normalizedMerchant.isNotEmpty)
           transaction,
     ];
@@ -218,7 +217,7 @@ class SuggestMerchantCategories {
         suggestion.merchant.toUpperCase(): suggestion,
     };
     for (final transaction in await _uncategorizedCandidates()) {
-      if (transaction.userCategoryId != null) continue;
+      if (transaction.hasUserCategory) continue;
       final suggestion = byMerchant[transaction.normalizedMerchant];
       if (suggestion?.categoryId == null) continue;
       await _transactionsRepository.setSuggestedCategory(
@@ -268,7 +267,7 @@ class SuggestMerchantCategories {
       final merchant = (item['merchant'] as String? ?? '').toUpperCase();
       final categoryName = (item['category'] as String? ?? '').trim();
       if (merchant.isEmpty || categoryName.isEmpty) continue;
-      if (_isCatchAllCategoryName(categoryName)) continue;
+      if (CategoryName(categoryName).isCatchAll) continue;
 
       final existing = categoryByName[CategoryName(categoryName).normalized];
       if (existing != null) {
@@ -293,23 +292,11 @@ class SuggestMerchantCategories {
     return results;
   }
 
-  static bool _isCatchAllCategory(SpendCategory category) =>
-      _isCatchAllCategoryName(category.name) || category.id == 'cat_other';
-
-  static bool _isCatchAllCategoryName(String name) {
-    final normalized = CategoryName(name).normalized;
-    return normalized == 'other' ||
-        normalized == 'misc' ||
-        normalized == 'miscellaneous' ||
-        normalized == 'uncategorized' ||
-        normalized == 'general';
-  }
-
   static bool _isPlausibleNewCategoryName(String name) {
     final trimmed = name.trim();
     if (trimmed.isEmpty) return false;
     if (SpecialCategory.isReservedName(trimmed)) return false;
-    if (_isCatchAllCategoryName(trimmed)) return false;
+    if (CategoryName(trimmed).isCatchAll) return false;
     final words = trimmed.split(RegExp(r'\s+'));
     if (words.length > 4) return false;
     if (trimmed.length > 40) return false;

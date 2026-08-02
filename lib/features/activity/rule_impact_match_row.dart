@@ -1,13 +1,15 @@
-import 'package:spend_trends/domain/transaction.dart';
-import 'package:spend_trends/theme/app_theme.dart';
+import 'package:ethan_ui/ethan_ui.dart';
 import 'package:ethan_utils/ethan_utils.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:spend_trends/domain/transaction.dart';
+import 'package:spend_trends/theme/finance_colors.dart';
 
 /// One matching transaction in a rule-impact preview list.
+///
+/// Row: [checkbox | category | title | amount] with date under the title.
 class RuleImpactMatchRow extends StatelessWidget {
   const RuleImpactMatchRow({
-    super.key,
     required this.transaction,
     required this.currentCategoryName,
     required this.selected,
@@ -34,57 +36,75 @@ class RuleImpactMatchRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dateLabel =
+        DateFormat.yMMMd().format(transaction.postedAt.toLocal());
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: const EdgeInsets.only(bottom: AppMetrics.spaceSm),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () => onChanged(!selected),
-        child: Container(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: AppComponents.primaryCard,
+        child: AppSurface(
+          kind: selected ? AppSurfaceKind.tinted : AppSurfaceKind.row,
+          accent: selected ? FinanceColors.accentPrimary : null,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppMetrics.spaceMd,
+            vertical: AppMetrics.spaceSm,
+          ),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CupertinoCheckbox(
+              Checkbox(
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                visualDensity: VisualDensity.compact,
                 value: selected,
                 onChanged: (value) => onChanged(value ?? false),
               ),
-              HSpace.sm,
-              Expanded(child: _details()),
-              Text(
-                formatCents(transaction.amountCents),
-                style: AppText.body.medium.semibold,
+              const SizedBox(width: AppMetrics.spaceSm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            _title,
+                            style: AppText.body.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: AppMetrics.spaceSm),
+                        Text(
+                          formatCents(transaction.amountCents),
+                          style: AppText.body.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '$currentCategoryName · $dateLabel',
+                      style: AppText.caption.copyWith(
+                        color: currentCategoryName == 'Uncategorized'
+                            ? AppColors.textMuted
+                            : FinanceColors.accentPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
         ),
       ),
-    );
-  }
-
-  Widget _details() {
-    final dateLabel =
-        DateFormat.yMMMd().format(transaction.postedAt.toLocal());
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          _title,
-          style: AppText.body.medium.semibold,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        Text(
-          currentCategoryName,
-          style: AppText.body.small.copyWith(
-            color: currentCategoryName == 'Uncategorized'
-                ? AppColors.textDim
-                : AppColors.accentPrimary,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        Text(dateLabel, style: AppText.body.small),
-      ],
     );
   }
 }

@@ -1,11 +1,10 @@
+import 'package:ethan_ui/ethan_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:spend_trends/features/trends/category_trend_series.dart';
-import 'package:spend_trends/theme/app_theme.dart';
-import 'package:flutter/cupertino.dart';
 
 /// Color chip for a trend series (solid, dotted, or long-dash guide).
 class TrendLegendSwatch extends StatelessWidget {
   const TrendLegendSwatch({
-    super.key,
     required this.series,
     required this.isHidden,
   });
@@ -15,7 +14,7 @@ class TrendLegendSwatch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isHidden ? AppColors.textDim : series.lineColor;
+    final color = isHidden ? AppColors.textMuted : series.lineColor;
     if (series.guide || series.dotted) {
       return SizedBox(
         width: 16,

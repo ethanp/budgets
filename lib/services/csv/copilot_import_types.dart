@@ -21,10 +21,7 @@ class CopilotImportResult {
 }
 
 class CopilotImportProgress {
-  const CopilotImportProgress({
-    required this.completed,
-    required this.total,
-  });
+  const CopilotImportProgress({required this.completed, required this.total});
 
   final int completed;
   final int total;

@@ -1,4 +1,3 @@
-import 'package:spend_trends/domain/category.dart';
 import 'package:spend_trends/domain/special_category.dart';
 import 'package:spend_trends/domain/transaction.dart';
 import 'package:spend_trends/features/trends/build_trends_charts.dart';

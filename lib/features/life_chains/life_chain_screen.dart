@@ -1,14 +1,14 @@
+import 'package:ethan_ui/ethan_ui.dart';
+import 'package:ethan_utils/ethan_utils.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spend_trends/domain/stay_chain.dart';
 import 'package:spend_trends/features/life_chains/chain_stay_form_sheet.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
-import 'package:spend_trends/theme/app_theme.dart';
 import 'package:spend_trends/widgets/app_primary_button.dart';
-import 'package:ethan_utils/ethan_utils.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class LifeChainScreen extends ConsumerWidget {
-  const LifeChainScreen({super.key, required this.kind});
+  const LifeChainScreen({required this.kind});
 
   final LifeChainKind kind;
 
@@ -19,21 +19,20 @@ class LifeChainScreen extends ConsumerWidget {
       LifeChainKind.job => ref.watch(jobChainProvider),
     };
 
-    return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        middle: Text(kind.screenTitle),
-      ),
-      child: SafeArea(
-        child: chainAsync.when(
-          loading: () => const Center(child: CupertinoActivityIndicator()),
-          error: (error, _) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              child: Text('$error', style: AppText.body.medium.error),
+    return AppScaffoldShell(
+      appBar: AppBar(title: Text(kind.screenTitle)),
+      body: chainAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(AppMetrics.spaceLg),
+            child: Text(
+              '$error',
+              style: AppText.body.copyWith(color: AppColors.danger),
             ),
           ),
-          data: (chain) => _ChainBody(kind: kind, chain: chain),
         ),
+        data: (chain) => _ChainBody(kind: kind, chain: chain),
       ),
     );
   }
@@ -49,24 +48,24 @@ class _ChainBody extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return ListView(
       padding: const EdgeInsets.fromLTRB(
-        AppSpacing.lg,
-        AppSpacing.md,
-        AppSpacing.lg,
-        AppSpacing.xl,
+        AppMetrics.spaceLg,
+        AppMetrics.spaceMd,
+        AppMetrics.spaceLg,
+        AppMetrics.spaceXl,
       ),
       children: [
         Text(
           kind == LifeChainKind.housing
               ? 'Where you’ve lived — a path of places over time.'
               : 'Where you’ve worked — a path of roles over time.',
-          style: AppText.body.medium.copyWith(color: AppColors.textSupport),
+          style: AppText.body.copyWith(color: AppColors.textMuted),
         ),
-        VSpace.lg,
+        const SizedBox(height: AppMetrics.spaceLg),
         if (chain.isEmpty)
           _EmptyChain(kind: kind)
         else
           _ChainPath(kind: kind, chain: chain),
-        VSpace.xl,
+        const SizedBox(height: AppMetrics.spaceXl),
         AppPrimaryButton(
           onPressed: () {
             final oldestStartedOn = chain.oldest?.stay.startedOn.startOfDay;
@@ -95,23 +94,23 @@ class _EmptyChain extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(
-        vertical: AppSpacing.xxl,
-        horizontal: AppSpacing.lg,
+        vertical: 32,
+        horizontal: AppMetrics.spaceLg,
       ),
       decoration: BoxDecoration(
-        color: AppColors.backgroundDepth2,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: AppColors.borderDepth1),
+        color: AppColors.backgroundLift,
+        borderRadius: AppMetrics.borderRadius(AppMetrics.radiusMd),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         children: [
           Icon(kind.icon, size: 36, color: kind.trendBandColor),
-          VSpace.md,
-          Text(kind.emptyHeroCaption, style: AppText.headline.small),
-          VSpace.sm,
+          const SizedBox(height: AppMetrics.spaceMd),
+          Text(kind.emptyHeroCaption, style: AppText.section),
+          const SizedBox(height: AppMetrics.spaceSm),
           Text(
             'Add the first link to start the chain.',
-            style: AppText.body.small,
+            style: AppText.caption,
             textAlign: TextAlign.center,
           ),
         ],
@@ -128,7 +127,6 @@ class _ChainPath extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Newest at top for a “path arriving at now” feel.
     final segmentsNewestFirst = chain.segments.reversed.toList();
 
     return Column(
@@ -200,16 +198,16 @@ class _StayNode extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: const EdgeInsets.all(AppMetrics.spaceMd),
         decoration: BoxDecoration(
           color: isCurrent
               ? accent.withValues(alpha: 0.12)
-              : AppColors.backgroundDepth2,
-          borderRadius: BorderRadius.circular(AppRadius.md),
+              : AppColors.backgroundLift,
+          borderRadius: AppMetrics.borderRadius(AppMetrics.radiusMd),
           border: Border.all(
             color: isCurrent
                 ? accent.withValues(alpha: 0.55)
-                : AppColors.borderDepth1,
+                : AppColors.border,
             width: isCurrent ? 1.5 : 1,
           ),
         ),
@@ -223,18 +221,18 @@ class _StayNode extends StatelessWidget {
                 shape: BoxShape.circle,
                 color: isCurrent
                     ? accent.withValues(alpha: 0.28)
-                    : AppColors.backgroundDepth4,
+                    : AppColors.surfaceRaised,
                 border: Border.all(
-                  color: isCurrent ? accent : AppColors.borderDepth2,
+                  color: isCurrent ? accent : AppColors.borderStrong,
                 ),
               ),
               child: Icon(
                 kind.icon,
                 size: isCurrent ? 22 : 18,
-                color: isCurrent ? accent : AppColors.textSupport,
+                color: isCurrent ? accent : AppColors.textMuted,
               ),
             ),
-            HSpace.md,
+            const SizedBox(width: AppMetrics.spaceMd),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -251,32 +249,33 @@ class _StayNode extends StatelessWidget {
                   ],
                   Text(
                     segment.stay.label,
-                    style: AppText.body.large.semibold.copyWith(
+                    style: AppText.section.copyWith(
+                      fontWeight: FontWeight.w600,
                       color: isCurrent
-                          ? AppColors.textBright
-                          : AppColors.textBody,
+                          ? AppColors.textPrimary
+                          : AppColors.textSecondary,
                     ),
                   ),
-                  VSpace.xs,
+                  const SizedBox(height: AppMetrics.spaceXs),
                   Text(
                     segment.dateCaption,
-                    style: AppText.body.small.copyWith(
+                    style: AppText.caption.copyWith(
                       color: isCurrent
-                          ? AppColors.textBody
-                          : AppColors.textSupport,
+                          ? AppColors.textSecondary
+                          : AppColors.textMuted,
                     ),
                   ),
                   if (segment.stay.note != null) ...[
-                    VSpace.xs,
+                    const SizedBox(height: AppMetrics.spaceXs),
                     Text(segment.stay.note!, style: AppText.caption),
                   ],
                 ],
               ),
             ),
             const Icon(
-              CupertinoIcons.chevron_right,
+              Icons.chevron_right,
               size: 16,
-              color: AppColors.textDim,
+              color: AppColors.textMuted,
             ),
           ],
         ),

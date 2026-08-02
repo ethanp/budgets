@@ -54,15 +54,9 @@ enum SpecialCategory {
   static bool isHousingName(String? name) =>
       name != null && CategoryName(name).matches(housingName);
 
-  /// Id match, or reserved name (covers pre-merge rows still named Housing).
-  static bool isHousingCategory(SpendCategory category) =>
-      isHousingId(category.id) || isHousingName(category.name);
-
   static bool isIncomeId(String? categoryId) => categoryId == income.id;
 
   static bool isTransferId(String? categoryId) => categoryId == transfer.id;
-
-  static bool isFlowCategory(SpendCategory category) => isFlowId(category.id);
 
   static bool isReservedName(String name) =>
       _idsByNormalizedName.containsKey(CategoryName(name).normalized);
@@ -81,4 +75,32 @@ enum SpecialCategory {
         sortOrder: sortOrder,
         archived: archived,
       );
+}
+
+extension SpendCategorySpecial on SpendCategory {
+  bool get isHousing =>
+      SpecialCategory.isHousingId(id) || SpecialCategory.isHousingName(name);
+
+  bool get isFlow => SpecialCategory.isFlowId(id);
+
+  bool get isIncome => SpecialCategory.isIncomeId(id);
+
+  bool get isTransfer => SpecialCategory.isTransferId(id);
+
+  /// Built-in catch bucket (`cat_other` or display name "Other").
+  bool get isOther =>
+      id == 'cat_other' || CategoryName(name).normalized == 'other';
+
+  /// Broad catch-all names the LLM must not treat as real categories.
+  bool get isCatchAll => id == 'cat_other' || CategoryName(name).isCatchAll;
+}
+
+extension CategoryNameCatchAll on CategoryName {
+  bool get isCatchAll {
+    return normalized == 'other' ||
+        normalized == 'misc' ||
+        normalized == 'miscellaneous' ||
+        normalized == 'uncategorized' ||
+        normalized == 'general';
+  }
 }

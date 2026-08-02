@@ -1,10 +1,9 @@
-import 'package:spend_trends/theme/app_theme.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:ethan_ui/ethan_ui.dart';
+import 'package:flutter/material.dart';
 
 /// Colored selectable chip used in category pickers.
 class CategoryPickChip extends StatelessWidget {
   const CategoryPickChip({
-    super.key,
     required this.label,
     required this.color,
     required this.selected,
@@ -23,12 +22,12 @@ class CategoryPickChip extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: Container(
         padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
+          horizontal: AppMetrics.spaceMd,
+          vertical: AppMetrics.spaceSm,
         ),
         decoration: BoxDecoration(
           color: color.withValues(alpha: selected ? 0.28 : 0.14),
-          borderRadius: BorderRadius.circular(AppRadius.sm),
+          borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
           border: Border.all(
             color: color.withValues(alpha: selected ? 0.85 : 0.35),
             width: selected ? 1.5 : 1,
@@ -36,7 +35,8 @@ class CategoryPickChip extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: AppText.body.small.semibold.copyWith(
+          style: AppText.caption.copyWith(
+            fontWeight: FontWeight.w600,
             color: color,
             height: 1.2,
           ),

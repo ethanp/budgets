@@ -1,38 +1,54 @@
-import 'package:spend_trends/domain/account.dart';
-import 'package:spend_trends/domain/canceling_merchant_pairs.dart';
-import 'package:spend_trends/domain/categorizer.dart';
+import 'package:ethan_ui/ethan_ui.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spend_trends/domain/category.dart';
 import 'package:spend_trends/domain/transaction.dart';
-import 'package:spend_trends/features/activity/activity_search.dart';
-import 'package:spend_trends/features/activity/activity_transaction_tile.dart';
+import 'package:spend_trends/features/activity/activity_column_widths.dart';
+import 'package:spend_trends/features/activity/activity_day_list.dart';
+import 'package:spend_trends/features/activity/activity_detail_pane.dart';
+import 'package:spend_trends/features/activity/activity_filter_bar.dart';
+import 'package:spend_trends/features/activity/activity_visible_transactions.dart';
 import 'package:spend_trends/features/activity/manage_rule_sheet.dart';
 import 'package:spend_trends/features/activity/recategorize_sheet.dart';
 import 'package:spend_trends/features/activity/suggest_categories_sheet.dart';
 import 'package:spend_trends/features/banks/banks_controller.dart';
 import 'package:spend_trends/features/banks/banks_pull_progress_sheet.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
-import 'package:spend_trends/theme/app_theme.dart';
-import 'package:ethan_utils/ethan_utils.dart';
+import 'package:spend_trends/widgets/app_browse_split_shell.dart';
 import 'package:spend_trends/widgets/app_card.dart';
 import 'package:spend_trends/widgets/sync_status_nav_button.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 class ActivityScreen extends ConsumerWidget {
-  const ActivityScreen({super.key});
+  const ActivityScreen();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final transactionsAsync = ref.watch(transactionsListProvider);
 
-    return CupertinoPageScaffold(
-      navigationBar: _navigationBar(context, ref),
-      child: SafeArea(
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        leading: const SyncStatusNavButton(),
+        title: const Text('Activity'),
+        actions: [
+          TextButton(
+            onPressed: () => SuggestCategoriesSheet.show(context),
+            child: const Text('Suggest categories'),
+          ),
+          TextButton(
+            onPressed: () => refresh(context, ref),
+            child: const Text('Pull bank transactions'),
+          ),
+        ],
+      ),
+      body: SafeArea(
         child: transactionsAsync.when(
-          loading: () => const Center(child: CupertinoActivityIndicator()),
+          loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => Center(
-            child: Text('$error', style: AppText.body.medium.error),
+            child: Text(
+              '$error',
+              style: AppText.body.copyWith(color: AppColors.danger),
+            ),
           ),
           data: (transactions) => _ActivityBody(transactions: transactions),
         ),
@@ -40,29 +56,7 @@ class ActivityScreen extends ConsumerWidget {
     );
   }
 
-  CupertinoNavigationBar _navigationBar(BuildContext context, WidgetRef ref) {
-    return CupertinoNavigationBar(
-      leading: const SyncStatusNavButton(),
-      middle: const Text('Activity'),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CupertinoButton(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-            onPressed: () => SuggestCategoriesSheet.show(context),
-            child: const Text('Suggest categories'),
-          ),
-          CupertinoButton(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-            onPressed: () => _refresh(context, ref),
-            child: const Text('Pull bank transactions'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  static Future<void> _refresh(BuildContext context, WidgetRef ref) async {
+  static Future<void> refresh(BuildContext context, WidgetRef ref) async {
     final connected =
         await ref.read(simpleFinAccessStoreProvider).isConnected;
     if (!connected) {
@@ -89,10 +83,17 @@ class _ActivityBody extends ConsumerStatefulWidget {
 }
 
 class _ActivityBodyState extends ConsumerState<_ActivityBody> {
+  /// Left pane comfort width before the right pane starts growing.
+  static const _leftComfortWidth = 1200.0;
+
+  /// After left hits comfort, grow right until 2/3 of that left width.
+  static const _rightComfortWidth = _leftComfortWidth * 2 / 3;
+
   final _searchController = TextEditingController();
   String _searchQuery = '';
   bool _hideRuleMatched = true;
-  bool _showVisibleSum = false;
+  bool _uncategorizedOnly = false;
+  String? _selectedTransactionId;
 
   @override
   void dispose() {
@@ -102,7 +103,7 @@ class _ActivityBodyState extends ConsumerState<_ActivityBody> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.transactions.isEmpty) return _buildEmptyState();
+    if (widget.transactions.isEmpty) return _emptyState();
 
     final accounts = ref.watch(accountsMapProvider).asData?.value ?? {};
     final categories = {
@@ -111,153 +112,144 @@ class _ActivityBodyState extends ConsumerState<_ActivityBody> {
               <SpendCategory>[])
         category.id: category,
     };
-    final rules =
-        ref.watch(categorizationRulesProvider).asData?.value ??
-            const <CategorizationRule>[];
+    final rules = ref.watch(categorizationRulesProvider).asData?.value ??
+        const <CategorizationRule>[];
+
+    final filtered = ActivityVisibleTransactionsQuery(
+      transactions: widget.transactions,
+      accounts: accounts,
+      categories: categories,
+      rules: rules,
+      searchQuery: _searchQuery,
+      hideRuleMatched: _hideRuleMatched,
+      uncategorizedOnly: _uncategorizedOnly,
+    ).run();
+    final uncategorized = ActivityVisibleTransactionsQuery.uncategorized(
+      transactions: widget.transactions,
+      accounts: accounts,
+    );
 
     final hasSearch = _searchQuery.trim().isNotEmpty;
-    final searchHits = [
-      for (final transaction in widget.transactions)
-        if (!_isHiddenLinkedCopilotTxn(transaction, accounts) &&
-            activityMatchesSearch(
-              transaction: transaction,
-              query: _searchQuery,
-              account: accounts[transaction.accountId],
-              category: categories[transaction.effectiveCategoryId],
-            ))
-          transaction,
-    ];
-    // Default view hides canceling pairs; search still surfaces them.
-    // Investment accounts pair by amount alone (fund swaps differ by name).
-    final searchMatches = hasSearch
-        ? searchHits
-        : CancelingMerchantPairs.excludingCancelingPairs(
-            searchHits,
-            accountsById: accounts,
-          );
-    final ruleMatchIndex = RuleMatchIndex(rules);
-    final Map<String, CategorizationRule?> explainingByTransactionId;
-    final List<BankTransaction> visibleTransactions;
-    if (_hideRuleMatched) {
-      // Full scan only when filtering — prepared rules are reused across txns.
-      explainingByTransactionId =
-          ruleMatchIndex.explainingRulesByTransactionId(searchMatches);
-      visibleTransactions = [
-        for (final transaction in searchMatches)
-          if (!_isAutoCategorized(
-            transaction,
-            explainingByTransactionId[transaction.id],
-          ))
-            transaction,
-      ];
-    } else {
-      explainingByTransactionId = const {};
-      visibleTransactions = searchMatches;
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _buildStickySearchAndFilter(
-          searchMatchCount: searchMatches.length,
-          visibleTransactions: visibleTransactions,
-        ),
-        Expanded(
-          child: CustomScrollView(
-            slivers: [
-              CupertinoSliverRefreshControl(
-                onRefresh: () => ActivityScreen._refresh(context, ref),
-              ),
-              if (visibleTransactions.isEmpty)
-                _buildNoResultsSliver(
-                  hasSearch: hasSearch,
-                  searchMatchCount: searchMatches.length,
-                )
-              else
-                _buildTransactionListSliver(
-                  visibleTransactions: visibleTransactions,
-                  accounts: accounts,
-                  categories: categories,
-                  ruleMatchIndex: ruleMatchIndex,
-                  explainingByTransactionId: explainingByTransactionId,
-                ),
-            ],
-          ),
-        ),
-      ],
+    final naturalColumnWidths = ActivityColumnWidths.measure(
+      transactions: filtered.visible,
+      accounts: accounts,
+      categories: categories,
     );
-  }
+    final selectedTransaction = _transactionById(_selectedTransactionId);
 
-  /// Copilot accounts with belongs-to are enrichment only — parent (SimpleFIN)
-  /// rows are canonical in Activity.
-  bool _isHiddenLinkedCopilotTxn(
-    BankTransaction transaction,
-    Map<String, Account> accounts,
-  ) {
-    final account = accounts[transaction.accountId];
-    return account != null && account.isCopilot && account.hasParent;
-  }
+    final isSplit = AppBrowseSplitShell.isSplit(context);
 
-  /// True when a real rule explains the category, or Copilot/suggested filled it.
-  bool _isAutoCategorized(
-    BankTransaction transaction,
-    CategorizationRule? explainingRule,
-  ) {
-    if (explainingRule != null) {
-      // Ignore leftover priority-0 import rules — those are not real rules.
-      if (explainingRule.priority > CategorizationRule.defaultImportPriority) {
-        return true;
-      }
-    }
-    return transaction.userCategoryId == null &&
-        transaction.suggestedCategoryId != null;
-  }
-
-  Widget _buildStickySearchAndFilter({
-    required int searchMatchCount,
-    required List<BankTransaction> visibleTransactions,
-  }) {
-    final visibleCount = visibleTransactions.length;
-    return ColoredBox(
-      color: AppColors.backgroundDepth1,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg,
-          AppSpacing.lg,
-          AppSpacing.lg,
-          AppSpacing.sm,
-        ),
-        child: Column(
-          children: [
-            CupertinoSearchTextField(
-              controller: _searchController,
-              placeholder: 'Search description, category, account…',
-              onChanged: (query) => setState(() => _searchQuery = query),
+    return AppBrowseSplitShell(
+      sizedSide: AppBrowseSplitSizedSide.left,
+      initialSizedWidth: _ActivityBodyState._leftComfortWidth,
+      growth: const AppBrowseSplitGrowth(
+        leftComfortWidth: _ActivityBodyState._leftComfortWidth,
+        rightComfortWidth: _ActivityBodyState._rightComfortWidth,
+      ),
+      left: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ActivityFilterBar(
+            searchController: _searchController,
+            onSearchChanged: (query) => setState(() => _searchQuery = query),
+            hideRuleMatched: _hideRuleMatched,
+            searchMatchCount: filtered.searchMatchCount,
+            visibleCount: filtered.visible.length,
+            onHideRuleMatchedChanged: (hide) {
+              setState(() => _hideRuleMatched = hide);
+            },
+          ),
+          if (!isSplit)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppMetrics.spaceLg,
+                0,
+                AppMetrics.spaceLg,
+                AppMetrics.spaceSm,
+              ),
+              child: ActivityVisibleSumBar(
+                visibleTransactions: filtered.visible,
+              ),
             ),
-            VSpace.sm,
-            _RuleMatchFilterToggle(
-              hideRuleMatched: _hideRuleMatched,
-              hiddenCount: searchMatchCount - visibleCount,
-              visibleCount: visibleCount,
-              onChanged: (hideRuleMatched) {
-                setState(() => _hideRuleMatched = hideRuleMatched);
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final columnWidths =
+                    naturalColumnWidths.allocate(constraints.maxWidth);
+                return RefreshIndicator(
+                  onRefresh: () => ActivityScreen.refresh(context, ref),
+                  child: CustomScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    slivers: [
+                      if (filtered.visible.isEmpty)
+                        _noResultsSliver(
+                          hasSearch: hasSearch,
+                          searchMatchCount: filtered.searchMatchCount,
+                        )
+                      else
+                        ActivityDayListSliver(
+                          transactions: filtered.visible,
+                          accounts: accounts,
+                          categories: categories,
+                          ruleMatchIndex: filtered.ruleMatchIndex,
+                          explainingByTransactionId:
+                              filtered.explainingByTransactionId,
+                          selectedTransactionId: _selectedTransactionId,
+                          columnWidths: columnWidths,
+                          onTransactionTap: _onTransactionTap,
+                          onRuleTap: (rule) => ManageRuleSheet.show(
+                            context,
+                            ref: ref,
+                            rule: rule,
+                          ),
+                        ),
+                    ],
+                  ),
+                );
               },
             ),
-            VSpace.sm,
-            _VisibleSumBar(
-              visibleTransactions: visibleTransactions,
-              showSum: _showVisibleSum,
-              onToggle: visibleCount == 0
-                  ? null
-                  : () => setState(() => _showVisibleSum = !_showVisibleSum),
-            ),
-          ],
-        ),
+          ),
+        ],
+      ),
+      right: ActivityDetailPane(
+        uncategorized: uncategorized,
+        visibleTransactions: filtered.visible,
+        selected: selectedTransaction,
+        uncategorizedOnly: _uncategorizedOnly,
+        onShowUncategorized: () {
+          setState(() {
+            _uncategorizedOnly = true;
+            _hideRuleMatched = false;
+            _selectedTransactionId = null;
+          });
+        },
+        onClearUncategorizedFilter: () {
+          setState(() => _uncategorizedOnly = false);
+        },
+        onCategorized: () {
+          setState(() => _selectedTransactionId = null);
+        },
       ),
     );
   }
 
-  Widget _buildNoResultsSliver({
+  void _onTransactionTap(BankTransaction transaction) {
+    if (!AppBrowseSplitShell.isSplit(context)) {
+      RecategorizeSheet.show(context, ref: ref, transaction: transaction);
+      return;
+    }
+    setState(() => _selectedTransactionId = transaction.id);
+  }
+
+  BankTransaction? _transactionById(String? id) {
+    if (id == null) return null;
+    for (final transaction in widget.transactions) {
+      if (transaction.id == id) return transaction;
+    }
+    return null;
+  }
+
+  Widget _noResultsSliver({
     required bool hasSearch,
     required int searchMatchCount,
   }) {
@@ -269,350 +261,30 @@ class _ActivityBodyState extends ConsumerState<_ActivityBody> {
             : 'All loaded transactions are already categorized. '
                 'Turn off the filter to see them.';
     return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      padding: const EdgeInsets.symmetric(horizontal: AppMetrics.spaceLg),
       sliver: SliverToBoxAdapter(
         child: AppCard(
-          child: Text(message, style: AppText.body.medium),
+          child: Text(message, style: AppText.body),
         ),
       ),
     );
   }
 
-  Widget _buildTransactionListSliver({
-    required List<BankTransaction> visibleTransactions,
-    required Map<String, Account> accounts,
-    required Map<String, SpendCategory> categories,
-    required RuleMatchIndex ruleMatchIndex,
-    required Map<String, CategorizationRule?> explainingByTransactionId,
-  }) {
-    final listItems = _dayGroupedListItems(visibleTransactions);
-    return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.lg,
-        0,
-        AppSpacing.lg,
-        AppSpacing.lg,
-      ),
-      sliver: SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            final listItem = listItems[index];
-            if (listItem is _ActivityDayHeader) {
-              return _ActivityDayHeaderTile(
-                label: listItem.label,
-                isFirst: index == 0,
-              );
-            }
-            final transaction = (listItem as _ActivityTransactionItem).transaction;
-            final account = accounts[transaction.accountId];
-            final category = categories[transaction.effectiveCategoryId];
-            final explainingRule = explainingByTransactionId[transaction.id] ??
-                ruleMatchIndex.explainingRule(transaction);
-            return Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: ActivityTransactionTile(
-                transaction: transaction,
-                account: account,
-                category: category,
-                categorySourceLabel: _categorySourceLabel(
-                  transaction: transaction,
-                  account: account,
-                  category: category,
-                  explainingRule: explainingRule,
-                ),
-                onTap: () => RecategorizeSheet.show(
-                  context,
-                  ref: ref,
-                  transaction: transaction,
-                ),
-                onRuleTap: explainingRule != null &&
-                        explainingRule.priority >
-                            CategorizationRule.defaultImportPriority
-                    ? () => ManageRuleSheet.show(
-                          context,
-                          ref: ref,
-                          rule: explainingRule,
-                        )
-                    : null,
-              ),
-            );
-          },
-          childCount: listItems.length,
-        ),
-      ),
-    );
-  }
-
-  String? _categorySourceLabel({
-    required BankTransaction transaction,
-    required Account? account,
-    required SpendCategory? category,
-    required CategorizationRule? explainingRule,
-  }) {
-    if (explainingRule != null &&
-        explainingRule.priority > CategorizationRule.defaultImportPriority) {
-      return 'Rule: contains “${explainingRule.pattern}”';
-    }
-
-    final categoryName = category?.name;
-    if (categoryName == null || categoryName.isEmpty) return null;
-    if (transaction.userCategoryId != null) return null;
-    if (transaction.suggestedCategoryId == null) return null;
-    if (transaction.suggestedCategoryId != transaction.effectiveCategoryId) {
-      return null;
-    }
-
-    final isCopilotAccount =
-        account?.externalId.startsWith('copilot:') ?? false;
-    if (isCopilotAccount) {
-      return 'Copilot category was “$categoryName”';
-    }
-    return 'Suggested: $categoryName';
-  }
-
-  List<_ActivityListItem> _dayGroupedListItems(
-    List<BankTransaction> transactions,
-  ) {
-    final today = DateTime.now().startOfDay;
-    final yesterday = today.subtract(const Duration(days: 1));
-    final listItems = <_ActivityListItem>[];
-    DateTime? currentDay;
-
-    for (final transaction in transactions) {
-      final day = transaction.postedAt.toLocal().startOfDay;
-      if (currentDay != day) {
-        currentDay = day;
-        listItems.add(
-          _ActivityDayHeader(label: _dayHeaderLabel(day, today, yesterday)),
-        );
-      }
-      listItems.add(_ActivityTransactionItem(transaction: transaction));
-    }
-    return listItems;
-  }
-
-  String _dayHeaderLabel(DateTime day, DateTime today, DateTime yesterday) {
-    if (day == today) return 'Today';
-    if (day == yesterday) return 'Yesterday';
-    if (day.year == today.year) {
-      return DateFormat('EEEE, MMM d').format(day);
-    }
-    return DateFormat('EEEE, MMM d, y').format(day);
-  }
-
-  Widget _buildEmptyState() {
+  Widget _emptyState() {
     final connected =
         ref.watch(connectionStatusProvider).asData?.value.isConnected ?? false;
     return ListView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.all(AppMetrics.spaceLg),
       children: [
         AppCard(
           child: Text(
             connected
                 ? 'No transactions yet.'
                 : 'Connect a bank on the Banks tab to see activity.',
-            style: AppText.body.medium,
+            style: AppText.body,
           ),
         ),
       ],
     );
   }
-}
-
-class _RuleMatchFilterToggle extends StatelessWidget {
-  const _RuleMatchFilterToggle({
-    required this.hideRuleMatched,
-    required this.hiddenCount,
-    required this.visibleCount,
-    required this.onChanged,
-  });
-
-  final bool hideRuleMatched;
-  final int hiddenCount;
-  final int visibleCount;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return AppCard(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Hide auto-categorized',
-                  style: AppText.body.medium.semibold,
-                ),
-                Text(
-                  hideRuleMatched
-                      ? '$visibleCount shown · $hiddenCount hidden'
-                      : 'Showing all loaded transactions',
-                  style: AppText.body.small,
-                ),
-              ],
-            ),
-          ),
-          CupertinoSwitch(
-            value: hideRuleMatched,
-            onChanged: onChanged,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _VisibleSumBar extends StatelessWidget {
-  const _VisibleSumBar({
-    required this.visibleTransactions,
-    required this.showSum,
-    required this.onToggle,
-  });
-
-  final List<BankTransaction> visibleTransactions;
-  final bool showSum;
-  final VoidCallback? onToggle;
-
-  @override
-  Widget build(BuildContext context) {
-    return AppCard(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Sum visible list',
-                  style: AppText.body.medium.semibold,
-                ),
-              ),
-              CupertinoButton(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-                minimumSize: Size.zero,
-                onPressed: onToggle,
-                child: Text(showSum ? 'Hide' : 'Sum'),
-              ),
-            ],
-          ),
-          if (showSum && visibleTransactions.isNotEmpty) ...[
-            VSpace.xs,
-            _buildSumDetails(),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSumDetails() {
-    var netCents = 0;
-    var inflowCents = 0;
-    var outflowCents = 0;
-    for (final transaction in visibleTransactions) {
-      netCents += transaction.amountCents;
-      if (transaction.isInflow) {
-        inflowCents += transaction.amountCents;
-      } else if (transaction.isOutflow) {
-        outflowCents += transaction.amountCents;
-      }
-    }
-
-    final netColor = netCents > 0
-        ? AppColors.success
-        : netCents < 0
-            ? AppColors.error
-            : AppColors.textBody;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
-          children: [
-            Text(
-              '${visibleTransactions.length} '
-              '${visibleTransactions.length == 1 ? 'transaction' : 'transactions'}',
-              style: AppText.body.small,
-            ),
-            const Spacer(),
-            Text(
-              formatCents(netCents),
-              style: AppText.body.large.semibold.copyWith(color: netColor),
-            ),
-          ],
-        ),
-        if (inflowCents != 0 || outflowCents != 0) ...[
-          VSpace.xs,
-          Text(
-            'In ${formatCents(inflowCents)} · Out ${formatCents(outflowCents)}',
-            style: AppText.caption,
-            textAlign: TextAlign.end,
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-class _ActivityDayHeaderTile extends StatelessWidget {
-  const _ActivityDayHeaderTile({
-    required this.label,
-    required this.isFirst,
-  });
-
-  final String label;
-  final bool isFirst;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        top: isFirst ? AppSpacing.xs : AppSpacing.lg,
-        bottom: AppSpacing.sm,
-      ),
-      child: Row(
-        children: [
-          Text(
-            label,
-            style: AppText.body.medium.semibold.copyWith(
-              color: AppColors.textBody,
-              letterSpacing: 0.2,
-            ),
-          ),
-          HSpace.md,
-          Expanded(
-            child: Container(
-              height: 1,
-              color: AppColors.borderDepth1,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-sealed class _ActivityListItem {
-  const _ActivityListItem();
-}
-
-class _ActivityDayHeader extends _ActivityListItem {
-  const _ActivityDayHeader({required this.label});
-
-  final String label;
-}
-
-class _ActivityTransactionItem extends _ActivityListItem {
-  const _ActivityTransactionItem({required this.transaction});
-
-  final BankTransaction transaction;
 }

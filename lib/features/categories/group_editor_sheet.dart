@@ -1,15 +1,14 @@
+import 'package:ethan_ui/ethan_ui.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spend_trends/domain/category_group.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
-import 'package:spend_trends/theme/app_theme.dart';
 import 'package:spend_trends/widgets/app_primary_button.dart';
 import 'package:spend_trends/widgets/app_sheet_panel.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Create or edit a category group name.
 class GroupEditorSheet extends ConsumerStatefulWidget {
   const GroupEditorSheet({
-    super.key,
     this.group,
   });
 
@@ -20,8 +19,10 @@ class GroupEditorSheet extends ConsumerStatefulWidget {
     required WidgetRef ref,
     CategoryGroup? group,
   }) {
-    return showCupertinoModalPopup<void>(
+    return showModalBottomSheet<void>(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (_) => GroupEditorSheet(group: group),
     );
   }
@@ -53,42 +54,66 @@ class _GroupEditorSheetState extends ConsumerState<GroupEditorSheet> {
   Widget build(BuildContext context) {
     return AppSheetPanel.compact(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        padding: const EdgeInsets.all(AppMetrics.spaceLg),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
               _isEditing ? 'Edit group' : 'New group',
-              style: AppText.headline.small,
+              style: AppText.section,
             ),
-            VSpace.md,
-            CupertinoTextField(
+            const SizedBox(height: AppMetrics.spaceMd),
+            TextField(
               controller: _nameController,
               autofocus: !_isEditing,
-              placeholder: 'Name (e.g. Wants)',
-              padding: const EdgeInsets.all(AppSpacing.md),
-              style: AppText.body.large.bright,
+              style: AppText.body.copyWith(color: AppColors.textPrimary),
+              decoration: _fieldDecoration('Name (e.g. Wants)'),
             ),
             if (_error != null) ...[
-              VSpace.sm,
-              Text(_error!, style: AppText.body.small.error),
+              const SizedBox(height: AppMetrics.spaceSm),
+              Text(
+                _error!,
+                style: AppText.caption.copyWith(color: AppColors.danger),
+              ),
             ],
-            VSpace.md,
+            const SizedBox(height: AppMetrics.spaceMd),
             AppPrimaryButton(
               busy: _busy,
               onPressed: _save,
               child: Text(_isEditing ? 'Save' : 'Create'),
             ),
             if (_isEditing) ...[
-              VSpace.sm,
-              CupertinoButton(
+              const SizedBox(height: AppMetrics.spaceSm),
+              TextButton(
                 onPressed: _busy ? null : _confirmDelete,
-                child: Text('Delete group', style: AppText.body.medium.error),
+                style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+                child: const Text('Delete group'),
               ),
             ],
           ],
         ),
+      ),
+    );
+  }
+
+  InputDecoration _fieldDecoration(String hint) {
+    return InputDecoration(
+      hintText: hint,
+      filled: true,
+      fillColor: AppColors.surface,
+      contentPadding: const EdgeInsets.all(AppMetrics.spaceMd),
+      border: OutlineInputBorder(
+        borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
+        borderSide: const BorderSide(color: AppColors.border),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
+        borderSide: const BorderSide(color: AppColors.border),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
+        borderSide: const BorderSide(color: AppColors.accentGlow),
       ),
     );
   }
@@ -125,22 +150,22 @@ class _GroupEditorSheetState extends ConsumerState<GroupEditorSheet> {
   }
 
   Future<void> _confirmDelete() async {
-    final confirmed = await showCupertinoDialog<bool>(
+    final confirmed = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) => CupertinoAlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Delete group?'),
         content: Text(
           '“${widget.group!.name}” will be removed. '
           'Categories stay; they just leave the group.',
         ),
         actions: [
-          CupertinoDialogAction(
+          TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
             child: const Text('Cancel'),
           ),
-          CupertinoDialogAction(
-            isDestructiveAction: true,
+          TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
             child: const Text('Delete'),
           ),
         ],

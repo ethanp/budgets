@@ -1,21 +1,24 @@
+import 'package:ethan_ui/ethan_ui.dart';
+import 'package:ethan_utils/ethan_utils.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spend_trends/domain/categorizer.dart';
 import 'package:spend_trends/features/activity/rule_impact_confirm_sheet.dart';
-import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/providers/llm_providers.dart';
-import 'package:spend_trends/services/llm/suggest_merchant_categories.dart';
+import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/services/llm/llm_errors.dart';
-import 'package:spend_trends/theme/app_theme.dart';
-import 'package:ethan_utils/ethan_utils.dart';
+import 'package:spend_trends/services/llm/suggest_merchant_categories.dart';
+import 'package:spend_trends/theme/finance_colors.dart';
 import 'package:spend_trends/widgets/app_sheet_panel.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SuggestCategoriesSheet extends ConsumerStatefulWidget {
-  const SuggestCategoriesSheet({super.key});
+  const SuggestCategoriesSheet();
 
   static Future<void> show(BuildContext context) {
-    return showCupertinoModalPopup<void>(
+    return showModalBottomSheet<void>(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (_) => const SuggestCategoriesSheet(),
     );
   }
@@ -97,19 +100,19 @@ class _SuggestCategoriesSheetState
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.all(AppMetrics.spaceLg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildTitleRow(),
-          VSpace.md,
+          const SizedBox(height: AppMetrics.spaceMd),
           _buildCreateRulesToggle(),
           if (_createRules) ...[
-            VSpace.xs,
+            const SizedBox(height: AppMetrics.spaceXs),
             Text(
               'You’ll confirm which existing transactions each rule '
               'should update.',
-              style: AppText.body.small,
+              style: AppText.caption,
             ),
           ],
         ],
@@ -121,11 +124,10 @@ class _SuggestCategoriesSheetState
     return Row(
       children: [
         Expanded(
-          child: Text('Suggested categories', style: AppText.headline.small),
+          child: Text('Suggested categories', style: AppText.section),
         ),
         if (_suggestions.isNotEmpty)
-          CupertinoButton(
-            padding: EdgeInsets.zero,
+          TextButton(
             onPressed: _reviewAll,
             child: Text(_bulkActionLabel),
           ),
@@ -136,15 +138,15 @@ class _SuggestCategoriesSheetState
   Widget _buildCreateRulesToggle() {
     return Row(
       children: [
-        CupertinoSwitch(
+        Switch(
           value: _createRules,
           onChanged: (value) => setState(() => _createRules = value),
         ),
-        HSpace.sm,
+        const SizedBox(width: AppMetrics.spaceSm),
         Expanded(
           child: Text(
             'Also create a rule for each merchant',
-            style: AppText.body.medium,
+            style: AppText.body,
           ),
         ),
       ],
@@ -153,20 +155,23 @@ class _SuggestCategoriesSheetState
 
   Widget _buildBody() {
     if (_loading) {
-      return const Center(child: CupertinoActivityIndicator());
+      return const Center(child: CircularProgressIndicator());
     }
     if (_error != null) {
       return Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Text(_error!, style: AppText.body.medium.error),
+        padding: const EdgeInsets.all(AppMetrics.spaceLg),
+        child: Text(
+          _error!,
+          style: AppText.body.copyWith(color: AppColors.danger),
+        ),
       );
     }
     if (_suggestions.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        padding: const EdgeInsets.all(AppMetrics.spaceLg),
         child: Text(
           'Nothing uncategorized to suggest.',
-          style: AppText.body.medium,
+          style: AppText.body,
         ),
       );
     }
@@ -175,19 +180,19 @@ class _SuggestCategoriesSheetState
 
   Widget _buildSuggestionList() {
     return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      padding: const EdgeInsets.symmetric(horizontal: AppMetrics.spaceLg),
       itemCount: _suggestions.length,
       separatorBuilder: (context, index) =>
-          VSpace.sm,
+          const SizedBox(height: AppMetrics.spaceSm),
       itemBuilder: (context, index) =>
           _buildSuggestionRow(_suggestions[index]),
     );
   }
 
   Widget _buildSuggestionRow(CategorySuggestion suggestion) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: AppComponents.primaryCard,
+    return AppSurface(
+      kind: AppSurfaceKind.row,
+      padding: const EdgeInsets.all(AppMetrics.spaceMd),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -195,29 +200,33 @@ class _SuggestCategoriesSheetState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(suggestion.merchant, style: AppText.body.large.semibold),
+                Text(
+                  suggestion.merchant,
+                  style: AppText.section.copyWith(fontWeight: FontWeight.w600),
+                ),
                 Text(
                   suggestion.createsCategory
                       ? 'New · ${suggestion.categoryName}'
                       : suggestion.categoryName,
                   style: suggestion.createsCategory
-                      ? AppText.body.small.copyWith(
-                          color: AppColors.accentSecondary,
+                      ? AppText.caption.copyWith(
+                          color: FinanceColors.accentSecondary,
                         )
-                      : AppText.body.small.accent,
+                      : AppText.caption.copyWith(
+                          color: FinanceColors.accentPrimary,
+                        ),
                 ),
                 if (suggestion.transactionAmountCents.isNotEmpty) ...[
-                  VSpace.xs,
+                  const SizedBox(height: AppMetrics.spaceXs),
                   Text(
                     _amountsLabel(suggestion),
-                    style: AppText.body.medium.semibold,
+                    style: AppText.body.copyWith(fontWeight: FontWeight.w600),
                   ),
                 ],
               ],
             ),
           ),
-          CupertinoButton(
-            padding: EdgeInsets.zero,
+          TextButton(
             onPressed: () => _reviewOne(suggestion),
             child: Text(_primaryActionLabel),
           ),

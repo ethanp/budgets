@@ -1,6 +1,5 @@
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:spend_trends/domain/account.dart';
-import 'package:spend_trends/domain/account_kind.dart';
 import 'package:spend_trends/domain/transaction.dart';
 
 /// Brokerage / bank ledger noise: equal and opposite amounts in the same account.
@@ -23,7 +22,7 @@ class CancelingMerchantPairs {
     final investmentBuckets = <String, _AmountBucket>{};
 
     for (final transaction in transactions) {
-      if (transaction.amountCents == 0) continue;
+      if (transaction.isZeroAmount) continue;
       final isInvestment =
           investmentAccountIds.contains(transaction.accountId);
       if (!isInvestment && transaction.normalizedMerchant.isEmpty) continue;
@@ -68,7 +67,7 @@ class CancelingMerchantPairs {
     if (accountsById == null || accountsById.isEmpty) return const {};
     return {
       for (final account in accountsById.values)
-        if (account.kind == AccountKind.investment) account.id,
+        if (account.isInvestment) account.id,
     };
   }
 

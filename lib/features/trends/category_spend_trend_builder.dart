@@ -5,10 +5,9 @@ import 'package:spend_trends/domain/transaction.dart';
 import 'package:spend_trends/features/trends/category_trend_series.dart';
 import 'package:spend_trends/features/trends/annual_pace_smoother.dart';
 import 'package:spend_trends/features/trends/trend_chart_catalog.dart';
-import 'package:spend_trends/features/trends/trend_series_significance.dart';
 import 'package:spend_trends/util/category_color.dart';
 import 'package:ethan_utils/ethan_utils.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
 /// Daily spend totals keyed by category (and rollups).
 class CategorySpendDailyMaps {
@@ -32,7 +31,7 @@ class CategorySpendDailyMaps {
 
     for (final transaction in transactions) {
       // Outflows add spend; inflows in a spend category subtract (refunds).
-      if (transaction.excluded || transaction.amountCents == 0) continue;
+      if (transaction.excluded || transaction.isZeroAmount) continue;
       final categoryId = transaction.effectiveCategoryId;
       if (categoryId != null && flowCategoryIds.contains(categoryId)) {
         continue;
@@ -145,7 +144,7 @@ class CategorySpendTrendBuilder {
       guide: true,
       dailyCents: affordabilityDaily,
     );
-    return TrendSeriesSignificance.hasMeaningfulTrend(built) ? built : null;
+    return built.hasMeaningfulTrend ? built : null;
   }
 
   _CategoryPartition _partitionCategories() {
@@ -188,7 +187,7 @@ class CategorySpendTrendBuilder {
         _mergeDailyMaps(groupDaily, memberDaily);
         representedCategoryIds.add(member.id);
 
-        final memberIsHousing = SpecialCategory.isHousingCategory(member);
+        final memberIsHousing = member.isHousing;
         final builtMember = _paceSeries(
           id: member.id,
           name: '${group.name} · ${member.name}',
@@ -197,14 +196,14 @@ class CategorySpendTrendBuilder {
               : CategoryColor.forCategory(member),
           dailyCents: memberDaily,
         );
-        if (!TrendSeriesSignificance.hasMeaningfulTrend(builtMember)) {
+        if (!builtMember.hasMeaningfulTrend) {
           continue;
         }
         memberSeries.add(builtMember);
       }
       if (groupDaily.isEmpty) continue;
 
-      final groupIsHousing = members.any(SpecialCategory.isHousingCategory);
+      final groupIsHousing = members.any((member) => member.isHousing);
       final groupSeries = _paceSeries(
         id: TrendChartCatalog.groupSeriesId(group.id),
         name: group.name,
@@ -213,7 +212,7 @@ class CategorySpendTrendBuilder {
             : CategoryColor.forGroupId(group.id),
         dailyCents: groupDaily,
       );
-      if (!TrendSeriesSignificance.hasMeaningfulTrend(groupSeries)) continue;
+      if (!groupSeries.hasMeaningfulTrend) continue;
 
       memberSeries.sort(
         (left, right) =>
@@ -226,7 +225,7 @@ class CategorySpendTrendBuilder {
       final dailySpendCents = spendMaps.byCategoryId[category.id];
       if (dailySpendCents == null || dailySpendCents.isEmpty) continue;
 
-      final pinnedColor = SpecialCategory.isHousingCategory(category)
+      final pinnedColor = category.isHousing
           ? CategoryColor.housing
           : null;
       final categorySeries = _paceSeries(
@@ -235,13 +234,13 @@ class CategorySpendTrendBuilder {
         lineColor: pinnedColor ?? _palette[paletteIndex % _palette.length],
         dailyCents: dailySpendCents,
       );
-      if (!TrendSeriesSignificance.hasMeaningfulTrend(categorySeries)) {
+      if (!categorySeries.hasMeaningfulTrend) {
         continue;
       }
       representedCategoryIds.add(category.id);
       if (pinnedColor == null) paletteIndex++;
 
-      if (_isOtherCategory(category)) {
+      if (category.isOther) {
         otherSeries = categorySeries;
       } else {
         seriesBlocks.add([categorySeries]);
@@ -281,7 +280,7 @@ class CategorySpendTrendBuilder {
       lineColor: TrendChartCatalog.uncategorizedLineColor,
       dailyCents: uncategorizedDaily,
     );
-    return TrendSeriesSignificance.hasMeaningfulTrend(built) ? built : null;
+    return built.hasMeaningfulTrend ? built : null;
   }
 
   CategoryTrendSeries _paceSeries({
@@ -303,9 +302,6 @@ class CategorySpendTrendBuilder {
       historyFloor: historyFloor,
     );
   }
-
-  static bool _isOtherCategory(SpendCategory category) =>
-      category.id == 'cat_other' || category.name.toLowerCase() == 'other';
 
   static void _mergeDailyMaps(
     Map<DateTime, double> into,

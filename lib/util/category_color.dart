@@ -1,8 +1,9 @@
 import 'package:spend_trends/domain/category.dart';
 import 'package:spend_trends/domain/special_category.dart';
-import 'package:spend_trends/theme/app_theme.dart';
+import 'package:spend_trends/theme/finance_colors.dart';
+import 'package:ethan_ui/ethan_ui.dart';
 import 'package:ethan_utils/ethan_utils.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
 /// Stable colors for category identity across Activity / Trends.
 ///
@@ -12,10 +13,10 @@ import 'package:flutter/cupertino.dart';
 class CategoryColor {
   CategoryColor._();
 
-  static const uncategorized = AppColors.textDim;
-  static const housing = AppColors.housing;
+  static const uncategorized = AppColors.textMuted;
+  static const housing = FinanceColors.housing;
   static const income = AppColors.success;
-  static const transfer = AppColors.accentSecondary;
+  static const transfer = FinanceColors.accentSecondary;
 
   /// Same palette as Trends series (readable on dark surfaces).
   static const palette = <Color>[

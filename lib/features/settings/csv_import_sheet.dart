@@ -1,20 +1,22 @@
 import 'dart:io';
 
-import 'package:spend_trends/services/csv/csv_importer.dart';
+import 'package:ethan_ui/ethan_ui.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
-import 'package:spend_trends/theme/app_theme.dart';
+import 'package:spend_trends/services/csv/csv_importer.dart';
 import 'package:spend_trends/widgets/app_primary_button.dart';
 import 'package:spend_trends/widgets/app_sheet_panel.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class CsvImportSheet extends ConsumerStatefulWidget {
-  const CsvImportSheet({super.key});
+  const CsvImportSheet();
 
   static Future<void> show(BuildContext context) {
-    return showCupertinoModalPopup<void>(
+    return showModalBottomSheet<void>(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (_) => const CsvImportSheet(),
     );
   }
@@ -39,26 +41,26 @@ class _CsvImportSheetState extends ConsumerState<CsvImportSheet> {
   Widget build(BuildContext context) {
     return AppSheetPanel.compact(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        padding: const EdgeInsets.all(AppMetrics.spaceLg),
         child: SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Import CSV', style: AppText.headline.small),
-              VSpace.sm,
+              Text('Import CSV', style: AppText.section),
+              const SizedBox(height: AppMetrics.spaceSm),
               Text(
                 'Needs columns for date, amount, and description.',
-                style: AppText.body.small,
+                style: AppText.caption,
               ),
-              VSpace.md,
+              const SizedBox(height: AppMetrics.spaceMd),
               _buildAccountField(),
               if (_message != null) ...[
-                VSpace.sm,
-                Text(_message!, style: AppText.body.small),
+                const SizedBox(height: AppMetrics.spaceSm),
+                Text(_message!, style: AppText.caption),
               ],
-              VSpace.md,
+              const SizedBox(height: AppMetrics.spaceMd),
               _buildChooseFileButton(),
             ],
           ),
@@ -68,11 +70,27 @@ class _CsvImportSheetState extends ConsumerState<CsvImportSheet> {
   }
 
   Widget _buildAccountField() {
-    return CupertinoTextField(
+    return TextField(
       controller: _accountController,
-      placeholder: 'Account name',
-      padding: const EdgeInsets.all(AppSpacing.md),
-      style: AppText.body.large.bright,
+      style: AppText.body.copyWith(color: AppColors.textPrimary),
+      decoration: InputDecoration(
+        hintText: 'Account name',
+        filled: true,
+        fillColor: AppColors.surface,
+        contentPadding: const EdgeInsets.all(AppMetrics.spaceMd),
+        border: OutlineInputBorder(
+          borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
+          borderSide: const BorderSide(color: AppColors.border),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
+          borderSide: const BorderSide(color: AppColors.border),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
+          borderSide: const BorderSide(color: AppColors.accentGlow),
+        ),
+      ),
     );
   }
 

@@ -1,0 +1,156 @@
+import 'package:ethan_ui/ethan_ui.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:spend_trends/domain/account.dart';
+import 'package:spend_trends/providers/spend_trends_providers.dart';
+
+class BankInstitutionHeader extends ConsumerStatefulWidget {
+  const BankInstitutionHeader({
+    required this.sampleAccount,
+    required this.displayName,
+    required this.accentColor,
+  });
+
+  final Account sampleAccount;
+  final String displayName;
+  final Color accentColor;
+
+  @override
+  ConsumerState<BankInstitutionHeader> createState() =>
+      _BankInstitutionHeaderState();
+}
+
+class _BankInstitutionHeaderState extends ConsumerState<BankInstitutionHeader> {
+  late final TextEditingController _nameController;
+  late final FocusNode _focusNode;
+  bool _editing = false;
+  bool _saving = false;
+
+  bool get _canRename => !widget.sampleAccount.isCopilot;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.displayName);
+    _focusNode = FocusNode()..addListener(_onFocusChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant BankInstitutionHeader oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!_editing && oldWidget.displayName != widget.displayName) {
+      _nameController.text = widget.displayName;
+    }
+  }
+
+  @override
+  void dispose() {
+    _focusNode.removeListener(_onFocusChanged);
+    _focusNode.dispose();
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  void _onFocusChanged() {
+    if (_focusNode.hasFocus || !_editing) return;
+    _commitRename();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final titleStyle = AppText.caption.copyWith(
+      fontWeight: FontWeight.w600,
+      color: widget.accentColor,
+    );
+    if (!_canRename) {
+      return Text(widget.displayName, style: titleStyle);
+    }
+    if (_editing) {
+      return TextField(
+        controller: _nameController,
+        focusNode: _focusNode,
+        style: titleStyle,
+        decoration: InputDecoration(
+          isDense: true,
+          hintText: widget.sampleAccount.connName?.trim().isNotEmpty == true
+              ? widget.sampleAccount.connName
+              : 'Bank name',
+          hintStyle: titleStyle.copyWith(color: AppColors.textMuted),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: AppMetrics.spaceSm,
+            vertical: AppMetrics.spaceXs,
+          ),
+          filled: true,
+          fillColor: AppColors.surfaceInset,
+          border: OutlineInputBorder(
+            borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
+            borderSide: const BorderSide(color: AppColors.border),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
+            borderSide: const BorderSide(color: AppColors.border),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
+            borderSide: BorderSide(color: widget.accentColor),
+          ),
+        ),
+        enabled: !_saving,
+        onSubmitted: (_) => _commitRename(),
+      );
+    }
+    return GestureDetector(
+      onTap: _beginEditing,
+      behavior: HitTestBehavior.opaque,
+      child: Text(widget.displayName, style: titleStyle),
+    );
+  }
+
+  void _beginEditing() {
+    setState(() {
+      _editing = true;
+      _nameController.text = widget.displayName;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _focusNode.requestFocus();
+      _nameController.selection = TextSelection(
+        baseOffset: 0,
+        extentOffset: _nameController.text.length,
+      );
+    });
+  }
+
+  Future<void> _commitRename() async {
+    if (!_editing || _saving) return;
+    final nextLabel = _nameController.text.trim();
+    final official = widget.sampleAccount.connName?.trim() ?? '';
+    final unchanged = nextLabel == widget.displayName ||
+        (nextLabel.isEmpty &&
+            (widget.sampleAccount.connUserLabel == null ||
+                widget.sampleAccount.connUserLabel!.isEmpty));
+    if (unchanged) {
+      setState(() => _editing = false);
+      return;
+    }
+
+    setState(() => _saving = true);
+    try {
+      final repository = await ref.read(accountsRepositoryProvider.future);
+      final storedLabel =
+          nextLabel.isEmpty || nextLabel == official ? null : nextLabel;
+      await repository.updateInstitutionUserLabel(
+        account: widget.sampleAccount,
+        connUserLabel: storedLabel,
+      );
+      ref.read(spendDataChangedProvider.notifier).notify();
+    } finally {
+      if (mounted) {
+        setState(() {
+          _saving = false;
+          _editing = false;
+        });
+      }
+    }
+  }
+}

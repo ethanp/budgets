@@ -1,5 +1,5 @@
-import 'package:spend_trends/theme/app_theme.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:ethan_ui/ethan_ui.dart';
+import 'package:flutter/material.dart';
 
 /// Elevated bottom-sheet surface used by modal popups.
 ///
@@ -7,7 +7,6 @@ import 'package:flutter/cupertino.dart';
 /// content-sized compact panel. Keyboard inset padding is on by default.
 class AppSheetPanel extends StatelessWidget {
   const AppSheetPanel({
-    super.key,
     required this.child,
     this.heightFraction = 0.85,
     this.padForKeyboard = true,
@@ -15,7 +14,6 @@ class AppSheetPanel extends StatelessWidget {
 
   /// Content-sized panel (no fixed viewport fraction).
   const AppSheetPanel.compact({
-    super.key,
     required this.child,
     this.padForKeyboard = true,
   }) : heightFraction = null;
@@ -38,8 +36,13 @@ class AppSheetPanel extends StatelessWidget {
           : MediaQuery.sizeOf(context).height * heightFraction!,
       padding: EdgeInsets.only(bottom: bottomInset),
       decoration: const BoxDecoration(
-        color: AppColors.backgroundDepth2,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
+        gradient: AppColors.metalPanelGradient,
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppMetrics.radiusLg),
+        ),
+        border: Border(
+          top: BorderSide(color: AppColors.frostBorder),
+        ),
       ),
       child: SafeArea(top: false, child: child),
     );

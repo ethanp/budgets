@@ -1,5 +1,6 @@
-import 'package:spend_trends/theme/app_theme.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:ethan_ui/ethan_ui.dart';
+import 'package:flutter/material.dart';
+import 'package:spend_trends/theme/finance_colors.dart';
 
 /// Series ids, colors, and shared Trends chart constants.
 class TrendChartCatalog {
@@ -34,13 +35,13 @@ class TrendChartCatalog {
   static const allSpendLineColor = Color(0xFF8B1E2D);
   static const uncategorizedLineColor = Color(0xFF9AA0A6);
   static const incomeLineColor = Color(0xFF3FB37F);
-  static const spendingLineColor = AppColors.housing;
+  static const spendingLineColor = FinanceColors.housing;
   static const transferLineColor = Color(0xFF7B8CDE);
   static const savingsLineColor = Color(0xFF56CCF2);
   static const netWorthLineColor = Color(0xFFE9C46A);
 
   static final housingAffordabilityLineColor = Color.lerp(
-        AppColors.housing,
+        FinanceColors.housing,
         const Color(0xFFE53935),
         0.3,
       )!;

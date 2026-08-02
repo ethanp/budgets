@@ -1,11 +1,12 @@
+import 'package:ethan_ui/ethan_ui.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/services/simplefin/simplefin_access_store.dart';
 import 'package:spend_trends/services/simplefin/simplefin_client.dart';
 import 'package:spend_trends/services/simplefin/simplefin_models.dart';
 import 'package:spend_trends/services/simplefin/simplefin_pull_progress.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class BanksActionState {
@@ -147,10 +148,10 @@ Future<void> promptPersistAccessUrl(
 ) async {
   await Clipboard.setData(ClipboardData(text: accessUrl.toString()));
   if (!context.mounted) return;
-  await showCupertinoDialog<void>(
+  await showDialog<void>(
     context: context,
     builder: (dialogContext) {
-      return CupertinoAlertDialog(
+      return AlertDialog(
         title: const Text('Save Access URL to .env'),
         content: const Text(
           'Setup Tokens are one-time. The Access URL was copied to the clipboard.\n\n'
@@ -159,7 +160,7 @@ Future<void> promptPersistAccessUrl(
           'Then hot-restart or rebuild the app.',
         ),
         actions: [
-          CupertinoDialogAction(
+          TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('OK'),
           ),
@@ -170,10 +171,10 @@ Future<void> promptPersistAccessUrl(
 }
 
 Future<bool> confirmDisconnectAndErase(BuildContext context) async {
-  final confirmed = await showCupertinoDialog<bool>(
+  final confirmed = await showDialog<bool>(
     context: context,
     builder: (dialogContext) {
-      return CupertinoAlertDialog(
+      return AlertDialog(
         title: const Text('Disconnect & erase local data?'),
         content: const Text(
           'Removes the SimpleFIN connection and deletes all local accounts '
@@ -181,13 +182,13 @@ Future<bool> confirmDisconnectAndErase(BuildContext context) async {
           'propagate to your server. Reconnect later with a new Setup Token.',
         ),
         actions: [
-          CupertinoDialogAction(
+          TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
             child: const Text('Cancel'),
           ),
-          CupertinoDialogAction(
-            isDestructiveAction: true,
+          TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
             child: const Text('Disconnect & erase'),
           ),
         ],

@@ -1,10 +1,9 @@
-import 'package:spend_trends/theme/app_theme.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:ethan_ui/ethan_ui.dart';
+import 'package:flutter/material.dart';
 
 /// Select all / Select none shortcuts for multi-select match lists.
 class SelectAllNoneRow extends StatelessWidget {
   const SelectAllNoneRow({
-    super.key,
     required this.onSelectAll,
     required this.onSelectNone,
   });
@@ -14,17 +13,28 @@ class SelectAllNoneRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Wrap(
+      spacing: AppMetrics.spaceMd,
+      runSpacing: AppMetrics.spaceXs,
       children: [
-        CupertinoButton(
-          padding: EdgeInsets.zero,
+        TextButton(
           onPressed: onSelectAll,
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: AppMetrics.spaceSm),
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            visualDensity: VisualDensity.compact,
+          ),
           child: const Text('Select all'),
         ),
-        HSpace.md,
-        CupertinoButton(
-          padding: EdgeInsets.zero,
+        TextButton(
           onPressed: onSelectNone,
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: AppMetrics.spaceSm),
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            visualDensity: VisualDensity.compact,
+          ),
           child: const Text('Select none'),
         ),
       ],

@@ -53,6 +53,20 @@ class Account {
     return name;
   }
 
+  /// [displayName] prefixed with [institutionDisplayName] when the institution
+  /// is meaningful (not the generic “Other” bucket).
+  ///
+  /// Use wherever the account appears without a separate institution header.
+  String get displayNameWithInstitution {
+    final account = displayName;
+    final institution = institutionDisplayName;
+    if (institution == 'Other') return account;
+    if (account.toLowerCase().startsWith(institution.toLowerCase())) {
+      return account;
+    }
+    return '$institution · $account';
+  }
+
   /// Bank/institution name shown in Banks grouping headers.
   String get institutionDisplayName {
     if (isCopilot) return 'Copilot';
@@ -76,6 +90,8 @@ class Account {
   bool get isCopilot => externalId.startsWith('copilot:');
 
   bool get hasParent => belongsToAccountId != null;
+
+  bool get isInvestment => kind == AccountKind.investment;
 
   Account copyWith({
     String? id,

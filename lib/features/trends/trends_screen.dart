@@ -1,3 +1,6 @@
+import 'package:ethan_ui/ethan_ui.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spend_trends/domain/account.dart';
 import 'package:spend_trends/domain/category.dart';
 import 'package:spend_trends/domain/category_group.dart';
@@ -10,13 +13,10 @@ import 'package:spend_trends/features/trends/category_trend_series.dart';
 import 'package:spend_trends/features/trends/trend_chart_catalog.dart';
 import 'package:spend_trends/features/trends/trends_chart_bundle.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
-import 'package:spend_trends/theme/app_theme.dart';
 import 'package:spend_trends/widgets/sync_status_nav_button.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class TrendsScreen extends ConsumerWidget {
-  const TrendsScreen({super.key});
+  const TrendsScreen();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -29,18 +29,25 @@ class TrendsScreen extends ConsumerWidget {
     final jobAsync = ref.watch(jobChainProvider);
     final accountsAsync = ref.watch(accountsMapProvider);
 
-    return CupertinoPageScaffold(
-      navigationBar: const CupertinoNavigationBar(
-        leading: SyncStatusNavButton(),
-        middle: Text('Trends'),
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        leading: const SyncStatusNavButton(),
+        title: const Text('Trends'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
       ),
-      child: SafeArea(
+      body: SafeArea(
         child: trendsAsync.when(
-          loading: () => const Center(child: CupertinoActivityIndicator()),
+          loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => Center(
             child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              child: Text('$error', style: AppText.body.medium.error),
+              padding: const EdgeInsets.all(AppMetrics.spaceLg),
+              child: Text(
+                '$error',
+                style: AppText.body.copyWith(color: AppColors.danger),
+              ),
             ),
           ),
           data: (bundle) => _trendsBody(
@@ -73,11 +80,11 @@ class TrendsScreen extends ConsumerWidget {
     if (bundle.isEmpty) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.xl),
+          padding: const EdgeInsets.all(AppMetrics.spaceXl),
           child: Text(
             'Connect a bank on the Banks tab and sync, or import CSV in '
             'Settings, to see long-term trends.',
-            style: AppText.body.medium,
+            style: AppText.body,
             textAlign: TextAlign.center,
           ),
         ),
@@ -85,7 +92,7 @@ class TrendsScreen extends ConsumerWidget {
     }
 
     return ListView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.all(AppMetrics.spaceLg),
       children: [
         if (bundle.categorySpend.isNotEmpty)
           CategoryTrendChart(
@@ -104,7 +111,7 @@ class TrendsScreen extends ConsumerWidget {
             },
           ),
         if (bundle.categorySpend.isNotEmpty && bundle.cashFlows.isNotEmpty)
-          VSpace.lg,
+          const SizedBox(height: AppMetrics.spaceLg),
         if (bundle.cashFlows.isNotEmpty)
           CategoryTrendChart(
             title: 'Income · Spending · Savings',
@@ -126,7 +133,7 @@ class TrendsScreen extends ConsumerWidget {
           ),
         if (bundle.netWorth.isNotEmpty) ...[
           if (bundle.categorySpend.isNotEmpty || bundle.cashFlows.isNotEmpty)
-            VSpace.lg,
+            const SizedBox(height: AppMetrics.spaceLg),
           CategoryTrendChart(
             title: 'Net worth',
             headlineFigures: _netWorthHeadlines(

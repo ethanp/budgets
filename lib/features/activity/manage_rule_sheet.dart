@@ -1,16 +1,19 @@
-import 'package:spend_trends/domain/category.dart';
-import 'package:spend_trends/domain/transaction.dart';
-import 'package:spend_trends/providers/spend_trends_providers.dart';
-import 'package:spend_trends/theme/app_theme.dart';
+import 'package:ethan_ui/ethan_ui.dart';
 import 'package:ethan_utils/ethan_utils.dart';
-import 'package:spend_trends/widgets/app_sheet_panel.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:spend_trends/domain/category.dart';
+import 'package:spend_trends/domain/category_group.dart';
+import 'package:spend_trends/domain/transaction.dart';
+import 'package:spend_trends/providers/spend_trends_providers.dart';
+import 'package:spend_trends/theme/finance_colors.dart';
+import 'package:spend_trends/widgets/app_sheet_panel.dart';
+import 'package:spend_trends/widgets/category_picker.dart';
 
-/// Lists transactions where [rule] is primary, with remove + auto-reclaim.
+/// Lists transactions where [rule] is primary; retarget or remove the rule.
 class ManageRuleSheet extends ConsumerStatefulWidget {
-  const ManageRuleSheet({super.key, required this.rule});
+  const ManageRuleSheet({required this.rule});
 
   final CategorizationRule rule;
 
@@ -19,8 +22,10 @@ class ManageRuleSheet extends ConsumerStatefulWidget {
     required WidgetRef ref,
     required CategorizationRule rule,
   }) {
-    return showCupertinoModalPopup<void>(
+    return showModalBottomSheet<void>(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (_) => ManageRuleSheet(rule: rule),
     );
   }
@@ -30,9 +35,10 @@ class ManageRuleSheet extends ConsumerStatefulWidget {
 }
 
 class _ManageRuleSheetState extends ConsumerState<ManageRuleSheet> {
+  late CategorizationRule _rule = widget.rule;
   List<BankTransaction>? _primaryMatches;
   Object? _loadError;
-  bool _removing = false;
+  bool _busy = false;
 
   @override
   void initState() {
@@ -43,8 +49,7 @@ class _ManageRuleSheetState extends ConsumerState<ManageRuleSheet> {
   Future<void> _loadPrimaryMatches() async {
     try {
       final categorizer = await ref.read(categorizerProvider.future);
-      final matches =
-          await categorizer.transactionsExplainedByRule(widget.rule);
+      final matches = await categorizer.transactionsExplainedByRule(_rule);
       if (!mounted) return;
       setState(() {
         _primaryMatches = matches;
@@ -65,7 +70,7 @@ class _ManageRuleSheetState extends ConsumerState<ManageRuleSheet> {
       for (final category in categories) category.id: category.name,
     };
     final categoryName =
-        categoryNameById[widget.rule.categoryId] ?? 'Unknown category';
+        categoryNameById[_rule.categoryId] ?? 'Unknown category';
 
     return AppSheetPanel(
       child: Column(
@@ -82,24 +87,50 @@ class _ManageRuleSheetState extends ConsumerState<ManageRuleSheet> {
   Widget _header(String categoryName) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
-        AppSpacing.lg,
-        AppSpacing.lg,
-        AppSpacing.lg,
-        AppSpacing.md,
+        AppMetrics.spaceLg,
+        AppMetrics.spaceLg,
+        AppMetrics.spaceLg,
+        AppMetrics.spaceMd,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Rule', style: AppText.headline.small),
-          VSpace.sm,
+          Text('Rule', style: AppText.section),
+          const SizedBox(height: AppMetrics.spaceSm),
           Text(
-            'contains “${widget.rule.pattern}”',
-            style: AppText.body.medium.semibold.accent,
+            'contains “${_rule.pattern}”',
+            style: AppText.body.copyWith(
+              fontWeight: FontWeight.w600,
+              color: FinanceColors.accentPrimary,
+            ),
           ),
-          VSpace.xs,
-          Text(
-            '→ $categoryName',
-            style: AppText.body.small.copyWith(color: AppColors.textSupport),
+          const SizedBox(height: AppMetrics.spaceXs),
+          TextButton(
+            onPressed: _busy ? null : _pickTargetCategory,
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.zero,
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              alignment: Alignment.centerLeft,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '→ $categoryName',
+                  style: AppText.caption.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: FinanceColors.accentPrimary,
+                  ),
+                ),
+                const SizedBox(width: AppMetrics.spaceXs),
+                const Icon(
+                  Icons.keyboard_arrow_down,
+                  size: 16,
+                  color: FinanceColors.accentPrimary,
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -110,41 +141,44 @@ class _ManageRuleSheetState extends ConsumerState<ManageRuleSheet> {
     if (_loadError != null) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          child: Text('$_loadError', style: AppText.body.medium.error),
+          padding: const EdgeInsets.all(AppMetrics.spaceLg),
+          child: Text(
+            '$_loadError',
+            style: AppText.body.copyWith(color: AppColors.danger),
+          ),
         ),
       );
     }
     final matches = _primaryMatches;
     if (matches == null) {
-      return const Center(child: CupertinoActivityIndicator());
+      return const Center(child: CircularProgressIndicator());
     }
     if (matches.isEmpty) {
       return Center(
         child: Text(
           'No transactions currently use this rule.',
-          style: AppText.body.medium.copyWith(color: AppColors.textDim),
+          style: AppText.body.copyWith(color: AppColors.textMuted),
         ),
       );
     }
 
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(
-        AppSpacing.lg,
+        AppMetrics.spaceLg,
         0,
-        AppSpacing.lg,
-        AppSpacing.md,
+        AppMetrics.spaceLg,
+        AppMetrics.spaceMd,
       ),
       itemCount: matches.length + 1,
       itemBuilder: (context, index) {
         if (index == 0) {
           return Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.md),
+            padding: const EdgeInsets.only(bottom: AppMetrics.spaceMd),
             child: Text(
               '${matches.length} '
               '${matches.length == 1 ? 'transaction' : 'transactions'} '
               'where this rule is primary',
-              style: AppText.caption.copyWith(color: AppColors.textSupport),
+              style: AppText.caption.copyWith(color: AppColors.textMuted),
             ),
           );
         }
@@ -159,24 +193,29 @@ class _ManageRuleSheetState extends ConsumerState<ManageRuleSheet> {
 
   Widget _actions() {
     return Padding(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.all(AppMetrics.spaceLg),
       child: Row(
         children: [
           Expanded(
-            child: CupertinoButton(
-              onPressed: _removing ? null : () => Navigator.of(context).pop(),
+            child: TextButton(
+              onPressed: _busy ? null : () => Navigator.of(context).pop(),
               child: const Text('Done'),
             ),
           ),
           Expanded(
-            child: CupertinoButton(
-              onPressed: _removing ? null : _confirmRemove,
-              child: _removing
-                  ? const CupertinoActivityIndicator()
+            child: TextButton(
+              onPressed: _busy ? null : _confirmRemove,
+              child: _busy
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
                   : Text(
                       'Remove rule',
-                      style: AppText.body.medium.semibold.copyWith(
-                        color: AppColors.error,
+                      style: AppText.body.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.danger,
                       ),
                     ),
             ),
@@ -186,12 +225,99 @@ class _ManageRuleSheetState extends ConsumerState<ManageRuleSheet> {
     );
   }
 
+  Future<void> _pickTargetCategory() async {
+    final categories =
+        ref.read(categoriesListProvider).asData?.value ??
+            const <SpendCategory>[];
+    final groups =
+        ref.read(categoryGroupsProvider).asData?.value ??
+            const <CategoryGroup>[];
+    final selected = await showModalBottomSheet<SpendCategory>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => _TargetCategoryPickerSheet(
+        categories: categories,
+        groups: groups,
+        selectedCategoryId: _rule.categoryId,
+        onPick: (category) => Navigator.of(sheetContext).pop(category),
+      ),
+    );
+    if (selected == null || !mounted) return;
+    if (selected.id == _rule.categoryId) return;
+
+    final matchCount = _primaryMatches?.length ?? 0;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Change rule category?'),
+        content: Text(
+          matchCount == 0
+              ? 'Points this rule at ${selected.name}. No transactions '
+                  'currently use it as primary.'
+              : 'Points this rule at ${selected.name} and updates $matchCount '
+                  '${matchCount == 1 ? 'transaction' : 'transactions'}.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Change'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _busy = true);
+    try {
+      final categorizer = await ref.read(categorizerProvider.future);
+      await categorizer.retargetRule(
+        rule: _rule,
+        categoryId: selected.id,
+      );
+      ref.read(spendDataChangedProvider.notifier).notify();
+      if (!mounted) return;
+      setState(() {
+        _rule = CategorizationRule(
+          id: _rule.id,
+          matchType: _rule.matchType,
+          pattern: _rule.pattern,
+          categoryId: selected.id,
+          priority: _rule.priority,
+        );
+        _busy = false;
+        _primaryMatches = null;
+      });
+      await _loadPrimaryMatches();
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _busy = false);
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Could not change category'),
+          content: Text('$error'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
   Future<void> _confirmRemove() async {
-    final confirmed = await showCupertinoDialog<bool>(
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {
         final matchCount = _primaryMatches?.length ?? 0;
-        return CupertinoAlertDialog(
+        return AlertDialog(
           title: const Text('Remove this rule?'),
           content: Text(
             matchCount == 0
@@ -202,14 +328,16 @@ class _ManageRuleSheetState extends ConsumerState<ManageRuleSheet> {
                     'Remaining rules will reclaim matches as suggested.',
           ),
           actions: [
-            CupertinoDialogAction(
+            TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
               child: const Text('Cancel'),
             ),
-            CupertinoDialogAction(
-              isDestructiveAction: true,
+            TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('Remove'),
+              child: const Text(
+                'Remove',
+                style: TextStyle(color: AppColors.danger),
+              ),
             ),
           ],
         );
@@ -217,23 +345,23 @@ class _ManageRuleSheetState extends ConsumerState<ManageRuleSheet> {
     );
     if (confirmed != true || !mounted) return;
 
-    setState(() => _removing = true);
+    setState(() => _busy = true);
     try {
       final categorizer = await ref.read(categorizerProvider.future);
-      await categorizer.removeRuleAndReclaim(widget.rule);
+      await categorizer.removeRuleAndReclaim(_rule);
       ref.read(spendDataChangedProvider.notifier).notify();
       if (!mounted) return;
       Navigator.of(context).pop();
     } catch (error) {
       if (!mounted) return;
-      setState(() => _removing = false);
-      await showCupertinoDialog<void>(
+      setState(() => _busy = false);
+      await showDialog<void>(
         context: context,
-        builder: (dialogContext) => CupertinoAlertDialog(
+        builder: (dialogContext) => AlertDialog(
           title: const Text('Could not remove rule'),
           content: Text('$error'),
           actions: [
-            CupertinoDialogAction(
+            TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
               child: const Text('OK'),
             ),
@@ -250,6 +378,55 @@ class _ManageRuleSheetState extends ConsumerState<ManageRuleSheet> {
     final categoryId = transaction.effectiveCategoryId;
     if (categoryId == null) return 'Uncategorized';
     return categoryNameById[categoryId] ?? 'Unknown category';
+  }
+}
+
+class _TargetCategoryPickerSheet extends StatelessWidget {
+  const _TargetCategoryPickerSheet({
+    required this.categories,
+    required this.groups,
+    required this.selectedCategoryId,
+    required this.onPick,
+  });
+
+  final List<SpendCategory> categories;
+  final List<CategoryGroup> groups;
+  final String selectedCategoryId;
+  final ValueChanged<SpendCategory> onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppSheetPanel(
+      heightFraction: 0.55,
+      padForKeyboard: false,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(AppMetrics.spaceLg),
+            child: Text('Target category', style: AppText.section),
+          ),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(
+                AppMetrics.spaceLg,
+                0,
+                AppMetrics.spaceLg,
+                AppMetrics.spaceLg,
+              ),
+              children: [
+                CategoryPicker(
+                  categories: categories,
+                  groups: groups,
+                  selectedId: selectedCategoryId,
+                  onPick: onPick,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -271,11 +448,15 @@ class _PrimaryMatchRow extends StatelessWidget {
     final dateLabel =
         DateFormat.yMMMd().format(transaction.postedAt.toLocal());
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: AppComponents.primaryCard,
+      padding: const EdgeInsets.only(bottom: AppMetrics.spaceSm),
+      child: AppSurface(
+        kind: AppSurfaceKind.row,
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppMetrics.spaceMd,
+          vertical: AppMetrics.spaceSm,
+        ),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: Column(
@@ -283,28 +464,28 @@ class _PrimaryMatchRow extends StatelessWidget {
                 children: [
                   Text(
                     _title,
-                    style: AppText.body.medium.semibold,
-                    maxLines: 2,
+                    style: AppText.body.copyWith(fontWeight: FontWeight.w600),
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  const SizedBox(height: 2),
                   Text(
-                    categoryName,
-                    style: AppText.body.small.copyWith(
-                      color: AppColors.accentPrimary,
+                    '$categoryName · $dateLabel',
+                    style: AppText.caption.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: FinanceColors.accentPrimary,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  Text(
-                    dateLabel,
-                    style: AppText.caption.copyWith(color: AppColors.textDim),
-                  ),
                 ],
               ),
             ),
+            const SizedBox(width: AppMetrics.spaceSm),
             Text(
               formatCents(transaction.amountCents),
-              style: AppText.body.medium.semibold,
+              style: AppText.body.copyWith(fontWeight: FontWeight.w600),
+              maxLines: 1,
             ),
           ],
         ),

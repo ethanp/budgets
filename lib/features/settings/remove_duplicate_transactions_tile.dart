@@ -1,12 +1,12 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spend_trends/domain/remove_copilot_duplicates.dart';
 import 'package:spend_trends/features/settings/settings_section.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Removes duplicate transactions from Copilot re-imports and linked SimpleFIN.
 class RemoveDuplicateTransactionsTile extends ConsumerStatefulWidget {
-  const RemoveDuplicateTransactionsTile({super.key});
+  const RemoveDuplicateTransactionsTile();
 
   @override
   ConsumerState<RemoveDuplicateTransactionsTile> createState() => _RemoveDuplicateTransactionsTileState();
@@ -19,7 +19,7 @@ class _RemoveDuplicateTransactionsTileState extends ConsumerState<RemoveDuplicat
   @override
   Widget build(BuildContext context) {
     return SettingsToolRow(
-      icon: CupertinoIcons.square_stack_3d_up,
+      icon: Icons.layers,
       title: 'Remove duplicate transactions',
       caption:
           'Drop Copilot↔SimpleFIN matches and same-account day/amount/merchant '

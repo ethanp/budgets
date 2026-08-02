@@ -85,7 +85,7 @@ class Categorizer {
   }
 
   Future<String?> resolveCategoryId(BankTransaction transaction) async {
-    if (transaction.userCategoryId != null) {
+    if (transaction.hasUserCategory) {
       return transaction.userCategoryId;
     }
 
@@ -256,13 +256,13 @@ class Categorizer {
     final candidates = [
       for (final transaction in transactions)
         if (copilotAccountIds.contains(transaction.accountId) &&
-            transaction.userCategoryId != null)
+            transaction.hasUserCategory)
           transaction,
     ];
 
     final defaultImportRules = [
       for (final rule in await _categoriesRepository.listRules())
-        if (rule.priority == CategorizationRule.defaultImportPriority) rule,
+        if (rule.isDefaultImport) rule,
     ];
 
     final totalSteps =
@@ -319,7 +319,7 @@ class Categorizer {
     for (var index = 0; index < transactions.length; index++) {
       final transaction = transactions[index];
       onProgress?.call(index + 1, total);
-      if (transaction.userCategoryId != null) continue;
+      if (transaction.hasUserCategory) continue;
 
       final matchingRule = ruleMatchIndex.bestMatchingRule(transaction);
       if (matchingRule == null) continue;
@@ -383,6 +383,41 @@ class Categorizer {
       reclaimedByOtherRulesCount: reclaimedCount,
     );
   }
+
+  /// Points [rule] at [categoryId] and updates its primary matches to match.
+  Future<int> retargetRule({
+    required CategorizationRule rule,
+    required String categoryId,
+  }) async {
+    if (categoryId == rule.categoryId) return 0;
+
+    final primaryMatches = await transactionsExplainedByRule(rule);
+    await _categoriesRepository.upsertRule(
+      CategorizationRule(
+        id: rule.id,
+        matchType: rule.matchType,
+        pattern: rule.pattern,
+        categoryId: categoryId,
+        priority: rule.priority,
+      ),
+    );
+
+    for (final transaction in primaryMatches) {
+      if (transaction.userCategoryId == rule.categoryId) {
+        await _transactionsRepository.setUserCategory(
+          transactionId: transaction.id,
+          categoryId: categoryId,
+        );
+      } else {
+        await _transactionsRepository.setSuggestedCategory(
+          transactionId: transaction.id,
+          categoryId: categoryId,
+        );
+      }
+    }
+
+    return primaryMatches.length;
+  }
 }
 
 class RemoveRuleReclaimResult {
@@ -428,11 +463,10 @@ class RuleMatchIndex {
   }
 
   CategorizationRule? explainingRule(BankTransaction transaction) {
-    final effectiveCategoryId = transaction.effectiveCategoryId;
-    if (effectiveCategoryId == null) return null;
+    if (transaction.isUncategorized) return null;
     final matchingRule = bestMatchingRule(transaction);
     if (matchingRule == null) return null;
-    if (matchingRule.categoryId != effectiveCategoryId) return null;
+    if (matchingRule.categoryId != transaction.effectiveCategoryId) return null;
     return matchingRule;
   }
 

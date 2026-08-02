@@ -1,15 +1,15 @@
+import 'package:ethan_sync/ethan_sync.dart';
+import 'package:ethan_ui/ethan_ui.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spend_trends/domain/account.dart';
 import 'package:spend_trends/features/shell/sync_status_sheet.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/services/sync/sync_config.dart';
-import 'package:spend_trends/theme/app_theme.dart';
-import 'package:ethan_sync/ethan_sync.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Collective sync indicator for navigation bars. Opens per-account detail.
 class SyncStatusNavButton extends ConsumerWidget {
-  const SyncStatusNavButton({super.key});
+  const SyncStatusNavButton();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -20,10 +20,10 @@ class SyncStatusNavButton extends ConsumerWidget {
       error: (_, _) => _CollectiveSyncLook.warning,
     );
 
-    return CupertinoButton(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+    return IconButton(
+      padding: const EdgeInsets.symmetric(horizontal: AppMetrics.spaceSm),
       onPressed: () => SyncStatusSheet.show(context),
-      child: Icon(
+      icon: Icon(
         look.icon,
         color: look.color,
         size: 22,
@@ -66,17 +66,17 @@ enum _CollectiveSyncLook {
   ok;
 
   IconData get icon => switch (this) {
-        disconnected => CupertinoIcons.link,
-        offline => CupertinoIcons.wifi_slash,
-        busy => CupertinoIcons.arrow_2_circlepath,
-        warning => CupertinoIcons.exclamationmark_triangle_fill,
-        ok => CupertinoIcons.cloud_fill,
+        disconnected => Icons.link,
+        offline => Icons.wifi_off,
+        busy => Icons.sync,
+        warning => Icons.warning,
+        ok => Icons.cloud,
       };
 
   Color get color => switch (this) {
-        disconnected => AppColors.textSupport,
+        disconnected => AppColors.textMuted,
         offline => AppColors.warning,
-        busy => AppColors.accentSecondary,
+        busy => AppColors.accentGlow,
         warning => AppColors.warning,
         ok => AppColors.success,
       };

@@ -3,9 +3,8 @@ import 'package:spend_trends/domain/transaction.dart';
 import 'package:spend_trends/features/trends/category_trend_series.dart';
 import 'package:spend_trends/features/trends/annual_pace_smoother.dart';
 import 'package:spend_trends/features/trends/trend_chart_catalog.dart';
-import 'package:spend_trends/features/trends/trend_series_significance.dart';
 import 'package:ethan_utils/ethan_utils.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
 /// Daily income / spending / transfer totals for cash-flow Trends.
 class CashFlowDailyMaps {
@@ -136,7 +135,7 @@ class CashFlowTrendBuilder {
       ),
     ];
     return series
-        .where(TrendSeriesSignificance.hasMeaningfulTrend)
+        .where((series) => series.hasMeaningfulTrend)
         .toList();
   }
 

@@ -243,12 +243,12 @@ class _SeriesMembership {
     final categoryId = transaction.effectiveCategoryId;
     switch (kind) {
       case _MembershipKind.categorySpend:
-        if (transaction.excluded || transaction.amountCents == 0) return false;
+        if (transaction.excluded || transaction.isZeroAmount) return false;
         if (SpecialCategory.isFlowId(categoryId)) return false;
         if (categoryIds == null) return true;
         return categoryId != null && categoryIds!.contains(categoryId);
       case _MembershipKind.uncategorized:
-        if (transaction.excluded || transaction.amountCents == 0) return false;
+        if (transaction.excluded || transaction.isZeroAmount) return false;
         if (SpecialCategory.isFlowId(categoryId)) return false;
         if (categoryId == null) return true;
         return !backedCategoryIds!.contains(categoryId);

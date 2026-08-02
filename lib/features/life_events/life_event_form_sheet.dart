@@ -1,19 +1,18 @@
+import 'package:ethan_ui/ethan_ui.dart';
+import 'package:ethan_utils/ethan_utils.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spend_trends/domain/life_event.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
-import 'package:spend_trends/theme/app_theme.dart';
-import 'package:spend_trends/widgets/app_primary_button.dart';
 import 'package:spend_trends/widgets/app_date_field.dart';
 import 'package:spend_trends/widgets/app_date_picker.dart';
+import 'package:spend_trends/widgets/app_primary_button.dart';
 import 'package:spend_trends/widgets/app_sheet_panel.dart';
-import 'package:ethan_utils/ethan_utils.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 enum _LifeEventDateMode { day, range, ongoing }
 
 class LifeEventFormSheet extends ConsumerStatefulWidget {
   const LifeEventFormSheet({
-    super.key,
     this.lifeEvent,
   });
 
@@ -24,8 +23,10 @@ class LifeEventFormSheet extends ConsumerStatefulWidget {
     required WidgetRef ref,
     LifeEvent? lifeEvent,
   }) {
-    return showCupertinoModalPopup<void>(
+    return showModalBottomSheet<void>(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (_) => LifeEventFormSheet(lifeEvent: lifeEvent),
     );
   }
@@ -75,7 +76,7 @@ class _LifeEventFormSheetState extends ConsumerState<LifeEventFormSheet> {
   Widget build(BuildContext context) {
     return AppSheetPanel.compact(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        padding: const EdgeInsets.all(AppMetrics.spaceLg),
         child: SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           child: Column(
@@ -83,34 +84,37 @@ class _LifeEventFormSheetState extends ConsumerState<LifeEventFormSheet> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _sheetHeader(),
-              VSpace.md,
+              const SizedBox(height: AppMetrics.spaceMd),
               _titleField(),
-              VSpace.md,
+              const SizedBox(height: AppMetrics.spaceMd),
               _dateModeControl(),
-              VSpace.md,
+              const SizedBox(height: AppMetrics.spaceMd),
               AppDateField(
                 label: _dateMode == _LifeEventDateMode.day ? 'Date' : 'Start',
                 date: _startedOn,
                 onTap: () => _pickDate(isStart: true),
               ),
               if (_dateMode == _LifeEventDateMode.range) ...[
-                VSpace.sm,
+                const SizedBox(height: AppMetrics.spaceSm),
                 AppDateField(
                   label: 'End',
                   date: _endedOn,
                   onTap: () => _pickDate(isStart: false),
                 ),
               ],
-              VSpace.md,
+              const SizedBox(height: AppMetrics.spaceMd),
               _noteField(),
               if (_error != null) ...[
-                VSpace.sm,
-                Text(_error!, style: AppText.body.small.error),
+                const SizedBox(height: AppMetrics.spaceSm),
+                Text(
+                  _error!,
+                  style: AppText.caption.copyWith(color: AppColors.danger),
+                ),
               ],
-              VSpace.md,
+              const SizedBox(height: AppMetrics.spaceMd),
               _saveButton(),
               if (_isEditing) ...[
-                VSpace.sm,
+                const SizedBox(height: AppMetrics.spaceSm),
                 _deleteButton(),
               ],
             ],
@@ -123,39 +127,32 @@ class _LifeEventFormSheetState extends ConsumerState<LifeEventFormSheet> {
   Widget _sheetHeader() {
     return Text(
       _isEditing ? 'Edit life event' : 'New life event',
-      style: AppText.headline.small,
+      style: AppText.section,
     );
   }
 
   Widget _titleField() {
-    return CupertinoTextField(
+    return TextField(
       controller: _titleController,
       autofocus: !_isEditing,
-      placeholder: 'Title',
-      padding: const EdgeInsets.all(AppSpacing.md),
-      style: AppText.body.large.bright,
+      style: AppText.body.copyWith(color: AppColors.textPrimary),
+      decoration: _fieldDecoration('Title'),
     );
   }
 
   Widget _dateModeControl() {
-    return CupertinoSlidingSegmentedControl<_LifeEventDateMode>(
-      groupValue: _dateMode,
-      children: const {
-        _LifeEventDateMode.day: Padding(
-          padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-          child: Text('Day'),
+    return SegmentedButton<_LifeEventDateMode>(
+      segments: const [
+        ButtonSegment(value: _LifeEventDateMode.day, label: Text('Day')),
+        ButtonSegment(value: _LifeEventDateMode.range, label: Text('Range')),
+        ButtonSegment(
+          value: _LifeEventDateMode.ongoing,
+          label: Text('Ongoing'),
         ),
-        _LifeEventDateMode.range: Padding(
-          padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-          child: Text('Range'),
-        ),
-        _LifeEventDateMode.ongoing: Padding(
-          padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-          child: Text('Ongoing'),
-        ),
-      },
-      onValueChanged: (mode) {
-        if (mode == null) return;
+      ],
+      selected: {_dateMode},
+      onSelectionChanged: (selection) {
+        final mode = selection.first;
         setState(() {
           _dateMode = mode;
           if (mode == _LifeEventDateMode.range &&
@@ -168,13 +165,33 @@ class _LifeEventFormSheetState extends ConsumerState<LifeEventFormSheet> {
   }
 
   Widget _noteField() {
-    return CupertinoTextField(
+    return TextField(
       controller: _noteController,
-      placeholder: 'Note (optional)',
       maxLines: 3,
       minLines: 2,
-      padding: const EdgeInsets.all(AppSpacing.md),
-      style: AppText.body.large.bright,
+      style: AppText.body.copyWith(color: AppColors.textPrimary),
+      decoration: _fieldDecoration('Note (optional)'),
+    );
+  }
+
+  InputDecoration _fieldDecoration(String hint) {
+    return InputDecoration(
+      hintText: hint,
+      filled: true,
+      fillColor: AppColors.surface,
+      contentPadding: const EdgeInsets.all(AppMetrics.spaceMd),
+      border: OutlineInputBorder(
+        borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
+        borderSide: const BorderSide(color: AppColors.border),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
+        borderSide: const BorderSide(color: AppColors.border),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
+        borderSide: const BorderSide(color: AppColors.accentGlow),
+      ),
     );
   }
 
@@ -187,9 +204,10 @@ class _LifeEventFormSheetState extends ConsumerState<LifeEventFormSheet> {
   }
 
   Widget _deleteButton() {
-    return CupertinoButton(
+    return TextButton(
       onPressed: _busy ? null : _confirmDelete,
-      child: Text('Delete', style: AppText.body.medium.error),
+      style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+      child: const Text('Delete'),
     );
   }
 
@@ -265,19 +283,19 @@ class _LifeEventFormSheetState extends ConsumerState<LifeEventFormSheet> {
   }
 
   Future<void> _confirmDelete() async {
-    final confirmed = await showCupertinoDialog<bool>(
+    final confirmed = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) => CupertinoAlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Delete life event?'),
         content: Text('“${widget.lifeEvent!.title}” will be removed.'),
         actions: [
-          CupertinoDialogAction(
+          TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
             child: const Text('Cancel'),
           ),
-          CupertinoDialogAction(
-            isDestructiveAction: true,
+          TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
             child: const Text('Delete'),
           ),
         ],

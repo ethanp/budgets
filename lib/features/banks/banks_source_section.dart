@@ -1,17 +1,23 @@
+import 'package:ethan_ui/ethan_ui.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spend_trends/features/banks/bank_accounts_list.dart';
 import 'package:spend_trends/features/banks/banks_controller.dart';
 import 'package:spend_trends/features/banks/banks_pull_progress_sheet.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/services/simplefin/simplefin_access_store.dart';
-import 'package:spend_trends/theme/app_theme.dart';
+import 'package:spend_trends/theme/finance_colors.dart';
 import 'package:spend_trends/widgets/app_primary_button.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart' show SelectableText;
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Everyday bank UI: connect, accounts, pull bank transactions.
 class BanksSourceSection extends ConsumerStatefulWidget {
-  const BanksSourceSection({super.key});
+  const BanksSourceSection({
+    this.selectedAccountId,
+    this.onAccountSelected,
+  });
+
+  final String? selectedAccountId;
+  final void Function(String accountId)? onAccountSelected;
 
   @override
   ConsumerState<BanksSourceSection> createState() => _BanksSourceSectionState();
@@ -33,10 +39,10 @@ class _BanksSourceSectionState extends ConsumerState<BanksSourceSection> {
 
     return connectionAsync.when(
       skipLoadingOnReload: true,
-      loading: () => const CupertinoActivityIndicator(),
+      loading: () => const CircularProgressIndicator(),
       error: (error, _) => SelectableText(
         '$error',
-        style: AppText.body.medium.error,
+        style: AppText.body.copyWith(color: AppColors.danger),
       ),
       data: (status) {
         if (!status.isConnected) return _disconnectedBody(actionState);
@@ -53,9 +59,9 @@ class _BanksSourceSectionState extends ConsumerState<BanksSourceSection> {
         Text(
           'Paste a Setup Token from SimpleFIN, or set '
           '${SimpleFinAccessStore.envAccessUrlKey} in .env.',
-          style: AppText.body.small,
+          style: AppText.caption,
         ),
-        VSpace.md,
+        const SizedBox(height: AppMetrics.spaceMd),
         AppPrimaryButton(
           busy: busy,
           onPressed: () =>
@@ -63,37 +69,54 @@ class _BanksSourceSectionState extends ConsumerState<BanksSourceSection> {
           child: const Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(CupertinoIcons.arrow_up_right_square, size: 18),
-              HSpace.sm,
+              Icon(Icons.open_in_new, size: 18),
+              SizedBox(width: AppMetrics.spaceSm),
               Text('Open SimpleFIN'),
             ],
           ),
         ),
-        VSpace.md,
-        CupertinoTextField(
+        const SizedBox(height: AppMetrics.spaceMd),
+        TextField(
           controller: _tokenController,
-          placeholder: 'Paste Setup Token',
           maxLines: 4,
           minLines: 3,
-          padding: const EdgeInsets.all(AppSpacing.md),
-          style: AppText.body.medium.bright,
+          style: AppText.body.copyWith(color: AppColors.textPrimary),
+          decoration: InputDecoration(
+            hintText: 'Paste Setup Token',
+            hintStyle: AppText.body.copyWith(color: AppColors.textMuted),
+            filled: true,
+            fillColor: AppColors.surfaceInset,
+            contentPadding: const EdgeInsets.all(AppMetrics.spaceMd),
+            border: OutlineInputBorder(
+              borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
+              borderSide: const BorderSide(color: AppColors.border),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
+              borderSide: const BorderSide(color: AppColors.border),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: AppMetrics.borderRadius(AppMetrics.radiusSm),
+              borderSide: const BorderSide(color: FinanceColors.accentPrimary),
+            ),
+          ),
         ),
         if (actionState.actionError != null) ...[
-          VSpace.sm,
+          const SizedBox(height: AppMetrics.spaceSm),
           SelectableText(
             actionState.actionError!,
-            style: AppText.body.small.error,
+            style: AppText.caption.copyWith(color: AppColors.danger),
           ),
         ],
-        VSpace.md,
+        const SizedBox(height: AppMetrics.spaceMd),
         AppPrimaryButton(
           busy: busy,
           onPressed: _connect,
           child: const Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(CupertinoIcons.link, size: 18),
-              HSpace.sm,
+              Icon(Icons.link, size: 18),
+              SizedBox(width: AppMetrics.spaceSm),
               Text('Connect'),
             ],
           ),
@@ -114,8 +137,10 @@ class _BanksSourceSectionState extends ConsumerState<BanksSourceSection> {
         BankAccountsList(
           status: status,
           actionError: actionState.actionError,
+          selectedAccountId: widget.selectedAccountId,
+          onAccountSelected: widget.onAccountSelected,
         ),
-        VSpace.md,
+        const SizedBox(height: AppMetrics.spaceMd),
         AppPrimaryButton(
           busy: busy,
           onPressed: () => BanksPullProgressSheet.showAndRun(
@@ -125,18 +150,18 @@ class _BanksSourceSectionState extends ConsumerState<BanksSourceSection> {
           child: const Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(CupertinoIcons.arrow_2_circlepath, size: 18),
-              HSpace.sm,
+              Icon(Icons.sync, size: 18),
+              SizedBox(width: AppMetrics.spaceSm),
               Text('Pull bank transactions'),
             ],
           ),
         ),
-        VSpace.xs,
+        const SizedBox(height: AppMetrics.spaceXs),
         Text(
           'Since the last SimpleFIN update. Window starts 2 days before that '
-          'pull so late posts aren’t missed. Already-saved rows are updated, '
+          'pull so late posts aren\'t missed. Already-saved rows are updated, '
           'not duplicated.',
-          style: AppText.body.small,
+          style: AppText.caption,
         ),
       ],
     );

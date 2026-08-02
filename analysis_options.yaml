@@ -4,3 +4,4 @@ linter:
   rules:
     prefer_const_constructors: true
     prefer_const_declarations: true
+    use_key_in_widget_constructors: false
