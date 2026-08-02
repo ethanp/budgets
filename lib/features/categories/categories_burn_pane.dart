@@ -48,15 +48,16 @@ class CategoriesBurnPane extends ConsumerWidget {
 
   Widget _burnOverview() {
     final totalBurn = _totalBurnCents;
-    final ranked = [
-      for (final entry in rowsById.entries)
-        if (!SpecialCategory.isFlowId(entry.key) &&
-            entry.value.annualizedSpendCents > 0)
-          entry.value,
-    ]..sort(
-        (left, right) =>
-            right.annualizedSpendCents.compareTo(left.annualizedSpendCents),
-      );
+    final ranked =
+        [
+          for (final entry in rowsById.entries)
+            if (!SpecialCategory.isFlowId(entry.key) &&
+                entry.value.annualizedSpendCents > 0)
+              entry.value,
+        ]..sort(
+          (left, right) =>
+              right.annualizedSpendCents.compareTo(left.annualizedSpendCents),
+        );
     final top = ranked.take(3).toList();
 
     return Column(
@@ -64,10 +65,7 @@ class CategoriesBurnPane extends ConsumerWidget {
       children: [
         Text('Annual burn', style: EText.section),
         const SizedBox(height: ELayout.spaceSm),
-        Text(
-          totalBurn == 0 ? '—' : formatCents(totalBurn),
-          style: EText.title,
-        ),
+        Text(totalBurn == 0 ? '—' : formatCents(totalBurn), style: EText.title),
         Text('/ yr across spend categories', style: EText.caption),
         const SizedBox(height: ELayout.spaceLg),
         Text(
@@ -76,18 +74,15 @@ class CategoriesBurnPane extends ConsumerWidget {
         ),
         const SizedBox(height: ELayout.spaceSm),
         if (top.isEmpty)
-          Text(
-            'No annualized spend yet.',
-            style: EText.caption,
-          )
+          Text('No annualized spend yet.', style: EText.caption)
         else
           for (final row in top) ...[
             Text(
               totalBurn == 0
                   ? row.categoryName
                   : '${row.categoryName} · '
-                      '${_percentOf(row.annualizedSpendCents, totalBurn)} · '
-                      '${formatCents(row.annualizedSpendCents)} / yr',
+                        '${_percentOf(row.annualizedSpendCents, totalBurn)} · '
+                        '${formatCents(row.annualizedSpendCents)} / yr',
               style: EText.body,
             ),
             const SizedBox(height: ELayout.spaceXs),
@@ -107,7 +102,8 @@ class CategoriesBurnPane extends ConsumerWidget {
     final spent = row?.spentCents ?? 0;
     final annual = row?.annualizedSpendCents ?? 0;
     final totalBurn = _totalBurnCents;
-    final rules = ref.watch(categorizationRulesProvider).asData?.value ??
+    final rules =
+        ref.watch(categorizationRulesProvider).asData?.value ??
         const <CategorizationRule>[];
     final categoryRules = [
       for (final rule in rules)
@@ -120,9 +116,7 @@ class CategoriesBurnPane extends ConsumerWidget {
         Text(category.name, style: EText.section),
         const SizedBox(height: ELayout.spaceXs),
         Text(
-          category.isFlow
-              ? 'Cash flow · excluded from burn'
-              : 'Burn component',
+          category.isFlow ? 'Cash flow · excluded from burn' : 'Burn component',
           style: EText.caption,
         ),
         const SizedBox(height: ELayout.spaceLg),
@@ -159,10 +153,7 @@ class CategoriesBurnPane extends ConsumerWidget {
         ),
         const SizedBox(height: ELayout.spaceXs),
         if (categoryRules.isEmpty)
-          Text(
-            'No merchant rules yet.',
-            style: EText.caption,
-          )
+          Text('No merchant rules yet.', style: EText.caption)
         else ...[
           Text(
             categoryRules.length == 1
@@ -171,10 +162,7 @@ class CategoriesBurnPane extends ConsumerWidget {
             style: EText.body,
           ),
           for (final rule in categoryRules.take(5))
-            Text(
-              _ruleCaption(rule),
-              style: EText.caption,
-            ),
+            Text(_ruleCaption(rule), style: EText.caption),
         ],
         const SizedBox(height: ELayout.spaceLg),
         AppPrimaryButton(

@@ -142,10 +142,7 @@ class BanksController extends Notifier<BanksActionState> {
   }
 }
 
-Future<void> promptPersistAccessUrl(
-  BuildContext context,
-  Uri accessUrl,
-) async {
+Future<void> promptPersistAccessUrl(BuildContext context, Uri accessUrl) async {
   await Clipboard.setData(ClipboardData(text: accessUrl.toString()));
   if (!context.mounted) return;
   await showDialog<void>(

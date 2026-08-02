@@ -166,7 +166,8 @@ class _AppBrowseSplitShellState extends State<AppBrowseSplitShell> {
           AppBrowseSplitShell.dividerHitWidth;
     }
 
-    final maxForLeft = totalWidth -
+    final maxForLeft =
+        totalWidth -
         AppBrowseSplitShell.minLeftWidth -
         AppBrowseSplitShell.dividerHitWidth;
     return math.min(
@@ -190,9 +191,7 @@ class _ResizeDivider extends StatelessWidget {
         onHorizontalDragUpdate: (details) => onDragAt(details.globalPosition),
         child: SizedBox(
           width: AppBrowseSplitShell.dividerHitWidth,
-          child: Center(
-            child: Container(width: 1, color: EColors.border),
-          ),
+          child: Center(child: Container(width: 1, color: EColors.border)),
         ),
       ),
     );

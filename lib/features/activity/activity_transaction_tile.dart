@@ -64,9 +64,7 @@ class ActivityTransactionTile extends StatelessWidget {
           width: columnWidths.account,
           child: Text(
             account?.displayNameWithInstitution ?? '—',
-            style: EText.caption.copyWith(
-              color: EColors.textMuted,
-            ),
+            style: EText.caption.copyWith(color: EColors.textMuted),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -124,23 +122,11 @@ class ActivityTransactionTile extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (transaction.pending)
-          const Icon(
-            Icons.schedule,
-            size: 15,
-            color: EColors.warning,
-          ),
+          const Icon(Icons.schedule, size: 15, color: EColors.warning),
         if (transaction.excluded)
-          const Icon(
-            Icons.visibility_off,
-            size: 15,
-            color: EColors.danger,
-          ),
+          const Icon(Icons.visibility_off, size: 15, color: EColors.danger),
         if (transaction.recurringSeries != null)
-          const Icon(
-            Icons.sync,
-            size: 15,
-            color: FinanceColors.accentPrimary,
-          ),
+          const Icon(Icons.sync, size: 15, color: FinanceColors.accentPrimary),
       ],
     );
   }

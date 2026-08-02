@@ -27,8 +27,8 @@ class MatchingSimplefinCharges {
     required Map<String, String> copilotLinkKeyByAccountId,
     required Map<String, List<BankTransaction>> simplefinByGroupKey,
     required this.linkCount,
-  })  : _copilotLinkKeyByAccountId = copilotLinkKeyByAccountId,
-        _simplefinByGroupKey = simplefinByGroupKey;
+  }) : _copilotLinkKeyByAccountId = copilotLinkKeyByAccountId,
+       _simplefinByGroupKey = simplefinByGroupKey;
 
   final Map<String, String> _copilotLinkKeyByAccountId;
   final Map<String, List<BankTransaction>> _simplefinByGroupKey;
@@ -124,8 +124,8 @@ class RemoveCopilotDuplicates {
   RemoveCopilotDuplicates({
     required AccountsRepository accountsRepository,
     required TransactionsRepository transactionsRepository,
-  })  : _accountsRepository = accountsRepository,
-        _transactionsRepository = transactionsRepository;
+  }) : _accountsRepository = accountsRepository,
+       _transactionsRepository = transactionsRepository;
 
   final AccountsRepository _accountsRepository;
   final TransactionsRepository _transactionsRepository;
@@ -148,7 +148,8 @@ class RemoveCopilotDuplicates {
     for (final transaction in transactions) {
       final fingerprint = merchantFingerprint(transaction.normalizedMerchant);
       if (fingerprint.isEmpty) continue;
-      final key = '${transaction.accountId}|${transaction.postedAt.dayKey}|'
+      final key =
+          '${transaction.accountId}|${transaction.postedAt.dayKey}|'
           '${transaction.amountCents}|$fingerprint';
       buckets.putIfAbsent(key, () => []).add(transaction);
     }
@@ -163,8 +164,7 @@ class RemoveCopilotDuplicates {
       final keeper = bucket.first;
       for (final duplicate in bucket.skip(1)) {
         final duplicateNote = duplicate.note?.trim() ?? '';
-        if (duplicateNote.isNotEmpty &&
-            (keeper.note?.trim() ?? '').isEmpty) {
+        if (duplicateNote.isNotEmpty && (keeper.note?.trim() ?? '').isEmpty) {
           await _transactionsRepository.setNote(
             transactionId: keeper.id,
             note: duplicateNote,
@@ -273,8 +273,9 @@ class RemoveCopilotDuplicates {
     BankTransaction left,
     BankTransaction right,
   ) {
-    final scoreCompare =
-        _keepScore(right).compareTo(_keepScore(left)); // higher first
+    final scoreCompare = _keepScore(
+      right,
+    ).compareTo(_keepScore(left)); // higher first
     if (scoreCompare != 0) return scoreCompare;
     final leftImported = left.importedAt ?? left.postedAt;
     final rightImported = right.importedAt ?? right.postedAt;
@@ -377,8 +378,7 @@ class _AccountLinks {
 
   bool get isEmpty => linkCount == 0;
 
-  String? keyForCopilot(Account account) =>
-      copilotKeyByAccountId[account.id];
+  String? keyForCopilot(Account account) => copilotKeyByAccountId[account.id];
 
   Set<String> keysForSimplefin(Account account) =>
       simplefinKeysByAccountId[account.id] ?? const {};

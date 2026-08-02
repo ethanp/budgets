@@ -11,8 +11,8 @@ class SimpleFinTransactionMapper {
   SimpleFinTransactionMapper({
     required TransactionsRepository transactionsRepository,
     Uuid? uuid,
-  })  : _transactionsRepository = transactionsRepository,
-        _uuid = uuid ?? const Uuid();
+  }) : _transactionsRepository = transactionsRepository,
+       _uuid = uuid ?? const Uuid();
 
   final TransactionsRepository _transactionsRepository;
   final Uuid _uuid;
@@ -29,8 +29,9 @@ class SimpleFinTransactionMapper {
         localAccountId: localAccountId,
         syncedAt: syncedAt,
       );
-      final wasInserted =
-          await _transactionsRepository.upsertTransaction(bankTransaction);
+      final wasInserted = await _transactionsRepository.upsertTransaction(
+        bankTransaction,
+      );
       if (!wasInserted) continue;
       newlyInserted.add(
         SimpleFinPulledTransaction(

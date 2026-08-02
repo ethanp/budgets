@@ -9,10 +9,12 @@ class RemoveDuplicateTransactionsTile extends ConsumerStatefulWidget {
   const RemoveDuplicateTransactionsTile();
 
   @override
-  ConsumerState<RemoveDuplicateTransactionsTile> createState() => _RemoveDuplicateTransactionsTileState();
+  ConsumerState<RemoveDuplicateTransactionsTile> createState() =>
+      _RemoveDuplicateTransactionsTileState();
 }
 
-class _RemoveDuplicateTransactionsTileState extends ConsumerState<RemoveDuplicateTransactionsTile> {
+class _RemoveDuplicateTransactionsTileState
+    extends ConsumerState<RemoveDuplicateTransactionsTile> {
   bool _busy = false;
   String? _message;
 

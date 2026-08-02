@@ -11,10 +11,7 @@ import 'package:spend_trends/widgets/app_primary_button.dart';
 
 /// Everyday bank UI: connect, accounts, pull bank transactions.
 class BanksSourceSection extends ConsumerStatefulWidget {
-  const BanksSourceSection({
-    this.selectedAccountId,
-    this.onAccountSelected,
-  });
+  const BanksSourceSection({this.selectedAccountId, this.onAccountSelected});
 
   final String? selectedAccountId;
   final void Function(String accountId)? onAccountSelected;
@@ -81,22 +78,11 @@ class _BanksSourceSectionState extends ConsumerState<BanksSourceSection> {
           maxLines: 4,
           minLines: 3,
           style: EText.body.copyWith(color: EColors.textPrimary),
-          decoration: InputDecoration(
+          decoration: EInput.filled(
             hintText: 'Paste Setup Token',
             hintStyle: EText.body.copyWith(color: EColors.textMuted),
-            filled: true,
             fillColor: EColors.surfaceInset,
-            contentPadding: const EdgeInsets.all(ELayout.spaceMd),
-            border: OutlineInputBorder(
-              borderRadius: ELayout.borderRadius(ELayout.radiusSm),
-              borderSide: const BorderSide(color: EColors.border),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: ELayout.borderRadius(ELayout.radiusSm),
-              borderSide: const BorderSide(color: EColors.border),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: ELayout.borderRadius(ELayout.radiusSm),
+            focusedBorder: EInput.outlineSm.copyWith(
               borderSide: const BorderSide(color: FinanceColors.accentPrimary),
             ),
           ),
@@ -125,10 +111,7 @@ class _BanksSourceSectionState extends ConsumerState<BanksSourceSection> {
     );
   }
 
-  Widget _connectedBody(
-    ConnectionStatus status,
-    BanksActionState actionState,
-  ) {
+  Widget _connectedBody(ConnectionStatus status, BanksActionState actionState) {
     final busy = actionState.busy;
     final controller = ref.read(banksControllerProvider.notifier);
     return Column(

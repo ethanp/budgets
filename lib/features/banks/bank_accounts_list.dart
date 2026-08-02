@@ -84,9 +84,11 @@ class BankAccountsList extends ConsumerWidget {
 
   List<Widget> _institutionGroups() {
     final groups = BankAccountsByInstitution.groups(status.accounts);
-    final amountColumnWidth =
-        BankAccountsByInstitution.amountColumnWidth(status.accounts);
-    final showInstitutionLabels = groups.length > 1 ||
+    final amountColumnWidth = BankAccountsByInstitution.amountColumnWidth(
+      status.accounts,
+    );
+    final showInstitutionLabels =
+        groups.length > 1 ||
         (groups.length == 1 && groups.first.displayName != 'Other');
     final widgets = <Widget>[];
     for (var groupIndex = 0; groupIndex < groups.length; groupIndex++) {

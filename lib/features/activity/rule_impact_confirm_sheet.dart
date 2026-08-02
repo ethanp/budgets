@@ -17,24 +17,6 @@ import 'package:spend_trends/widgets/select_all_none_row.dart';
 
 export 'package:spend_trends/features/activity/overlapping_merchant_contains_rules.dart';
 
-InputDecoration _filledFieldDecoration({String? hintText}) {
-  final border = OutlineInputBorder(
-    borderRadius: BorderRadius.circular(ELayout.radiusMd),
-    borderSide: const BorderSide(color: EColors.border),
-  );
-  return InputDecoration(
-    hintText: hintText,
-    filled: true,
-    fillColor: EColors.surface,
-    border: border,
-    enabledBorder: border,
-    focusedBorder: border.copyWith(
-      borderSide: const BorderSide(color: EColors.accentGlow),
-    ),
-    contentPadding: const EdgeInsets.all(ELayout.spaceMd),
-  );
-}
-
 /// One proposed contains-rule and the existing transactions it would match.
 class RuleImpactGroup {
   const RuleImpactGroup({
@@ -90,10 +72,7 @@ class RuleImpactConfirmSheet extends ConsumerStatefulWidget {
   }) {
     if (groups.isEmpty) {
       return Future.value(
-        const RuleImpactConfirmResult(
-          selectedTransactionIds: {},
-          groups: [],
-        ),
+        const RuleImpactConfirmResult(selectedTransactionIds: {}, groups: []),
       );
     }
 
@@ -123,12 +102,9 @@ class _RuleImpactConfirmSheetState
     super.initState();
     _groups = List<RuleImpactGroup>.from(widget.groups);
     _patternControllers = [
-      for (final group in _groups)
-        TextEditingController(text: group.pattern),
+      for (final group in _groups) TextEditingController(text: group.pattern),
     ];
-    _patternFocusNodes = [
-      for (final _ in _groups) FocusNode(),
-    ];
+    _patternFocusNodes = [for (final _ in _groups) FocusNode()];
     _selectedIds = {
       for (final group in _groups)
         for (final transaction in group.transactions) transaction.id,
@@ -182,22 +158,20 @@ class _RuleImpactConfirmSheetState
     super.dispose();
   }
 
-  int get _matchCount => _groups.fold<int>(
-        0,
-        (sum, group) => sum + group.transactions.length,
-      );
+  int get _matchCount =>
+      _groups.fold<int>(0, (sum, group) => sum + group.transactions.length);
 
   @override
   Widget build(BuildContext context) {
     final existingRules =
         ref.watch(categorizationRulesProvider).asData?.value ??
-            const <CategorizationRule>[];
+        const <CategorizationRule>[];
     final categories =
         ref.watch(categoriesListProvider).asData?.value ??
-            const <SpendCategory>[];
+        const <SpendCategory>[];
     final categoryGroups =
         ref.watch(categoryGroupsProvider).asData?.value ??
-            const <CategoryGroup>[];
+        const <CategoryGroup>[];
     final categoryNameById = {
       for (final category in categories) category.id: category.name,
     };
@@ -237,10 +211,10 @@ class _RuleImpactConfirmSheetState
           Text(
             _matchCount == 0
                 ? 'Edit the contains pattern below. Matching transactions '
-                    'appear as you type. The rule still applies to future matches.'
+                      'appear as you type. The rule still applies to future matches.'
                 : 'These $_matchCount existing transactions match. '
-                    'Edit the pattern to refine, turn off any that should stay, '
-                    'and the rule will still apply to future matches.',
+                      'Edit the pattern to refine, turn off any that should stay, '
+                      'and the rule will still apply to future matches.',
             style: EText.caption,
           ),
           const SizedBox(height: ELayout.spaceMd),
@@ -251,10 +225,7 @@ class _RuleImpactConfirmSheetState
   }
 
   Widget _selectionShortcuts() {
-    return SelectAllNoneRow(
-      onSelectAll: _selectAll,
-      onSelectNone: _selectNone,
-    );
+    return SelectAllNoneRow(onSelectAll: _selectAll, onSelectNone: _selectNone);
   }
 
   Widget _matchList({
@@ -307,7 +278,7 @@ class _RuleImpactConfirmSheetState
       TextField(
         controller: _patternControllers[groupIndex],
         focusNode: _patternFocusNodes[groupIndex],
-        decoration: _filledFieldDecoration(hintText: 'contains pattern'),
+        decoration: EInput.filledMd(hintText: 'contains pattern'),
         style: EText.body.copyWith(color: EColors.textPrimary),
         onChanged: (value) {
           setState(() {});
@@ -460,10 +431,7 @@ class _TargetCategoryButton extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: Row(
         children: [
-          Text(
-            '→ ',
-            style: EText.body.copyWith(fontWeight: FontWeight.w600),
-          ),
+          Text('→ ', style: EText.body.copyWith(fontWeight: FontWeight.w600)),
           Flexible(
             child: Text(
               categoryName,

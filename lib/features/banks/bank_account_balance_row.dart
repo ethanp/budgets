@@ -84,7 +84,7 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
                       controller: _nameController,
                       focusNode: _focusNode,
                       style: nameStyle.copyWith(color: EColors.textPrimary),
-                      decoration: InputDecoration(
+                      decoration: EInput.filled(
                         isDense: true,
                         hintText: _account.name,
                         hintStyle: nameStyle.copyWith(color: EColors.textMuted),
@@ -92,21 +92,8 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
                           horizontal: ELayout.spaceSm,
                           vertical: ELayout.spaceXs,
                         ),
-                        filled: true,
                         fillColor: EColors.surfaceInset,
-                        border: OutlineInputBorder(
-                          borderRadius:
-                              ELayout.borderRadius(ELayout.radiusSm),
-                          borderSide: const BorderSide(color: EColors.border),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius:
-                              ELayout.borderRadius(ELayout.radiusSm),
-                          borderSide: const BorderSide(color: EColors.border),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius:
-                              ELayout.borderRadius(ELayout.radiusSm),
+                        focusedBorder: EInput.outlineSm.copyWith(
                           borderSide: const BorderSide(
                             color: FinanceColors.accentPrimary,
                           ),
@@ -134,9 +121,7 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
                     Flexible(
                       child: Text(
                         _account.kind.legendLabel,
-                        style: EText.caption.copyWith(
-                          color: EColors.textMuted,
-                        ),
+                        style: EText.caption.copyWith(color: EColors.textMuted),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -219,7 +204,7 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
               horizontal: ELayout.spaceSm,
               vertical: ELayout.spaceXs,
             ),
-            borderRadius: ELayout.borderRadius(ELayout.radiusSm),
+            borderRadius: ELayout.borderRadiusSm,
             child: body,
           )
         : Padding(
@@ -302,18 +287,21 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
   }
 
   Future<void> _pickBelongsTo(BuildContext context) async {
-    final Map<String, Account>? accounts =
-        ref.read(accountsMapProvider).asData?.value;
+    final Map<String, Account>? accounts = ref
+        .read(accountsMapProvider)
+        .asData
+        ?.value;
     if (accounts == null) return;
 
-    final parents = [
-      for (final account in accounts.values)
-        if (!account.isCopilot) account,
-    ]..sort(
-        (left, right) => left.displayName.toLowerCase().compareTo(
-              right.displayName.toLowerCase(),
-            ),
-      );
+    final parents =
+        [
+          for (final account in accounts.values)
+            if (!account.isCopilot) account,
+        ]..sort(
+          (left, right) => left.displayName.toLowerCase().compareTo(
+            right.displayName.toLowerCase(),
+          ),
+        );
 
     final selected = await showModalBottomSheet<String?>(
       context: context,
@@ -409,7 +397,8 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
   Future<void> _commitRename() async {
     if (!_editing || _saving) return;
     final nextLabel = _nameController.text.trim();
-    final unchanged = nextLabel == _account.displayName ||
+    final unchanged =
+        nextLabel == _account.displayName ||
         (nextLabel.isEmpty &&
             (_account.userLabel == null || _account.userLabel!.isEmpty));
     if (unchanged) {
@@ -421,8 +410,9 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
     try {
       final repository = await ref.read(accountsRepositoryProvider.future);
       // Empty field clears custom label back to the official bank name.
-      final storedLabel =
-          nextLabel.isEmpty || nextLabel == _account.name ? null : nextLabel;
+      final storedLabel = nextLabel.isEmpty || nextLabel == _account.name
+          ? null
+          : nextLabel;
       await repository.updateUserLabel(
         accountId: _account.id,
         userLabel: storedLabel,
@@ -443,9 +433,10 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
       AccountStatus.ok => null,
       AccountStatus.needsRelink => 'Needs re-link',
       AccountStatus.stale => 'Stale',
-      AccountStatus.error => account.statusMessage?.trim().isNotEmpty == true
-          ? account.statusMessage
-          : 'Error',
+      AccountStatus.error =>
+        account.statusMessage?.trim().isNotEmpty == true
+            ? account.statusMessage
+            : 'Error',
     };
   }
 }

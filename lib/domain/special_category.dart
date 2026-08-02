@@ -6,21 +6,9 @@ import 'package:spend_trends/domain/category.dart';
 /// [housing] is a built-in spend category (kept in spend Trends / month rows)
 /// so its color and future housing-specific behavior stay consistent.
 enum SpecialCategory {
-  housing(
-    id: 'cat_housing',
-    name: 'Housing',
-    sortOrder: 3,
-  ),
-  income(
-    id: 'cat_income',
-    name: 'Income',
-    sortOrder: 1000,
-  ),
-  transfer(
-    id: 'cat_transfer',
-    name: 'Transfer',
-    sortOrder: 1001,
-  );
+  housing(id: 'cat_housing', name: 'Housing', sortOrder: 3),
+  income(id: 'cat_income', name: 'Income', sortOrder: 1000),
+  transfer(id: 'cat_transfer', name: 'Transfer', sortOrder: 1001);
 
   const SpecialCategory({
     required this.id,
@@ -38,7 +26,8 @@ enum SpecialCategory {
   static final flowIds = {income.id, transfer.id};
 
   static final _idsByNormalizedName = {
-    for (final special in values) CategoryName(special.name).normalized: special.id,
+    for (final special in values)
+      CategoryName(special.name).normalized: special.id,
   };
 
   static final housingName = CategoryName(housing.name);
@@ -70,11 +59,11 @@ enum SpecialCategory {
   }
 
   SpendCategory asSpendCategory({bool archived = false}) => SpendCategory(
-        id: id,
-        name: name,
-        sortOrder: sortOrder,
-        archived: archived,
-      );
+    id: id,
+    name: name,
+    sortOrder: sortOrder,
+    archived: archived,
+  );
 }
 
 extension SpendCategorySpecial on SpendCategory {

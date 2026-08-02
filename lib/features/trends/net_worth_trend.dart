@@ -32,10 +32,7 @@ class NetWorthTrend {
         account: account,
         transactions: transactions,
         chartDates: chartDates,
-        includeAccountIds: {
-          account.id,
-          ...?childIdsByParent[account.id],
-        },
+        includeAccountIds: {account.id, ...?childIdsByParent[account.id]},
       );
       for (var dayIndex = 0; dayIndex < chartDates.length; dayIndex++) {
         totals[dayIndex] += accountDaily[dayIndex];
@@ -79,7 +76,8 @@ class NetWorthTrend {
       }
     }
 
-    final knownFrom = earliestTransactionDay ??
+    final knownFrom =
+        earliestTransactionDay ??
         account.balanceAsOf?.startOfDay ??
         chartDates.last;
 
@@ -133,10 +131,7 @@ class NetWorthTrend {
           account: account,
           transactions: transactions,
           chartDates: chartDates,
-          includeAccountIds: {
-            account.id,
-            ...?childIdsByParent[account.id],
-          },
+          includeAccountIds: {account.id, ...?childIdsByParent[account.id]},
         );
         final isLiability = account.balanceCents < 0;
         final built = _levelSeries(
@@ -146,9 +141,7 @@ class NetWorthTrend {
             kind: group.kind,
             accountId: account.id,
           ),
-          daily: [
-            for (final value in signedDaily) value.abs(),
-          ],
+          daily: [for (final value in signedDaily) value.abs()],
           chartDates: chartDates,
           dotted: isLiability,
           legendGroup: group.kind.legendLabel,
@@ -161,9 +154,9 @@ class NetWorthTrend {
   }
 
   static List<Account> _rootAccounts(List<Account> accounts) => [
-        for (final account in accounts)
-          if (!account.hasParent) account,
-      ];
+    for (final account in accounts)
+      if (!account.hasParent) account,
+  ];
 
   static Map<String, Set<String>> _childIdsByParent(List<Account> accounts) {
     final childIdsByParent = <String, Set<String>>{};
@@ -181,16 +174,17 @@ class NetWorthTrend {
       byKind.putIfAbsent(account.kind, () => []).add(account);
     }
     final sortedKinds = byKind.keys.toList()
-      ..sort((left, right) => left.legendSortOrder.compareTo(right.legendSortOrder));
+      ..sort(
+        (left, right) => left.legendSortOrder.compareTo(right.legendSortOrder),
+      );
     return [
       for (final kind in sortedKinds)
         _KindAccountGroup(
           kind: kind,
           accounts: [...byKind[kind]!]
             ..sort(
-              (left, right) => right.balanceCents.abs().compareTo(
-                    left.balanceCents.abs(),
-                  ),
+              (left, right) =>
+                  right.balanceCents.abs().compareTo(left.balanceCents.abs()),
             ),
         ),
     ];
@@ -229,10 +223,7 @@ class NetWorthTrend {
 }
 
 class _KindAccountGroup {
-  const _KindAccountGroup({
-    required this.kind,
-    required this.accounts,
-  });
+  const _KindAccountGroup({required this.kind, required this.accounts});
 
   final AccountKind kind;
   final List<Account> accounts;

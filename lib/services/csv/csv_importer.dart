@@ -40,8 +40,8 @@ class CsvImporter {
   CsvImporter({
     required AccountsRepository accountsRepository,
     required TransactionsRepository transactionsRepository,
-  })  : _accountsRepository = accountsRepository,
-        _transactionsRepository = transactionsRepository;
+  }) : _accountsRepository = accountsRepository,
+       _transactionsRepository = transactionsRepository;
 
   final AccountsRepository _accountsRepository;
   final TransactionsRepository _transactionsRepository;
@@ -62,12 +62,17 @@ class CsvImporter {
     );
 
     _logger.log('Imported $importedCount rows into $accountName');
-    return CsvImportResult(importedCount: importedCount, accountName: accountName);
+    return CsvImportResult(
+      importedCount: importedCount,
+      accountName: accountName,
+    );
   }
 
   List<List<dynamic>> _parseCsvRows(String text) {
-    final rows = const CsvToListConverter(eol: '\n', shouldParseNumbers: false)
-        .convert(text);
+    final rows = const CsvToListConverter(
+      eol: '\n',
+      shouldParseNumbers: false,
+    ).convert(text);
     if (rows.isEmpty) {
       throw StateError('CSV is empty.');
     }
@@ -78,17 +83,22 @@ class CsvImporter {
     final headers = headerRow
         .map((cell) => cell.toString().trim().toLowerCase())
         .toList();
-    final dateIndex = _headerIndex(headers, const ['date', 'posted', 'trans date']);
+    final dateIndex = _headerIndex(headers, const [
+      'date',
+      'posted',
+      'trans date',
+    ]);
     final amountIndex = _headerIndex(headers, const ['amount', 'value']);
-    final descriptionIndex = _headerIndex(
-      headers,
-      const ['description', 'memo', 'name', 'payee', 'merchant'],
-    );
+    final descriptionIndex = _headerIndex(headers, const [
+      'description',
+      'memo',
+      'name',
+      'payee',
+      'merchant',
+    ]);
 
     if (dateIndex == null || amountIndex == null || descriptionIndex == null) {
-      throw StateError(
-        'CSV needs date, amount, and description columns.',
-      );
+      throw StateError('CSV needs date, amount, and description columns.');
     }
 
     return _CsvColumnIndices(
@@ -100,8 +110,9 @@ class CsvImporter {
 
   Future<String> _ensureCsvAccount({required String accountName}) async {
     final externalAccountId = 'csv:${accountName.toLowerCase()}';
-    final existing =
-        await _accountsRepository.findByExternalId(externalAccountId);
+    final existing = await _accountsRepository.findByExternalId(
+      externalAccountId,
+    );
     final accountId = existing?.id ?? _uuid.v4();
     final draft = Account(
       id: accountId,

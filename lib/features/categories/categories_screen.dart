@@ -107,27 +107,18 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
         sections: sections,
         rowsById: rowsById,
         selectedCategoryId: _selectedCategoryId,
-        onEditGroup: (section) => GroupEditorSheet.show(
-          context,
-          ref: ref,
-          group: section.group,
-        ),
+        onEditGroup: (section) =>
+            GroupEditorSheet.show(context, ref: ref, group: section.group),
         onSelectCategory: _onSelectCategory,
-        onOpenCategory: (category) => CategoryEditorSheet.show(
-          context,
-          ref: ref,
-          category: category,
-        ),
+        onOpenCategory: (category) =>
+            CategoryEditorSheet.show(context, ref: ref, category: category),
       ),
       right: CategoriesBurnPane(
         selectedCategoryId: _selectedCategoryId,
         categoriesById: categoriesById,
         rowsById: rowsById,
-        onEdit: (category) => CategoryEditorSheet.show(
-          context,
-          ref: ref,
-          category: category,
-        ),
+        onEdit: (category) =>
+            CategoryEditorSheet.show(context, ref: ref, category: category),
       ),
     );
   }

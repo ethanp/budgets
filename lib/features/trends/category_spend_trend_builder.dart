@@ -54,7 +54,9 @@ class CategorySpendDailyMaps {
         continue;
       }
 
-      byCategoryId.putIfAbsent(categoryId, () => {}).update(
+      byCategoryId
+          .putIfAbsent(categoryId, () => {})
+          .update(
             day,
             (priorSpendCents) => priorSpendCents + spendCents,
             ifAbsent: () => spendCents,
@@ -134,8 +136,7 @@ class CategorySpendTrendBuilder {
     if (incomeByDay.isEmpty) return null;
     final affordabilityDaily = {
       for (final entry in incomeByDay.entries)
-        entry.key:
-            entry.value * TrendChartCatalog.housingIncomeShareCap,
+        entry.key: entry.value * TrendChartCatalog.housingIncomeShareCap,
     };
     final built = _paceSeries(
       id: TrendChartCatalog.housingAffordabilitySeriesId,
@@ -225,9 +226,7 @@ class CategorySpendTrendBuilder {
       final dailySpendCents = spendMaps.byCategoryId[category.id];
       if (dailySpendCents == null || dailySpendCents.isEmpty) continue;
 
-      final pinnedColor = category.isHousing
-          ? CategoryColor.housing
-          : null;
+      final pinnedColor = category.isHousing ? CategoryColor.housing : null;
       final categorySeries = _paceSeries(
         id: category.id,
         name: category.name,
@@ -254,9 +253,7 @@ class CategorySpendTrendBuilder {
     );
 
     return _RankedSpendSeries(
-      rankedSeries: [
-        for (final block in seriesBlocks) ...block,
-      ],
+      rankedSeries: [for (final block in seriesBlocks) ...block],
       otherSeries: otherSeries,
       representedCategoryIds: representedCategoryIds,
     );

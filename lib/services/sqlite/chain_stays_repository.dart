@@ -18,12 +18,10 @@ class ChainStaysRepository {
   }
 
   Future<List<ChainStay>> listOldestFirst() async {
-    final rows = await _powerSync.getAll(
-      '''
+    final rows = await _powerSync.getAll('''
       SELECT * FROM $tableName
       ORDER BY started_on ASC, label COLLATE NOCASE
-      ''',
-    );
+      ''');
     return rows.map(_fromRow).toList();
   }
 
@@ -56,10 +54,7 @@ class ChainStaysRepository {
   }
 
   Future<void> delete(String stayId) async {
-    await _powerSync.execute(
-      'DELETE FROM $tableName WHERE id = ?',
-      [stayId],
-    );
+    await _powerSync.execute('DELETE FROM $tableName WHERE id = ?', [stayId]);
   }
 
   static String? _normalizedNote(String? note) {

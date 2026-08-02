@@ -25,9 +25,9 @@ class SimpleFinWindowIngester {
     required SimpleFinClient client,
     required SimpleFinAccountMapper accountMapper,
     required SimpleFinTransactionMapper transactionMapper,
-  })  : _client = client,
-        _accountMapper = accountMapper,
-        _transactionMapper = transactionMapper;
+  }) : _client = client,
+       _accountMapper = accountMapper,
+       _transactionMapper = transactionMapper;
 
   final SimpleFinClient _client;
   final SimpleFinAccountMapper _accountMapper;
@@ -39,7 +39,7 @@ class SimpleFinWindowIngester {
     required DateTime syncedAt,
     required SimpleFinPullOutcomeAccumulator outcomes,
     required Map<String, List<SimpleFinPulledTransaction>>
-        newlyInsertedByAccountExternalId,
+    newlyInsertedByAccountExternalId,
     void Function(SimpleFinPullProgress progress)? onProgress,
     int? windowIndex,
     int? windowCount,
@@ -88,8 +88,7 @@ class SimpleFinWindowIngester {
         syncedAt: syncedAt,
       );
       transactionCount += newlyInserted.length;
-      final accountTransactions =
-          newlyInsertedByAccountExternalId.putIfAbsent(
+      final accountTransactions = newlyInsertedByAccountExternalId.putIfAbsent(
         remoteAccount.id,
         () => [],
       )..addAll(newlyInserted);
@@ -108,8 +107,9 @@ class SimpleFinWindowIngester {
           accountExternalId: remoteAccount.id,
           accountLabel: SimpleFinAccountMapper.labelFor(remoteAccount),
           transactionCount: accountTransactions.length,
-          transactions:
-              List<SimpleFinPulledTransaction>.of(accountTransactions),
+          transactions: List<SimpleFinPulledTransaction>.of(
+            accountTransactions,
+          ),
           accountsDone: index + 1,
           accountsTotal: accountsTotal,
         ),

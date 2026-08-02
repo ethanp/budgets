@@ -20,19 +20,19 @@ import 'package:spend_trends/widgets/transaction_list_row.dart';
 /// Modal progress for a SimpleFIN pull: fetch status, per-account checkoffs,
 /// and an overall totals footer.
 class BanksPullProgressSheet extends ConsumerStatefulWidget {
-  const BanksPullProgressSheet({
-    required this.run,
-  });
+  const BanksPullProgressSheet({required this.run});
 
   final Future<void> Function(
     void Function(SimpleFinPullProgress progress) onProgress,
-  ) run;
+  )
+  run;
 
   static Future<void> showAndRun(
     BuildContext context, {
     required Future<void> Function(
       void Function(SimpleFinPullProgress progress) onProgress,
-    ) run,
+    )
+    run,
   }) {
     return showModalBottomSheet<void>(
       context: context,
@@ -148,10 +148,12 @@ class _BanksPullProgressSheetState
     };
     if (pulledIds.isEmpty) return;
 
-    final transactionsRepository =
-        await ref.read(transactionsRepositoryProvider.future);
-    final categoriesRepository =
-        await ref.read(categoriesRepositoryProvider.future);
+    final transactionsRepository = await ref.read(
+      transactionsRepositoryProvider.future,
+    );
+    final categoriesRepository = await ref.read(
+      categoriesRepositoryProvider.future,
+    );
     final bankTransactions = await transactionsRepository.listAll();
     final byId = {
       for (final transaction in bankTransactions)
@@ -237,8 +239,9 @@ class _BanksPullProgressSheetState
           }
         case SimpleFinPullProgressPhase.accountLoaded:
           final externalId = progress.accountExternalId!;
-          final existingIndex =
-              _accounts.indexWhere((row) => row.externalId == externalId);
+          final existingIndex = _accounts.indexWhere(
+            (row) => row.externalId == externalId,
+          );
           if (existingIndex >= 0) {
             _accounts[existingIndex].transactions =
                 progress.accountTransactions;
@@ -276,9 +279,9 @@ class _BanksPullProgressSheetState
   }
 
   List<SimpleFinPulledTransaction> get _allPulledTransactions => [
-        for (final account in _accounts)
-          for (final transaction in account.transactions) transaction,
-      ];
+    for (final account in _accounts)
+      for (final transaction in account.transactions) transaction,
+  ];
 
   List<_RuleApplicationSummary> get _ruleSummaries {
     final counts = <String, _RuleApplicationSummary>{};
@@ -296,8 +299,7 @@ class _BanksPullProgressSheetState
     }
     final summaries = counts.values.toList()
       ..sort((left, right) {
-        final byCount =
-            right.transactionCount.compareTo(left.transactionCount);
+        final byCount = right.transactionCount.compareTo(left.transactionCount);
         if (byCount != 0) return byCount;
         return left.pattern.compareTo(right.pattern);
       });
@@ -305,9 +307,9 @@ class _BanksPullProgressSheetState
   }
 
   List<SimpleFinPulledTransaction> get _uncategorizedTransactions => [
-        for (final transaction in _allPulledTransactions)
-          if (!transaction.isCategorized) transaction,
-      ];
+    for (final transaction in _allPulledTransactions)
+      if (!transaction.isCategorized) transaction,
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -371,9 +373,7 @@ class _BanksPullProgressSheetState
       crossAxisAlignment: CrossAxisAlignment.baseline,
       textBaseline: TextBaseline.alphabetic,
       children: [
-        Expanded(
-          child: Text(title, style: EText.section),
-        ),
+        Expanded(child: Text(title, style: EText.section)),
         if (!_finished)
           Text(
             _displayedElapsed.formattedElapsed,
@@ -400,8 +400,7 @@ class _BanksPullProgressSheetState
 
   Widget _accountSummary(_AccountPullRow account) {
     final count = account.transactionCount;
-    final countLabel =
-        '$count ${count == 1 ? 'transaction' : 'transactions'}';
+    final countLabel = '$count ${count == 1 ? 'transaction' : 'transactions'}';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -458,8 +457,8 @@ class _BanksPullProgressSheetState
     final categoryLabel = !_categorizationReady
         ? '…'
         : transaction.isCategorized
-            ? _categoryCaption(transaction)
-            : 'Uncategorized';
+        ? _categoryCaption(transaction)
+        : 'Uncategorized';
     final categoryColor = !_categorizationReady
         ? EColors.textMuted
         : CategoryColor.forCategoryId(
@@ -495,11 +494,7 @@ class _BanksPullProgressSheetState
         ),
       ],
       trailing: transaction.pending
-          ? const Icon(
-              Icons.schedule,
-              size: 15,
-              color: EColors.warning,
-            )
+          ? const Icon(Icons.schedule, size: 15, color: EColors.warning)
           : null,
     );
   }
@@ -571,8 +566,8 @@ class _BanksPullProgressSheetState
         _accounts.isEmpty
             ? 'Waiting for accounts…'
             : '${_accounts.length} accounts so far · '
-                '${_accounts.fold<int>(0, (sum, row) => sum + row.transactionCount)} '
-                'transactions',
+                  '${_accounts.fold<int>(0, (sum, row) => sum + row.transactionCount)} '
+                  'transactions',
         style: EText.body.copyWith(fontWeight: FontWeight.w600),
       );
     }

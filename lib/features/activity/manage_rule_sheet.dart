@@ -65,7 +65,7 @@ class _ManageRuleSheetState extends ConsumerState<ManageRuleSheet> {
   Widget build(BuildContext context) {
     final categories =
         ref.watch(categoriesListProvider).asData?.value ??
-            const <SpendCategory>[];
+        const <SpendCategory>[];
     final categoryNameById = {
       for (final category in categories) category.id: category.name,
     };
@@ -228,10 +228,10 @@ class _ManageRuleSheetState extends ConsumerState<ManageRuleSheet> {
   Future<void> _pickTargetCategory() async {
     final categories =
         ref.read(categoriesListProvider).asData?.value ??
-            const <SpendCategory>[];
+        const <SpendCategory>[];
     final groups =
         ref.read(categoryGroupsProvider).asData?.value ??
-            const <CategoryGroup>[];
+        const <CategoryGroup>[];
     final selected = await showModalBottomSheet<SpendCategory>(
       context: context,
       isScrollControlled: true,
@@ -254,9 +254,9 @@ class _ManageRuleSheetState extends ConsumerState<ManageRuleSheet> {
         content: Text(
           matchCount == 0
               ? 'Points this rule at ${selected.name}. No transactions '
-                  'currently use it as primary.'
+                    'currently use it as primary.'
               : 'Points this rule at ${selected.name} and updates $matchCount '
-                  '${matchCount == 1 ? 'transaction' : 'transactions'}.',
+                    '${matchCount == 1 ? 'transaction' : 'transactions'}.',
         ),
         actions: [
           TextButton(
@@ -275,10 +275,7 @@ class _ManageRuleSheetState extends ConsumerState<ManageRuleSheet> {
     setState(() => _busy = true);
     try {
       final categorizer = await ref.read(categorizerProvider.future);
-      await categorizer.retargetRule(
-        rule: _rule,
-        categoryId: selected.id,
-      );
+      await categorizer.retargetRule(rule: _rule, categoryId: selected.id);
       ref.read(spendDataChangedProvider.notifier).notify();
       if (!mounted) return;
       setState(() {
@@ -322,10 +319,10 @@ class _ManageRuleSheetState extends ConsumerState<ManageRuleSheet> {
           content: Text(
             matchCount == 0
                 ? 'The rule will be deleted. No transactions are currently '
-                    'using it as primary.'
+                      'using it as primary.'
                 : 'Deletes the rule and clears categories on $matchCount '
-                    '${matchCount == 1 ? 'transaction' : 'transactions'}. '
-                    'Remaining rules will reclaim matches as suggested.',
+                      '${matchCount == 1 ? 'transaction' : 'transactions'}. '
+                      'Remaining rules will reclaim matches as suggested.',
           ),
           actions: [
             TextButton(
@@ -445,8 +442,7 @@ class _PrimaryMatchRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dateLabel =
-        DateFormat.yMMMd().format(transaction.postedAt.toLocal());
+    final dateLabel = DateFormat.yMMMd().format(transaction.postedAt.toLocal());
     return Padding(
       padding: const EdgeInsets.only(bottom: ELayout.spaceSm),
       child: ESurface(

@@ -2,10 +2,7 @@ import 'dart:math' as math;
 
 /// One day in a renormalized kernel support.
 class KernelWeightSample {
-  const KernelWeightSample({
-    required this.dayIndex,
-    required this.weight,
-  });
+  const KernelWeightSample({required this.dayIndex, required this.weight});
 
   final int dayIndex;
 
@@ -53,10 +50,7 @@ class HannAnnualPaceKernel {
       return const [];
     }
 
-    final firstIndex = math.max(
-      historyStartIndex,
-      centerIndex - halfWidthDays,
-    );
+    final firstIndex = math.max(historyStartIndex, centerIndex - halfWidthDays);
     final lastIndex = math.min(lastDayIndex, centerIndex + halfWidthDays);
 
     final rawSamples = <KernelWeightSample>[];

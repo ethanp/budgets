@@ -1,3 +1,4 @@
+import 'package:spend_trends/app_identity.dart';
 import 'package:spend_trends/migrations/migrate_life_event_occurred_on_keys.dart';
 import 'package:spend_trends/migrations/migrate_special_categories.dart';
 import 'package:spend_trends/migrations/seed_default_categories.dart';
@@ -39,7 +40,7 @@ const _conflictColumns = <String, String>{
 SyncConfig buildSpendTrendsSyncConfig(SharedPreferences preferences) {
   return DotEnvSyncBootstrap.build(
     preferences: preferences,
-    appName: 'spend_trends',
+    appName: AppIdentity.syncAppName,
     powersyncPort: 8083,
     postgrestPort: 3006,
     schema: spendTrendsSchema,

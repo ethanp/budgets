@@ -10,18 +10,17 @@ class AccountKindColor {
   AccountKindColor._();
 
   static Color forKind(AccountKind kind) => switch (kind) {
-        AccountKind.checking => const Color(0xFF4CC9F0),
-        AccountKind.savings => const Color(0xFF2EC4B6),
-        AccountKind.investment => const Color(0xFF9B5DE5),
-        AccountKind.nonFinancialAssets => const Color(0xFFF4A261),
-        AccountKind.creditCard => const Color(0xFFF72585),
-        AccountKind.loans => const Color(0xFFE63946),
-        AccountKind.other => const Color(0xFF80ED99),
-      };
+    AccountKind.checking => const Color(0xFF4CC9F0),
+    AccountKind.savings => const Color(0xFF2EC4B6),
+    AccountKind.investment => const Color(0xFF9B5DE5),
+    AccountKind.nonFinancialAssets => const Color(0xFFF4A261),
+    AccountKind.creditCard => const Color(0xFFF72585),
+    AccountKind.loans => const Color(0xFFE63946),
+    AccountKind.other => const Color(0xFF80ED99),
+  };
 
   static Color forAccount({
     required AccountKind kind,
     required String accountId,
-  }) =>
-      forKind(kind).shadeKeyedBy(accountId);
+  }) => forKind(kind).shadeKeyedBy(accountId);
 }

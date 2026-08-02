@@ -99,7 +99,7 @@ class _EmptyChain extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: EColors.backgroundLift,
-        borderRadius: ELayout.borderRadius(ELayout.radiusMd),
+        borderRadius: ELayout.borderRadiusMd,
         border: Border.all(color: EColors.border),
       ),
       child: Column(
@@ -203,11 +203,9 @@ class _StayNode extends StatelessWidget {
           color: isCurrent
               ? accent.withValues(alpha: 0.12)
               : EColors.backgroundLift,
-          borderRadius: ELayout.borderRadius(ELayout.radiusMd),
+          borderRadius: ELayout.borderRadiusMd,
           border: Border.all(
-            color: isCurrent
-                ? accent.withValues(alpha: 0.55)
-                : EColors.border,
+            color: isCurrent ? accent.withValues(alpha: 0.55) : EColors.border,
             width: isCurrent ? 1.5 : 1,
           ),
         ),
@@ -272,11 +270,7 @@ class _StayNode extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(
-              Icons.chevron_right,
-              size: 16,
-              color: EColors.textMuted,
-            ),
+            const Icon(Icons.chevron_right, size: 16, color: EColors.textMuted),
           ],
         ),
       ),

@@ -64,7 +64,7 @@ class _RelatedRuleChip extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: accent.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(ELayout.radiusSm),
+        borderRadius: ELayout.borderRadiusSm,
         border: Border.all(color: accent.withValues(alpha: 0.35)),
       ),
       child: Text.rich(

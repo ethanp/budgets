@@ -15,24 +15,6 @@ import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/widgets/category_picker.dart';
 import 'package:spend_trends/widgets/select_all_none_row.dart';
 
-InputDecoration _filledFieldDecoration({String? hintText}) {
-  final border = OutlineInputBorder(
-    borderRadius: BorderRadius.circular(ELayout.radiusMd),
-    borderSide: const BorderSide(color: EColors.border),
-  );
-  return InputDecoration(
-    hintText: hintText,
-    filled: true,
-    fillColor: EColors.surface,
-    border: border,
-    enabledBorder: border,
-    focusedBorder: border.copyWith(
-      borderSide: const BorderSide(color: EColors.accentGlow),
-    ),
-    contentPadding: const EdgeInsets.all(ELayout.spaceMd),
-  );
-}
-
 /// Inline / sheet body for assigning a category (and optional contains-rule).
 class RecategorizeForm extends ConsumerStatefulWidget {
   const RecategorizeForm({
@@ -155,10 +137,7 @@ class _RecategorizeFormState extends ConsumerState<RecategorizeForm> {
         ],
         if (_error != null) ...[
           const SizedBox(height: ELayout.spaceSm),
-          Text(
-            _error!,
-            style: EText.caption.copyWith(color: EColors.danger),
-          ),
+          Text(_error!, style: EText.caption.copyWith(color: EColors.danger)),
         ],
         const SizedBox(height: ELayout.spaceLg),
         _categoryPicker(categories, groups),
@@ -167,8 +146,9 @@ class _RecategorizeFormState extends ConsumerState<RecategorizeForm> {
   }
 
   Widget _formHeader() {
-    final dateLabel =
-        DateFormat.yMMMd().format(widget.transaction.postedAt.toLocal());
+    final dateLabel = DateFormat.yMMMd().format(
+      widget.transaction.postedAt.toLocal(),
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -197,7 +177,7 @@ class _RecategorizeFormState extends ConsumerState<RecategorizeForm> {
         const SizedBox(height: ELayout.spaceXs),
         TextField(
           controller: _noteController,
-          decoration: _filledFieldDecoration(hintText: 'Optional note'),
+          decoration: EInput.filledMd(hintText: 'Optional note'),
           maxLines: 3,
           minLines: 1,
           style: EText.body.copyWith(color: EColors.textPrimary),
@@ -236,9 +216,7 @@ class _RecategorizeFormState extends ConsumerState<RecategorizeForm> {
           },
         ),
         const SizedBox(width: ELayout.spaceSm),
-        Expanded(
-          child: Text('Also create a rule', style: EText.body),
-        ),
+        Expanded(child: Text('Also create a rule', style: EText.body)),
       ],
     );
   }
@@ -246,10 +224,10 @@ class _RecategorizeFormState extends ConsumerState<RecategorizeForm> {
   Widget _patternAndImpactPreview() {
     final existingRules =
         ref.watch(categorizationRulesProvider).asData?.value ??
-            const <CategorizationRule>[];
+        const <CategorizationRule>[];
     final categories =
         ref.watch(categoriesListProvider).asData?.value ??
-            const <SpendCategory>[];
+        const <SpendCategory>[];
     final categoryNameById = {
       for (final category in categories) category.id: category.name,
     };
@@ -263,14 +241,11 @@ class _RecategorizeFormState extends ConsumerState<RecategorizeForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'If description contains (ignore case)',
-          style: EText.caption,
-        ),
+        Text('If description contains (ignore case)', style: EText.caption),
         const SizedBox(height: ELayout.spaceXs),
         TextField(
           controller: _patternController,
-          decoration: _filledFieldDecoration(hintText: 'e.g. bbq'),
+          decoration: EInput.filledMd(hintText: 'e.g. bbq'),
           style: EText.body.copyWith(color: EColors.textPrimary),
           onChanged: (value) {
             setState(() {});
@@ -326,10 +301,10 @@ class _RecategorizeFormState extends ConsumerState<RecategorizeForm> {
         Text(
           matchCount == 0
               ? 'Matching transactions appear as you type. The rule still '
-                  'applies to future matches.'
+                    'applies to future matches.'
               : '$matchCount existing '
-                  '${matchCount == 1 ? 'transaction matches' : 'transactions match'}. '
-                  'Deselect any that should keep their current category.',
+                    '${matchCount == 1 ? 'transaction matches' : 'transactions match'}. '
+                    'Deselect any that should keep their current category.',
           style: EText.caption,
         ),
         if (matchCount > 0) ...[
@@ -360,8 +335,9 @@ class _RecategorizeFormState extends ConsumerState<RecategorizeForm> {
 
     setState(() => _error = null);
     try {
-      final alsoApplyToTransactionIds =
-          _createRule ? Set<String>.from(_selectedMatchIds) : const <String>{};
+      final alsoApplyToTransactionIds = _createRule
+          ? Set<String>.from(_selectedMatchIds)
+          : const <String>{};
       await _persistAssignment(category.id, alsoApplyToTransactionIds);
       if (mounted) widget.onCompleted(category.id);
     } catch (error) {

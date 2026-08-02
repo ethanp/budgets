@@ -13,9 +13,9 @@ enum SimpleFinPullKind {
   String get storageValue => name;
 
   String get displayLabel => switch (this) {
-        SimpleFinPullKind.full => 'Full history',
-        SimpleFinPullKind.incremental => 'Incremental',
-      };
+    SimpleFinPullKind.full => 'Full history',
+    SimpleFinPullKind.incremental => 'Incremental',
+  };
 
   static SimpleFinPullKind fromStorage(String value) {
     for (final kind in values) {
@@ -48,16 +48,16 @@ enum SimpleFinPullAccountStatus {
   error;
 
   String get storageValue => switch (this) {
-        SimpleFinPullAccountStatus.ok => 'ok',
-        SimpleFinPullAccountStatus.needsRelink => 'needs_relink',
-        SimpleFinPullAccountStatus.error => 'error',
-      };
+    SimpleFinPullAccountStatus.ok => 'ok',
+    SimpleFinPullAccountStatus.needsRelink => 'needs_relink',
+    SimpleFinPullAccountStatus.error => 'error',
+  };
 
   String get displayLabel => switch (this) {
-        SimpleFinPullAccountStatus.ok => 'OK',
-        SimpleFinPullAccountStatus.needsRelink => 'Needs re-link',
-        SimpleFinPullAccountStatus.error => 'Error',
-      };
+    SimpleFinPullAccountStatus.ok => 'OK',
+    SimpleFinPullAccountStatus.needsRelink => 'Needs re-link',
+    SimpleFinPullAccountStatus.error => 'Error',
+  };
 
   bool get isIssue => this != SimpleFinPullAccountStatus.ok;
 
@@ -69,7 +69,8 @@ enum SimpleFinPullAccountStatus {
     };
   }
 
-  static int severityRank(SimpleFinPullAccountStatus status) => switch (status) {
+  static int severityRank(SimpleFinPullAccountStatus status) =>
+      switch (status) {
         SimpleFinPullAccountStatus.ok => 0,
         SimpleFinPullAccountStatus.needsRelink => 1,
         SimpleFinPullAccountStatus.error => 2,
@@ -217,17 +218,12 @@ class SimpleFinPullHistory {
     );
     if (pullRows.isEmpty) return const [];
 
-    final pullIds = [
-      for (final row in pullRows) row['id'] as String,
-    ];
+    final pullIds = [for (final row in pullRows) row['id'] as String];
     final placeholders = List.filled(pullIds.length, '?').join(', ');
-    final accountRows = await _powerSync.getAll(
-      '''
+    final accountRows = await _powerSync.getAll('''
       SELECT * FROM simplefin_pull_accounts
       WHERE pull_id IN ($placeholders)
-      ''',
-      pullIds,
-    );
+      ''', pullIds);
     final accountsByPullId = <String, List<SimpleFinPullAccountRecord>>{};
     for (final row in accountRows) {
       final record = _accountFromRow(row);
@@ -236,10 +232,7 @@ class SimpleFinPullHistory {
 
     return [
       for (final row in pullRows)
-        _pullFromRow(
-          row,
-          accountsByPullId[row['id'] as String] ?? const [],
-        ),
+        _pullFromRow(row, accountsByPullId[row['id'] as String] ?? const []),
     ];
   }
 
@@ -383,7 +376,10 @@ class SimpleFinPullHistory {
       id: row['id'] as String,
       kind: SimpleFinPullKind.fromStorage(row['kind'] as String? ?? ''),
       status: SimpleFinPullStatus.fromStorage(row['status'] as String? ?? ''),
-      startedAt: DateTime.fromMillisecondsSinceEpoch(startedMillis, isUtc: true),
+      startedAt: DateTime.fromMillisecondsSinceEpoch(
+        startedMillis,
+        isUtc: true,
+      ),
       finishedAt: finishedMillis == null
           ? null
           : DateTime.fromMillisecondsSinceEpoch(finishedMillis, isUtc: true),
@@ -452,10 +448,10 @@ class SimpleFinPullHistory {
   }
 
   Future<void> _clearLegacyKeys() async {
-    await _powerSync.execute(
-      'DELETE FROM sync_state WHERE key IN (?, ?)',
-      [_legacyLastSuccessfulPullKey, _legacyLastErrlistKey],
-    );
+    await _powerSync.execute('DELETE FROM sync_state WHERE key IN (?, ?)', [
+      _legacyLastSuccessfulPullKey,
+      _legacyLastErrlistKey,
+    ]);
   }
 
   Future<String?> _readSyncState(String key) async {

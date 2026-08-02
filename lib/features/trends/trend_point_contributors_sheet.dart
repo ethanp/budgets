@@ -98,10 +98,7 @@ class _TrendPointContributorsSheetState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Top contributors',
-            style: EText.section,
-          ),
+          Text('Top contributors', style: EText.section),
           const SizedBox(height: ELayout.spaceXs),
           Text(
             '${widget.seriesName} · '
@@ -117,17 +114,15 @@ class _TrendPointContributorsSheetState
   Widget _emptyState() {
     return Expanded(
       child: Center(
-        child: Text(
-          'No transactions in this window.',
-          style: EText.body,
-        ),
+        child: Text('No transactions in this window.', style: EText.body),
       ),
     );
   }
 
   Widget _contributorList() {
     final categories =
-        ref.watch(categoriesListProvider).asData?.value ?? const <SpendCategory>[];
+        ref.watch(categoriesListProvider).asData?.value ??
+        const <SpendCategory>[];
     final categoryById = {
       for (final category in categories) category.id: category,
     };
@@ -394,9 +389,7 @@ class _ContributorRow extends StatelessWidget {
   }
 
   static const _rowDivider = BoxDecoration(
-    border: Border(
-      bottom: BorderSide(color: EColors.border, width: 0.5),
-    ),
+    border: Border(bottom: BorderSide(color: EColors.border, width: 0.5)),
   );
 
   Widget _rankLabel() {

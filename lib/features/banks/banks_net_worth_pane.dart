@@ -48,9 +48,10 @@ class BanksNetWorthPane extends StatelessWidget {
     final kindLines = AccountKind.values
         .where((kind) => (countsByKind[kind] ?? 0) > 0)
         .map((kind) {
-      final count = countsByKind[kind]!;
-      return '${kind.legendLabel} · $count';
-    }).toList();
+          final count = countsByKind[kind]!;
+          return '${kind.legendLabel} · $count';
+        })
+        .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

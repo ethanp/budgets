@@ -33,17 +33,15 @@ class CategorySuggestion {
 
   bool get createsCategory => categoryId == null;
 
-  int get totalAmountCents => transactionAmountCents.fold<int>(
-        0,
-        (sum, amount) => sum + amount,
-      );
+  int get totalAmountCents =>
+      transactionAmountCents.fold<int>(0, (sum, amount) => sum + amount);
 
   CategorySuggestion withCategoryId(String categoryId) => CategorySuggestion(
-        merchant: merchant,
-        categoryId: categoryId,
-        categoryName: categoryName,
-        transactionAmountCents: transactionAmountCents,
-      );
+    merchant: merchant,
+    categoryId: categoryId,
+    categoryName: categoryName,
+    transactionAmountCents: transactionAmountCents,
+  );
 
   CategorySuggestion withTransactionAmounts(List<int> amounts) =>
       CategorySuggestion(
@@ -64,10 +62,10 @@ class SuggestMerchantCategories {
     required CategoriesRepository categoriesRepository,
     required TransactionsRepository transactionsRepository,
     http.Client? httpClient,
-  })  : _accountsRepository = accountsRepository,
-        _categoriesRepository = categoriesRepository,
-        _transactionsRepository = transactionsRepository,
-        _httpClient = httpClient ?? http.Client();
+  }) : _accountsRepository = accountsRepository,
+       _categoriesRepository = categoriesRepository,
+       _transactionsRepository = transactionsRepository,
+       _httpClient = httpClient ?? http.Client();
 
   final String proxyUrl;
   final String appName;
@@ -210,7 +208,9 @@ class SuggestMerchantCategories {
     }
   }
 
-  Future<void> applyToUncategorized(List<CategorySuggestion> suggestions) async {
+  Future<void> applyToUncategorized(
+    List<CategorySuggestion> suggestions,
+  ) async {
     final resolved = await createMissingCategories(suggestions);
     final byMerchant = {
       for (final suggestion in resolved)

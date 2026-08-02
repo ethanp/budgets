@@ -4,10 +4,7 @@ import 'package:spend_trends/features/trends/category_trend_series.dart';
 
 /// Color chip for a trend series (solid, dotted, or long-dash guide).
 class TrendLegendSwatch extends StatelessWidget {
-  const TrendLegendSwatch({
-    required this.series,
-    required this.isHidden,
-  });
+  const TrendLegendSwatch({required this.series, required this.isHidden});
 
   final CategoryTrendSeries series;
   final bool isHidden;
@@ -20,10 +17,7 @@ class TrendLegendSwatch extends StatelessWidget {
         width: 16,
         height: 10,
         child: CustomPaint(
-          painter: _DottedLegendSwatchPainter(
-            color,
-            longDash: series.guide,
-          ),
+          painter: _DottedLegendSwatchPainter(color, longDash: series.guide),
         ),
       );
     }

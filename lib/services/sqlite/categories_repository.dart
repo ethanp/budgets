@@ -13,13 +13,11 @@ class CategoriesRepository {
   final _uuid = const Uuid();
 
   Future<List<SpendCategory>> listActive() async {
-    final rows = await _powerSync.getAll(
-      '''
+    final rows = await _powerSync.getAll('''
       SELECT * FROM categories
       WHERE archived = 0
       ORDER BY sort_order ASC, name COLLATE NOCASE
-      ''',
-    );
+      ''');
     return rows.map(_categoryFromRow).toList();
   }
 
@@ -31,12 +29,10 @@ class CategoriesRepository {
   }
 
   Future<List<CategoryGroup>> listGroups() async {
-    final rows = await _powerSync.getAll(
-      '''
+    final rows = await _powerSync.getAll('''
       SELECT * FROM category_groups
       ORDER BY sort_order ASC, name COLLATE NOCASE
-      ''',
-    );
+      ''');
     return rows.map(_groupFromRow).toList();
   }
 
@@ -159,10 +155,7 @@ class CategoriesRepository {
     }
     final existing = await _requireCategory(categoryId);
     await upsertCategory(
-      existing.copyWith(
-        groupId: groupId,
-        clearGroupId: groupId == null,
-      ),
+      existing.copyWith(groupId: groupId, clearGroupId: groupId == null),
     );
   }
 
@@ -173,10 +166,9 @@ class CategoriesRepository {
       'UPDATE categories SET group_id = NULL WHERE group_id = ?',
       [groupId],
     );
-    await _powerSync.execute(
-      'DELETE FROM category_groups WHERE id = ?',
-      [groupId],
-    );
+    await _powerSync.execute('DELETE FROM category_groups WHERE id = ?', [
+      groupId,
+    ]);
   }
 
   /// Move all spend/rules from [fromCategoryId] into [intoCategoryId],
@@ -197,10 +189,9 @@ class CategoriesRepository {
       fromCategoryId: fromCategoryId,
       intoCategoryId: intoCategoryId,
     );
-    await _powerSync.execute(
-      'DELETE FROM categories WHERE id = ?',
-      [fromCategoryId],
-    );
+    await _powerSync.execute('DELETE FROM categories WHERE id = ?', [
+      fromCategoryId,
+    ]);
   }
 
   Future<void> _ensureCategoriesExist(
@@ -260,10 +251,9 @@ class CategoriesRepository {
   }
 
   Future<void> deleteRule(String ruleId) async {
-    await _powerSync.execute(
-      'DELETE FROM categorization_rules WHERE id = ?',
-      [ruleId],
-    );
+    await _powerSync.execute('DELETE FROM categorization_rules WHERE id = ?', [
+      ruleId,
+    ]);
   }
 
   Future<SpendCategory> _requireCategory(String categoryId) async {

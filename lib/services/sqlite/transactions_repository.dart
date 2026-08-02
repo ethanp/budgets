@@ -5,10 +5,7 @@ import 'package:ethan_utils/ethan_utils.dart';
 import 'package:powersync/powersync.dart';
 
 class TransactionPresence {
-  const TransactionPresence({
-    required this.id,
-    required this.hasNote,
-  });
+  const TransactionPresence({required this.id, required this.hasNote});
 
   final String id;
   final bool hasNote;
@@ -93,7 +90,8 @@ class TransactionsRepository {
   }
 
   /// Presence map for import skip + note backfill without per-row lookups.
-  Future<Map<String, TransactionPresence>> presenceByAccountExternalKey() async {
+  Future<Map<String, TransactionPresence>>
+  presenceByAccountExternalKey() async {
     final rows = await _powerSync.getAll(
       'SELECT id, account_id, external_id, note FROM transactions',
     );
@@ -143,7 +141,9 @@ class TransactionsRepository {
     });
   }
 
-  Future<void> setExternalIds(Map<String, String> externalIdByTransactionId) async {
+  Future<void> setExternalIds(
+    Map<String, String> externalIdByTransactionId,
+  ) async {
     if (externalIdByTransactionId.isEmpty) return;
     await _powerSync.writeTransaction((tx) async {
       for (final entry in externalIdByTransactionId.entries) {
@@ -180,10 +180,7 @@ class TransactionsRepository {
           ? transaction.suggestedCategoryId
           : (existing?.suggestedCategoryId ?? transaction.suggestedCategoryId),
       // Keep an existing note when the incoming row has none (e.g. SimpleFIN sync).
-      'note': _mergedNote(
-        existing: existing?.note,
-        incoming: transaction.note,
-      ),
+      'note': _mergedNote(existing: existing?.note, incoming: transaction.note),
       'transaction_type': transaction.transactionType,
       'excluded': transaction.excluded ? 1 : 0,
       'recurring_series': transaction.recurringSeries,
@@ -198,10 +195,10 @@ class TransactionsRepository {
     required String transactionId,
     required String? note,
   }) async {
-    await _powerSync.execute(
-      'UPDATE transactions SET note = ? WHERE id = ?',
-      [_normalizedNote(note), transactionId],
-    );
+    await _powerSync.execute('UPDATE transactions SET note = ? WHERE id = ?', [
+      _normalizedNote(note),
+      transactionId,
+    ]);
   }
 
   /// Applies many note updates in one write transaction.
@@ -211,10 +208,10 @@ class TransactionsRepository {
       for (final entry in noteByTransactionId.entries) {
         final normalized = _normalizedNote(entry.value);
         if (normalized == null) continue;
-        await tx.execute(
-          'UPDATE transactions SET note = ? WHERE id = ?',
-          [normalized, entry.key],
-        );
+        await tx.execute('UPDATE transactions SET note = ? WHERE id = ?', [
+          normalized,
+          entry.key,
+        ]);
       }
     });
   }
@@ -274,10 +271,9 @@ class TransactionsRepository {
   }
 
   Future<void> deleteTransaction(String transactionId) async {
-    await _powerSync.execute(
-      'DELETE FROM transactions WHERE id = ?',
-      [transactionId],
-    );
+    await _powerSync.execute('DELETE FROM transactions WHERE id = ?', [
+      transactionId,
+    ]);
   }
 
   Future<MonthSummary> monthSummary({
@@ -357,8 +353,7 @@ class TransactionsRepository {
       suggestedCategoryId: columns['suggested_category_id'] as String?,
       note: columns['note'] as String?,
       transactionType: columns['transaction_type'] as String?,
-      excluded:
-          columns['excluded'] != null && columns['excluded'].asInt() == 1,
+      excluded: columns['excluded'] != null && columns['excluded'].asInt() == 1,
       recurringSeries: columns['recurring_series'] as String?,
       importedAt: columns['imported_at'].asIntOrNull().dateTimeFromMillis,
     );

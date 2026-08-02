@@ -12,10 +12,10 @@ class SimpleFinPullWindows {
     final windows = <SimpleFinDateWindow>[];
     var windowEnd = now;
     while (windowEnd.isAfter(earliest)) {
-      final windowStart =
-          windowEnd.subtract(const Duration(days: windowDays));
-      final clampedStart =
-          windowStart.isBefore(earliest) ? earliest : windowStart;
+      final windowStart = windowEnd.subtract(const Duration(days: windowDays));
+      final clampedStart = windowStart.isBefore(earliest)
+          ? earliest
+          : windowStart;
       windows.add(SimpleFinDateWindow(start: clampedStart, end: windowEnd));
       windowEnd = clampedStart;
     }
@@ -34,10 +34,7 @@ class SimpleFinPullWindows {
 }
 
 class SimpleFinDateWindow {
-  const SimpleFinDateWindow({
-    required this.start,
-    required this.end,
-  });
+  const SimpleFinDateWindow({required this.start, required this.end});
 
   final DateTime start;
   final DateTime end;

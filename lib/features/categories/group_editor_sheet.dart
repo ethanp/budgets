@@ -8,9 +8,7 @@ import 'package:spend_trends/widgets/app_sheet_panel.dart';
 
 /// Create or edit a category group name.
 class GroupEditorSheet extends ConsumerStatefulWidget {
-  const GroupEditorSheet({
-    this.group,
-  });
+  const GroupEditorSheet({this.group});
 
   final CategoryGroup? group;
 
@@ -59,16 +57,13 @@ class _GroupEditorSheetState extends ConsumerState<GroupEditorSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              _isEditing ? 'Edit group' : 'New group',
-              style: EText.section,
-            ),
+            Text(_isEditing ? 'Edit group' : 'New group', style: EText.section),
             const SizedBox(height: ELayout.spaceMd),
             TextField(
               controller: _nameController,
               autofocus: !_isEditing,
               style: EText.body.copyWith(color: EColors.textPrimary),
-              decoration: _fieldDecoration('Name (e.g. Wants)'),
+              decoration: EInput.filled(hintText: 'Name (e.g. Wants)'),
             ),
             if (_error != null) ...[
               const SizedBox(height: ELayout.spaceSm),
@@ -97,27 +92,6 @@ class _GroupEditorSheetState extends ConsumerState<GroupEditorSheet> {
     );
   }
 
-  InputDecoration _fieldDecoration(String hint) {
-    return InputDecoration(
-      hintText: hint,
-      filled: true,
-      fillColor: EColors.surface,
-      contentPadding: const EdgeInsets.all(ELayout.spaceMd),
-      border: OutlineInputBorder(
-        borderRadius: ELayout.borderRadius(ELayout.radiusSm),
-        borderSide: const BorderSide(color: EColors.border),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: ELayout.borderRadius(ELayout.radiusSm),
-        borderSide: const BorderSide(color: EColors.border),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: ELayout.borderRadius(ELayout.radiusSm),
-        borderSide: const BorderSide(color: EColors.accentGlow),
-      ),
-    );
-  }
-
   Future<void> _save() async {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
@@ -133,10 +107,7 @@ class _GroupEditorSheetState extends ConsumerState<GroupEditorSheet> {
     try {
       final repository = await ref.read(categoriesRepositoryProvider.future);
       if (_isEditing) {
-        await repository.renameGroup(
-          groupId: widget.group!.id,
-          name: name,
-        );
+        await repository.renameGroup(groupId: widget.group!.id, name: name);
       } else {
         await repository.createGroup(name: name);
       }

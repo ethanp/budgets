@@ -70,7 +70,7 @@ class _BankInstitutionHeaderState extends ConsumerState<BankInstitutionHeader> {
         controller: _nameController,
         focusNode: _focusNode,
         style: titleStyle,
-        decoration: InputDecoration(
+        decoration: EInput.filled(
           isDense: true,
           hintText: widget.sampleAccount.connName?.trim().isNotEmpty == true
               ? widget.sampleAccount.connName
@@ -80,18 +80,8 @@ class _BankInstitutionHeaderState extends ConsumerState<BankInstitutionHeader> {
             horizontal: ELayout.spaceSm,
             vertical: ELayout.spaceXs,
           ),
-          filled: true,
           fillColor: EColors.surfaceInset,
-          border: OutlineInputBorder(
-            borderRadius: ELayout.borderRadius(ELayout.radiusSm),
-            borderSide: const BorderSide(color: EColors.border),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: ELayout.borderRadius(ELayout.radiusSm),
-            borderSide: const BorderSide(color: EColors.border),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: ELayout.borderRadius(ELayout.radiusSm),
+          focusedBorder: EInput.outlineSm.copyWith(
             borderSide: BorderSide(color: widget.accentColor),
           ),
         ),
@@ -125,7 +115,8 @@ class _BankInstitutionHeaderState extends ConsumerState<BankInstitutionHeader> {
     if (!_editing || _saving) return;
     final nextLabel = _nameController.text.trim();
     final official = widget.sampleAccount.connName?.trim() ?? '';
-    final unchanged = nextLabel == widget.displayName ||
+    final unchanged =
+        nextLabel == widget.displayName ||
         (nextLabel.isEmpty &&
             (widget.sampleAccount.connUserLabel == null ||
                 widget.sampleAccount.connUserLabel!.isEmpty));
@@ -137,8 +128,9 @@ class _BankInstitutionHeaderState extends ConsumerState<BankInstitutionHeader> {
     setState(() => _saving = true);
     try {
       final repository = await ref.read(accountsRepositoryProvider.future);
-      final storedLabel =
-          nextLabel.isEmpty || nextLabel == official ? null : nextLabel;
+      final storedLabel = nextLabel.isEmpty || nextLabel == official
+          ? null
+          : nextLabel;
       await repository.updateInstitutionUserLabel(
         account: widget.sampleAccount,
         connUserLabel: storedLabel,

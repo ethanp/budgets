@@ -81,10 +81,7 @@ class _SyncStatusTileState extends ConsumerState<SyncStatusTile> {
     );
   }
 
-  Widget _header({
-    required bool offline,
-    required bool isProbing,
-  }) {
+  Widget _header({required bool offline, required bool isProbing}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -127,11 +124,7 @@ class _SyncStatusTileState extends ConsumerState<SyncStatusTile> {
               ),
             )
           else
-            Icon(
-              Icons.swap_horiz,
-              size: 14,
-              color: _style.accent,
-            ),
+            Icon(Icons.swap_horiz, size: 14, color: _style.accent),
           const SizedBox(width: ELayout.spaceXs),
           Text(
             'Probe',
@@ -158,10 +151,7 @@ class _SyncStatusTileState extends ConsumerState<SyncStatusTile> {
         Container(
           width: 8,
           height: 8,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: dotColor,
-          ),
+          decoration: BoxDecoration(shape: BoxShape.circle, color: dotColor),
         ),
         const SizedBox(width: ELayout.spaceSm),
         Expanded(
@@ -222,8 +212,9 @@ class _SyncStatusTileState extends ConsumerState<SyncStatusTile> {
                       label,
                       style: EText.caption.copyWith(
                         color: EColors.textMuted,
-                        fontWeight:
-                            isActive ? FontWeight.w600 : FontWeight.w400,
+                        fontWeight: isActive
+                            ? FontWeight.w600
+                            : FontWeight.w400,
                       ),
                     ),
                     if (isActive) ...[
@@ -326,11 +317,7 @@ class _SyncStatusTileState extends ConsumerState<SyncStatusTile> {
       padding: const EdgeInsets.only(left: ELayout.spaceLg),
       child: Row(
         children: [
-          const Icon(
-            Icons.upload,
-            size: 14,
-            color: EColors.textMuted,
-          ),
+          const Icon(Icons.upload, size: 14, color: EColors.textMuted),
           const SizedBox(width: ELayout.spaceSm),
           Expanded(
             child: Text(

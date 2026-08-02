@@ -36,8 +36,9 @@ class CategoryBrowseList extends StatelessWidget {
     var widest = formatCents(0).measureWidth(semiboldCaption);
     for (final section in sections) {
       if (section.title != 'Cash flow') {
-        final headerWidth = formatCents(section.monthTotalCents)
-            .measureWidth(semiboldCaption);
+        final headerWidth = formatCents(
+          section.monthTotalCents,
+        ).measureWidth(semiboldCaption);
         if (headerWidth > widest) widest = headerWidth;
       }
       for (final category in section.categories) {
@@ -56,10 +57,7 @@ class CategoryBrowseList extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(ELayout.spaceLg),
       children: [
-        Text(
-          'This month · $yearMonthLabel',
-          style: EText.caption,
-        ),
+        Text('This month · $yearMonthLabel', style: EText.caption),
         const SizedBox(height: ELayout.spaceMd),
         for (var index = 0; index < sections.length; index++) ...[
           if (index > 0) const SizedBox(height: ELayout.spaceLg),
@@ -142,11 +140,7 @@ class CategoryBrowseSection extends StatelessWidget {
       amountWidth: _isCashFlow ? null : amountWidth,
       trailing: onEditGroup == null
           ? null
-          : const Icon(
-              Icons.chevron_right,
-              size: 17,
-              color: EColors.textMuted,
-            ),
+          : const Icon(Icons.chevron_right, size: 17, color: EColors.textMuted),
       titleMaxWidth: 200,
       decorate: false,
       padding: EdgeInsets.zero,

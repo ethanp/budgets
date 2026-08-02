@@ -12,9 +12,7 @@ import 'package:spend_trends/widgets/app_sheet_panel.dart';
 enum _LifeEventDateMode { day, range, ongoing }
 
 class LifeEventFormSheet extends ConsumerStatefulWidget {
-  const LifeEventFormSheet({
-    this.lifeEvent,
-  });
+  const LifeEventFormSheet({this.lifeEvent});
 
   final LifeEvent? lifeEvent;
 
@@ -136,7 +134,7 @@ class _LifeEventFormSheetState extends ConsumerState<LifeEventFormSheet> {
       controller: _titleController,
       autofocus: !_isEditing,
       style: EText.body.copyWith(color: EColors.textPrimary),
-      decoration: _fieldDecoration('Title'),
+      decoration: EInput.filled(hintText: 'Title'),
     );
   }
 
@@ -170,28 +168,7 @@ class _LifeEventFormSheetState extends ConsumerState<LifeEventFormSheet> {
       maxLines: 3,
       minLines: 2,
       style: EText.body.copyWith(color: EColors.textPrimary),
-      decoration: _fieldDecoration('Note (optional)'),
-    );
-  }
-
-  InputDecoration _fieldDecoration(String hint) {
-    return InputDecoration(
-      hintText: hint,
-      filled: true,
-      fillColor: EColors.surface,
-      contentPadding: const EdgeInsets.all(ELayout.spaceMd),
-      border: OutlineInputBorder(
-        borderRadius: ELayout.borderRadius(ELayout.radiusSm),
-        borderSide: const BorderSide(color: EColors.border),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: ELayout.borderRadius(ELayout.radiusSm),
-        borderSide: const BorderSide(color: EColors.border),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: ELayout.borderRadius(ELayout.radiusSm),
-        borderSide: const BorderSide(color: EColors.accentGlow),
-      ),
+      decoration: EInput.filled(hintText: 'Note (optional)'),
     );
   }
 

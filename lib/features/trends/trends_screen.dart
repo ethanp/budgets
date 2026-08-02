@@ -53,8 +53,8 @@ class TrendsScreen extends ConsumerWidget {
           data: (bundle) => _trendsBody(
             bundle,
             currentNetWorthCents: _sumAccountBalances(accountsAsync),
-            transactions: transactionsAsync.asData?.value ??
-                const <BankTransaction>[],
+            transactions:
+                transactionsAsync.asData?.value ?? const <BankTransaction>[],
             categories:
                 categoriesAsync.asData?.value ?? const <SpendCategory>[],
             groups: groupsAsync.asData?.value ?? const <CategoryGroup>[],
@@ -177,15 +177,11 @@ class TrendsScreen extends ConsumerWidget {
   }) {
     final figures = <ChartHeadlineFigure>[];
     if (currentCents != null) {
-      figures.add(
-        ChartHeadlineFigure(label: 'Current', cents: currentCents),
-      );
+      figures.add(ChartHeadlineFigure(label: 'Current', cents: currentCents));
     }
     final smoothedCents = _smoothedNetWorthCents(netWorthSeries);
     if (smoothedCents != null) {
-      figures.add(
-        ChartHeadlineFigure(label: 'Smoothed', cents: smoothedCents),
-      );
+      figures.add(ChartHeadlineFigure(label: 'Smoothed', cents: smoothedCents));
     }
     return figures;
   }

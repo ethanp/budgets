@@ -57,8 +57,7 @@ class ActivityColumnWidths {
     required Map<String, Account> accounts,
     required Map<String, SpendCategory> categories,
   }) {
-    final categoryStyle =
-        EText.caption.copyWith(fontWeight: FontWeight.w600);
+    final categoryStyle = EText.caption.copyWith(fontWeight: FontWeight.w600);
     final accountStyle = EText.caption;
     final titleStyle = EText.body.copyWith(fontWeight: FontWeight.w600);
     final amountStyle = EText.body.copyWith(
@@ -79,8 +78,9 @@ class ActivityColumnWidths {
 
       final account = accounts[transaction.accountId];
       if (account != null) {
-        final accountPaint =
-            account.displayNameWithInstitution.measureWidth(accountStyle);
+        final accountPaint = account.displayNameWithInstitution.measureWidth(
+          accountStyle,
+        );
         if (accountPaint > accountWidth) accountWidth = accountPaint;
       }
 
@@ -90,8 +90,9 @@ class ActivityColumnWidths {
       final titlePaint = merchantName.measureWidth(titleStyle);
       if (titlePaint > titleWidth) titleWidth = titlePaint;
 
-      final amountPaint =
-          formatCents(transaction.amountCents).measureWidth(amountStyle);
+      final amountPaint = formatCents(
+        transaction.amountCents,
+      ).measureWidth(amountStyle);
       if (amountPaint > amountWidth) amountWidth = amountPaint;
     }
 

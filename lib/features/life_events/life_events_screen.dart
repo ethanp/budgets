@@ -77,15 +77,9 @@ class _LifeEventsBody extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.all(ELayout.spaceLg),
       children: [
-        _LifeChainHeroCard(
-          kind: LifeChainKind.housing,
-          chain: housingChain,
-        ),
+        _LifeChainHeroCard(kind: LifeChainKind.housing, chain: housingChain),
         const SizedBox(height: ELayout.spaceSm),
-        _LifeChainHeroCard(
-          kind: LifeChainKind.job,
-          chain: jobChain,
-        ),
+        _LifeChainHeroCard(kind: LifeChainKind.job, chain: jobChain),
         const SizedBox(height: ELayout.spaceLg),
         Text(
           'Milestones',
@@ -108,8 +102,7 @@ class _LifeEventsBody extends ConsumerWidget {
                 ),
                 const SizedBox(height: ELayout.spaceMd),
                 AppPrimaryButton(
-                  onPressed: () =>
-                      LifeEventFormSheet.show(context, ref: ref),
+                  onPressed: () => LifeEventFormSheet.show(context, ref: ref),
                   child: const Text('Add life event'),
                 ),
               ],
@@ -133,10 +126,7 @@ class _LifeEventsBody extends ConsumerWidget {
 }
 
 class _LifeChainHeroCard extends StatelessWidget {
-  const _LifeChainHeroCard({
-    required this.kind,
-    required this.chain,
-  });
+  const _LifeChainHeroCard({required this.kind, required this.chain});
 
   final LifeChainKind kind;
   final StayChain? chain;
@@ -148,29 +138,24 @@ class _LifeChainHeroCard extends StatelessWidget {
     final caption = current == null
         ? kind.emptyHeroCaption
         : '${current.stay.label} · since '
-            '${DateFormat.yMMMd().format(current.rangeStart)}';
+              '${DateFormat.yMMMd().format(current.rangeStart)}';
 
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (_) => LifeChainScreen(kind: kind),
-          ),
+          MaterialPageRoute<void>(builder: (_) => LifeChainScreen(kind: kind)),
         );
       },
       child: Container(
         padding: const EdgeInsets.all(ELayout.spaceMd),
         decoration: BoxDecoration(
           color: EColors.backgroundLift,
-          borderRadius: ELayout.borderRadius(ELayout.radiusMd),
+          borderRadius: ELayout.borderRadiusMd,
           border: Border.all(color: accent.withValues(alpha: 0.4)),
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              accent.withValues(alpha: 0.14),
-              EColors.backgroundLift,
-            ],
+            colors: [accent.withValues(alpha: 0.14), EColors.backgroundLift],
           ),
         ),
         child: Row(
@@ -196,20 +181,14 @@ class _LifeChainHeroCard extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     caption,
-                    style: EText.caption.copyWith(
-                      color: EColors.textSecondary,
-                    ),
+                    style: EText.caption.copyWith(color: EColors.textSecondary),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
             ),
-            const Icon(
-              Icons.chevron_right,
-              size: 16,
-              color: EColors.textMuted,
-            ),
+            const Icon(Icons.chevron_right, size: 16, color: EColors.textMuted),
           ],
         ),
       ),
@@ -218,10 +197,7 @@ class _LifeChainHeroCard extends StatelessWidget {
 }
 
 class _LifeEventListTile extends StatelessWidget {
-  const _LifeEventListTile({
-    required this.lifeEvent,
-    required this.onTap,
-  });
+  const _LifeEventListTile({required this.lifeEvent, required this.onTap});
 
   final LifeEvent lifeEvent;
   final VoidCallback onTap;
@@ -240,10 +216,7 @@ class _LifeEventListTile extends StatelessWidget {
               style: EText.section.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: ELayout.spaceXs),
-            Text(
-              lifeEvent.dateCaption,
-              style: EText.caption,
-            ),
+            Text(lifeEvent.dateCaption, style: EText.caption),
             if (lifeEvent.note != null) ...[
               const SizedBox(height: ELayout.spaceXs),
               Text(lifeEvent.note!, style: EText.caption),

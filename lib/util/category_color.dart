@@ -52,10 +52,10 @@ class CategoryColor {
   }
 
   static Color forCategory(SpendCategory category) => forCategoryId(
-        category.id,
-        categoryName: category.name,
-        groupId: category.groupId,
-      );
+    category.id,
+    categoryName: category.name,
+    groupId: category.groupId,
+  );
 
   static Color forGroupId(String groupId) =>
       palette[groupId.stableHash % palette.length];

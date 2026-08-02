@@ -66,8 +66,9 @@ class ActivityVisibleTransactionsQuery {
     final Map<String, CategorizationRule?> explainingByTransactionId;
     final List<BankTransaction> afterRuleFilter;
     if (hideRuleMatched) {
-      explainingByTransactionId =
-          ruleMatchIndex.explainingRulesByTransactionId(searchMatches);
+      explainingByTransactionId = ruleMatchIndex.explainingRulesByTransactionId(
+        searchMatches,
+      );
       afterRuleFilter = [
         for (final transaction in searchMatches)
           if (!transaction.isAutoCategorized(

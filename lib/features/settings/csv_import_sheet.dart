@@ -26,8 +26,9 @@ class CsvImportSheet extends ConsumerStatefulWidget {
 }
 
 class _CsvImportSheetState extends ConsumerState<CsvImportSheet> {
-  final TextEditingController _accountController =
-      TextEditingController(text: 'CSV Import');
+  final TextEditingController _accountController = TextEditingController(
+    text: 'CSV Import',
+  );
   bool _busy = false;
   String? _message;
 
@@ -73,24 +74,7 @@ class _CsvImportSheetState extends ConsumerState<CsvImportSheet> {
     return TextField(
       controller: _accountController,
       style: EText.body.copyWith(color: EColors.textPrimary),
-      decoration: InputDecoration(
-        hintText: 'Account name',
-        filled: true,
-        fillColor: EColors.surface,
-        contentPadding: const EdgeInsets.all(ELayout.spaceMd),
-        border: OutlineInputBorder(
-          borderRadius: ELayout.borderRadius(ELayout.radiusSm),
-          borderSide: const BorderSide(color: EColors.border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: ELayout.borderRadius(ELayout.radiusSm),
-          borderSide: const BorderSide(color: EColors.border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: ELayout.borderRadius(ELayout.radiusSm),
-          borderSide: const BorderSide(color: EColors.accentGlow),
-        ),
-      ),
+      decoration: EInput.filled(hintText: 'Account name'),
     );
   }
 
@@ -137,8 +121,9 @@ class _CsvImportSheetState extends ConsumerState<CsvImportSheet> {
   Future<CsvImportResult> _importCsvFile(String path) async {
     final importer = CsvImporter(
       accountsRepository: await ref.read(accountsRepositoryProvider.future),
-      transactionsRepository:
-          await ref.read(transactionsRepositoryProvider.future),
+      transactionsRepository: await ref.read(
+        transactionsRepositoryProvider.future,
+      ),
     );
     return importer.importFile(
       file: File(path),

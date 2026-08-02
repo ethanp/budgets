@@ -14,14 +14,14 @@ enum AccountKind {
 
   /// Legend section header.
   String get legendLabel => switch (this) {
-        AccountKind.checking => 'Checking',
-        AccountKind.savings => 'Savings',
-        AccountKind.investment => 'Investment',
-        AccountKind.nonFinancialAssets => 'Non-financial assets',
-        AccountKind.creditCard => 'Credit cards',
-        AccountKind.loans => 'Loans',
-        AccountKind.other => 'Other',
-      };
+    AccountKind.checking => 'Checking',
+    AccountKind.savings => 'Savings',
+    AccountKind.investment => 'Investment',
+    AccountKind.nonFinancialAssets => 'Non-financial assets',
+    AccountKind.creditCard => 'Credit cards',
+    AccountKind.loans => 'Loans',
+    AccountKind.other => 'Other',
+  };
 
   /// Assets first, then credit / loans, then leftover.
   int get legendSortOrder => index;
@@ -77,24 +77,24 @@ class AccountKindClassifier {
 
   static bool _matchesInvestment(String haystack, Account account) {
     if (_containsAny(haystack, const [
-      '529',
-      '401k',
-      '401(k)',
-      '403b',
-      '403(b)',
-      'roth',
-      'hsa',
-      'sep ira',
-      'sep-ira',
-      'traditional ira',
-      'rollover ira',
-      'brokerage',
-      'investment',
-      'taxable',
-      'brokerage account',
-      'individual',
-      'joint brokerage',
-    ]) ||
+          '529',
+          '401k',
+          '401(k)',
+          '403b',
+          '403(b)',
+          'roth',
+          'hsa',
+          'sep ira',
+          'sep-ira',
+          'traditional ira',
+          'rollover ira',
+          'brokerage',
+          'investment',
+          'taxable',
+          'brokerage account',
+          'individual',
+          'joint brokerage',
+        ]) ||
         _containsToken(haystack, 'ira')) {
       return true;
     }
@@ -107,22 +107,22 @@ class AccountKindClassifier {
 
   static bool _matchesCreditCard(String haystack) {
     return _containsAny(haystack, const [
-      'credit card',
-      'creditcard',
-      'visa',
-      'mastercard',
-      'american express',
-      'amex',
-      'sapphire',
-      'freedom',
-      'reserve',
-      'ink business',
-      'double cash',
-      'venture',
-      'quicksilver',
-      'platinum card',
-      'gold card',
-    ]) ||
+          'credit card',
+          'creditcard',
+          'visa',
+          'mastercard',
+          'american express',
+          'amex',
+          'sapphire',
+          'freedom',
+          'reserve',
+          'ink business',
+          'double cash',
+          'venture',
+          'quicksilver',
+          'platinum card',
+          'gold card',
+        ]) ||
         (_containsToken(haystack, 'card') &&
             !_containsAny(haystack, const ['gift card', 'debit card']));
   }

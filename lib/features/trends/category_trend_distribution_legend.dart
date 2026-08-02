@@ -58,7 +58,7 @@ class CategoryTrendDistributionLegend extends StatelessWidget {
     final columnsWidth = seriesList.isEmpty
         ? 0.0
         : seriesList.length * _columnWidth +
-            math.max(0, seriesList.length - 1) * _columnGap;
+              math.max(0, seriesList.length - 1) * _columnGap;
     final gridWidth = columnsWidth + _gridOverhang;
 
     return Column(
@@ -103,9 +103,11 @@ class CategoryTrendDistributionLegend extends StatelessWidget {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          for (var index = 0;
-                              index < seriesList.length;
-                              index++) ...[
+                          for (
+                            var index = 0;
+                            index < seriesList.length;
+                            index++
+                          ) ...[
                             if (index > 0) const SizedBox(width: _columnGap),
                             SizedBox(
                               width: _columnWidth,
@@ -113,8 +115,9 @@ class CategoryTrendDistributionLegend extends StatelessWidget {
                                 series: seriesList[index],
                                 pair: pairsBySeriesId[seriesList[index].id],
                                 scale: scale,
-                                isHidden: hiddenSeriesIds
-                                    .contains(seriesList[index].id),
+                                isHidden: hiddenSeriesIds.contains(
+                                  seriesList[index].id,
+                                ),
                                 formatAnnualized: _formatAnnualized,
                                 pastYearTotalLabel: _pastYearTotalLabel(
                                   seriesList[index],
@@ -213,8 +216,9 @@ class _DistributionColumn extends StatelessWidget {
   Widget build(BuildContext context) {
     final nowCents =
         pair?.pastYear?.currentCents ?? pair?.allTime?.currentCents;
-    final nowLabel =
-        nowCents == null ? '—' : formatAnnualized(nowCents.round());
+    final nowLabel = nowCents == null
+        ? '—'
+        : formatAnnualized(nowCents.round());
     final periodLabelStyle = EText.caption.copyWith(
       color: isHidden ? EColors.textMuted : EColors.textMuted,
       fontSize: 9,
@@ -319,9 +323,7 @@ class _DistributionColumn extends StatelessWidget {
   Widget _buildWhiskerPair() {
     final distributionPair = pair;
     if (distributionPair == null || distributionPair.isEmpty) {
-      return Center(
-        child: Text('—', style: EText.caption),
-      );
+      return Center(child: Text('—', style: EText.caption));
     }
     return Row(
       children: [

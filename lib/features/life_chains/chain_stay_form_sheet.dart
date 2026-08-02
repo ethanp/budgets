@@ -61,10 +61,9 @@ class _ChainStayFormSheetState extends ConsumerState<ChainStayFormSheet> {
     final existing = widget.stay;
     _labelController = TextEditingController(text: existing?.label ?? '');
     _noteController = TextEditingController(text: existing?.note ?? '');
-    _startedOn = (existing?.startedOn ??
-            widget.initialStartedOn ??
-            DateTime.now())
-        .startOfDay;
+    _startedOn =
+        (existing?.startedOn ?? widget.initialStartedOn ?? DateTime.now())
+            .startOfDay;
   }
 
   @override
@@ -96,7 +95,9 @@ class _ChainStayFormSheetState extends ConsumerState<ChainStayFormSheet> {
                 controller: _labelController,
                 autofocus: !_isEditing,
                 style: EText.body.copyWith(color: EColors.textPrimary),
-                decoration: _fieldDecoration(widget.kind.labelPlaceholder),
+                decoration: EInput.filled(
+                  hintText: widget.kind.labelPlaceholder,
+                ),
               ),
               const SizedBox(height: ELayout.spaceMd),
               AppDateField(
@@ -110,7 +111,7 @@ class _ChainStayFormSheetState extends ConsumerState<ChainStayFormSheet> {
                 maxLines: 3,
                 minLines: 2,
                 style: EText.body.copyWith(color: EColors.textPrimary),
-                decoration: _fieldDecoration('Note (optional)'),
+                decoration: EInput.filled(hintText: 'Note (optional)'),
               ),
               if (_error != null) ...[
                 const SizedBox(height: ELayout.spaceSm),
@@ -129,36 +130,13 @@ class _ChainStayFormSheetState extends ConsumerState<ChainStayFormSheet> {
                 const SizedBox(height: ELayout.spaceSm),
                 TextButton(
                   onPressed: _busy ? null : _confirmDelete,
-                  style: TextButton.styleFrom(
-                    foregroundColor: EColors.danger,
-                  ),
+                  style: TextButton.styleFrom(foregroundColor: EColors.danger),
                   child: const Text('Delete'),
                 ),
               ],
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  InputDecoration _fieldDecoration(String hint) {
-    return InputDecoration(
-      hintText: hint,
-      filled: true,
-      fillColor: EColors.surface,
-      contentPadding: const EdgeInsets.all(ELayout.spaceMd),
-      border: OutlineInputBorder(
-        borderRadius: ELayout.borderRadius(ELayout.radiusSm),
-        borderSide: const BorderSide(color: EColors.border),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: ELayout.borderRadius(ELayout.radiusSm),
-        borderSide: const BorderSide(color: EColors.border),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: ELayout.borderRadius(ELayout.radiusSm),
-        borderSide: const BorderSide(color: EColors.accentGlow),
       ),
     );
   }
@@ -171,8 +149,7 @@ class _ChainStayFormSheetState extends ConsumerState<ChainStayFormSheet> {
 
   Future<ChainStaysRepository> _repository() async {
     return switch (widget.kind) {
-      LifeChainKind.housing =>
-        ref.read(housingStaysRepositoryProvider.future),
+      LifeChainKind.housing => ref.read(housingStaysRepositoryProvider.future),
       LifeChainKind.job => ref.read(jobStaysRepositoryProvider.future),
     };
   }

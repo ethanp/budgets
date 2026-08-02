@@ -5,7 +5,9 @@ import 'package:powersync/powersync.dart';
 
 /// Human-readable PowerSync status for Settings.
 final syncStatusDescriptionProvider = Provider<String>((ref) {
-  return ref.watch(syncStatusProvider).when(
+  return ref
+      .watch(syncStatusProvider)
+      .when(
         data: _describeStatus,
         loading: () => 'Connecting…',
         error: (error, _) => 'Error: $error',

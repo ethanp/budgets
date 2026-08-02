@@ -79,9 +79,8 @@ class BanksAdvancedSection extends ConsumerWidget {
           icon: Icons.add_circle,
           title: 'Add account',
           caption: 'Opens SimpleFIN Bridge to link another institution.',
-          onAction: () => ref
-              .read(banksControllerProvider.notifier)
-              .openSimpleFinBridge(),
+          onAction: () =>
+              ref.read(banksControllerProvider.notifier).openSimpleFinBridge(),
           style: _style,
           busy: actionState.busy,
         ),

@@ -10,8 +10,8 @@ class SimpleFinAccountMapper {
   SimpleFinAccountMapper({
     required AccountsRepository accountsRepository,
     Uuid? uuid,
-  })  : _accountsRepository = accountsRepository,
-        _uuid = uuid ?? const Uuid();
+  }) : _accountsRepository = accountsRepository,
+       _uuid = uuid ?? const Uuid();
 
   final AccountsRepository _accountsRepository;
   final Uuid _uuid;
@@ -29,8 +29,7 @@ class SimpleFinAccountMapper {
     required Iterable<SimpleFinError> authErrors,
   }) {
     return authErrors.any(
-      (error) =>
-          error.connId == null || error.connId == remoteAccount.connId,
+      (error) => error.connId == null || error.connId == remoteAccount.connId,
     );
   }
 
@@ -39,8 +38,9 @@ class SimpleFinAccountMapper {
     required Iterable<SimpleFinError> authErrors,
     required DateTime syncedAt,
   }) async {
-    final existing =
-        await _accountsRepository.findByExternalId(remoteAccount.id);
+    final existing = await _accountsRepository.findByExternalId(
+      remoteAccount.id,
+    );
     final localId = existing?.id ?? _uuid.v4();
     final relink = needsRelink(
       remoteAccount: remoteAccount,

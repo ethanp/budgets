@@ -7,10 +7,7 @@ import 'package:flutter/material.dart';
 
 /// Inclusive index span where a kernel centered at a day has support.
 class KernelSupportSpan {
-  const KernelSupportSpan({
-    required this.startIndex,
-    required this.endIndex,
-  });
+  const KernelSupportSpan({required this.startIndex, required this.endIndex});
 
   final int startIndex;
   final int endIndex;
@@ -22,9 +19,7 @@ class KernelSupportSpan {
 /// (renormalized at chart edges). No separate CMA pass — the kernel is the
 /// low-pass.
 class AnnualPaceSmoother {
-  const AnnualPaceSmoother({
-    this.kernel = const HannAnnualPaceKernel(),
-  });
+  const AnnualPaceSmoother({this.kernel = const HannAnnualPaceKernel()});
 
   static const standard = AnnualPaceSmoother();
 
@@ -168,10 +163,7 @@ class AnnualPaceSmoother {
         historyStartIndex,
         centerIndex - kernel.halfWidthDays,
       ),
-      endIndex: math.min(
-        lastDayIndex,
-        centerIndex + kernel.halfWidthDays,
-      ),
+      endIndex: math.min(lastDayIndex, centerIndex + kernel.halfWidthDays),
     );
   }
 }

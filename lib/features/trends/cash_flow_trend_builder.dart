@@ -134,9 +134,7 @@ class CashFlowTrendBuilder {
         dailyCents: cashFlowMaps.transferByDay,
       ),
     ];
-    return series
-        .where((series) => series.hasMeaningfulTrend)
-        .toList();
+    return series.where((series) => series.hasMeaningfulTrend).toList();
   }
 
   CategoryTrendSeries _paceSeries({

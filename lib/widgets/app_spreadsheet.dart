@@ -17,10 +17,7 @@ class AppSpreadsheetCell extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: width,
-      child: Align(
-        alignment: alignment,
-        child: child,
-      ),
+      child: Align(alignment: alignment, child: child),
     );
   }
 }

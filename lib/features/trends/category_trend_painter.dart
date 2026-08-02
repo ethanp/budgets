@@ -13,11 +13,11 @@ import 'package:spend_trends/theme/draw/date_range_band.dart';
 import 'package:spend_trends/theme/finance_colors.dart';
 
 TextStyle get _chartAxisLabelStyle => EText.caption.copyWith(
-      fontWeight: FontWeight.w500,
-      color: EColors.textSecondary,
-      letterSpacing: 0.15,
-      height: 1.1,
-    );
+  fontWeight: FontWeight.w500,
+  color: EColors.textSecondary,
+  letterSpacing: 0.15,
+  height: 1.1,
+);
 
 class CategoryTrendPainter extends CustomPainter {
   CategoryTrendPainter({
@@ -50,8 +50,9 @@ class CategoryTrendPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final drawableSeries =
-        seriesList.where((series) => series.points.length >= 2).toList();
+    final drawableSeries = seriesList
+        .where((series) => series.points.length >= 2)
+        .toList();
     if (drawableSeries.isEmpty) return;
 
     _CategoryTrendPaintSession(
@@ -140,9 +141,9 @@ class _CategoryTrendPaintSession {
   double _laneLabelY(int laneIndex) => _laneTop(laneIndex) + 2;
 
   int _laneForKind(LifeChainKind kind) => switch (kind) {
-        LifeChainKind.housing => CategoryTrendPainter.housingLane,
-        LifeChainKind.job => CategoryTrendPainter.jobLane,
-      };
+    LifeChainKind.housing => CategoryTrendPainter.housingLane,
+    LifeChainKind.job => CategoryTrendPainter.jobLane,
+  };
 
   void paint() {
     _drawBackground();
@@ -224,9 +225,11 @@ class _CategoryTrendPaintSession {
     final baselineY = scale.yForCents(0, layout);
     const columnWidth = 1.0;
 
-    for (var columnX = layout.left;
-        columnX < layout.right;
-        columnX += columnWidth) {
+    for (
+      var columnX = layout.left;
+      columnX < layout.right;
+      columnX += columnWidth
+    ) {
       final sampleDate = layout.dateForX(columnX + columnWidth / 2);
       final sampleCents = _smoothedCentsAt(points, sampleDate);
       if (sampleCents <= 0) continue;
@@ -271,12 +274,15 @@ class _CategoryTrendPaintSession {
       final rightPoint = points[pointIndex + 1];
       if (sampleDate.isAfter(rightPoint.date)) continue;
 
-      final spanSeconds =
-          rightPoint.date.difference(leftPoint.date).inSeconds.toDouble();
+      final spanSeconds = rightPoint.date
+          .difference(leftPoint.date)
+          .inSeconds
+          .toDouble();
       if (spanSeconds <= 0) return leftPoint.smoothedCents;
       final t = sampleDate.difference(leftPoint.date).inSeconds / spanSeconds;
       return leftPoint.smoothedCents +
-          (rightPoint.smoothedCents - leftPoint.smoothedCents) * t.clamp(0.0, 1.0);
+          (rightPoint.smoothedCents - leftPoint.smoothedCents) *
+              t.clamp(0.0, 1.0);
     }
     return points.last.smoothedCents;
   }
@@ -297,8 +303,10 @@ class _CategoryTrendPaintSession {
         break;
       }
     }
-    return ((countBelow + 0.5 * countEqual) / sortedValues.length)
-        .clamp(0.0, 1.0);
+    return ((countBelow + 0.5 * countEqual) / sortedValues.length).clamp(
+      0.0,
+      1.0,
+    );
   }
 
   void _drawSeriesLine(CategoryTrendSeries series) {
@@ -316,19 +324,14 @@ class _CategoryTrendPaintSession {
       ..strokeWidth = series.guide
           ? 1.25
           : series.dotted
-              ? 2.5
-              : 2
+          ? 2.5
+          : 2
       ..style = PaintingStyle.stroke
       ..strokeCap = series.guide ? StrokeCap.butt : StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
     if (series.guide) {
-      _drawDottedPolyline(
-        offsets,
-        linePaint,
-        dashLength: 8,
-        gapLength: 10,
-      );
+      _drawDottedPolyline(offsets, linePaint, dashLength: 8, gapLength: 10);
       return;
     }
     if (series.dotted) {
@@ -372,9 +375,11 @@ class _CategoryTrendPaintSession {
     // resetting per segment paints a solid line.
     var drawingDash = true;
     var phaseRemaining = dashLength;
-    for (var segmentIndex = 0;
-        segmentIndex < offsets.length - 1;
-        segmentIndex++) {
+    for (
+      var segmentIndex = 0;
+      segmentIndex < offsets.length - 1;
+      segmentIndex++
+    ) {
       final start = offsets[segmentIndex];
       final end = offsets[segmentIndex + 1];
       final segment = end - start;
@@ -429,9 +434,9 @@ class _CategoryTrendPaintSession {
         ))
           lifeEvent,
     ]..sort(
-        (firstEvent, secondEvent) =>
-            firstEvent.startedOn.compareTo(secondEvent.startedOn),
-      );
+      (firstEvent, secondEvent) =>
+          firstEvent.startedOn.compareTo(secondEvent.startedOn),
+    );
   }
 
   void _drawStayChainBands({
@@ -529,10 +534,9 @@ class _CategoryTrendPaintSession {
     required List<double> labelLeftXs,
     required List<double> labelWidths,
   }) {
-    final order = [for (var index = 0; index < labelLeftXs.length; index++) index]
-      ..sort(
-        (left, right) => labelLeftXs[left].compareTo(labelLeftXs[right]),
-      );
+    final order = [
+      for (var index = 0; index < labelLeftXs.length; index++) index,
+    ]..sort((left, right) => labelLeftXs[left].compareTo(labelLeftXs[right]));
     final stackRows = List<int>.filled(labelLeftXs.length, 0);
     final lastRightByRow = <int, double>{};
     for (final index in order) {
@@ -636,9 +640,11 @@ class _CategoryTrendPaintSession {
       labelWidths: labelWidths,
     );
 
-    for (var markerIndex = 0;
-        markerIndex < markersInRange.length;
-        markerIndex++) {
+    for (
+      var markerIndex = 0;
+      markerIndex < markersInRange.length;
+      markerIndex++
+    ) {
       final lifeEvent = markersInRange[markerIndex];
       final labelAnchorX = dateRangeLabelAnchorX(
         layout: layout,
@@ -742,7 +748,8 @@ class _CategoryTrendPaintSession {
         text: TextSpan(text: label, style: axisStyle),
         textDirection: TextDirection.ltr,
       )..layout();
-      final labelY = scale.yForCents(tickCents, layout) - textPainter.height / 2;
+      final labelY =
+          scale.yForCents(tickCents, layout) - textPainter.height / 2;
       textPainter.paint(
         canvas,
         Offset(
@@ -761,9 +768,9 @@ class _CategoryTrendPaintSession {
     return points.reduce(
       (nearestPoint, point) =>
           point.date.difference(hoverDate).inSeconds.abs() <
-                  nearestPoint.date.difference(hoverDate).inSeconds.abs()
-              ? point
-              : nearestPoint,
+              nearestPoint.date.difference(hoverDate).inSeconds.abs()
+          ? point
+          : nearestPoint,
     );
   }
 }

@@ -33,7 +33,7 @@ class TransactionListRow extends StatelessWidget {
       kind: selected ? ESurfaceKind.tinted : ESurfaceKind.row,
       accent: selected ? FinanceColors.accentPrimary : null,
       onTap: onTap,
-      borderRadius: BorderRadius.circular(ELayout.radiusMd),
+      borderRadius: ELayout.borderRadiusMd,
       child: IntrinsicHeight(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,

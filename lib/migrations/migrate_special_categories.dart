@@ -118,10 +118,9 @@ Future<void> _mergeDuplicateNamedCategories(PowerSyncDatabase database) async {
         'UPDATE categorization_rules SET category_id = ? WHERE category_id = ?',
         [special.id, duplicateId],
       );
-      await database.execute(
-        'DELETE FROM categories WHERE id = ?',
-        [duplicateId],
-      );
+      await database.execute('DELETE FROM categories WHERE id = ?', [
+        duplicateId,
+      ]);
       _log.log(
         'Merged duplicate "${special.name}" ($duplicateId) → ${special.id}',
       );

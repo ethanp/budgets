@@ -34,11 +34,11 @@ class BankTransaction {
   final String? transactionType;
   final bool excluded;
   final String? recurringSeries;
+
   /// When first written into Budgets (import or sync). Stable across re-upserts.
   final DateTime? importedAt;
 
-  String? get effectiveCategoryId =>
-      userCategoryId ?? suggestedCategoryId;
+  String? get effectiveCategoryId => userCategoryId ?? suggestedCategoryId;
 
   bool get isUncategorized => effectiveCategoryId == null;
 

@@ -32,9 +32,9 @@ class Categorizer {
     required CategoriesRepository categoriesRepository,
     required TransactionsRepository transactionsRepository,
     required AccountsRepository accountsRepository,
-  })  : _categoriesRepository = categoriesRepository,
-        _transactionsRepository = transactionsRepository,
-        _accountsRepository = accountsRepository;
+  }) : _categoriesRepository = categoriesRepository,
+       _transactionsRepository = transactionsRepository,
+       _accountsRepository = accountsRepository;
 
   final CategoriesRepository _categoriesRepository;
   final TransactionsRepository _transactionsRepository;
@@ -42,7 +42,10 @@ class Categorizer {
   final _uuid = const Uuid();
 
   /// Case-insensitive match of [rule] against the transaction description.
-  static bool ruleMatches(BankTransaction transaction, CategorizationRule rule) {
+  static bool ruleMatches(
+    BankTransaction transaction,
+    CategorizationRule rule,
+  ) {
     final pattern = rule.pattern.trim().toLowerCase();
     if (pattern.isEmpty) return false;
     return _ruleMatchesPrepared(
@@ -183,8 +186,7 @@ class Categorizer {
   Future<void> upsertMerchantContainsRule({
     required String pattern,
     required String categoryId,
-  }) =>
-      _upsertContainsRule(pattern: pattern, categoryId: categoryId);
+  }) => _upsertContainsRule(pattern: pattern, categoryId: categoryId);
 
   Future<void> applyCategoryToTransactions({
     required String categoryId,
@@ -243,7 +245,7 @@ class Categorizer {
   /// Also deletes leftover priority-0 “default import” contains rules that were
   /// incorrectly created from merchant names in earlier migrations/imports.
   Future<CopilotDefaultRuleMigrationResult>
-      migrateCopilotUserCategoriesToSuggested({
+  migrateCopilotUserCategoriesToSuggested({
     void Function(CopilotDefaultRuleMigrationProgress progress)? onProgress,
   }) async {
     final accounts = await _accountsRepository.listAccounts();
@@ -433,7 +435,7 @@ class RemoveRuleReclaimResult {
 /// Pre-normalized rules for repeated matching without re-trimming patterns.
 class RuleMatchIndex {
   RuleMatchIndex(List<CategorizationRule> rules)
-      : _preparedRules = _prepareRules(rules);
+    : _preparedRules = _prepareRules(rules);
 
   final List<_PreparedRule> _preparedRules;
 

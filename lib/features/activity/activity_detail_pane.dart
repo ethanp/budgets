@@ -117,10 +117,7 @@ class ActivityDetailPane extends StatelessWidget {
           ),
           if (outflowCents > 0) ...[
             const SizedBox(height: ELayout.spaceXs),
-            Text(
-              '${formatCents(outflowCents)} outflow',
-              style: EText.caption,
-            ),
+            Text('${formatCents(outflowCents)} outflow', style: EText.caption),
           ],
         ],
         const SizedBox(height: ELayout.spaceSm),

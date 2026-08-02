@@ -10,45 +10,45 @@ enum LifeChainKind {
   job;
 
   String get screenTitle => switch (this) {
-        LifeChainKind.housing => 'Housing',
-        LifeChainKind.job => 'Job',
-      };
+    LifeChainKind.housing => 'Housing',
+    LifeChainKind.job => 'Job',
+  };
 
   String get emptyHeroCaption => switch (this) {
-        LifeChainKind.housing => 'No housing yet',
-        LifeChainKind.job => 'No job yet',
-      };
+    LifeChainKind.housing => 'No housing yet',
+    LifeChainKind.job => 'No job yet',
+  };
 
   String get currentCaption => switch (this) {
-        LifeChainKind.housing => 'Current home',
-        LifeChainKind.job => 'Current job',
-      };
+    LifeChainKind.housing => 'Current home',
+    LifeChainKind.job => 'Current job',
+  };
 
   String get addCta => switch (this) {
-        LifeChainKind.housing => 'Add place',
-        LifeChainKind.job => 'Add job',
-      };
+    LifeChainKind.housing => 'Add place',
+    LifeChainKind.job => 'Add job',
+  };
 
   String get labelPlaceholder => switch (this) {
-        LifeChainKind.housing => 'Place name',
-        LifeChainKind.job => 'Employer or role',
-      };
+    LifeChainKind.housing => 'Place name',
+    LifeChainKind.job => 'Employer or role',
+  };
 
   String get startDateLabel => switch (this) {
-        LifeChainKind.housing => 'Moved in',
-        LifeChainKind.job => 'Started',
-      };
+    LifeChainKind.housing => 'Moved in',
+    LifeChainKind.job => 'Started',
+  };
 
   IconData get icon => switch (this) {
-        LifeChainKind.housing => Icons.home,
-        LifeChainKind.job => Icons.work,
-      };
+    LifeChainKind.housing => Icons.home,
+    LifeChainKind.job => Icons.work,
+  };
 
   /// Base Trends band color for this chain (distinct from life-event gold).
   Color get trendBandColor => switch (this) {
-        LifeChainKind.housing => FinanceColors.housing,
-        LifeChainKind.job => EColors.success,
-      };
+    LifeChainKind.housing => FinanceColors.housing,
+    LifeChainKind.job => EColors.success,
+  };
 
   /// Mild per-era accent for labels/edges — tiny hue nudge, odd eras slightly darker.
   ///
@@ -126,22 +126,20 @@ class ChainStaySegment {
 
 class StayChain {
   StayChain(List<ChainStay> stays)
-      : segments = _segmentsFor(
-          [...stays]..sort(
-              (firstStay, secondStay) =>
-                  firstStay.startedOn.compareTo(secondStay.startedOn),
-            ),
-        );
+    : segments = _segmentsFor(
+        [...stays]..sort(
+          (firstStay, secondStay) =>
+              firstStay.startedOn.compareTo(secondStay.startedOn),
+        ),
+      );
 
   final List<ChainStaySegment> segments;
 
   bool get isEmpty => segments.isEmpty;
 
-  ChainStaySegment? get current =>
-      segments.isEmpty ? null : segments.last;
+  ChainStaySegment? get current => segments.isEmpty ? null : segments.last;
 
-  ChainStaySegment? get oldest =>
-      segments.isEmpty ? null : segments.first;
+  ChainStaySegment? get oldest => segments.isEmpty ? null : segments.first;
 
   static List<ChainStaySegment> _segmentsFor(List<ChainStay> sortedStays) {
     return [
@@ -150,10 +148,9 @@ class StayChain {
           stay: sortedStays[index],
           rangeStart: sortedStays[index].startedOn.startOfDay,
           rangeEnd: index + 1 < sortedStays.length
-              ? sortedStays[index + 1]
-                  .startedOn
-                  .startOfDay
-                  .subtract(const Duration(days: 1))
+              ? sortedStays[index + 1].startedOn.startOfDay.subtract(
+                  const Duration(days: 1),
+                )
               : null,
           isCurrent: index == sortedStays.length - 1,
         ),

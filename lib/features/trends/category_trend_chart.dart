@@ -25,10 +25,7 @@ import 'dart:math' as math;
 
 /// Labeled amount shown under a Trends chart title.
 class ChartHeadlineFigure {
-  const ChartHeadlineFigure({
-    required this.label,
-    required this.cents,
-  });
+  const ChartHeadlineFigure({required this.label, required this.cents});
 
   final String label;
   final int cents;
@@ -110,7 +107,7 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
       padding: const EdgeInsets.all(ELayout.spaceMd),
       decoration: BoxDecoration(
         color: EColors.backgroundLift,
-        borderRadius: ELayout.borderRadius(ELayout.radiusMd),
+        borderRadius: ELayout.borderRadiusMd,
         border: Border.all(color: EColors.border),
       ),
       child: Column(
@@ -118,12 +115,7 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
         children: [
           Row(
             children: [
-              Expanded(
-                child: Text(
-                  widget.title,
-                  style: EText.section,
-                ),
-              ),
+              Expanded(child: Text(widget.title, style: EText.section)),
               if (widget.showSpendRateToggle) _spendRateToggle(),
             ],
           ),
@@ -156,11 +148,13 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        for (var figureIndex = 0; figureIndex < figures.length; figureIndex++) ...[
+        for (
+          var figureIndex = 0;
+          figureIndex < figures.length;
+          figureIndex++
+        ) ...[
           if (figureIndex > 0) const SizedBox(width: ELayout.spaceXl),
-          Expanded(
-            child: _headlineFigure(figures[figureIndex]),
-          ),
+          Expanded(child: _headlineFigure(figures[figureIndex])),
         ],
       ],
     );
@@ -216,19 +210,15 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
           color: isSelected
               ? FinanceColors.accentPrimary.withValues(alpha: 0.25)
               : EColors.surface,
-          borderRadius: BorderRadius.circular(ELayout.radiusSm),
+          borderRadius: ELayout.borderRadiusSm,
           border: Border.all(
-            color: isSelected
-                ? FinanceColors.accentPrimary
-                : EColors.border,
+            color: isSelected ? FinanceColors.accentPrimary : EColors.border,
           ),
         ),
         child: Text(
           label,
           style: EText.caption.copyWith(
-            color: isSelected
-                ? FinanceColors.accentPrimary
-                : EColors.textMuted,
+            color: isSelected ? FinanceColors.accentPrimary : EColors.textMuted,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
           ),
         ),
@@ -247,9 +237,7 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
     if (!_visibleSeries.any((series) => series.points.length >= 2)) {
       return SizedBox(
         height: 560,
-        child: Center(
-          child: Text('Need more history', style: EText.caption),
-        ),
+        child: Center(child: Text('Need more history', style: EText.caption)),
       );
     }
 
@@ -298,19 +286,21 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
       return Text(
         widget.enableContributors
             ? 'Drag to inspect all lines at a date · '
-                'tap a line for top contributors'
+                  'tap a line for top contributors'
             : 'Drag to inspect at a date',
         style: EText.caption,
       );
     }
 
-    final values = _visibleSeries.map((series) {
-      final point = _nearestPoint(series.points, hoverDate);
-      final amount = point == null
-          ? '—'
-          : _formatSeriesCents(point.smoothedCents.round());
-      return '${series.name} $amount';
-    }).join(' · ');
+    final values = _visibleSeries
+        .map((series) {
+          final point = _nearestPoint(series.points, hoverDate);
+          final amount = point == null
+              ? '—'
+              : _formatSeriesCents(point.smoothedCents.round());
+          return '${series.name} $amount';
+        })
+        .join(' · ');
 
     final rateSuffix = widget.valueKind == TrendValueKind.level
         ? ''
@@ -419,8 +409,7 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
           (series) =>
               series.points.length >= 2 &&
               !series.guide &&
-              series.id !=
-                  TrendChartCatalog.housingAffordabilitySeriesId &&
+              series.id != TrendChartCatalog.housingAffordabilitySeriesId &&
               series.id != TrendChartCatalog.fireSavingsGuideSeriesId,
         )
         .toList();
@@ -489,7 +478,8 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
         .map((series) => series.points.last.date)
         .reduce((earlier, later) => earlier.isAfter(later) ? earlier : later);
 
-    final chartWidth = constraints.maxWidth -
+    final chartWidth =
+        constraints.maxWidth -
         CategoryTrendPainter.leftPadding -
         CategoryTrendPainter.rightPadding;
     if (chartWidth <= 0) return lastDate;
@@ -498,8 +488,10 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
       0.0,
       chartWidth,
     );
-    final dateRangeSeconds =
-        lastDate.difference(firstDate).inSeconds.toDouble();
+    final dateRangeSeconds = lastDate
+        .difference(firstDate)
+        .inSeconds
+        .toDouble();
     if (dateRangeSeconds <= 0) return lastDate;
 
     return firstDate.add(
@@ -515,9 +507,9 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
     return points.reduce(
       (nearestPoint, point) =>
           point.date.difference(hoverDate).inSeconds.abs() <
-                  nearestPoint.date.difference(hoverDate).inSeconds.abs()
-              ? point
-              : nearestPoint,
+              nearestPoint.date.difference(hoverDate).inSeconds.abs()
+          ? point
+          : nearestPoint,
     );
   }
 }

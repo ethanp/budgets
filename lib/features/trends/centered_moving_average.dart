@@ -3,10 +3,7 @@ import 'package:ethan_utils/ethan_utils.dart';
 
 /// Simple centered moving-average smoother (level series like net worth).
 class CenteredMovingAverage {
-  const CenteredMovingAverage({
-    this.halfWindowDays = 21,
-    this.passCount = 3,
-  });
+  const CenteredMovingAverage({this.halfWindowDays = 21, this.passCount = 3});
 
   static const standard = CenteredMovingAverage();
 

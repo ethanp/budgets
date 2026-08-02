@@ -160,12 +160,7 @@ class DistributionWhiskerPainter extends CustomPainter {
   }
 }
 
-enum DistributionWhiskerGlyph {
-  range,
-  median,
-  average,
-  now,
-}
+enum DistributionWhiskerGlyph { range, median, average, now }
 
 class _GlyphPainter extends CustomPainter {
   _GlyphPainter(this.glyph, this.color);
@@ -279,10 +274,8 @@ class DistributionWhiskerSymbolKey extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: EColors.surface.withValues(alpha: 0.65),
-        borderRadius: BorderRadius.circular(ELayout.radiusSm),
-        border: Border.all(
-          color: EColors.border.withValues(alpha: 0.75),
-        ),
+        borderRadius: ELayout.borderRadiusSm,
+        border: Border.all(color: EColors.border.withValues(alpha: 0.75)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

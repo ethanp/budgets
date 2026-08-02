@@ -57,8 +57,7 @@ class ActivityScreen extends ConsumerWidget {
   }
 
   static Future<void> refresh(BuildContext context, WidgetRef ref) async {
-    final connected =
-        await ref.read(simpleFinAccessStoreProvider).isConnected;
+    final connected = await ref.read(simpleFinAccessStoreProvider).isConnected;
     if (!connected) {
       ref.read(spendDataChangedProvider.notifier).notify();
       return;
@@ -112,7 +111,8 @@ class _ActivityBodyState extends ConsumerState<_ActivityBody> {
               <SpendCategory>[])
         category.id: category,
     };
-    final rules = ref.watch(categorizationRulesProvider).asData?.value ??
+    final rules =
+        ref.watch(categorizationRulesProvider).asData?.value ??
         const <CategorizationRule>[];
 
     final filtered = ActivityVisibleTransactionsQuery(
@@ -174,8 +174,9 @@ class _ActivityBodyState extends ConsumerState<_ActivityBody> {
           Expanded(
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final columnWidths =
-                    naturalColumnWidths.allocate(constraints.maxWidth);
+                final columnWidths = naturalColumnWidths.allocate(
+                  constraints.maxWidth,
+                );
                 return RefreshIndicator(
                   onRefresh: () => ActivityScreen.refresh(context, ref),
                   child: CustomScrollView(
@@ -256,16 +257,14 @@ class _ActivityBodyState extends ConsumerState<_ActivityBody> {
     final message = hasSearch && searchMatchCount == 0
         ? 'No transactions match this search.'
         : hasSearch
-            ? 'No unmatched transactions for this search. '
-                'Turn off “Hide auto-categorized” to see more.'
-            : 'All loaded transactions are already categorized. '
-                'Turn off the filter to see them.';
+        ? 'No unmatched transactions for this search. '
+              'Turn off “Hide auto-categorized” to see more.'
+        : 'All loaded transactions are already categorized. '
+              'Turn off the filter to see them.';
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: ELayout.spaceLg),
       sliver: SliverToBoxAdapter(
-        child: AppCard(
-          child: Text(message, style: EText.body),
-        ),
+        child: AppCard(child: Text(message, style: EText.body)),
       ),
     );
   }

@@ -97,8 +97,9 @@ class _BankPullHistorySheetState extends ConsumerState<BankPullHistorySheet> {
                       expanded: _expandedPullId == pull.id,
                       onToggle: () {
                         setState(() {
-                          _expandedPullId =
-                              _expandedPullId == pull.id ? null : pull.id;
+                          _expandedPullId = _expandedPullId == pull.id
+                              ? null
+                              : pull.id;
                         });
                       },
                     );
@@ -115,11 +116,11 @@ class _BankPullHistorySheetState extends ConsumerState<BankPullHistorySheet> {
                   onPressed: busy
                       ? null
                       : () => BanksPullProgressSheet.showAndRun(
-                            context,
-                            run: (onProgress) => ref
-                                .read(banksControllerProvider.notifier)
-                                .syncLatest(onProgress: onProgress),
-                          ),
+                          context,
+                          run: (onProgress) => ref
+                              .read(banksControllerProvider.notifier)
+                              .syncLatest(onProgress: onProgress),
+                        ),
                   child: const Text('Pull latest'),
                 ),
                 const SizedBox(height: ELayout.spaceSm),
@@ -127,11 +128,11 @@ class _BankPullHistorySheetState extends ConsumerState<BankPullHistorySheet> {
                   onPressed: busy
                       ? null
                       : () => BanksPullProgressSheet.showAndRun(
-                            context,
-                            run: (onProgress) => ref
-                                .read(banksControllerProvider.notifier)
-                                .refreshFullHistory(onProgress: onProgress),
-                          ),
+                          context,
+                          run: (onProgress) => ref
+                              .read(banksControllerProvider.notifier)
+                              .refreshFullHistory(onProgress: onProgress),
+                        ),
                   child: Text(
                     'Re-download all history',
                     style: EText.body.copyWith(
@@ -174,11 +175,7 @@ class _PullHistoryRow extends StatelessWidget {
               children: [
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
-                  child: Icon(
-                    _leadingIcon,
-                    size: 18,
-                    color: _leadingColor,
-                  ),
+                  child: Icon(_leadingIcon, size: 18, color: _leadingColor),
                 ),
                 const SizedBox(width: ELayout.spaceSm),
                 Expanded(
@@ -187,7 +184,9 @@ class _PullHistoryRow extends StatelessWidget {
                     children: [
                       Text(
                         pull.kind.displayLabel,
-                        style: EText.section.copyWith(fontSize: ELayout.typeSize(17)),
+                        style: EText.section.copyWith(
+                          fontSize: ELayout.typeSize(17),
+                        ),
                       ),
                       Text(_subtitle, style: EText.caption),
                     ],
@@ -197,7 +196,9 @@ class _PullHistoryRow extends StatelessWidget {
                   Text('${pull.transactionCount} txs', style: EText.caption),
                 const SizedBox(width: ELayout.spaceXs),
                 Icon(
-                  expanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                  expanded
+                      ? Icons.keyboard_arrow_up
+                      : Icons.keyboard_arrow_down,
                   size: 14,
                   color: EColors.textMuted,
                 ),
@@ -260,11 +261,11 @@ class _PullDetail extends StatelessWidget {
   Widget build(BuildContext context) {
     final accountCount = pull.accountCount ?? pull.accounts.length;
     final transactionCount = pull.transactionCount ?? 0;
-    final sortedAccounts = [...pull.accounts]..sort((left, right) {
-        final severity = SimpleFinPullAccountStatus.severityRank(right.status)
-            .compareTo(
-          SimpleFinPullAccountStatus.severityRank(left.status),
-        );
+    final sortedAccounts = [...pull.accounts]
+      ..sort((left, right) {
+        final severity = SimpleFinPullAccountStatus.severityRank(
+          right.status,
+        ).compareTo(SimpleFinPullAccountStatus.severityRank(left.status));
         if (severity != 0) return severity;
         return left.accountLabel.compareTo(right.accountLabel);
       });
@@ -304,21 +305,20 @@ class _PullDetail extends StatelessWidget {
     );
   }
 
-  List<Widget> _groupedAccountRows(
-    List<SimpleFinPullAccountRecord> accounts,
-  ) {
+  List<Widget> _groupedAccountRows(List<SimpleFinPullAccountRecord> accounts) {
     final groups = <String, List<SimpleFinPullAccountRecord>>{};
     for (final account in accounts) {
       final key = account.connId?.trim();
-      final groupKey =
-          (key == null || key.isEmpty) ? account.accountLabel : key;
+      final groupKey = (key == null || key.isEmpty)
+          ? account.accountLabel
+          : key;
       groups.putIfAbsent(groupKey, () => []).add(account);
     }
 
     final widgets = <Widget>[];
     for (final groupAccounts in groups.values) {
-      final showInstitutionHeader = groupAccounts.length > 1 &&
-          groupAccounts.first.connId != null;
+      final showInstitutionHeader =
+          groupAccounts.length > 1 && groupAccounts.first.connId != null;
       if (showInstitutionHeader) {
         final sample = groupAccounts.first.accountLabel;
         final institution = sample.contains(' · ')
@@ -341,13 +341,13 @@ class _PullDetail extends StatelessWidget {
   Widget _accountRow(SimpleFinPullAccountRecord account) {
     final statusStyle = account.status.isIssue
         ? (account.status == SimpleFinPullAccountStatus.needsRelink
-            ? EText.caption.copyWith(color: EColors.warning)
-            : EText.caption.copyWith(color: EColors.danger))
+              ? EText.caption.copyWith(color: EColors.warning)
+              : EText.caption.copyWith(color: EColors.danger))
         : EText.caption;
     final detail = account.status.isIssue
         ? (account.errorMessage?.trim().isNotEmpty == true
-            ? account.errorMessage!
-            : account.status.displayLabel)
+              ? account.errorMessage!
+              : account.status.displayLabel)
         : '${account.transactionCount} txs';
 
     return Padding(
@@ -355,16 +355,10 @@ class _PullDetail extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Text(account.accountLabel, style: EText.caption),
-          ),
+          Expanded(child: Text(account.accountLabel, style: EText.caption)),
           const SizedBox(width: ELayout.spaceSm),
           Flexible(
-            child: Text(
-              detail,
-              style: statusStyle,
-              textAlign: TextAlign.right,
-            ),
+            child: Text(detail, style: statusStyle, textAlign: TextAlign.right),
           ),
         ],
       ),

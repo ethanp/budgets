@@ -27,13 +27,8 @@ class CategoryTrendDistribution {
       other.currentCents == currentCents;
 
   @override
-  int get hashCode => Object.hash(
-        minCents,
-        medianCents,
-        averageCents,
-        maxCents,
-        currentCents,
-      );
+  int get hashCode =>
+      Object.hash(minCents, medianCents, averageCents, maxCents, currentCents);
 }
 
 /// All-time and recent-year distributions for one series.

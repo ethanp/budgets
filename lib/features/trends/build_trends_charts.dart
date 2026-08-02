@@ -32,8 +32,9 @@ class BuildTrendsCharts {
       transactions: inRangeTransactions,
       flowCategoryIds: SpecialCategory.flowIds,
     );
-    final cashFlowMaps =
-        CashFlowDailyMaps.fromTransactions(inRangeTransactions);
+    final cashFlowMaps = CashFlowDailyMaps.fromTransactions(
+      inRangeTransactions,
+    );
 
     final chartRange = _resolveChartRange(
       spendMaps: spendMaps,
@@ -101,8 +102,9 @@ class BuildTrendsCharts {
     late final DateTime chartStart;
     final hasSpendHistory = earliestSpend != null;
     if (hasSpendHistory) {
-      chartStart =
-          earliestSpend.isBefore(historyStart) ? historyStart : earliestSpend;
+      chartStart = earliestSpend.isBefore(historyStart)
+          ? historyStart
+          : earliestSpend;
     } else if (accounts.isNotEmpty) {
       chartStart = earliestTxn != null && earliestTxn.isAfter(historyStart)
           ? earliestTxn

@@ -44,31 +44,30 @@ class CategoryTrendSeriesLegend extends StatelessWidget {
         if (!_isMetaLegendSeries(series)) series,
     ];
 
-    final useNetWorthTable = !useDistributionLegend &&
-        _rankedSeriesHasLegendGroups(rankedSeries);
-    final needsWidthLayout = rankedSeries.isNotEmpty &&
-        !useDistributionLegend &&
-        !useNetWorthTable;
+    final useNetWorthTable =
+        !useDistributionLegend && _rankedSeriesHasLegendGroups(rankedSeries);
+    final needsWidthLayout =
+        rankedSeries.isNotEmpty && !useDistributionLegend && !useNetWorthTable;
 
     final rankedChild = rankedSeries.isEmpty
         ? null
         : useDistributionLegend
-            ? CategoryTrendDistributionLegend(
-                seriesList: rankedSeries,
-                hiddenSeriesIds: hiddenSeriesIds,
-                spendRate: spendRate,
-                onToggleSeries: onToggleSeries,
-                onSoloSeries: onSoloSeries,
-              )
-            : useNetWorthTable
-                ? _NetWorthLegendTable(
-                    seriesList: rankedSeries,
-                    hiddenSeriesIds: hiddenSeriesIds,
-                    valueKind: valueKind,
-                    onToggleSeries: onToggleSeries,
-                    onSoloSeries: onSoloSeries,
-                  )
-                : null;
+        ? CategoryTrendDistributionLegend(
+            seriesList: rankedSeries,
+            hiddenSeriesIds: hiddenSeriesIds,
+            spendRate: spendRate,
+            onToggleSeries: onToggleSeries,
+            onSoloSeries: onSoloSeries,
+          )
+        : useNetWorthTable
+        ? _NetWorthLegendTable(
+            seriesList: rankedSeries,
+            hiddenSeriesIds: hiddenSeriesIds,
+            valueKind: valueKind,
+            onToggleSeries: onToggleSeries,
+            onSoloSeries: onSoloSeries,
+          )
+        : null;
 
     final row = Row(
       crossAxisAlignment: needsWidthLayout
@@ -114,7 +113,9 @@ class CategoryTrendSeriesLegend extends StatelessWidget {
     return IntrinsicHeight(child: row);
   }
 
-  static bool _rankedSeriesHasLegendGroups(List<CategoryTrendSeries> seriesList) {
+  static bool _rankedSeriesHasLegendGroups(
+    List<CategoryTrendSeries> seriesList,
+  ) {
     for (final series in seriesList) {
       if (series.legendGroup != null) return true;
     }
@@ -124,8 +125,7 @@ class CategoryTrendSeriesLegend extends StatelessWidget {
   static bool _isMetaLegendSeries(CategoryTrendSeries series) {
     if (series.id == TrendChartCatalog.allSpendSeriesId) return true;
     if (series.id == TrendChartCatalog.netWorthSeriesId) return true;
-    if (series.id ==
-        TrendChartCatalog.housingAffordabilitySeriesId) {
+    if (series.id == TrendChartCatalog.housingAffordabilitySeriesId) {
       return true;
     }
     if (series.id == TrendChartCatalog.uncategorizedSeriesId) {
@@ -160,9 +160,7 @@ class TrendLegendChip extends StatelessWidget {
     // the tip window averages prior days and drifts from today's Banks total.
     final cents = _legendDisplayCents(series, valueKind: valueKind);
     final amountLabel = formatCentsWholeDollars(
-      valueKind == TrendValueKind.level
-          ? cents
-          : spendRate.displayCents(cents),
+      valueKind == TrendValueKind.level ? cents : spendRate.displayCents(cents),
     );
     final rateSuffix = valueKind == TrendValueKind.level
         ? ''
@@ -226,7 +224,7 @@ class _MetaLegendColumn extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: EColors.surface.withValues(alpha: 0.55),
-        borderRadius: BorderRadius.circular(ELayout.radiusSm),
+        borderRadius: ELayout.borderRadiusSm,
         border: Border.all(color: EColors.border.withValues(alpha: 0.7)),
       ),
       child: IntrinsicWidth(
@@ -360,7 +358,8 @@ class _NetWorthLegendTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final groups = _groupsFromSeries(seriesList);
-    final showSectionLabels = groups.length > 1 ||
+    final showSectionLabels =
+        groups.length > 1 ||
         (groups.length == 1 && groups.first.sectionName != 'Other');
 
     return Container(
@@ -370,17 +369,18 @@ class _NetWorthLegendTable extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: EColors.surface.withValues(alpha: 0.55),
-        borderRadius: BorderRadius.circular(ELayout.radiusSm),
+        borderRadius: ELayout.borderRadiusSm,
         border: Border.all(color: EColors.border.withValues(alpha: 0.7)),
       ),
       child: Table(
-        columnWidths: const {
-          0: FlexColumnWidth(),
-          1: IntrinsicColumnWidth(),
-        },
+        columnWidths: const {0: FlexColumnWidth(), 1: IntrinsicColumnWidth()},
         defaultVerticalAlignment: TableCellVerticalAlignment.middle,
         children: [
-          for (var groupIndex = 0; groupIndex < groups.length; groupIndex++) ...[
+          for (
+            var groupIndex = 0;
+            groupIndex < groups.length;
+            groupIndex++
+          ) ...[
             if (showSectionLabels)
               _sectionHeaderRow(
                 groups[groupIndex].sectionName,
@@ -456,9 +456,10 @@ class _NetWorthLegendTable extends StatelessWidget {
             ),
             child: Text(
               formatCentsWholeDollars(cents),
-              style: _signedAmountStyle(cents, isHidden: isHidden).copyWith(
-                fontFeatures: const [FontFeature.tabularFigures()],
-              ),
+              style: _signedAmountStyle(
+                cents,
+                isHidden: isHidden,
+              ).copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
               textAlign: TextAlign.right,
             ),
           ),

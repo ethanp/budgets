@@ -100,10 +100,7 @@ class _SyncStatusBody extends ConsumerWidget {
 
   Widget _deviceSyncSection(WidgetRef ref) {
     if (!spendTrendsSyncConfigured()) {
-      return _statusLine(
-        label: 'Device sync',
-        value: 'Not configured',
-      );
+      return _statusLine(label: 'Device sync', value: 'Not configured');
     }
     final offline = ref.watch(isOfflineProvider);
     final phase = ref.watch(syncPhaseProvider);
@@ -144,19 +141,13 @@ class _SyncStatusBody extends ConsumerWidget {
                     style: secondary.isError
                         ? EText.caption.copyWith(color: EColors.danger)
                         : secondary.isWarning
-                            ? EText.caption.copyWith(
-                                color: EColors.warning,
-                              )
-                            : EText.caption,
+                        ? EText.caption.copyWith(color: EColors.warning)
+                        : EText.caption,
                   ),
               ],
             ),
           ),
-          const Icon(
-            Icons.chevron_right,
-            size: 16,
-            color: EColors.textMuted,
-          ),
+          const Icon(Icons.chevron_right, size: 16, color: EColors.textMuted),
         ],
       ),
     );
@@ -217,10 +208,7 @@ class _SyncStatusBody extends ConsumerWidget {
     return Row(
       children: [
         Expanded(child: Text(label, style: EText.body)),
-        Text(
-          value,
-          style: EText.body.copyWith(fontWeight: FontWeight.w600),
-        ),
+        Text(value, style: EText.body.copyWith(fontWeight: FontWeight.w600)),
       ],
     );
   }
@@ -250,10 +238,7 @@ class _SecondaryLine {
 }
 
 class _AccountSyncRow extends StatelessWidget {
-  const _AccountSyncRow({
-    required this.account,
-    this.lastPullIssue,
-  });
+  const _AccountSyncRow({required this.account, this.lastPullIssue});
 
   final Account account;
   final SimpleFinPullAccountRecord? lastPullIssue;
@@ -286,7 +271,8 @@ class _AccountSyncRow extends StatelessWidget {
                 if (issue != null)
                   Text(
                     'Last pull: ${_issueCaption(issue)}',
-                    style: issue.status == SimpleFinPullAccountStatus.needsRelink
+                    style:
+                        issue.status == SimpleFinPullAccountStatus.needsRelink
                         ? EText.caption.copyWith(color: EColors.warning)
                         : EText.caption.copyWith(color: EColors.danger),
                   ),

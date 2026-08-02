@@ -14,12 +14,10 @@ class LifeEventsRepository {
 
   Future<List<LifeEvent>> listNewestFirst() async {
     try {
-      final rows = await _powerSync.getAll(
-        '''
+      final rows = await _powerSync.getAll('''
         SELECT * FROM life_events
         ORDER BY started_on DESC, title COLLATE NOCASE
-        ''',
-      );
+        ''');
       return rows.map(_fromRow).toList();
     } catch (error, stackTrace) {
       _log.error('Failed to list life events', error, stackTrace);
@@ -64,10 +62,7 @@ class LifeEventsRepository {
   }
 
   Future<void> delete(String eventId) async {
-    await _powerSync.execute(
-      'DELETE FROM life_events WHERE id = ?',
-      [eventId],
-    );
+    await _powerSync.execute('DELETE FROM life_events WHERE id = ?', [eventId]);
   }
 
   static String? _normalizedNote(String? note) {

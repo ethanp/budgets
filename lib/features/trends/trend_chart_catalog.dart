@@ -41,14 +41,14 @@ class TrendChartCatalog {
   static const netWorthLineColor = Color(0xFFE9C46A);
 
   static final housingAffordabilityLineColor = Color.lerp(
-        FinanceColors.housing,
-        const Color(0xFFE53935),
-        0.3,
-      )!;
+    FinanceColors.housing,
+    const Color(0xFFE53935),
+    0.3,
+  )!;
 
   static final fireSavingsGuideLineColor = Color.lerp(
-        savingsLineColor,
-        EColors.success,
-        0.45,
-      )!;
+    savingsLineColor,
+    EColors.success,
+    0.45,
+  )!;
 }

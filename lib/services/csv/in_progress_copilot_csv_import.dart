@@ -36,25 +36,23 @@ class InProgressCopilotCsvImport {
   var externalIdsCanonicalized = 0;
   var cancelled = false;
 
-  CopilotImportProgress get progress => CopilotImportProgress(
-        completed: processedRows,
-        total: dataRowCount,
-      );
+  CopilotImportProgress get progress =>
+      CopilotImportProgress(completed: processedRows, total: dataRowCount);
 
   CopilotImportProgress get completedProgress => CopilotImportProgress(
-        completed: cancelled ? processedRows : dataRowCount,
-        total: dataRowCount,
-      );
+    completed: cancelled ? processedRows : dataRowCount,
+    total: dataRowCount,
+  );
 
   CopilotImportResult get result => CopilotImportResult(
-        transactionCount: importedTransactions,
-        accountCount: accountIdByKey.length,
-        skippedRows: skippedRows,
-        alreadyPresentCount: alreadyPresentCount,
-        notesFilledCount: notesFilledCount,
-        simplefinMatchSkipCount: simplefinMatchSkipCount,
-        cancelled: cancelled,
-      );
+    transactionCount: importedTransactions,
+    accountCount: accountIdByKey.length,
+    skippedRows: skippedRows,
+    alreadyPresentCount: alreadyPresentCount,
+    notesFilledCount: notesFilledCount,
+    simplefinMatchSkipCount: simplefinMatchSkipCount,
+    cancelled: cancelled,
+  );
 
   String get summaryLog =>
       '${cancelled ? 'Copilot import cancelled' : 'Copilot import done'}: '

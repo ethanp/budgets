@@ -22,7 +22,7 @@ class AppDateField extends StatelessWidget {
         padding: const EdgeInsets.all(ELayout.spaceMd),
         decoration: BoxDecoration(
           color: EColors.surface,
-          borderRadius: ELayout.borderRadius(ELayout.radiusSm),
+          borderRadius: ELayout.borderRadiusSm,
           border: Border.all(color: EColors.border),
         ),
         child: Row(

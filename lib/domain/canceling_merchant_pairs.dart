@@ -23,12 +23,10 @@ class CancelingMerchantPairs {
 
     for (final transaction in transactions) {
       if (transaction.isZeroAmount) continue;
-      final isInvestment =
-          investmentAccountIds.contains(transaction.accountId);
+      final isInvestment = investmentAccountIds.contains(transaction.accountId);
       if (!isInvestment && transaction.normalizedMerchant.isEmpty) continue;
       final key = _groupKey(transaction, isInvestment: isInvestment);
-      final buckets =
-          isInvestment ? investmentBuckets : nonInvestmentBuckets;
+      final buckets = isInvestment ? investmentBuckets : nonInvestmentBuckets;
       buckets.putIfAbsent(key, _AmountBucket.new).add(transaction);
     }
 
@@ -102,8 +100,9 @@ class _AmountBucket {
 
   /// Same-day buckets: pair greedily by list order.
   Iterable<String> pairedIdsSameDay() sync* {
-    final pairCount =
-        inflows.length < outflows.length ? inflows.length : outflows.length;
+    final pairCount = inflows.length < outflows.length
+        ? inflows.length
+        : outflows.length;
     for (var index = 0; index < pairCount; index++) {
       yield inflows[index].id;
       yield outflows[index].id;

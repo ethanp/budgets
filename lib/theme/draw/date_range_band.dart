@@ -61,10 +61,10 @@ double dateRangeLabelAnchorX({
 }) {
   final chartMin = layout.minDate.startOfDay;
   final chartMax = layout.maxDate.startOfDay;
-  final visibleStart =
-      rangeStart.startOfDay.isBefore(chartMin) ? chartMin : rangeStart.startOfDay;
-  final clampedStart =
-      visibleStart.isAfter(chartMax) ? chartMax : visibleStart;
+  final visibleStart = rangeStart.startOfDay.isBefore(chartMin)
+      ? chartMin
+      : rangeStart.startOfDay;
+  final clampedStart = visibleStart.isAfter(chartMax) ? chartMax : visibleStart;
   return layout.xForDate(clampedStart);
 }
 

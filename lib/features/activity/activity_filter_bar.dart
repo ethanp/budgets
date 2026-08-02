@@ -38,28 +38,9 @@ class ActivityFilterBar extends StatelessWidget {
             TextField(
               controller: searchController,
               onChanged: onSearchChanged,
-              decoration: InputDecoration(
+              decoration: EInput.filledMd(
                 hintText: 'Search description, category, account…',
                 prefixIcon: const Icon(Icons.search),
-                filled: true,
-                fillColor: EColors.surface,
-                border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(ELayout.radiusMd),
-                  borderSide: const BorderSide(color: EColors.border),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(ELayout.radiusMd),
-                  borderSide: const BorderSide(color: EColors.border),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(ELayout.radiusMd),
-                  borderSide: const BorderSide(
-                    color: EColors.accentGlow,
-                  ),
-                ),
               ),
             ),
             const SizedBox(height: ELayout.spaceSm),
@@ -115,10 +96,7 @@ class _RuleMatchFilterToggle extends StatelessWidget {
               ],
             ),
           ),
-          Switch(
-            value: hideRuleMatched,
-            onChanged: onChanged,
-          ),
+          Switch(value: hideRuleMatched, onChanged: onChanged),
         ],
       ),
     );
@@ -127,9 +105,7 @@ class _RuleMatchFilterToggle extends StatelessWidget {
 
 /// Sum of the currently visible Activity list (right-pane chrome).
 class ActivityVisibleSumBar extends StatelessWidget {
-  const ActivityVisibleSumBar({
-    required this.visibleTransactions,
-  });
+  const ActivityVisibleSumBar({required this.visibleTransactions});
 
   final List<BankTransaction> visibleTransactions;
 
@@ -150,8 +126,8 @@ class ActivityVisibleSumBar extends StatelessWidget {
     final netColor = netCents > 0
         ? EColors.success
         : netCents < 0
-            ? EColors.danger
-            : EColors.textSecondary;
+        ? EColors.danger
+        : EColors.textSecondary;
 
     return AppCard(
       padding: const EdgeInsets.symmetric(

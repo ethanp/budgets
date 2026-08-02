@@ -34,9 +34,9 @@ class ImportCopilotTransactionsCsv {
     required AccountsRepository accountsRepository,
     required CategoriesRepository categoriesRepository,
     required TransactionsRepository transactionsRepository,
-  })  : _accountsRepository = accountsRepository,
-        _categoriesRepository = categoriesRepository,
-        _transactionsRepository = transactionsRepository;
+  }) : _accountsRepository = accountsRepository,
+       _categoriesRepository = categoriesRepository,
+       _transactionsRepository = transactionsRepository;
 
   final AccountsRepository _accountsRepository;
   final CategoriesRepository _categoriesRepository;
@@ -115,7 +115,8 @@ class ImportCopilotTransactionsCsv {
       normalizedMerchant: normalizedMerchant,
     );
 
-    final existing = session.existingByExternalKey[externalKey] ??
+    final existing =
+        session.existingByExternalKey[externalKey] ??
         session.existingByContentKey[contentKey];
     if (existing != null) {
       _handleExistingMatch(
@@ -227,12 +228,12 @@ class ImportCopilotTransactionsCsv {
     session.pendingNoteById.clear();
   }
 
-  Future<void> _flushPendingExternalIds(InProgressCopilotCsvImport session) async {
+  Future<void> _flushPendingExternalIds(
+    InProgressCopilotCsvImport session,
+  ) async {
     if (session.pendingExternalIdById.isEmpty) return;
     session.externalIdsCanonicalized = session.pendingExternalIdById.length;
-    await _transactionsRepository.setExternalIds(
-      session.pendingExternalIdById,
-    );
+    await _transactionsRepository.setExternalIds(session.pendingExternalIdById);
     session.pendingExternalIdById.clear();
   }
 
@@ -254,8 +255,9 @@ class ImportCopilotTransactionsCsv {
   }) {
     // Snapshot before note updates — content-key hits may still carry a stale
     // TitleCase external id that needs rewriting.
-    final matchedByExternal =
-        session.existingByExternalKey.containsKey(externalKey);
+    final matchedByExternal = session.existingByExternalKey.containsKey(
+      externalKey,
+    );
 
     _backfillNoteOnExisting(session, existing, parsed.note, externalKey);
     if (!matchedByExternal) {
@@ -278,8 +280,10 @@ class ImportCopilotTransactionsCsv {
     if (existing.hasNote) return;
     session.backfillNote(existing.id, note);
     if (!_hasNote(note)) return;
-    session.existingByExternalKey[externalKey] =
-        TransactionPresence(id: existing.id, hasNote: true);
+    session.existingByExternalKey[externalKey] = TransactionPresence(
+      id: existing.id,
+      hasNote: true,
+    );
   }
 
   void _queueExternalIdCanonicalize(
@@ -333,7 +337,9 @@ class ImportCopilotTransactionsCsv {
     );
   }
 
-  Future<InProgressCopilotCsvImport> _beginImportSession(int dataRowCount) async {
+  Future<InProgressCopilotCsvImport> _beginImportSession(
+    int dataRowCount,
+  ) async {
     final accounts = await _accountsRepository.listAccounts();
     // One full scan builds external-id presence, content presence, and twins.
     final transactions = await _transactionsRepository.listAll();
@@ -344,8 +350,8 @@ class ImportCopilotTransactionsCsv {
         id: transaction.id,
         hasNote: _hasNote(transaction.note),
       );
-      existingByExternalKey[
-          '${transaction.accountId}|${transaction.externalId}'] = presence;
+      existingByExternalKey['${transaction.accountId}|${transaction.externalId}'] =
+          presence;
       final contentKey = copilotContentPresenceKey(
         accountId: transaction.accountId,
         postedAt: transaction.postedAt,
@@ -408,8 +414,9 @@ class ImportCopilotTransactionsCsv {
     required InProgressCopilotCsvImport session,
     required String normalizedMerchant,
   }) {
-    final specialFromType =
-        SpecialCategory.fromTransactionType(parsed.transactionType);
+    final specialFromType = SpecialCategory.fromTransactionType(
+      parsed.transactionType,
+    );
     final budgetsCategoryName = specialFromType != null
         ? null
         : spendCategoryNameForCopilot(parsed.categoryText);

@@ -42,16 +42,17 @@ class TrendPointContributors {
     var tapIndex = 0;
     var bestDelta = 1 << 30;
     for (var pointIndex = 0; pointIndex < series.points.length; pointIndex++) {
-      final delta =
-          series.points[pointIndex].date.difference(tapDay).inDays.abs();
+      final delta = series.points[pointIndex].date
+          .difference(tapDay)
+          .inDays
+          .abs();
       if (delta < bestDelta) {
         bestDelta = delta;
         tapIndex = pointIndex;
       }
     }
 
-    final historyFloor =
-        TrendChartCatalog.chartHistoryStart.startOfDay;
+    final historyFloor = TrendChartCatalog.chartHistoryStart.startOfDay;
 
     final chartDates = [
       for (final point in series.points) point.date.startOfDay,
@@ -117,8 +118,8 @@ class TrendPointContributors {
 
     contributors.sort((left, right) {
       final byContribution = right.smoothedContributionCents.abs().compareTo(
-            left.smoothedContributionCents.abs(),
-          );
+        left.smoothedContributionCents.abs(),
+      );
       if (byContribution != 0) return byContribution;
       return right.transaction.postedAt.compareTo(left.transaction.postedAt);
     });
@@ -197,7 +198,6 @@ class TrendPointContributors {
     }
     return backed;
   }
-
 }
 
 enum _MembershipKind {
@@ -217,19 +217,19 @@ class _SeriesMembership {
   });
 
   const _SeriesMembership.categorySpend({required Set<String>? categoryIds})
-      : this._(kind: _MembershipKind.categorySpend, categoryIds: categoryIds);
+    : this._(kind: _MembershipKind.categorySpend, categoryIds: categoryIds);
 
   const _SeriesMembership.uncategorized({
     required Set<String> backedCategoryIds,
   }) : this._(
-          kind: _MembershipKind.uncategorized,
-          backedCategoryIds: backedCategoryIds,
-        );
+         kind: _MembershipKind.uncategorized,
+         backedCategoryIds: backedCategoryIds,
+       );
 
   const _SeriesMembership.income() : this._(kind: _MembershipKind.income);
 
   const _SeriesMembership.cashFlowSpending()
-      : this._(kind: _MembershipKind.cashFlowSpending);
+    : this._(kind: _MembershipKind.cashFlowSpending);
 
   const _SeriesMembership.transfer() : this._(kind: _MembershipKind.transfer);
 

@@ -126,8 +126,9 @@ class Account {
       status: status ?? this.status,
       statusMessage: statusMessage ?? this.statusMessage,
       userLabel: clearUserLabel ? null : (userLabel ?? this.userLabel),
-      connUserLabel:
-          clearConnUserLabel ? null : (connUserLabel ?? this.connUserLabel),
+      connUserLabel: clearConnUserLabel
+          ? null
+          : (connUserLabel ?? this.connUserLabel),
       kind: kind ?? this.kind,
       belongsToAccountId: clearBelongsTo
           ? null

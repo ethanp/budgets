@@ -16,10 +16,10 @@ class BudgetMonth {
     required TransactionsRepository transactionsRepository,
     required CategoriesRepository categoriesRepository,
     required SimpleFinPullHistory simpleFinPullHistory,
-  })  : _accountsRepository = accountsRepository,
-        _transactionsRepository = transactionsRepository,
-        _categoriesRepository = categoriesRepository,
-        _simpleFinPullHistory = simpleFinPullHistory;
+  }) : _accountsRepository = accountsRepository,
+       _transactionsRepository = transactionsRepository,
+       _categoriesRepository = categoriesRepository,
+       _simpleFinPullHistory = simpleFinPullHistory;
 
   final AccountsRepository _accountsRepository;
   final TransactionsRepository _transactionsRepository;
@@ -29,7 +29,8 @@ class BudgetMonth {
   Future<MonthSummary> snapshot(String yearMonth) async {
     final accounts = await _accountsRepository.listAccounts();
     final names = {
-      for (final account in accounts) account.id: account.displayNameWithInstitution,
+      for (final account in accounts)
+        account.id: account.displayNameWithInstitution,
     };
     return _transactionsRepository.monthSummary(
       yearMonth: yearMonth,
@@ -57,8 +58,8 @@ class BudgetMonth {
             categoryId: category.id,
             categoryName: category.name,
             annualizedSpendCents: AnnualPaceSmoother.annualizeTrailingTotal(
-              windowTotalCents:
-                  (trailingYearOutflows[category.id] ?? 0).toDouble(),
+              windowTotalCents: (trailingYearOutflows[category.id] ?? 0)
+                  .toDouble(),
               observedDays: observedDays,
             ).round(),
             spentCents: monthOutflows[category.id] ?? 0,
@@ -69,13 +70,13 @@ class BudgetMonth {
   /// Calendar days on or after [chartHistoryStart] inside the trailing window.
   static int _observedTrailingDays() {
     final today = DateTime.now().startOfDay;
-    final historyFloor =
-        TrendChartCatalog.chartHistoryStart.startOfDay;
+    final historyFloor = TrendChartCatalog.chartHistoryStart.startOfDay;
     final windowFloor = today.shiftedByDays(
       -(HannAnnualPaceKernel.defaultYearDays - 1),
     );
-    final effectiveFloor =
-        windowFloor.isBefore(historyFloor) ? historyFloor : windowFloor;
+    final effectiveFloor = windowFloor.isBefore(historyFloor)
+        ? historyFloor
+        : windowFloor;
     final observedDays = today.difference(effectiveFloor).inDays + 1;
     if (observedDays < 1) return 1;
     if (observedDays > HannAnnualPaceKernel.defaultYearDays) {

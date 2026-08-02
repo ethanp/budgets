@@ -25,19 +25,19 @@ class PullSimpleFinTransactions {
     required AccountsRepository accountsRepository,
     required TransactionsRepository transactionsRepository,
     required SimpleFinPullHistory simpleFinPullHistory,
-  })  : _client = client,
-        _accessStore = accessStore,
-        _accountsRepository = accountsRepository,
-        _simpleFinPullHistory = simpleFinPullHistory,
-        _ingester = SimpleFinWindowIngester(
-          client: client,
-          accountMapper: SimpleFinAccountMapper(
-            accountsRepository: accountsRepository,
-          ),
-          transactionMapper: SimpleFinTransactionMapper(
-            transactionsRepository: transactionsRepository,
-          ),
-        );
+  }) : _client = client,
+       _accessStore = accessStore,
+       _accountsRepository = accountsRepository,
+       _simpleFinPullHistory = simpleFinPullHistory,
+       _ingester = SimpleFinWindowIngester(
+         client: client,
+         accountMapper: SimpleFinAccountMapper(
+           accountsRepository: accountsRepository,
+         ),
+         transactionMapper: SimpleFinTransactionMapper(
+           transactionsRepository: transactionsRepository,
+         ),
+       );
 
   final SimpleFinClient _client;
   final SimpleFinAccessStore _accessStore;
@@ -171,7 +171,7 @@ class PullSimpleFinTransactions {
     required DateTime now,
     void Function(SimpleFinPullProgress progress)? onProgress,
     required Map<String, List<SimpleFinPulledTransaction>>
-        newlyInsertedByAccountExternalId,
+    newlyInsertedByAccountExternalId,
     required SimpleFinPullOutcomeAccumulator outcomes,
   }) async {
     final windows = SimpleFinPullWindows.fullHistory(now);
@@ -210,7 +210,7 @@ class PullSimpleFinTransactions {
     required DateTime now,
     void Function(SimpleFinPullProgress progress)? onProgress,
     required Map<String, List<SimpleFinPulledTransaction>>
-        newlyInsertedByAccountExternalId,
+    newlyInsertedByAccountExternalId,
     required SimpleFinPullOutcomeAccumulator outcomes,
   }) async {
     final window = SimpleFinPullWindows.sinceLastPull(

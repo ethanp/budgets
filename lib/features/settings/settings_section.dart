@@ -9,7 +9,9 @@ class SettingsSectionStyle {
   final Color accent;
 
   /// Banks — teal (money / SimpleFIN).
-  static const banks = SettingsSectionStyle(accent: FinanceColors.accentPrimary);
+  static const banks = SettingsSectionStyle(
+    accent: FinanceColors.accentPrimary,
+  );
 
   /// Sync — cool indigo (near console chrome).
   static const sync = SettingsSectionStyle(accent: Color(0xFF7B8CDE));
@@ -180,7 +182,7 @@ class SettingsToolRow extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: busy ? null : onAction,
-        borderRadius: ELayout.borderRadius(ELayout.radiusSm),
+        borderRadius: ELayout.borderRadiusSm,
         child: AnimatedOpacity(
           duration: const Duration(milliseconds: 150),
           opacity: busy ? 0.7 : 1,
@@ -188,7 +190,7 @@ class SettingsToolRow extends StatelessWidget {
             kind: ESurfaceKind.tinted,
             accent: style.accent,
             padding: const EdgeInsets.all(ELayout.spaceMd),
-            borderRadius: ELayout.borderRadius(ELayout.radiusSm),
+            borderRadius: ELayout.borderRadiusSm,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

@@ -18,43 +18,17 @@ class MainTab {
   final String label;
   final Widget screen;
 
-  BottomNavigationBarItem get navigationItem => BottomNavigationBarItem(
-        icon: Icon(icon, size: 26),
-        label: label,
-      );
+  BottomNavigationBarItem get navigationItem =>
+      BottomNavigationBarItem(icon: Icon(icon, size: 26), label: label);
 }
 
 const mainTabs = <MainTab>[
-  MainTab(
-    icon: Icons.bar_chart,
-    label: 'Trends',
-    screen: TrendsScreen(),
-  ),
-  MainTab(
-    icon: Icons.account_balance,
-    label: 'Banks',
-    screen: BanksScreen(),
-  ),
-  MainTab(
-    icon: Icons.flag,
-    label: 'Life Events',
-    screen: LifeEventsScreen(),
-  ),
-  MainTab(
-    icon: Icons.list,
-    label: 'Activity',
-    screen: ActivityScreen(),
-  ),
-  MainTab(
-    icon: Icons.label,
-    label: 'Categories',
-    screen: CategoriesScreen(),
-  ),
-  MainTab(
-    icon: Icons.settings,
-    label: 'Settings',
-    screen: SettingsScreen(),
-  ),
+  MainTab(icon: Icons.bar_chart, label: 'Trends', screen: TrendsScreen()),
+  MainTab(icon: Icons.account_balance, label: 'Banks', screen: BanksScreen()),
+  MainTab(icon: Icons.flag, label: 'Life Events', screen: LifeEventsScreen()),
+  MainTab(icon: Icons.list, label: 'Activity', screen: ActivityScreen()),
+  MainTab(icon: Icons.label, label: 'Categories', screen: CategoriesScreen()),
+  MainTab(icon: Icons.settings, label: 'Settings', screen: SettingsScreen()),
 ];
 
 class MainTabScreen extends StatefulWidget {
@@ -78,9 +52,7 @@ class _MainTabScreenState extends State<MainTabScreen> {
             Navigator(
               onGenerateRoute: (settings) => MaterialPageRoute(
                 settings: settings,
-                builder: (context) => _TabChrome(
-                  child: mainTabs[index].screen,
-                ),
+                builder: (context) => _TabChrome(child: mainTabs[index].screen),
               ),
             ),
         ],
@@ -109,9 +81,7 @@ class _TabChrome extends StatelessWidget {
       fit: StackFit.expand,
       children: [
         const DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: EColors.scaffoldGradient,
-          ),
+          decoration: BoxDecoration(gradient: EColors.scaffoldGradient),
         ),
         const Align(
           alignment: Alignment.topCenter,
@@ -119,9 +89,7 @@ class _TabChrome extends StatelessWidget {
             height: 200,
             width: double.infinity,
             child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: EColors.ambientGlowGradient,
-              ),
+              decoration: BoxDecoration(gradient: EColors.ambientGlowGradient),
             ),
           ),
         ),

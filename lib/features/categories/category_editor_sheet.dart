@@ -14,9 +14,7 @@ import 'package:spend_trends/widgets/app_sheet_panel.dart';
 
 /// Create or edit a category name (and optional group membership).
 class CategoryEditorSheet extends ConsumerStatefulWidget {
-  const CategoryEditorSheet({
-    this.category,
-  });
+  const CategoryEditorSheet({this.category});
 
   final SpendCategory? category;
 
@@ -145,7 +143,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
     final yearMonth = ref.watch(currentYearMonthProvider);
     final monthRows =
         ref.watch(categoryMonthRowsProvider(yearMonth)).asData?.value ??
-            const <CategoryMonthRow>[];
+        const <CategoryMonthRow>[];
     CategoryMonthRow? monthRow;
     for (final row in monthRows) {
       if (row.categoryId == category.id) {
@@ -153,7 +151,8 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
         break;
       }
     }
-    final rules = ref.watch(categorizationRulesProvider).asData?.value ??
+    final rules =
+        ref.watch(categorizationRulesProvider).asData?.value ??
         const <CategorizationRule>[];
     final categoryRules = [
       for (final rule in rules)
@@ -240,10 +239,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
         for (final rule in preview)
           Padding(
             padding: const EdgeInsets.only(bottom: ELayout.spaceXs),
-            child: Text(
-              _ruleCaption(rule),
-              style: EText.caption,
-            ),
+            child: Text(_ruleCaption(rule), style: EText.caption),
           ),
         if (categoryRules.length > preview.length)
           Text(
@@ -294,33 +290,13 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
       controller: _nameController,
       autofocus: autofocus,
       style: EText.body.copyWith(color: EColors.textPrimary),
-      decoration: _fieldDecoration('Name'),
-    );
-  }
-
-  InputDecoration _fieldDecoration(String hint) {
-    return InputDecoration(
-      hintText: hint,
-      filled: true,
-      fillColor: EColors.surface,
-      contentPadding: const EdgeInsets.all(ELayout.spaceMd),
-      border: OutlineInputBorder(
-        borderRadius: ELayout.borderRadius(ELayout.radiusSm),
-        borderSide: const BorderSide(color: EColors.border),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: ELayout.borderRadius(ELayout.radiusSm),
-        borderSide: const BorderSide(color: EColors.border),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: ELayout.borderRadius(ELayout.radiusSm),
-        borderSide: const BorderSide(color: EColors.accentGlow),
-      ),
+      decoration: EInput.filled(hintText: 'Name'),
     );
   }
 
   Widget _groupPicker() {
-    final groups = ref.watch(categoryGroupsProvider).asData?.value ??
+    final groups =
+        ref.watch(categoryGroupsProvider).asData?.value ??
         const <CategoryGroup>[];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -351,7 +327,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
         ),
         decoration: BoxDecoration(
           color: isSelected ? FinanceColors.accentPrimary : EColors.surface,
-          borderRadius: ELayout.borderRadius(ELayout.radiusSm),
+          borderRadius: ELayout.borderRadiusSm,
           border: Border.all(
             color: isSelected ? FinanceColors.accentPrimary : EColors.border,
           ),
@@ -368,10 +344,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
   }
 
   Widget _errorMessage() {
-    return Text(
-      _error!,
-      style: EText.caption.copyWith(color: EColors.danger),
-    );
+    return Text(_error!, style: EText.caption.copyWith(color: EColors.danger));
   }
 
   Future<void> _save() async {
@@ -404,10 +377,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
   ) async {
     if (_isEditing) {
       final categoryId = widget.category!.id;
-      await repository.renameCategory(
-        categoryId: categoryId,
-        name: name,
-      );
+      await repository.renameCategory(categoryId: categoryId, name: name);
       await repository.setCategoryGroup(
         categoryId: categoryId,
         groupId: _selectedGroupId,
@@ -444,11 +414,8 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (pickerContext) => _mergeTargetPicker(
-        pickerContext,
-        category,
-        mergeTargets,
-      ),
+      builder: (pickerContext) =>
+          _mergeTargetPicker(pickerContext, category, mergeTargets),
     );
   }
 
@@ -463,9 +430,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _mergePickerHeader(category),
-          Expanded(
-            child: _mergeTargetList(pickerContext, mergeTargets),
-          ),
+          Expanded(child: _mergeTargetList(pickerContext, mergeTargets)),
         ],
       ),
     );
@@ -477,10 +442,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Retire ${category.name} into…',
-            style: EText.section,
-          ),
+          Text('Retire ${category.name} into…', style: EText.section),
           const SizedBox(height: ELayout.spaceXs),
           Text(
             'Retire ${category.name} into the survivor · moves transactions '

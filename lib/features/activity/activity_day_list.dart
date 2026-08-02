@@ -44,39 +44,37 @@ class ActivityDayListSliver extends StatelessWidget {
         ELayout.spaceLg,
       ),
       sliver: SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            final listItem = listItems[index];
-            if (listItem is ActivityDayHeader) {
-              return _ActivityDayHeaderTile(
-                label: listItem.label,
-                isFirst: index == 0,
-              );
-            }
-            final transaction =
-                (listItem as ActivityDayTransactionItem).transaction;
-            final account = accounts[transaction.accountId];
-            final category = categories[transaction.effectiveCategoryId];
-            final explainingRule = explainingByTransactionId[transaction.id] ??
-                ruleMatchIndex.explainingRule(transaction);
-            return Padding(
-              padding: const EdgeInsets.only(bottom: ELayout.spaceSm),
-              child: ActivityTransactionTile(
-                transaction: transaction,
-                account: account,
-                category: category,
-                selected: selectedTransactionId == transaction.id,
-                columnWidths: columnWidths,
-                onTap: () => onTransactionTap(transaction),
-                onRuleTap: explainingRule != null &&
-                        explainingRule.beatsImportDefault
-                    ? () => onRuleTap(explainingRule)
-                    : null,
-              ),
+        delegate: SliverChildBuilderDelegate((context, index) {
+          final listItem = listItems[index];
+          if (listItem is ActivityDayHeader) {
+            return _ActivityDayHeaderTile(
+              label: listItem.label,
+              isFirst: index == 0,
             );
-          },
-          childCount: listItems.length,
-        ),
+          }
+          final transaction =
+              (listItem as ActivityDayTransactionItem).transaction;
+          final account = accounts[transaction.accountId];
+          final category = categories[transaction.effectiveCategoryId];
+          final explainingRule =
+              explainingByTransactionId[transaction.id] ??
+              ruleMatchIndex.explainingRule(transaction);
+          return Padding(
+            padding: const EdgeInsets.only(bottom: ELayout.spaceSm),
+            child: ActivityTransactionTile(
+              transaction: transaction,
+              account: account,
+              category: category,
+              selected: selectedTransactionId == transaction.id,
+              columnWidths: columnWidths,
+              onTap: () => onTransactionTap(transaction),
+              onRuleTap:
+                  explainingRule != null && explainingRule.beatsImportDefault
+                  ? () => onRuleTap(explainingRule)
+                  : null,
+            ),
+          );
+        }, childCount: listItems.length),
       ),
     );
   }
@@ -136,10 +134,7 @@ class ActivityDayTransactionItem extends ActivityDayListItem {
 }
 
 class _ActivityDayHeaderTile extends StatelessWidget {
-  const _ActivityDayHeaderTile({
-    required this.label,
-    required this.isFirst,
-  });
+  const _ActivityDayHeaderTile({required this.label, required this.isFirst});
 
   final String label;
   final bool isFirst;
@@ -162,12 +157,7 @@ class _ActivityDayHeaderTile extends StatelessWidget {
             ),
           ),
           const SizedBox(width: ELayout.spaceMd),
-          Expanded(
-            child: Container(
-              height: 1,
-              color: EColors.border,
-            ),
-          ),
+          Expanded(child: Container(height: 1, color: EColors.border)),
         ],
       ),
     );

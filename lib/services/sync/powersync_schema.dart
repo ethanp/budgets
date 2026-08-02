@@ -18,10 +18,7 @@ const Schema spendTrendsSchema = Schema([
     Column.text('account_kind'),
     Column.text('belongs_to_account_id'),
   ]),
-  Table('category_groups', [
-    Column.text('name'),
-    Column.integer('sort_order'),
-  ]),
+  Table('category_groups', [Column.text('name'), Column.integer('sort_order')]),
   Table('categories', [
     Column.text('name'),
     Column.integer('sort_order'),
@@ -67,10 +64,7 @@ const Schema spendTrendsSchema = Schema([
     Column.integer('started_on'),
     Column.text('note'),
   ]),
-  Table('sync_state', [
-    Column.text('key'),
-    Column.text('value'),
-  ]),
+  Table('sync_state', [Column.text('key'), Column.text('value')]),
   Table('simplefin_pulls', [
     Column.integer('started_at'),
     Column.integer('finished_at'),

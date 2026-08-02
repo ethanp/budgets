@@ -7,10 +7,10 @@ import 'package:flutter/foundation.dart';
 class ContainsPatternRematch {
   ContainsPatternRematch({
     required Future<List<BankTransaction>> Function(String pattern)
-        fetchMatches,
+    fetchMatches,
     required VoidCallback notify,
-  })  : _fetchMatches = fetchMatches,
-        _notify = notify;
+  }) : _fetchMatches = fetchMatches,
+       _notify = notify;
 
   final Future<List<BankTransaction>> Function(String pattern) _fetchMatches;
   final VoidCallback _notify;

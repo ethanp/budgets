@@ -13,10 +13,8 @@ class AppSheetPanel extends StatelessWidget {
   });
 
   /// Content-sized panel (no fixed viewport fraction).
-  const AppSheetPanel.compact({
-    required this.child,
-    this.padForKeyboard = true,
-  }) : heightFraction = null;
+  const AppSheetPanel.compact({required this.child, this.padForKeyboard = true})
+    : heightFraction = null;
 
   final Widget child;
 
@@ -28,8 +26,9 @@ class AppSheetPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bottomInset =
-        padForKeyboard ? MediaQuery.viewInsetsOf(context).bottom : 0.0;
+    final bottomInset = padForKeyboard
+        ? MediaQuery.viewInsetsOf(context).bottom
+        : 0.0;
     return Container(
       height: heightFraction == null
           ? null
@@ -40,9 +39,7 @@ class AppSheetPanel extends StatelessWidget {
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(ELayout.radiusLg),
         ),
-        border: Border(
-          top: BorderSide(color: EColors.frostBorder),
-        ),
+        border: Border(top: BorderSide(color: EColors.frostBorder)),
       ),
       child: SafeArea(top: false, child: child),
     );

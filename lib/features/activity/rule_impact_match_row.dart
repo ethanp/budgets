@@ -36,8 +36,7 @@ class RuleImpactMatchRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dateLabel =
-        DateFormat.yMMMd().format(transaction.postedAt.toLocal());
+    final dateLabel = DateFormat.yMMMd().format(transaction.postedAt.toLocal());
     return Padding(
       padding: const EdgeInsets.only(bottom: ELayout.spaceSm),
       child: GestureDetector(

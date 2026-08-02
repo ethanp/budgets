@@ -123,14 +123,9 @@ class _SuggestCategoriesSheetState
   Widget _buildTitleRow() {
     return Row(
       children: [
-        Expanded(
-          child: Text('Suggested categories', style: EText.section),
-        ),
+        Expanded(child: Text('Suggested categories', style: EText.section)),
         if (_suggestions.isNotEmpty)
-          TextButton(
-            onPressed: _reviewAll,
-            child: Text(_bulkActionLabel),
-          ),
+          TextButton(onPressed: _reviewAll, child: Text(_bulkActionLabel)),
       ],
     );
   }
@@ -160,19 +155,13 @@ class _SuggestCategoriesSheetState
     if (_error != null) {
       return Padding(
         padding: const EdgeInsets.all(ELayout.spaceLg),
-        child: Text(
-          _error!,
-          style: EText.body.copyWith(color: EColors.danger),
-        ),
+        child: Text(_error!, style: EText.body.copyWith(color: EColors.danger)),
       );
     }
     if (_suggestions.isEmpty) {
       return Padding(
         padding: const EdgeInsets.all(ELayout.spaceLg),
-        child: Text(
-          'Nothing uncategorized to suggest.',
-          style: EText.body,
-        ),
+        child: Text('Nothing uncategorized to suggest.', style: EText.body),
       );
     }
     return _buildSuggestionList();
@@ -184,8 +173,7 @@ class _SuggestCategoriesSheetState
       itemCount: _suggestions.length,
       separatorBuilder: (context, index) =>
           const SizedBox(height: ELayout.spaceSm),
-      itemBuilder: (context, index) =>
-          _buildSuggestionRow(_suggestions[index]),
+      itemBuilder: (context, index) => _buildSuggestionRow(_suggestions[index]),
     );
   }
 
@@ -280,10 +268,7 @@ class _SuggestCategoriesSheetState
     final groups = await _buildImpactGroups(categorizer, suggestions);
     if (!mounted) return false;
 
-    final result = await RuleImpactConfirmSheet.show(
-      context,
-      groups: groups,
-    );
+    final result = await RuleImpactConfirmSheet.show(context, groups: groups);
     if (result == null) return false;
 
     await _persistRulesAndCategories(
@@ -309,8 +294,7 @@ class _SuggestCategoriesSheetState
           pattern: pattern,
           categoryId: categoryId,
           categoryName: suggestion.categoryName,
-          transactions:
-              await categorizer.transactionsMatchingContains(pattern),
+          transactions: await categorizer.transactionsMatchingContains(pattern),
         ),
       );
     }

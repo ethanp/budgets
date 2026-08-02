@@ -7,10 +7,10 @@ enum RelatedRuleRelation {
   narrower;
 
   String get label => switch (this) {
-        RelatedRuleRelation.same => 'Same',
-        RelatedRuleRelation.broader => 'Broader',
-        RelatedRuleRelation.narrower => 'Narrower',
-      };
+    RelatedRuleRelation.same => 'Same',
+    RelatedRuleRelation.broader => 'Broader',
+    RelatedRuleRelation.narrower => 'Narrower',
+  };
 }
 
 class RelatedExistingRule {
@@ -63,12 +63,11 @@ List<RelatedExistingRule> overlappingMerchantContainsRules({
   }
 
   related.sort((left, right) {
-    final relationOrder =
-        left.relation.index.compareTo(right.relation.index);
+    final relationOrder = left.relation.index.compareTo(right.relation.index);
     if (relationOrder != 0) return relationOrder;
-    return left.rule.pattern
-        .toLowerCase()
-        .compareTo(right.rule.pattern.toLowerCase());
+    return left.rule.pattern.toLowerCase().compareTo(
+      right.rule.pattern.toLowerCase(),
+    );
   });
   return related;
 }

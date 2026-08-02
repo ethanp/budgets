@@ -16,8 +16,8 @@ class AccountsRepository {
     final accounts = rows.map(_fromRow).toList();
     accounts.sort(
       (left, right) => left.displayName.toLowerCase().compareTo(
-            right.displayName.toLowerCase(),
-          ),
+        right.displayName.toLowerCase(),
+      ),
     );
     return accounts;
   }
@@ -69,8 +69,7 @@ class AccountsRepository {
     required String? userLabel,
   }) async {
     final trimmed = userLabel?.trim();
-    final stored =
-        trimmed == null || trimmed.isEmpty ? null : trimmed;
+    final stored = trimmed == null || trimmed.isEmpty ? null : trimmed;
     await _powerSync.execute(
       'UPDATE accounts SET user_label = ? WHERE id = ?',
       [stored, accountId],
@@ -168,8 +167,7 @@ WHERE conn_name = ?
       balanceAsOf: columns['balance_as_of'].asIntOrNull().dateTimeFromMillis,
       connId: columns['conn_id'] as String?,
       connName: columns['conn_name'] as String?,
-      lastSyncedAt:
-          columns['last_synced_at'].asIntOrNull().dateTimeFromMillis,
+      lastSyncedAt: columns['last_synced_at'].asIntOrNull().dateTimeFromMillis,
       status: AccountStatus.fromStorage(columns['status'] as String),
       statusMessage: columns['status_message'] as String?,
       userLabel: columns['user_label'] as String?,

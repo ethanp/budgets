@@ -23,11 +23,7 @@ class SyncStatusNavButton extends ConsumerWidget {
     return IconButton(
       padding: const EdgeInsets.symmetric(horizontal: ELayout.spaceSm),
       onPressed: () => SyncStatusSheet.show(context),
-      icon: Icon(
-        look.icon,
-        color: look.color,
-        size: 22,
-      ),
+      icon: Icon(look.icon, color: look.color, size: 22),
     );
   }
 
@@ -66,18 +62,18 @@ enum _CollectiveSyncLook {
   ok;
 
   IconData get icon => switch (this) {
-        disconnected => Icons.link,
-        offline => Icons.wifi_off,
-        busy => Icons.sync,
-        warning => Icons.warning,
-        ok => Icons.cloud,
-      };
+    disconnected => Icons.link,
+    offline => Icons.wifi_off,
+    busy => Icons.sync,
+    warning => Icons.warning,
+    ok => Icons.cloud,
+  };
 
   Color get color => switch (this) {
-        disconnected => EColors.textMuted,
-        offline => EColors.warning,
-        busy => EColors.accentGlow,
-        warning => EColors.warning,
-        ok => EColors.success,
-      };
+    disconnected => EColors.textMuted,
+    offline => EColors.warning,
+    busy => EColors.accentGlow,
+    warning => EColors.warning,
+    ok => EColors.success,
+  };
 }

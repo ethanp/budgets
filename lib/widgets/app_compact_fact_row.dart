@@ -10,11 +10,8 @@ BoxDecoration appTintedCardDecoration({
   final fillAlpha = selected ? 0.22 : 0.12;
   final borderAlpha = selected ? 0.55 : 0.35;
   return BoxDecoration(
-    color: Color.alphaBlend(
-      tint.withValues(alpha: fillAlpha),
-      EColors.surface,
-    ),
-    borderRadius: ELayout.borderRadius(ELayout.radiusMd),
+    color: Color.alphaBlend(tint.withValues(alpha: fillAlpha), EColors.surface),
+    borderRadius: ELayout.borderRadiusMd,
     border: Border.all(
       color: tint.withValues(alpha: borderAlpha),
       width: selected ? 1.5 : 1,
@@ -79,10 +76,7 @@ class AppCompactFactRow extends StatelessWidget {
             if (amountWidth != null)
               SizedBox(
                 width: amountWidth,
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: amount,
-                ),
+                child: Align(alignment: Alignment.centerRight, child: amount),
               )
             else
               amount!,

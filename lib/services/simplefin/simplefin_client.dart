@@ -21,7 +21,7 @@ class _FetchWindow {
 
 class SimpleFinClient {
   SimpleFinClient({http.Client? httpClient})
-      : _httpClient = httpClient ?? http.Client();
+    : _httpClient = httpClient ?? http.Client();
 
   final http.Client _httpClient;
 
@@ -62,8 +62,8 @@ class SimpleFinClient {
     String accessUrlText,
     Uri? parsedAccessUrl,
   ) {
-    final bodySummary = parsedAccessUrl != null &&
-            parsedAccessUrl.scheme == 'https'
+    final bodySummary =
+        parsedAccessUrl != null && parsedAccessUrl.scheme == 'https'
         ? _redactUri(parsedAccessUrl)
         : _truncate(accessUrlText);
     _logger.log(
@@ -72,10 +72,7 @@ class SimpleFinClient {
   }
 
   /// Throws for non-success claim responses or a non-HTTPS Access URL.
-  Uri _requireClaimAccessUrl(
-    http.Response response,
-    Uri? parsedAccessUrl,
-  ) {
+  Uri _requireClaimAccessUrl(http.Response response, Uri? parsedAccessUrl) {
     if (response.statusCode == 403) {
       throw SimpleFinClaimException(
         'Token invalid or already claimed — revoke in SimpleFIN and create a new one.',
@@ -91,7 +88,9 @@ class SimpleFinClient {
     }
     if (parsedAccessUrl == null || parsedAccessUrl.scheme != 'https') {
       _logger.warn('Claim returned non-HTTPS Access URL');
-      throw SimpleFinClaimException('SimpleFIN returned an invalid Access URL.');
+      throw SimpleFinClaimException(
+        'SimpleFIN returned an invalid Access URL.',
+      );
     }
     return parsedAccessUrl;
   }
@@ -285,9 +284,7 @@ class SimpleFinClient {
     final accounts = (json['accounts'] as List<dynamic>? ?? [])
         .whereType<Map<String, dynamic>>()
         .map(_parseAccount)
-        .map(
-          (account) => _withResolvedConnName(account, connectionNameById),
-        )
+        .map((account) => _withResolvedConnName(account, connectionNameById))
         .toList();
 
     return SimpleFinAccountSet(
@@ -370,9 +367,7 @@ class SimpleFinClient {
 
   Uri _claimUrlFromBase64Token(String cleaned) {
     try {
-      return _parseDecodedClaimUrl(
-        utf8.decode(_decodeBase64Flexible(cleaned)),
-      );
+      return _parseDecodedClaimUrl(utf8.decode(_decodeBase64Flexible(cleaned)));
     } on SimpleFinClaimException {
       rethrow;
     } catch (error) {
@@ -407,7 +402,10 @@ class SimpleFinClient {
   static String _cleanPastedToken(String value) {
     var cleaned = value.trim();
     cleaned = cleaned.replaceFirst(
-      RegExp(r'^(setup\s*token|token|simplefin)\s*[:=]?\s*', caseSensitive: false),
+      RegExp(
+        r'^(setup\s*token|token|simplefin)\s*[:=]?\s*',
+        caseSensitive: false,
+      ),
       '',
     );
     return cleaned
@@ -422,7 +420,10 @@ class SimpleFinClient {
     var normalized = value.replaceAll('-', '+').replaceAll('_', '/');
     final remainder = normalized.length % 4;
     if (remainder != 0) {
-      normalized = normalized.padRight(normalized.length + (4 - remainder), '=');
+      normalized = normalized.padRight(
+        normalized.length + (4 - remainder),
+        '=',
+      );
     }
     return normalized;
   }

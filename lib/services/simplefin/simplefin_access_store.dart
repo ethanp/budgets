@@ -10,12 +10,13 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 /// Setup Token.
 class SimpleFinAccessStore {
   SimpleFinAccessStore({FlutterSecureStorage? storage})
-      : _storage = storage ??
-            const FlutterSecureStorage(
-              // Legacy macOS keychain — avoids Data Protection Keychain
-              // entitlement / provisioning issues during local debug runs.
-              mOptions: MacOsOptions(useDataProtectionKeyChain: false),
-            );
+    : _storage =
+          storage ??
+          const FlutterSecureStorage(
+            // Legacy macOS keychain — avoids Data Protection Keychain
+            // entitlement / provisioning issues during local debug runs.
+            mOptions: MacOsOptions(useDataProtectionKeyChain: false),
+          );
 
   static const envAccessUrlKey = 'SIMPLEFIN_ACCESS_URL';
   static const _keychainAccessUrlKey = 'simplefin_access_url';
