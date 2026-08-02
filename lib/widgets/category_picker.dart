@@ -3,16 +3,12 @@ import 'package:spend_trends/domain/category_group.dart';
 import 'package:spend_trends/domain/special_category.dart';
 import 'package:spend_trends/theme/finance_colors.dart';
 import 'package:spend_trends/util/category_color.dart';
-import 'package:spend_trends/widgets/category_pick_chip.dart';
 import 'package:ethan_ui/ethan_ui.dart';
 import 'package:flutter/material.dart';
 
 /// One titled block of category chips (group, ungrouped, or cash flow).
 class CategoryPickerSection {
-  const CategoryPickerSection({
-    required this.title,
-    required this.categories,
-  });
+  const CategoryPickerSection({required this.title, required this.categories});
 
   final String? title;
   final List<SpendCategory> categories;
@@ -67,9 +63,7 @@ class CategoryPickerSections {
       );
     }
     if (flow.isNotEmpty) {
-      sections.add(
-        CategoryPickerSection(title: 'Cash flow', categories: flow),
-      );
+      sections.add(CategoryPickerSection(title: 'Cash flow', categories: flow));
     }
     return CategoryPickerSections._(sections);
   }
@@ -142,7 +136,7 @@ class _CategoryPickerSectionBlock extends StatelessWidget {
           runSpacing: ELayout.spaceSm,
           children: [
             for (final category in section.categories)
-              CategoryPickChip(
+              EFilterChip(
                 label: category.name,
                 color: CategoryColor.forCategory(category),
                 selected: category.id == selectedId,
