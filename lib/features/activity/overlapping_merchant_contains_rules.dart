@@ -1,4 +1,5 @@
 import 'package:spend_trends/domain/category.dart';
+import 'package:ethan_utils/ethan_utils.dart';
 
 /// How an existing rule’s pattern relates to the candidate contains pattern.
 enum RelatedRuleRelation {
@@ -6,11 +7,7 @@ enum RelatedRuleRelation {
   broader,
   narrower;
 
-  String get label => switch (this) {
-    RelatedRuleRelation.same => 'Same',
-    RelatedRuleRelation.broader => 'Broader',
-    RelatedRuleRelation.narrower => 'Narrower',
-  };
+  String get label => nameAsCapitalizedWords;
 }
 
 class RelatedExistingRule {

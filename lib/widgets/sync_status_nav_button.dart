@@ -55,25 +55,14 @@ class SyncStatusNavButton extends ConsumerWidget {
 }
 
 enum _CollectiveSyncLook {
-  disconnected,
-  offline,
-  busy,
-  warning,
-  ok;
+  disconnected(icon: Icons.link, color: EColors.textMuted),
+  offline(icon: Icons.wifi_off, color: EColors.warning),
+  busy(icon: Icons.sync, color: EColors.accentGlow),
+  warning(icon: Icons.warning, color: EColors.warning),
+  ok(icon: Icons.cloud, color: EColors.success);
 
-  IconData get icon => switch (this) {
-    disconnected => Icons.link,
-    offline => Icons.wifi_off,
-    busy => Icons.sync,
-    warning => Icons.warning,
-    ok => Icons.cloud,
-  };
+  const _CollectiveSyncLook({required this.icon, required this.color});
 
-  Color get color => switch (this) {
-    disconnected => EColors.textMuted,
-    offline => EColors.warning,
-    busy => EColors.accentGlow,
-    warning => EColors.warning,
-    ok => EColors.success,
-  };
+  final IconData icon;
+  final Color color;
 }

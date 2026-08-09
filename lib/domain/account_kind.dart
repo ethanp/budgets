@@ -1,27 +1,24 @@
 import 'package:spend_trends/domain/account.dart';
+import 'package:ethan_utils/ethan_utils.dart';
 
 /// Fixed account classes for Trends / net-worth legend grouping.
 ///
 /// SimpleFIN does not send a type; we classify from account + institution names.
 enum AccountKind {
-  checking,
-  savings,
-  investment,
-  nonFinancialAssets,
-  creditCard,
-  loans,
-  other;
+  checking(),
+  savings(),
+  investment(),
+  nonFinancialAssets(legendLabel: 'Non-financial assets'),
+  creditCard(legendLabel: 'Credit cards'),
+  loans(),
+  other();
+
+  const AccountKind({String? legendLabel}) : _legendLabel = legendLabel;
+
+  final String? _legendLabel;
 
   /// Legend section header.
-  String get legendLabel => switch (this) {
-    AccountKind.checking => 'Checking',
-    AccountKind.savings => 'Savings',
-    AccountKind.investment => 'Investment',
-    AccountKind.nonFinancialAssets => 'Non-financial assets',
-    AccountKind.creditCard => 'Credit cards',
-    AccountKind.loans => 'Loans',
-    AccountKind.other => 'Other',
-  };
+  String get legendLabel => _legendLabel ?? nameAsCapitalizedWords;
 
   /// Assets first, then credit / loans, then leftover.
   int get legendSortOrder => index;

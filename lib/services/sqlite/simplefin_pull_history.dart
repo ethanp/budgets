@@ -7,15 +7,14 @@ import 'package:uuid/uuid.dart';
 
 /// Kind of SimpleFIN account fetch for one pull run.
 enum SimpleFinPullKind {
-  full,
-  incremental;
+  full(displayLabel: 'Full history'),
+  incremental(displayLabel: 'Incremental');
+
+  const SimpleFinPullKind({required this.displayLabel});
 
   String get storageValue => name;
 
-  String get displayLabel => switch (this) {
-    SimpleFinPullKind.full => 'Full history',
-    SimpleFinPullKind.incremental => 'Incremental',
-  };
+  final String displayLabel;
 
   static SimpleFinPullKind fromStorage(String value) {
     for (final kind in values) {
@@ -43,21 +42,31 @@ enum SimpleFinPullStatus {
 
 /// Per-account outcome within a pull.
 enum SimpleFinPullAccountStatus {
-  ok,
-  needsRelink,
-  error;
+  ok(
+    storageValue: 'ok',
+    displayLabel: 'OK',
+    severityRank: 0,
+  ),
+  needsRelink(
+    storageValue: 'needs_relink',
+    displayLabel: 'Needs re-link',
+    severityRank: 1,
+  ),
+  error(
+    storageValue: 'error',
+    displayLabel: 'Error',
+    severityRank: 2,
+  );
 
-  String get storageValue => switch (this) {
-    SimpleFinPullAccountStatus.ok => 'ok',
-    SimpleFinPullAccountStatus.needsRelink => 'needs_relink',
-    SimpleFinPullAccountStatus.error => 'error',
-  };
+  const SimpleFinPullAccountStatus({
+    required this.storageValue,
+    required this.displayLabel,
+    required this.severityRank,
+  });
 
-  String get displayLabel => switch (this) {
-    SimpleFinPullAccountStatus.ok => 'OK',
-    SimpleFinPullAccountStatus.needsRelink => 'Needs re-link',
-    SimpleFinPullAccountStatus.error => 'Error',
-  };
+  final String storageValue;
+  final String displayLabel;
+  final int severityRank;
 
   bool get isIssue => this != SimpleFinPullAccountStatus.ok;
 
@@ -68,13 +77,6 @@ enum SimpleFinPullAccountStatus {
       _ => SimpleFinPullAccountStatus.ok,
     };
   }
-
-  static int severityRank(SimpleFinPullAccountStatus status) =>
-      switch (status) {
-        SimpleFinPullAccountStatus.ok => 0,
-        SimpleFinPullAccountStatus.needsRelink => 1,
-        SimpleFinPullAccountStatus.error => 2,
-      };
 }
 
 /// One account's outcome for a pull (write + read).
@@ -166,8 +168,7 @@ class SimpleFinPullAccountDraft {
   }
 
   void mergeStatus(SimpleFinPullAccountStatus next, String? message) {
-    if (SimpleFinPullAccountStatus.severityRank(next) <
-        SimpleFinPullAccountStatus.severityRank(status)) {
+    if (next.severityRank < status.severityRank) {
       return;
     }
     status = next;

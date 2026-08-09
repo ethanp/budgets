@@ -9,26 +9,23 @@ enum TrendValueKind {
 
 /// Display rate for Trends legend / inspect amounts (chart series stay annualized).
 enum TrendSpendRate {
-  perYear,
-  perMonth,
-  perDay;
+  perYear(shortLabel: '/ yr', toggleLabel: 'yr', annualDivisor: 1),
+  perMonth(shortLabel: '/ mo', toggleLabel: 'mo', annualDivisor: 12),
+  perDay(shortLabel: '/ day', toggleLabel: 'day', annualDivisor: 365);
 
-  String get shortLabel => switch (this) {
-    TrendSpendRate.perYear => '/ yr',
-    TrendSpendRate.perMonth => '/ mo',
-    TrendSpendRate.perDay => '/ day',
-  };
+  const TrendSpendRate({
+    required this.shortLabel,
+    required this.toggleLabel,
+    required this.annualDivisor,
+  });
 
-  String get toggleLabel => switch (this) {
-    TrendSpendRate.perYear => 'yr',
-    TrendSpendRate.perMonth => 'mo',
-    TrendSpendRate.perDay => 'day',
-  };
+  final String shortLabel;
+  final String toggleLabel;
+
+  /// Divide centered-year annualized cents by this to get the display rate.
+  final int annualDivisor;
 
   /// Convert centered-year annualized cents into this display rate.
-  int displayCents(int annualizedCents) => switch (this) {
-    TrendSpendRate.perYear => annualizedCents,
-    TrendSpendRate.perMonth => (annualizedCents / 12).round(),
-    TrendSpendRate.perDay => (annualizedCents / 365).round(),
-  };
+  int displayCents(int annualizedCents) =>
+      (annualizedCents / annualDivisor).round();
 }

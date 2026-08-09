@@ -99,10 +99,9 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
       .where((series) => !_hiddenSeriesIds.contains(series.id))
       .toList();
 
-  TrendSpendRate get _spendRate => ref.watch(trendSpendRateProvider);
-
   @override
   Widget build(BuildContext context) {
+    final TrendSpendRate spendRate = ref.watch(trendSpendRateProvider);
     return Container(
       padding: const EdgeInsets.all(ELayout.spaceMd),
       decoration: BoxDecoration(
@@ -116,7 +115,7 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
           Row(
             children: [
               Expanded(child: Text(widget.title, style: EText.section)),
-              if (widget.showSpendRateToggle) _spendRateToggle(),
+              if (widget.showSpendRateToggle) _spendRateToggle(spendRate),
             ],
           ),
           if (widget.headlineFigures.isNotEmpty) ...[
@@ -128,12 +127,12 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
           const SizedBox(height: ELayout.spaceMd),
           _chartArea(),
           const SizedBox(height: ELayout.spaceSm),
-          _inspectCaption(),
+          _inspectCaption(spendRate),
           const SizedBox(height: ELayout.spaceMd),
           CategoryTrendSeriesLegend(
             seriesList: widget.seriesList,
             hiddenSeriesIds: _hiddenSeriesIds,
-            spendRate: _spendRate,
+            spendRate: spendRate,
             valueKind: widget.valueKind,
             useDistributionLegend: widget.useDistributionLegend,
             onToggleSeries: _toggleSeries,
@@ -176,7 +175,7 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
     );
   }
 
-  Widget _spendRateToggle() {
+  Widget _spendRateToggle(TrendSpendRate spendRate) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -185,7 +184,7 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
             const SizedBox(width: ELayout.spaceXs),
           _settingsChip(
             label: rate.toggleLabel,
-            isSelected: _spendRate == rate,
+            isSelected: spendRate == rate,
             onTap: () =>
                 ref.read(trendSpendRateProvider.notifier).setRate(rate),
           ),
@@ -226,11 +225,11 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
     );
   }
 
-  String _formatSeriesCents(int cents) {
+  String _formatSeriesCents(int cents, TrendSpendRate spendRate) {
     if (widget.valueKind == TrendValueKind.level) {
       return formatCentsWholeDollars(cents);
     }
-    return formatCentsWholeDollars(_spendRate.displayCents(cents));
+    return formatCentsWholeDollars(spendRate.displayCents(cents));
   }
 
   Widget _chartArea() {
@@ -280,7 +279,7 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
     );
   }
 
-  Widget _inspectCaption() {
+  Widget _inspectCaption(TrendSpendRate spendRate) {
     final hoverDate = _hoverDate;
     if (hoverDate == null) {
       return Text(
@@ -297,14 +296,14 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
           final point = _nearestPoint(series.points, hoverDate);
           final amount = point == null
               ? '—'
-              : _formatSeriesCents(point.smoothedCents.round());
+              : _formatSeriesCents(point.smoothedCents.round(), spendRate);
           return '${series.name} $amount';
         })
         .join(' · ');
 
     final rateSuffix = widget.valueKind == TrendValueKind.level
         ? ''
-        : ' (${_spendRate.shortLabel.trim()})';
+        : ' (${spendRate.shortLabel.trim()})';
     return Text(
       '${DateFormat.MMMd().format(hoverDate)} · $values$rateSuffix',
       style: EText.caption,

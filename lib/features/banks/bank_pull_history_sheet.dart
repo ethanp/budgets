@@ -263,9 +263,8 @@ class _PullDetail extends StatelessWidget {
     final transactionCount = pull.transactionCount ?? 0;
     final sortedAccounts = [...pull.accounts]
       ..sort((left, right) {
-        final severity = SimpleFinPullAccountStatus.severityRank(
-          right.status,
-        ).compareTo(SimpleFinPullAccountStatus.severityRank(left.status));
+        final severity =
+            right.status.severityRank.compareTo(left.status.severityRank);
         if (severity != 0) return severity;
         return left.accountLabel.compareTo(right.accountLabel);
       });

@@ -9,26 +9,11 @@ class TrendValueScale {
   final List<double> tickCents;
 
   factory TrendValueScale.niceForMax(double dataMaxCents) {
-    const targetTickCount = 4;
-    if (dataMaxCents <= 0) {
-      return const TrendValueScale(
-        maxCents: 10000,
-        tickCents: [0, 2500, 5000, 7500, 10000],
-      );
-    }
-
-    final roughStep = dataMaxCents / targetTickCount;
-    final stepCents = roughStep.niceNumber(round: true);
-    final niceMaxCents = (dataMaxCents / stepCents).ceil() * stepCents;
-    final tickCents = <double>[];
-    for (
-      var tick = 0.0;
-      tick <= niceMaxCents + stepCents * 0.001;
-      tick += stepCents
-    ) {
-      tickCents.add(tick);
-    }
-    return TrendValueScale(maxCents: niceMaxCents, tickCents: tickCents);
+    final scale = NiceValueScale.forMax(
+      dataMaxCents,
+      fallbackMax: 10000,
+    );
+    return TrendValueScale(maxCents: scale.max, tickCents: scale.ticks);
   }
 
   double fractionFromBottom(double cents) => (cents / maxCents).clamp(0.0, 1.0);

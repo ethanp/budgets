@@ -6,49 +6,46 @@ import 'package:intl/intl.dart';
 
 /// Which life-chain timeline a stay belongs to.
 enum LifeChainKind {
-  housing,
-  job;
+  housing(
+    emptyHeroCaption: 'No housing yet',
+    currentCaption: 'Current home',
+    addCta: 'Add place',
+    labelPlaceholder: 'Place name',
+    startDateLabel: 'Moved in',
+    icon: Icons.home,
+    trendBandColor: FinanceColors.housing,
+  ),
+  job(
+    emptyHeroCaption: 'No job yet',
+    currentCaption: 'Current job',
+    addCta: 'Add job',
+    labelPlaceholder: 'Employer or role',
+    startDateLabel: 'Started',
+    icon: Icons.work,
+    trendBandColor: EColors.success,
+  );
 
-  String get screenTitle => switch (this) {
-    LifeChainKind.housing => 'Housing',
-    LifeChainKind.job => 'Job',
-  };
+  const LifeChainKind({
+    required this.emptyHeroCaption,
+    required this.currentCaption,
+    required this.addCta,
+    required this.labelPlaceholder,
+    required this.startDateLabel,
+    required this.icon,
+    required this.trendBandColor,
+  });
 
-  String get emptyHeroCaption => switch (this) {
-    LifeChainKind.housing => 'No housing yet',
-    LifeChainKind.job => 'No job yet',
-  };
+  String get screenTitle => nameAsCapitalizedWords;
 
-  String get currentCaption => switch (this) {
-    LifeChainKind.housing => 'Current home',
-    LifeChainKind.job => 'Current job',
-  };
-
-  String get addCta => switch (this) {
-    LifeChainKind.housing => 'Add place',
-    LifeChainKind.job => 'Add job',
-  };
-
-  String get labelPlaceholder => switch (this) {
-    LifeChainKind.housing => 'Place name',
-    LifeChainKind.job => 'Employer or role',
-  };
-
-  String get startDateLabel => switch (this) {
-    LifeChainKind.housing => 'Moved in',
-    LifeChainKind.job => 'Started',
-  };
-
-  IconData get icon => switch (this) {
-    LifeChainKind.housing => Icons.home,
-    LifeChainKind.job => Icons.work,
-  };
+  final String emptyHeroCaption;
+  final String currentCaption;
+  final String addCta;
+  final String labelPlaceholder;
+  final String startDateLabel;
+  final IconData icon;
 
   /// Base Trends band color for this chain (distinct from life-event gold).
-  Color get trendBandColor => switch (this) {
-    LifeChainKind.housing => FinanceColors.housing,
-    LifeChainKind.job => EColors.success,
-  };
+  final Color trendBandColor;
 
   /// Mild per-era accent for labels/edges — tiny hue nudge, odd eras slightly darker.
   ///

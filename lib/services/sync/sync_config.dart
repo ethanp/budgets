@@ -53,6 +53,6 @@ SyncConfig buildSpendTrendsSyncConfig(SharedPreferences preferences) {
       migrateLifeEventOccurredOnKeys,
       ensureSpecialCategoriesMigrated,
     ],
-    onSyncError: (message) => _log.warn(message),
+    onSyncError: _log.warn,
   );
 }

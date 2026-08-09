@@ -32,20 +32,18 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
   bool _editing = false;
   bool _saving = false;
 
-  Account get _account => widget.account;
-
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: _account.displayName);
+    _nameController = TextEditingController(text: widget.account.displayName);
     _focusNode = FocusNode()..addListener(_onFocusChanged);
   }
 
   @override
   void didUpdateWidget(covariant BankAccountBalanceRow oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!_editing && oldWidget.account.displayName != _account.displayName) {
-      _nameController.text = _account.displayName;
+    if (!_editing && oldWidget.account.displayName != widget.account.displayName) {
+      _nameController.text = widget.account.displayName;
     }
   }
 
@@ -64,8 +62,8 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
 
   @override
   Widget build(BuildContext context) {
-    final exceptionLabel = _exceptionLabel(_account);
-    final isZero = _account.balanceCents == 0;
+    final exceptionLabel = _exceptionLabel(widget.account);
+    final isZero = widget.account.balanceCents == 0;
     final nameStyle = exceptionLabel != null
         ? EText.body.copyWith(fontWeight: FontWeight.w600)
         : EText.body;
@@ -86,7 +84,7 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
                       style: nameStyle.copyWith(color: EColors.textPrimary),
                       decoration: EInput.filled(
                         isDense: true,
-                        hintText: _account.name,
+                        hintText: widget.account.name,
                         hintStyle: nameStyle.copyWith(color: EColors.textMuted),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: ELayout.spaceSm,
@@ -106,7 +104,7 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
                       onTap: _beginEditing,
                       behavior: HitTestBehavior.opaque,
                       child: Text(
-                        _account.displayName,
+                        widget.account.displayName,
                         style: nameStyle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -120,7 +118,7 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
                   children: [
                     Flexible(
                       child: Text(
-                        _account.kind.legendLabel,
+                        widget.account.kind.legendLabel,
                         style: EText.caption.copyWith(color: EColors.textMuted),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -135,7 +133,7 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
                   ],
                 ),
               ),
-              if (_account.isCopilot) ...[
+              if (widget.account.isCopilot) ...[
                 const SizedBox(height: ELayout.spaceXs),
                 GestureDetector(
                   onTap: _saving ? null : () => _pickBelongsTo(context),
@@ -171,7 +169,7 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
           child: Align(
             alignment: Alignment.centerRight,
             child: Text(
-              formatCents(_account.balanceCents),
+              formatCents(widget.account.balanceCents),
               style: isZero
                   ? EText.body.copyWith(color: EColors.textMuted)
                   : EText.body.copyWith(fontWeight: FontWeight.w600),
@@ -224,7 +222,7 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
   }
 
   String _belongsToCaption(WidgetRef ref) {
-    final parentId = _account.belongsToAccountId;
+    final parentId = widget.account.belongsToAccountId;
     if (parentId == null) return 'Belongs to: None';
     final accounts = ref.watch(accountsMapProvider).asData?.value;
     final parentName = accounts?[parentId]?.displayNameWithInstitution;
@@ -256,7 +254,7 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
               ListTile(
                 title: Text(
                   kind.legendLabel,
-                  style: kind == _account.kind
+                  style: kind == widget.account.kind
                       ? EText.body.copyWith(fontWeight: FontWeight.w600)
                       : EText.body,
                 ),
@@ -274,12 +272,12 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
         ),
       ),
     );
-    if (selected == null || selected == _account.kind || !mounted) return;
+    if (selected == null || selected == widget.account.kind || !mounted) return;
 
     setState(() => _saving = true);
     try {
       final repository = await ref.read(accountsRepositoryProvider.future);
-      await repository.updateKind(accountId: _account.id, kind: selected);
+      await repository.updateKind(accountId: widget.account.id, kind: selected);
       ref.read(spendDataChangedProvider.notifier).notify();
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -333,7 +331,7 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
             ListTile(
               title: Text(
                 'None',
-                style: _account.belongsToAccountId == null
+                style: widget.account.belongsToAccountId == null
                     ? EText.body.copyWith(fontWeight: FontWeight.w600)
                     : EText.body,
               ),
@@ -343,7 +341,7 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
               ListTile(
                 title: Text(
                   parent.displayNameWithInstitution,
-                  style: parent.id == _account.belongsToAccountId
+                  style: parent.id == widget.account.belongsToAccountId
                       ? EText.body.copyWith(fontWeight: FontWeight.w600)
                       : EText.body,
                 ),
@@ -364,13 +362,13 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
     if (selected == null || !mounted) return;
 
     final nextParentId = selected.isEmpty ? null : selected;
-    if (nextParentId == _account.belongsToAccountId) return;
+    if (nextParentId == widget.account.belongsToAccountId) return;
 
     setState(() => _saving = true);
     try {
       final repository = await ref.read(accountsRepositoryProvider.future);
       await repository.updateBelongsTo(
-        accountId: _account.id,
+        accountId: widget.account.id,
         belongsToAccountId: nextParentId,
       );
       ref.read(spendDataChangedProvider.notifier).notify();
@@ -382,7 +380,7 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
   void _beginEditing() {
     setState(() {
       _editing = true;
-      _nameController.text = _account.displayName;
+      _nameController.text = widget.account.displayName;
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -398,9 +396,9 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
     if (!_editing || _saving) return;
     final nextLabel = _nameController.text.trim();
     final unchanged =
-        nextLabel == _account.displayName ||
+        nextLabel == widget.account.displayName ||
         (nextLabel.isEmpty &&
-            (_account.userLabel == null || _account.userLabel!.isEmpty));
+            (widget.account.userLabel == null || widget.account.userLabel!.isEmpty));
     if (unchanged) {
       setState(() => _editing = false);
       return;
@@ -410,11 +408,11 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
     try {
       final repository = await ref.read(accountsRepositoryProvider.future);
       // Empty field clears custom label back to the official bank name.
-      final storedLabel = nextLabel.isEmpty || nextLabel == _account.name
+      final storedLabel = nextLabel.isEmpty || nextLabel == widget.account.name
           ? null
           : nextLabel;
       await repository.updateUserLabel(
-        accountId: _account.id,
+        accountId: widget.account.id,
         userLabel: storedLabel,
       );
       ref.read(spendDataChangedProvider.notifier).notify();
