@@ -1,6 +1,7 @@
 import 'package:ethan_ui/ethan_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:spend_trends/app_identity.dart';
 import 'package:spend_trends/features/banks/banks_advanced_section.dart';
 import 'package:spend_trends/features/settings/copilot_import_tile.dart';
 import 'package:spend_trends/features/settings/csv_import_sheet.dart';
@@ -17,9 +18,11 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        leading: const SyncStatusNavButton(),
-        title: const Text('Settings'),
+      appBar: const EAppHeader(
+        eyebrow: AppIdentity.displayName,
+        title: 'Settings',
+        leading: SyncStatusNavButton(),
+        automaticallyImplyLeading: false,
       ),
       body: SafeArea(
         child: ListView(

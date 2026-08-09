@@ -2,6 +2,7 @@ import 'package:ethan_ui/ethan_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:spend_trends/app_identity.dart';
 import 'package:spend_trends/domain/category.dart';
 import 'package:spend_trends/domain/category_group.dart';
 import 'package:spend_trends/domain/month_summary.dart';
@@ -37,9 +38,11 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: AppBar(
+      appBar: EAppHeader(
+        eyebrow: AppIdentity.displayName,
+        title: 'Categories',
         leading: const SyncStatusNavButton(),
-        title: const Text('Categories'),
+        automaticallyImplyLeading: false,
         actions: [
           IconButton(
             icon: const Icon(Icons.add),

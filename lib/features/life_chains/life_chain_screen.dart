@@ -2,6 +2,7 @@ import 'package:ethan_ui/ethan_ui.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:spend_trends/app_identity.dart';
 import 'package:spend_trends/domain/stay_chain.dart';
 import 'package:spend_trends/features/life_chains/chain_stay_form_sheet.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
@@ -20,7 +21,10 @@ class LifeChainScreen extends ConsumerWidget {
     };
 
     return EScaffoldShell(
-      appBar: AppBar(title: Text(kind.screenTitle)),
+      appBar: EAppHeader(
+        eyebrow: AppIdentity.displayName,
+        title: kind.screenTitle,
+      ),
       body: chainAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(

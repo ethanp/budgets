@@ -1,6 +1,7 @@
 import 'package:ethan_ui/ethan_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:spend_trends/app_identity.dart';
 import 'package:spend_trends/domain/category.dart';
 import 'package:spend_trends/domain/transaction.dart';
 import 'package:spend_trends/features/activity/activity_column_widths.dart';
@@ -27,9 +28,11 @@ class ActivityScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: AppBar(
+      appBar: EAppHeader(
+        eyebrow: AppIdentity.displayName,
+        title: 'Activity',
         leading: const SyncStatusNavButton(),
-        title: const Text('Activity'),
+        automaticallyImplyLeading: false,
         actions: [
           TextButton(
             onPressed: () => SuggestCategoriesSheet.show(context),

@@ -3,6 +3,7 @@ import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:spend_trends/app_identity.dart';
 import 'package:spend_trends/domain/life_event.dart';
 import 'package:spend_trends/domain/stay_chain.dart';
 import 'package:spend_trends/features/life_chains/life_chain_screen.dart';
@@ -25,9 +26,11 @@ class LifeEventsScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: AppBar(
+      appBar: EAppHeader(
+        eyebrow: AppIdentity.displayName,
+        title: 'Life Events',
         leading: const SyncStatusNavButton(),
-        title: const Text('Life Events'),
+        automaticallyImplyLeading: false,
         actions: [
           IconButton(
             icon: const Icon(Icons.add),

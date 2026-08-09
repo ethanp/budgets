@@ -1,6 +1,7 @@
 import 'package:ethan_ui/ethan_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:spend_trends/app_identity.dart';
 import 'package:spend_trends/domain/account.dart';
 import 'package:spend_trends/domain/category.dart';
 import 'package:spend_trends/domain/category_group.dart';
@@ -31,12 +32,11 @@ class TrendsScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        leading: const SyncStatusNavButton(),
-        title: const Text('Trends'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
+      appBar: const EAppHeader(
+        eyebrow: AppIdentity.displayName,
+        title: 'Trends',
+        leading: SyncStatusNavButton(),
+        automaticallyImplyLeading: false,
       ),
       body: SafeArea(
         child: trendsAsync.when(
