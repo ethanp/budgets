@@ -26,7 +26,7 @@ class _RemoveDuplicateTransactionsTileState
       caption:
           'Drop Copilot↔SimpleFIN matches and same-account day/amount/merchant '
           'duplicates.',
-      onAction: _run,
+      onActivated: _run,
       style: SettingsSectionStyle.maintenance,
       busy: _busy,
       message: _message,

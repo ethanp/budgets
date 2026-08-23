@@ -90,14 +90,14 @@ class _LifeEventFormSheetState extends ConsumerState<LifeEventFormSheet> {
               AppDateField(
                 label: _dateMode == _LifeEventDateMode.day ? 'Date' : 'Start',
                 date: _startedOn,
-                onTap: () => _pickDate(isStart: true),
+                onActivated: () => _pickDate(isStart: true),
               ),
               if (_dateMode == _LifeEventDateMode.range) ...[
                 const SizedBox(height: ELayout.spaceSm),
                 AppDateField(
                   label: 'End',
                   date: _endedOn,
-                  onTap: () => _pickDate(isStart: false),
+                  onActivated: () => _pickDate(isStart: false),
                 ),
               ],
               const SizedBox(height: ELayout.spaceMd),

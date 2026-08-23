@@ -110,23 +110,23 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
         sections: sections,
         rowsById: rowsById,
         selectedCategoryId: _selectedCategoryId,
-        onEditGroup: (section) =>
+        onGroupOpened: (section) =>
             GroupEditorSheet.show(context, ref: ref, group: section.group),
-        onSelectCategory: _onSelectCategory,
-        onOpenCategory: (category) =>
+        onCategorySelected: _selectCategory,
+        onCategoryOpened: (category) =>
             CategoryEditorSheet.show(context, ref: ref, category: category),
       ),
       right: CategoriesBurnPane(
         selectedCategoryId: _selectedCategoryId,
         categoriesById: categoriesById,
         rowsById: rowsById,
-        onEdit: (category) =>
+        onCategoryOpened: (category) =>
             CategoryEditorSheet.show(context, ref: ref, category: category),
       ),
     );
   }
 
-  void _onSelectCategory(SpendCategory category) {
+  void _selectCategory(SpendCategory category) {
     if (!AppBrowseSplitShell.isSplit(context)) {
       CategoryEditorSheet.show(context, ref: ref, category: category);
       return;

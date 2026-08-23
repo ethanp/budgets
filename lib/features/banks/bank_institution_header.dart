@@ -32,7 +32,7 @@ class _BankInstitutionHeaderState extends ConsumerState<BankInstitutionHeader> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.displayName);
-    _focusNode = FocusNode()..addListener(_onFocusChanged);
+    _focusNode = FocusNode()..addListener(_commitRenameOnFocusLost);
   }
 
   @override
@@ -45,13 +45,13 @@ class _BankInstitutionHeaderState extends ConsumerState<BankInstitutionHeader> {
 
   @override
   void dispose() {
-    _focusNode.removeListener(_onFocusChanged);
+    _focusNode.removeListener(_commitRenameOnFocusLost);
     _focusNode.dispose();
     _nameController.dispose();
     super.dispose();
   }
 
-  void _onFocusChanged() {
+  void _commitRenameOnFocusLost() {
     if (_focusNode.hasFocus || !_editing) return;
     _commitRename();
   }

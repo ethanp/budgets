@@ -18,8 +18,8 @@ class CategoryTrendSeriesLegend extends StatelessWidget {
     required this.hiddenSeriesIds,
     required this.spendRate,
     required this.useDistributionLegend,
-    required this.onToggleSeries,
-    required this.onSoloSeries,
+    required this.onSeriesToggled,
+    required this.onSeriesSoloed,
     this.valueKind = TrendValueKind.pace,
   });
 
@@ -28,8 +28,8 @@ class CategoryTrendSeriesLegend extends StatelessWidget {
   final TrendSpendRate spendRate;
   final TrendValueKind valueKind;
   final bool useDistributionLegend;
-  final ValueChanged<String> onToggleSeries;
-  final ValueChanged<String> onSoloSeries;
+  final ValueChanged<String> onSeriesToggled;
+  final ValueChanged<String> onSeriesSoloed;
 
   @override
   Widget build(BuildContext context) {
@@ -56,16 +56,16 @@ class CategoryTrendSeriesLegend extends StatelessWidget {
             seriesList: rankedSeries,
             hiddenSeriesIds: hiddenSeriesIds,
             spendRate: spendRate,
-            onToggleSeries: onToggleSeries,
-            onSoloSeries: onSoloSeries,
+            onSeriesToggled: onSeriesToggled,
+            onSeriesSoloed: onSeriesSoloed,
           )
         : useNetWorthTable
         ? _NetWorthLegendTable(
             seriesList: rankedSeries,
             hiddenSeriesIds: hiddenSeriesIds,
             valueKind: valueKind,
-            onToggleSeries: onToggleSeries,
-            onSoloSeries: onSoloSeries,
+            onSeriesToggled: onSeriesToggled,
+            onSeriesSoloed: onSeriesSoloed,
           )
         : null;
 
@@ -80,8 +80,8 @@ class CategoryTrendSeriesLegend extends StatelessWidget {
             hiddenSeriesIds: hiddenSeriesIds,
             spendRate: spendRate,
             valueKind: valueKind,
-            onToggleSeries: onToggleSeries,
-            onSoloSeries: onSoloSeries,
+            onSeriesToggled: onSeriesToggled,
+            onSeriesSoloed: onSeriesSoloed,
           ),
           if (rankedSeries.isNotEmpty) ...[
             const SizedBox(width: ELayout.spaceMd),
@@ -99,8 +99,8 @@ class CategoryTrendSeriesLegend extends StatelessWidget {
                       hiddenSeriesIds: hiddenSeriesIds,
                       spendRate: spendRate,
                       valueKind: valueKind,
-                      onToggleSeries: onToggleSeries,
-                      onSoloSeries: onSoloSeries,
+                      onSeriesToggled: onSeriesToggled,
+                      onSeriesSoloed: onSeriesSoloed,
                     ),
                   )
                 : rankedChild!,
@@ -140,8 +140,8 @@ class TrendLegendChip extends StatelessWidget {
     required this.series,
     required this.isHidden,
     required this.spendRate,
-    required this.onToggle,
-    required this.onSolo,
+    required this.onActivated,
+    required this.onSoloActivated,
     this.valueKind = TrendValueKind.pace,
     this.expandLabel = true,
   });
@@ -150,8 +150,8 @@ class TrendLegendChip extends StatelessWidget {
   final bool isHidden;
   final TrendSpendRate spendRate;
   final TrendValueKind valueKind;
-  final VoidCallback onToggle;
-  final VoidCallback onSolo;
+  final VoidCallback onActivated;
+  final VoidCallback onSoloActivated;
   final bool expandLabel;
 
   @override
@@ -184,8 +184,8 @@ class TrendLegendChip extends StatelessWidget {
       overflow: expandLabel ? TextOverflow.ellipsis : TextOverflow.visible,
     );
     return GestureDetector(
-      onTap: onToggle,
-      onDoubleTap: onSolo,
+      onTap: onActivated,
+      onDoubleTap: onSoloActivated,
       child: Row(
         mainAxisSize: expandLabel ? MainAxisSize.max : MainAxisSize.min,
         children: [
@@ -204,16 +204,16 @@ class _MetaLegendColumn extends StatelessWidget {
     required this.hiddenSeriesIds,
     required this.spendRate,
     required this.valueKind,
-    required this.onToggleSeries,
-    required this.onSoloSeries,
+    required this.onSeriesToggled,
+    required this.onSeriesSoloed,
   });
 
   final List<CategoryTrendSeries> metaSeries;
   final Set<String> hiddenSeriesIds;
   final TrendSpendRate spendRate;
   final TrendValueKind valueKind;
-  final ValueChanged<String> onToggleSeries;
-  final ValueChanged<String> onSoloSeries;
+  final ValueChanged<String> onSeriesToggled;
+  final ValueChanged<String> onSeriesSoloed;
 
   @override
   Widget build(BuildContext context) {
@@ -239,8 +239,8 @@ class _MetaLegendColumn extends StatelessWidget {
                 spendRate: spendRate,
                 valueKind: valueKind,
                 expandLabel: false,
-                onToggle: () => onToggleSeries(metaSeries[index].id),
-                onSolo: () => onSoloSeries(metaSeries[index].id),
+                onActivated: () => onSeriesToggled(metaSeries[index].id),
+                onSoloActivated: () => onSeriesSoloed(metaSeries[index].id),
               ),
             ],
           ],
@@ -273,8 +273,8 @@ class _ColumnMajorLegend extends StatelessWidget {
     required this.hiddenSeriesIds,
     required this.spendRate,
     required this.valueKind,
-    required this.onToggleSeries,
-    required this.onSoloSeries,
+    required this.onSeriesToggled,
+    required this.onSeriesSoloed,
   });
 
   final List<CategoryTrendSeries> seriesList;
@@ -282,8 +282,8 @@ class _ColumnMajorLegend extends StatelessWidget {
   final Set<String> hiddenSeriesIds;
   final TrendSpendRate spendRate;
   final TrendValueKind valueKind;
-  final ValueChanged<String> onToggleSeries;
-  final ValueChanged<String> onSoloSeries;
+  final ValueChanged<String> onSeriesToggled;
+  final ValueChanged<String> onSeriesSoloed;
 
   @override
   Widget build(BuildContext context) {
@@ -330,8 +330,8 @@ class _ColumnMajorLegend extends StatelessWidget {
           isHidden: hiddenSeriesIds.contains(series.id),
           spendRate: spendRate,
           valueKind: valueKind,
-          onToggle: () => onToggleSeries(series.id),
-          onSolo: () => onSoloSeries(series.id),
+          onActivated: () => onSeriesToggled(series.id),
+          onSoloActivated: () => onSeriesSoloed(series.id),
         ),
       );
     }
@@ -345,15 +345,15 @@ class _NetWorthLegendTable extends StatelessWidget {
     required this.seriesList,
     required this.hiddenSeriesIds,
     required this.valueKind,
-    required this.onToggleSeries,
-    required this.onSoloSeries,
+    required this.onSeriesToggled,
+    required this.onSeriesSoloed,
   });
 
   final List<CategoryTrendSeries> seriesList;
   final Set<String> hiddenSeriesIds;
   final TrendValueKind valueKind;
-  final ValueChanged<String> onToggleSeries;
-  final ValueChanged<String> onSoloSeries;
+  final ValueChanged<String> onSeriesToggled;
+  final ValueChanged<String> onSeriesSoloed;
 
   @override
   Widget build(BuildContext context) {
@@ -421,8 +421,8 @@ class _NetWorthLegendTable extends StatelessWidget {
     return TableRow(
       children: [
         GestureDetector(
-          onTap: () => onToggleSeries(series.id),
-          onDoubleTap: () => onSoloSeries(series.id),
+          onTap: () => onSeriesToggled(series.id),
+          onDoubleTap: () => onSeriesSoloed(series.id),
           behavior: HitTestBehavior.opaque,
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: ELayout.spaceXs),
@@ -445,8 +445,8 @@ class _NetWorthLegendTable extends StatelessWidget {
           ),
         ),
         GestureDetector(
-          onTap: () => onToggleSeries(series.id),
-          onDoubleTap: () => onSoloSeries(series.id),
+          onTap: () => onSeriesToggled(series.id),
+          onDoubleTap: () => onSeriesSoloed(series.id),
           behavior: HitTestBehavior.opaque,
           child: Padding(
             padding: const EdgeInsets.only(

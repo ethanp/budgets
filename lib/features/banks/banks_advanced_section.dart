@@ -79,7 +79,7 @@ class BanksAdvancedSection extends ConsumerWidget {
           icon: Icons.add_circle,
           title: 'Add account',
           caption: 'Opens SimpleFIN Bridge to link another institution.',
-          onAction: () =>
+          onActivated: () =>
               ref.read(banksControllerProvider.notifier).openSimpleFinBridge(),
           style: _style,
           busy: actionState.busy,
@@ -91,7 +91,7 @@ class BanksAdvancedSection extends ConsumerWidget {
           caption:
               'Recent SimpleFIN pulls, including per-account outages and '
               'bridge warnings.',
-          onAction: () => BankPullHistorySheet.show(context),
+          onActivated: () => BankPullHistorySheet.show(context),
           style: _style,
           busy: actionState.busy,
         ),
@@ -103,7 +103,7 @@ class BanksAdvancedSection extends ConsumerWidget {
               'Fetches ~2 years from SimpleFIN again. Everyday "Pull bank '
               'transactions" only covers since the last SimpleFIN update '
               '(window starts 2 days earlier).',
-          onAction: () => BanksPullProgressSheet.showAndRun(
+          onActivated: () => BanksPullProgressSheet.showAndRun(
             context,
             run: (onProgress) => ref
                 .read(banksControllerProvider.notifier)
@@ -117,7 +117,7 @@ class BanksAdvancedSection extends ConsumerWidget {
           icon: Icons.delete,
           title: 'Disconnect & erase',
           caption: 'Removes the connection and local accounts/transactions.',
-          onAction: () => _disconnect(context, ref),
+          onActivated: () => _disconnect(context, ref),
           style: _style,
           busy: actionState.busy,
         ),

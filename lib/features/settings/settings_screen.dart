@@ -57,7 +57,7 @@ class SettingsScreen extends ConsumerWidget {
               icon: Icons.description,
               title: 'Import CSV',
               caption: 'Escape hatch when a bank connection is broken.',
-              onAction: () => CsvImportSheet.show(context),
+              onActivated: () => CsvImportSheet.show(context),
               style: SettingsSectionStyle.maintenance,
             ),
             const SizedBox(height: ELayout.spaceXl),

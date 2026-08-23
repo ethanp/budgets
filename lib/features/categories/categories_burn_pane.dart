@@ -13,13 +13,13 @@ class CategoriesBurnPane extends ConsumerWidget {
     required this.selectedCategoryId,
     required this.categoriesById,
     required this.rowsById,
-    required this.onEdit,
+    required this.onCategoryOpened,
   });
 
   final String? selectedCategoryId;
   final Map<String, SpendCategory> categoriesById;
   final Map<String, CategoryMonthRow> rowsById;
-  final void Function(SpendCategory category) onEdit;
+  final void Function(SpendCategory category) onCategoryOpened;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -166,7 +166,7 @@ class CategoriesBurnPane extends ConsumerWidget {
         ],
         const SizedBox(height: ELayout.spaceLg),
         AppPrimaryButton(
-          onPressed: () => onEdit(category),
+          onPressed: () => onCategoryOpened(category),
           child: const Text('Edit'),
         ),
       ],

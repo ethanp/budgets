@@ -36,7 +36,7 @@ class AppCompactFactRow extends StatelessWidget {
     this.tintColor,
     this.selected = false,
     this.decorate = true,
-    this.onTap,
+    this.onActivated,
     this.padding = const EdgeInsets.all(ELayout.spaceMd),
   });
 
@@ -52,7 +52,7 @@ class AppCompactFactRow extends StatelessWidget {
 
   /// When false, renders only the compact columns (caller owns chrome).
   final bool decorate;
-  final VoidCallback? onTap;
+  final VoidCallback? onActivated;
   final EdgeInsetsGeometry padding;
 
   @override
@@ -108,10 +108,10 @@ class AppCompactFactRow extends StatelessWidget {
       );
     }
 
-    if (onTap == null) return body;
+    if (onActivated == null) return body;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: onTap,
+      onTap: onActivated,
       child: body,
     );
   }

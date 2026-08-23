@@ -75,13 +75,13 @@ class CategoryPicker extends StatelessWidget {
     required this.categories,
     required this.groups,
     required this.selectedId,
-    required this.onPick,
+    required this.onCategorySelected,
   });
 
   final List<SpendCategory> categories;
   final List<CategoryGroup> groups;
   final String? selectedId;
-  final ValueChanged<SpendCategory> onPick;
+  final ValueChanged<SpendCategory> onCategorySelected;
 
   @override
   Widget build(BuildContext context) {
@@ -97,7 +97,7 @@ class CategoryPicker extends StatelessWidget {
           _CategoryPickerSectionBlock(
             section: sections[index],
             selectedId: selectedId,
-            onPick: onPick,
+            onCategorySelected: onCategorySelected,
           ),
         ],
       ],
@@ -109,12 +109,12 @@ class _CategoryPickerSectionBlock extends StatelessWidget {
   const _CategoryPickerSectionBlock({
     required this.section,
     required this.selectedId,
-    required this.onPick,
+    required this.onCategorySelected,
   });
 
   final CategoryPickerSection section;
   final String? selectedId;
-  final ValueChanged<SpendCategory> onPick;
+  final ValueChanged<SpendCategory> onCategorySelected;
 
   @override
   Widget build(BuildContext context) {
@@ -140,7 +140,7 @@ class _CategoryPickerSectionBlock extends StatelessWidget {
                 label: category.name,
                 color: CategoryColor.forCategory(category),
                 selected: category.id == selectedId,
-                onTap: () => onPick(category),
+                onActivated: () => onCategorySelected(category),
               ),
           ],
         ),

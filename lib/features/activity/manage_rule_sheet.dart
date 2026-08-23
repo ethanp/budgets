@@ -240,7 +240,7 @@ class _ManageRuleSheetState extends ConsumerState<ManageRuleSheet> {
         categories: categories,
         groups: groups,
         selectedCategoryId: _rule.categoryId,
-        onPick: (category) => Navigator.of(sheetContext).pop(category),
+        onCategorySelected: (category) => Navigator.of(sheetContext).pop(category),
       ),
     );
     if (selected == null || !mounted) return;
@@ -383,13 +383,13 @@ class _TargetCategoryPickerSheet extends StatelessWidget {
     required this.categories,
     required this.groups,
     required this.selectedCategoryId,
-    required this.onPick,
+    required this.onCategorySelected,
   });
 
   final List<SpendCategory> categories;
   final List<CategoryGroup> groups;
   final String selectedCategoryId;
-  final ValueChanged<SpendCategory> onPick;
+  final ValueChanged<SpendCategory> onCategorySelected;
 
   @override
   Widget build(BuildContext context) {
@@ -416,7 +416,7 @@ class _TargetCategoryPickerSheet extends StatelessWidget {
                   categories: categories,
                   groups: groups,
                   selectedId: selectedCategoryId,
-                  onPick: onPick,
+                  onCategorySelected: onCategorySelected,
                 ),
               ],
             ),

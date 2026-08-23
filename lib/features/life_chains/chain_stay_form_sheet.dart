@@ -103,7 +103,7 @@ class _ChainStayFormSheetState extends ConsumerState<ChainStayFormSheet> {
               AppDateField(
                 label: widget.kind.startDateLabel,
                 date: _startedOn,
-                onTap: _pickDate,
+                onActivated: _pickDate,
               ),
               const SizedBox(height: ELayout.spaceMd),
               TextField(

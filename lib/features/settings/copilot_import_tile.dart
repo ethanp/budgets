@@ -26,8 +26,8 @@ class _CopilotImportTileState extends ConsumerState<CopilotImportTile> {
       caption:
           'Load $copilotTransactionsRelativePath (gitignored). '
           'Skips SimpleFIN matches; backfills notes; then removes duplicates.',
-      onAction: _importLocal,
-      onCancel: _busy ? _cancelImport : null,
+      onActivated: _importLocal,
+      onDismiss: _busy ? _cancelImport : null,
       style: SettingsSectionStyle.maintenance,
       busy: _busy,
       message: _message,

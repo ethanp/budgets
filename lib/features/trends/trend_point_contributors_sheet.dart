@@ -162,7 +162,7 @@ class _TrendPointContributorsSheetState
                   columnWidths: columnWidths,
                   showDivider: index < widget.contributors.length - 1,
                   category: _categoryFor(contributor, categoryById),
-                  onCategoryPressed: () => _changeCategory(contributor),
+                  onCategorySelected: () => _changeCategory(contributor),
                 );
               },
             ),
@@ -354,7 +354,7 @@ class _ContributorRow extends StatelessWidget {
     required this.columnWidths,
     required this.showDivider,
     required this.category,
-    required this.onCategoryPressed,
+    required this.onCategorySelected,
   });
 
   final TrendPointContributor contributor;
@@ -362,7 +362,7 @@ class _ContributorRow extends StatelessWidget {
   final _ContributorColumnWidths columnWidths;
   final bool showDivider;
   final SpendCategory? category;
-  final VoidCallback onCategoryPressed;
+  final VoidCallback onCategorySelected;
 
   @override
   Widget build(BuildContext context) {
@@ -470,7 +470,7 @@ class _ContributorRow extends StatelessWidget {
     return AppSpreadsheetCell(
       width: columnWidths.category,
       child: InkWell(
-        onTap: onCategoryPressed,
+        onTap: onCategorySelected,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 4),
           child: Row(

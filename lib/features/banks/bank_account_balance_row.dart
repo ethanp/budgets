@@ -13,13 +13,13 @@ class BankAccountBalanceRow extends ConsumerStatefulWidget {
     required this.account,
     required this.amountColumnWidth,
     this.selected = false,
-    this.onSelected,
+    this.onActivated,
   });
 
   final Account account;
   final double amountColumnWidth;
   final bool selected;
-  final VoidCallback? onSelected;
+  final VoidCallback? onActivated;
 
   @override
   ConsumerState<BankAccountBalanceRow> createState() =>
@@ -36,7 +36,7 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.account.displayName);
-    _focusNode = FocusNode()..addListener(_onFocusChanged);
+    _focusNode = FocusNode()..addListener(_commitRenameOnFocusLost);
   }
 
   @override
@@ -49,13 +49,13 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
 
   @override
   void dispose() {
-    _focusNode.removeListener(_onFocusChanged);
+    _focusNode.removeListener(_commitRenameOnFocusLost);
     _focusNode.dispose();
     _nameController.dispose();
     super.dispose();
   }
 
-  void _onFocusChanged() {
+  void _commitRenameOnFocusLost() {
     if (_focusNode.hasFocus || !_editing) return;
     _commitRename();
   }
@@ -213,10 +213,10 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
             child: body,
           );
 
-    if (widget.onSelected == null) return decorated;
+    if (widget.onActivated == null) return decorated;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: widget.onSelected,
+      onTap: widget.onActivated,
       child: decorated,
     );
   }

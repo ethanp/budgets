@@ -58,7 +58,7 @@ class _RecategorizeFormState extends ConsumerState<RecategorizeForm> {
         final categorizer = await ref.read(categorizerProvider.future);
         return categorizer.transactionsMatchingContains(pattern);
       },
-      notify: _onRematchUpdated,
+      notify: _applyRematchResults,
     );
     _patternRematch.rematch(_patternController.text);
   }
@@ -71,7 +71,7 @@ class _RecategorizeFormState extends ConsumerState<RecategorizeForm> {
     super.dispose();
   }
 
-  void _onRematchUpdated() {
+  void _applyRematchResults() {
     if (!mounted) return;
     setState(() {
       if (_patternRematch.rematching) return;
@@ -288,7 +288,7 @@ class _RecategorizeFormState extends ConsumerState<RecategorizeForm> {
               categoryNameById,
             ),
             selected: _selectedMatchIds.contains(transaction.id),
-            onChanged: (selected) => _setSelected(transaction.id, selected),
+            onSelectionChanged: (selected) => _setSelected(transaction.id, selected),
           ),
       ],
     );
@@ -310,8 +310,8 @@ class _RecategorizeFormState extends ConsumerState<RecategorizeForm> {
         if (matchCount > 0) ...[
           const SizedBox(height: ELayout.spaceXs),
           SelectAllNoneRow(
-            onSelectAll: _selectAllMatches,
-            onSelectNone: _selectNoMatches,
+            onAllSelected: _selectAllMatches,
+            onNoneSelected: _selectNoMatches,
           ),
         ],
       ],
@@ -326,7 +326,7 @@ class _RecategorizeFormState extends ConsumerState<RecategorizeForm> {
       categories: categories,
       groups: groups,
       selectedId: widget.transaction.effectiveCategoryId,
-      onPick: _assign,
+      onCategorySelected: _assign,
     );
   }
 

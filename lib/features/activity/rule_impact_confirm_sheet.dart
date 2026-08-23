@@ -116,7 +116,7 @@ class _RuleImpactConfirmSheetState
             final categorizer = await ref.read(categorizerProvider.future);
             return categorizer.transactionsMatchingContains(pattern);
           },
-          notify: () => _onRematchUpdated(groupIndex),
+          notify: () => _applyRematchResults(groupIndex),
         ),
     ];
     for (var groupIndex = 0; groupIndex < _groups.length; groupIndex++) {
@@ -124,7 +124,7 @@ class _RuleImpactConfirmSheetState
     }
   }
 
-  void _onRematchUpdated(int groupIndex) {
+  void _applyRematchResults(int groupIndex) {
     if (!mounted) return;
     setState(() {
       final rematch = _rematches[groupIndex];
@@ -225,7 +225,7 @@ class _RuleImpactConfirmSheetState
   }
 
   Widget _selectionShortcuts() {
-    return SelectAllNoneRow(onSelectAll: _selectAll, onSelectNone: _selectNone);
+    return SelectAllNoneRow(onAllSelected: _selectAll, onNoneSelected: _selectNone);
   }
 
   Widget _matchList({
@@ -268,7 +268,7 @@ class _RuleImpactConfirmSheetState
     return [
       _TargetCategoryButton(
         categoryName: group.categoryName,
-        onTap: () => _pickTargetCategory(
+        onActivated: () => _pickTargetCategory(
           groupIndex: groupIndex,
           categories: categories,
           categoryGroups: categoryGroups,
@@ -314,7 +314,7 @@ class _RuleImpactConfirmSheetState
             categoryNameById,
           ),
           selected: _selectedIds.contains(transaction.id),
-          onChanged: (selected) => _setSelected(transaction.id, selected),
+            onSelectionChanged: (selected) => _setSelected(transaction.id, selected),
         ),
       const SizedBox(height: ELayout.spaceLg),
     ];
@@ -333,7 +333,7 @@ class _RuleImpactConfirmSheetState
         categories: categories,
         groups: categoryGroups,
         selectedCategoryId: _groups[groupIndex].categoryId,
-        onPick: (category) => Navigator.of(sheetContext).pop(category),
+        onCategorySelected: (category) => Navigator.of(sheetContext).pop(category),
       ),
     );
     if (selected == null || !mounted) return;
@@ -418,16 +418,16 @@ class _RuleImpactConfirmSheetState
 class _TargetCategoryButton extends StatelessWidget {
   const _TargetCategoryButton({
     required this.categoryName,
-    required this.onTap,
+    required this.onActivated,
   });
 
   final String categoryName;
-  final VoidCallback onTap;
+  final VoidCallback onActivated;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: onActivated,
       behavior: HitTestBehavior.opaque,
       child: Row(
         children: [
@@ -460,13 +460,13 @@ class _TargetCategoryPickerSheet extends StatelessWidget {
     required this.categories,
     required this.groups,
     required this.selectedCategoryId,
-    required this.onPick,
+    required this.onCategorySelected,
   });
 
   final List<SpendCategory> categories;
   final List<CategoryGroup> groups;
   final String selectedCategoryId;
-  final ValueChanged<SpendCategory> onPick;
+  final ValueChanged<SpendCategory> onCategorySelected;
 
   @override
   Widget build(BuildContext context) {
@@ -493,7 +493,7 @@ class _TargetCategoryPickerSheet extends StatelessWidget {
                   categories: categories,
                   groups: groups,
                   selectedId: selectedCategoryId,
-                  onPick: onPick,
+                  onCategorySelected: onCategorySelected,
                 ),
               ],
             ),

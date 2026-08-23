@@ -116,7 +116,7 @@ class _LifeEventsBody extends ConsumerWidget {
             if (index > 0) const SizedBox(height: ELayout.spaceSm),
             _LifeEventListTile(
               lifeEvent: lifeEvents[index],
-              onTap: () => LifeEventFormSheet.show(
+              onActivated: () => LifeEventFormSheet.show(
                 context,
                 ref: ref,
                 lifeEvent: lifeEvents[index],
@@ -200,15 +200,15 @@ class _LifeChainHeroCard extends StatelessWidget {
 }
 
 class _LifeEventListTile extends StatelessWidget {
-  const _LifeEventListTile({required this.lifeEvent, required this.onTap});
+  const _LifeEventListTile({required this.lifeEvent, required this.onActivated});
 
   final LifeEvent lifeEvent;
-  final VoidCallback onTap;
+  final VoidCallback onActivated;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: onActivated,
       child: AppCard(
         padding: const EdgeInsets.all(ELayout.spaceMd),
         child: Column(

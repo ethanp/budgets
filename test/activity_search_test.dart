@@ -17,7 +17,7 @@ void main() {
       pending: false,
       note: 'fill up',
     );
-    final checking = Account(
+    const checking = Account(
       id: 'a1',
       externalId: 'ext',
       name: 'Chase Checking',
@@ -25,7 +25,7 @@ void main() {
       balanceCents: 0,
       status: AccountStatus.ok,
     );
-    final transport = SpendCategory(
+    const transport = SpendCategory(
       id: 'c1',
       name: 'Transport',
       sortOrder: 0,

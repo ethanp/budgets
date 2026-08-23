@@ -114,7 +114,7 @@ class _BanksPullProgressSheetState
     });
 
     try {
-      await widget.run(_onProgress);
+      await widget.run(_applyPullProgress);
       if (!mounted) return;
       setState(() => _statusLine = 'Applying category rules…');
       await _enrichCategorization();
@@ -218,7 +218,7 @@ class _BanksPullProgressSheetState
     _elapsed.stop();
   }
 
-  void _onProgress(SimpleFinPullProgress progress) {
+  void _applyPullProgress(SimpleFinPullProgress progress) {
     if (!mounted) return;
     setState(() {
       switch (progress.phase) {

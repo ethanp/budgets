@@ -119,7 +119,7 @@ class ImportCopilotTransactionsCsv {
         session.existingByExternalKey[externalKey] ??
         session.existingByContentKey[contentKey];
     if (existing != null) {
-      _handleExistingMatch(
+      _reconcileExistingTransaction(
         session: session,
         existing: existing,
         parsed: parsed,
@@ -245,7 +245,7 @@ class ImportCopilotTransactionsCsv {
     );
   }
 
-  void _handleExistingMatch({
+  void _reconcileExistingTransaction({
     required InProgressCopilotCsvImport session,
     required TransactionPresence existing,
     required ParsedCopilotRow parsed,

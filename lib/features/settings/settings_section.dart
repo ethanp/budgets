@@ -158,30 +158,30 @@ class SettingsToolRow extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.caption,
-    required this.onAction,
+    required this.onActivated,
     required this.style,
     this.busy = false,
     this.message,
     this.progress,
-    this.onCancel,
+    this.onDismiss,
   });
 
   final IconData icon;
   final String title;
   final String caption;
-  final VoidCallback? onAction;
+  final VoidCallback? onActivated;
   final SettingsSectionStyle style;
   final bool busy;
   final String? message;
   final Widget? progress;
-  final VoidCallback? onCancel;
+  final VoidCallback? onDismiss;
 
   @override
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: busy ? null : onAction,
+        onTap: busy ? null : onActivated,
         borderRadius: ELayout.borderRadiusSm,
         child: AnimatedOpacity(
           duration: const Duration(milliseconds: 150),
@@ -224,10 +224,10 @@ class SettingsToolRow extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (busy && onCancel != null) ...[
+                if (busy && onDismiss != null) ...[
                   const SizedBox(width: ELayout.spaceSm),
                   TextButton(
-                    onPressed: onCancel,
+                    onPressed: onDismiss,
                     child: Text(
                       'Cancel',
                       style: EText.caption.copyWith(

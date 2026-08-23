@@ -2,6 +2,7 @@ import 'package:ethan_ui/ethan_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spend_trends/app_identity.dart';
+import 'package:spend_trends/domain/account.dart';
 import 'package:spend_trends/domain/category.dart';
 import 'package:spend_trends/domain/transaction.dart';
 import 'package:spend_trends/features/activity/activity_column_widths.dart';
@@ -175,42 +176,12 @@ class _ActivityBodyState extends ConsumerState<_ActivityBody> {
               ),
             ),
           Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final columnWidths = naturalColumnWidths.allocate(
-                  constraints.maxWidth,
-                );
-                return RefreshIndicator(
-                  onRefresh: () => ActivityScreen.refresh(context, ref),
-                  child: CustomScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    slivers: [
-                      if (filtered.visible.isEmpty)
-                        _noResultsSliver(
-                          hasSearch: hasSearch,
-                          searchMatchCount: filtered.searchMatchCount,
-                        )
-                      else
-                        ActivityDayListSliver(
-                          transactions: filtered.visible,
-                          accounts: accounts,
-                          categories: categories,
-                          ruleMatchIndex: filtered.ruleMatchIndex,
-                          explainingByTransactionId:
-                              filtered.explainingByTransactionId,
-                          selectedTransactionId: _selectedTransactionId,
-                          columnWidths: columnWidths,
-                          onTransactionTap: _onTransactionTap,
-                          onRuleTap: (rule) => ManageRuleSheet.show(
-                            context,
-                            ref: ref,
-                            rule: rule,
-                          ),
-                        ),
-                    ],
-                  ),
-                );
-              },
+            child: _visibleTransactionsScroll(
+              filtered: filtered,
+              accounts: accounts,
+              categories: categories,
+              naturalColumnWidths: naturalColumnWidths,
+              hasSearch: hasSearch,
             ),
           ),
         ],
@@ -220,14 +191,14 @@ class _ActivityBodyState extends ConsumerState<_ActivityBody> {
         visibleTransactions: filtered.visible,
         selected: selectedTransaction,
         uncategorizedOnly: _uncategorizedOnly,
-        onShowUncategorized: () {
+        onUncategorizedFilterApplied: () {
           setState(() {
             _uncategorizedOnly = true;
             _hideRuleMatched = false;
             _selectedTransactionId = null;
           });
         },
-        onClearUncategorizedFilter: () {
+        onUncategorizedFilterCleared: () {
           setState(() => _uncategorizedOnly = false);
         },
         onCategorized: () {
@@ -237,7 +208,54 @@ class _ActivityBodyState extends ConsumerState<_ActivityBody> {
     );
   }
 
-  void _onTransactionTap(BankTransaction transaction) {
+  /// Width-allocated day list (or empty) inside a pull-to-refresh scroll.
+  Widget _visibleTransactionsScroll({
+    required ActivityVisibleTransactions filtered,
+    required Map<String, Account> accounts,
+    required Map<String, SpendCategory> categories,
+    required ActivityColumnWidths naturalColumnWidths,
+    required bool hasSearch,
+  }) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columnWidths = naturalColumnWidths.allocate(
+          constraints.maxWidth,
+        );
+        return RefreshIndicator(
+          onRefresh: () => ActivityScreen.refresh(context, ref),
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              if (filtered.visible.isEmpty)
+                _noResultsSliver(
+                  hasSearch: hasSearch,
+                  searchMatchCount: filtered.searchMatchCount,
+                )
+              else
+                ActivityDayListSliver(
+                  transactions: filtered.visible,
+                  accounts: accounts,
+                  categories: categories,
+                  ruleMatchIndex: filtered.ruleMatchIndex,
+                  explainingByTransactionId:
+                      filtered.explainingByTransactionId,
+                  selectedTransactionId: _selectedTransactionId,
+                  columnWidths: columnWidths,
+                  onTransactionSelected: _selectTransaction,
+                  onRuleSelected: (rule) => ManageRuleSheet.show(
+                    context,
+                    ref: ref,
+                    rule: rule,
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _selectTransaction(BankTransaction transaction) {
     if (!AppBrowseSplitShell.isSplit(context)) {
       RecategorizeSheet.show(context, ref: ref, transaction: transaction);
       return;

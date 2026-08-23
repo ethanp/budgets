@@ -15,17 +15,17 @@ class ActivityTransactionTile extends StatelessWidget {
     required this.transaction,
     required this.account,
     required this.category,
-    required this.onTap,
+    required this.onActivated,
     required this.columnWidths,
-    this.onRuleTap,
+    this.onRuleSelected,
     this.selected = false,
   });
 
   final BankTransaction transaction;
   final Account? account;
   final SpendCategory? category;
-  final VoidCallback onTap;
-  final VoidCallback? onRuleTap;
+  final VoidCallback onActivated;
+  final VoidCallback? onRuleSelected;
   final bool selected;
   final ActivityColumnWidths columnWidths;
 
@@ -46,7 +46,7 @@ class ActivityTransactionTile extends StatelessWidget {
       amountCents: transaction.amountCents,
       amountColor: _amountColor,
       selected: selected,
-      onTap: onTap,
+      onActivated: onActivated,
       leadingCells: [
         TransactionListRow.cell(
           width: columnWidths.category,
@@ -76,12 +76,12 @@ class ActivityTransactionTile extends StatelessWidget {
 
   Widget? _trailing() {
     final statusIcons = _statusIcons();
-    final ruleButton = onRuleTap == null
+    final ruleButton = onRuleSelected == null
         ? null
         : Tooltip(
             message: 'Manage categorization rule',
             child: TextButton(
-              onPressed: onRuleTap,
+              onPressed: onRuleSelected,
               style: TextButton.styleFrom(
                 foregroundColor: FinanceColors.accentPrimary,
                 padding: const EdgeInsets.symmetric(

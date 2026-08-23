@@ -19,8 +19,8 @@ class ActivityDayListSliver extends StatelessWidget {
     required this.explainingByTransactionId,
     required this.selectedTransactionId,
     required this.columnWidths,
-    required this.onTransactionTap,
-    required this.onRuleTap,
+    required this.onTransactionSelected,
+    required this.onRuleSelected,
   });
 
   final List<BankTransaction> transactions;
@@ -30,8 +30,8 @@ class ActivityDayListSliver extends StatelessWidget {
   final Map<String, CategorizationRule?> explainingByTransactionId;
   final String? selectedTransactionId;
   final ActivityColumnWidths columnWidths;
-  final void Function(BankTransaction transaction) onTransactionTap;
-  final void Function(CategorizationRule rule) onRuleTap;
+  final void Function(BankTransaction transaction) onTransactionSelected;
+  final void Function(CategorizationRule rule) onRuleSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -67,10 +67,10 @@ class ActivityDayListSliver extends StatelessWidget {
               category: category,
               selected: selectedTransactionId == transaction.id,
               columnWidths: columnWidths,
-              onTap: () => onTransactionTap(transaction),
-              onRuleTap:
+              onActivated: () => onTransactionSelected(transaction),
+              onRuleSelected:
                   explainingRule != null && explainingRule.beatsImportDefault
-                  ? () => onRuleTap(explainingRule)
+                  ? () => onRuleSelected(explainingRule)
                   : null,
             ),
           );

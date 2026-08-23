@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 /// Select all / Select none shortcuts for multi-select match lists.
 class SelectAllNoneRow extends StatelessWidget {
   const SelectAllNoneRow({
-    required this.onSelectAll,
-    required this.onSelectNone,
+    required this.onAllSelected,
+    required this.onNoneSelected,
   });
 
-  final VoidCallback onSelectAll;
-  final VoidCallback onSelectNone;
+  final VoidCallback onAllSelected;
+  final VoidCallback onNoneSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +18,7 @@ class SelectAllNoneRow extends StatelessWidget {
       runSpacing: ELayout.spaceXs,
       children: [
         TextButton(
-          onPressed: onSelectAll,
+          onPressed: onAllSelected,
           style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: ELayout.spaceSm),
             minimumSize: Size.zero,
@@ -28,7 +28,7 @@ class SelectAllNoneRow extends StatelessWidget {
           child: const Text('Select all'),
         ),
         TextButton(
-          onPressed: onSelectNone,
+          onPressed: onNoneSelected,
           style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: ELayout.spaceSm),
             minimumSize: Size.zero,

@@ -6,14 +6,14 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('Categorizer.bestMatchingRule', () {
     test('prefers longer contains pattern over shorter prefix', () {
-      final groceryRule = CategorizationRule(
+      const groceryRule = CategorizationRule(
         id: 'grocery',
         matchType: RuleMatchType.merchantContains,
         pattern: 'kroger',
         categoryId: 'groceries',
         priority: 10,
       );
-      final fuelRule = CategorizationRule(
+      const fuelRule = CategorizationRule(
         id: 'fuel',
         matchType: RuleMatchType.merchantContains,
         pattern: 'kroger fuel',
@@ -38,14 +38,14 @@ void main() {
 
     test('higher priority still beats a longer pattern', () {
       final rules = [
-        CategorizationRule(
+        const CategorizationRule(
           id: 'long',
           matchType: RuleMatchType.merchantContains,
           pattern: 'kroger fuel',
           categoryId: 'transport',
           priority: 10,
         ),
-        CategorizationRule(
+        const CategorizationRule(
           id: 'short',
           matchType: RuleMatchType.merchantContains,
           pattern: 'kroger',
@@ -65,14 +65,14 @@ void main() {
   });
 
   group('Categorizer.coveredByBetterExistingRule', () {
-    final fuelRule = CategorizationRule(
+    const fuelRule = CategorizationRule(
       id: 'fuel',
       matchType: RuleMatchType.merchantContains,
       pattern: 'kroger fuel',
       categoryId: 'transport',
       priority: 10,
     );
-    final groceryProposed = CategorizationRule(
+    const groceryProposed = CategorizationRule(
       id: '_proposed_',
       matchType: RuleMatchType.merchantContains,
       pattern: 'kroger',
@@ -103,7 +103,7 @@ void main() {
     });
 
     test('does not treat same-pattern existing rule as covering', () {
-      final existingGrocery = CategorizationRule(
+      const existingGrocery = CategorizationRule(
         id: 'grocery',
         matchType: RuleMatchType.merchantContains,
         pattern: 'kroger',
@@ -121,7 +121,7 @@ void main() {
     });
 
     test('still skips fuel when same-pattern grocery rule already exists', () {
-      final existingGrocery = CategorizationRule(
+      const existingGrocery = CategorizationRule(
         id: 'grocery',
         matchType: RuleMatchType.merchantContains,
         pattern: 'kroger',
@@ -139,7 +139,7 @@ void main() {
     });
 
     test('skips when higher-priority shorter rule already wins', () {
-      final priorityFuel = CategorizationRule(
+      const priorityFuel = CategorizationRule(
         id: 'fuel-priority',
         matchType: RuleMatchType.merchantContains,
         pattern: 'fuel',
@@ -159,14 +159,14 @@ void main() {
 
   group('RuleMatchIndex.explainingRule', () {
     test('lists only transactions where the rule is primary', () {
-      final groceryRule = CategorizationRule(
+      const groceryRule = CategorizationRule(
         id: 'grocery',
         matchType: RuleMatchType.merchantContains,
         pattern: 'kroger',
         categoryId: 'groceries',
         priority: 10,
       );
-      final fuelRule = CategorizationRule(
+      const fuelRule = CategorizationRule(
         id: 'fuel',
         matchType: RuleMatchType.merchantContains,
         pattern: 'kroger fuel',

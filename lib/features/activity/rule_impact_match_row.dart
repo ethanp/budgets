@@ -13,13 +13,13 @@ class RuleImpactMatchRow extends StatelessWidget {
     required this.transaction,
     required this.currentCategoryName,
     required this.selected,
-    required this.onChanged,
+    required this.onSelectionChanged,
   });
 
   final BankTransaction transaction;
   final String currentCategoryName;
   final bool selected;
-  final ValueChanged<bool> onChanged;
+  final ValueChanged<bool> onSelectionChanged;
 
   static String categoryLabel(
     BankTransaction transaction,
@@ -41,7 +41,7 @@ class RuleImpactMatchRow extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: ELayout.spaceSm),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () => onChanged(!selected),
+        onTap: () => onSelectionChanged(!selected),
         child: ESurface(
           kind: selected ? ESurfaceKind.tinted : ESurfaceKind.row,
           accent: selected ? FinanceColors.accentPrimary : null,
@@ -56,7 +56,7 @@ class RuleImpactMatchRow extends StatelessWidget {
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 visualDensity: VisualDensity.compact,
                 value: selected,
-                onChanged: (value) => onChanged(value ?? false),
+                onChanged: (value) => onSelectionChanged(value ?? false),
               ),
               const SizedBox(width: ELayout.spaceSm),
               Expanded(

@@ -112,7 +112,7 @@ class BankAccountsList extends ConsumerWidget {
             account: account,
             amountColumnWidth: amountColumnWidth,
             selected: selectedAccountId == account.id,
-            onSelected: onAccountSelected == null
+            onActivated: onAccountSelected == null
                 ? null
                 : () => onAccountSelected!(account.id),
           ),

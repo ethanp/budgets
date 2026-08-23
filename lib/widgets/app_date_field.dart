@@ -7,17 +7,17 @@ class AppDateField extends StatelessWidget {
   const AppDateField({
     required this.label,
     required this.date,
-    required this.onTap,
+    required this.onActivated,
   });
 
   final String label;
   final DateTime date;
-  final VoidCallback onTap;
+  final VoidCallback onActivated;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: onActivated,
       child: Container(
         padding: const EdgeInsets.all(ELayout.spaceMd),
         decoration: BoxDecoration(

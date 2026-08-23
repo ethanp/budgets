@@ -26,7 +26,7 @@ class _UnlockCopilotCategoriesTileState
       title: 'Unlock Copilot categories',
       caption:
           'Unlock imported overrides to suggested; delete bad default rules.',
-      onAction: _run,
+      onActivated: _run,
       style: SettingsSectionStyle.maintenance,
       busy: _busy,
       message: _message,

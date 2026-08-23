@@ -14,7 +14,7 @@ class TransactionListRow extends StatelessWidget {
     required this.amountColor,
     this.leadingCells = const [],
     this.trailing,
-    this.onTap,
+    this.onActivated,
     this.selected = false,
   });
 
@@ -24,7 +24,7 @@ class TransactionListRow extends StatelessWidget {
   final Color amountColor;
   final List<Widget> leadingCells;
   final Widget? trailing;
-  final VoidCallback? onTap;
+  final VoidCallback? onActivated;
   final bool selected;
 
   @override
@@ -32,7 +32,7 @@ class TransactionListRow extends StatelessWidget {
     return ESurface(
       kind: selected ? ESurfaceKind.tinted : ESurfaceKind.row,
       accent: selected ? FinanceColors.accentPrimary : null,
-      onTap: onTap,
+      onActivated: onActivated,
       borderRadius: ELayout.borderRadiusMd,
       child: IntrinsicHeight(
         child: Row(

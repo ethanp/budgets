@@ -140,7 +140,7 @@ class _ChainPath extends ConsumerWidget {
           _StayNode(
             kind: kind,
             segment: segmentsNewestFirst[index],
-            onTap: () => ChainStayFormSheet.show(
+            onActivated: () => ChainStayFormSheet.show(
               context,
               ref: ref,
               kind: kind,
@@ -186,12 +186,12 @@ class _StayNode extends StatelessWidget {
   const _StayNode({
     required this.kind,
     required this.segment,
-    required this.onTap,
+    required this.onActivated,
   });
 
   final LifeChainKind kind;
   final ChainStaySegment segment;
-  final VoidCallback onTap;
+  final VoidCallback onActivated;
 
   @override
   Widget build(BuildContext context) {
@@ -199,7 +199,7 @@ class _StayNode extends StatelessWidget {
     final isCurrent = segment.isCurrent;
 
     return GestureDetector(
-      onTap: onTap,
+      onTap: onActivated,
       behavior: HitTestBehavior.opaque,
       child: Container(
         padding: const EdgeInsets.all(ELayout.spaceMd),

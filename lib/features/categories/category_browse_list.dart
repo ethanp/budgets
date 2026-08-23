@@ -15,18 +15,18 @@ class CategoryBrowseList extends StatelessWidget {
     required this.sections,
     required this.rowsById,
     required this.selectedCategoryId,
-    required this.onEditGroup,
-    required this.onSelectCategory,
-    required this.onOpenCategory,
+    required this.onGroupOpened,
+    required this.onCategorySelected,
+    required this.onCategoryOpened,
   });
 
   final String yearMonthLabel;
   final List<CategoryListSection> sections;
   final Map<String, CategoryMonthRow> rowsById;
   final String? selectedCategoryId;
-  final void Function(CategoryListSection section) onEditGroup;
-  final void Function(SpendCategory category) onSelectCategory;
-  final void Function(SpendCategory category) onOpenCategory;
+  final void Function(CategoryListSection section) onGroupOpened;
+  final void Function(SpendCategory category) onCategorySelected;
+  final void Function(SpendCategory category) onCategoryOpened;
 
   static double amountColumnWidth(
     List<CategoryListSection> sections,
@@ -66,11 +66,11 @@ class CategoryBrowseList extends StatelessWidget {
             rowsById: rowsById,
             amountWidth: amountWidth,
             selectedCategoryId: selectedCategoryId,
-            onEditGroup: sections[index].group == null
+            onGroupOpened: sections[index].group == null
                 ? null
-                : () => onEditGroup(sections[index]),
-            onSelectCategory: onSelectCategory,
-            onOpenCategory: onOpenCategory,
+                : () => onGroupOpened(sections[index]),
+            onCategorySelected: onCategorySelected,
+            onCategoryOpened: onCategoryOpened,
           ),
         ],
       ],
@@ -84,18 +84,18 @@ class CategoryBrowseSection extends StatelessWidget {
     required this.rowsById,
     required this.amountWidth,
     required this.selectedCategoryId,
-    required this.onEditGroup,
-    required this.onSelectCategory,
-    required this.onOpenCategory,
+    required this.onGroupOpened,
+    required this.onCategorySelected,
+    required this.onCategoryOpened,
   });
 
   final CategoryListSection section;
   final Map<String, CategoryMonthRow> rowsById;
   final double amountWidth;
   final String? selectedCategoryId;
-  final VoidCallback? onEditGroup;
-  final void Function(SpendCategory category) onSelectCategory;
-  final void Function(SpendCategory category) onOpenCategory;
+  final VoidCallback? onGroupOpened;
+  final void Function(SpendCategory category) onCategorySelected;
+  final void Function(SpendCategory category) onCategoryOpened;
 
   bool get _isCashFlow => section.title == 'Cash flow';
 
@@ -119,8 +119,8 @@ class CategoryBrowseSection extends StatelessWidget {
             row: rowsById[category.id],
             amountWidth: amountWidth,
             selected: selectedCategoryId == category.id,
-            onSelect: () => onSelectCategory(category),
-            onOpen: () => onOpenCategory(category),
+            onCategorySelected: () => onCategorySelected(category),
+            onCategoryOpened: () => onCategoryOpened(category),
           ),
         ],
       ],
@@ -138,13 +138,13 @@ class CategoryBrowseSection extends StatelessWidget {
               maxLines: 1,
             ),
       amountWidth: _isCashFlow ? null : amountWidth,
-      trailing: onEditGroup == null
+      trailing: onGroupOpened == null
           ? null
           : const Icon(Icons.chevron_right, size: 17, color: EColors.textMuted),
       titleMaxWidth: 200,
       decorate: false,
       padding: EdgeInsets.zero,
-      onTap: onEditGroup,
+      onActivated: onGroupOpened,
     );
   }
 }
@@ -155,16 +155,16 @@ class CategoryBrowseFactRow extends StatelessWidget {
     required this.row,
     required this.amountWidth,
     required this.selected,
-    required this.onSelect,
-    required this.onOpen,
+    required this.onCategorySelected,
+    required this.onCategoryOpened,
   });
 
   final SpendCategory category;
   final CategoryMonthRow? row;
   final double amountWidth;
   final bool selected;
-  final VoidCallback onSelect;
-  final VoidCallback onOpen;
+  final VoidCallback onCategorySelected;
+  final VoidCallback onCategoryOpened;
 
   bool get _isFlow => category.isFlow;
 
@@ -188,7 +188,7 @@ class CategoryBrowseFactRow extends StatelessWidget {
             ),
       amountWidth: _isFlow ? null : amountWidth,
       trailing: GestureDetector(
-        onTap: onOpen,
+        onTap: onCategoryOpened,
         child: const Icon(
           Icons.chevron_right,
           size: 16,
@@ -197,7 +197,7 @@ class CategoryBrowseFactRow extends StatelessWidget {
       ),
       tintColor: tint,
       selected: selected,
-      onTap: onSelect,
+      onActivated: onCategorySelected,
     );
   }
 

@@ -135,8 +135,8 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
             spendRate: spendRate,
             valueKind: widget.valueKind,
             useDistributionLegend: widget.useDistributionLegend,
-            onToggleSeries: _toggleSeries,
-            onSoloSeries: _soloSeries,
+            onSeriesToggled: _toggleSeries,
+            onSeriesSoloed: _soloSeries,
           ),
         ],
       ),
@@ -185,7 +185,7 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
           _settingsChip(
             label: rate.toggleLabel,
             isSelected: spendRate == rate,
-            onTap: () =>
+            onActivated: () =>
                 ref.read(trendSpendRateProvider.notifier).setRate(rate),
           ),
         ],
@@ -196,10 +196,10 @@ class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
   Widget _settingsChip({
     required String label,
     required bool isSelected,
-    required VoidCallback onTap,
+    required VoidCallback onActivated,
   }) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: onActivated,
       child: Container(
         padding: const EdgeInsets.symmetric(
           horizontal: ELayout.spaceSm,

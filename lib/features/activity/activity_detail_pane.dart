@@ -13,8 +13,8 @@ class ActivityDetailPane extends StatelessWidget {
     required this.visibleTransactions,
     required this.selected,
     required this.uncategorizedOnly,
-    required this.onShowUncategorized,
-    required this.onClearUncategorizedFilter,
+    required this.onUncategorizedFilterApplied,
+    required this.onUncategorizedFilterCleared,
     required this.onCategorized,
   });
 
@@ -23,8 +23,8 @@ class ActivityDetailPane extends StatelessWidget {
   final List<BankTransaction> visibleTransactions;
   final BankTransaction? selected;
   final bool uncategorizedOnly;
-  final VoidCallback onShowUncategorized;
-  final VoidCallback onClearUncategorizedFilter;
+  final VoidCallback onUncategorizedFilterApplied;
+  final VoidCallback onUncategorizedFilterCleared;
   final VoidCallback onCategorized;
 
   @override
@@ -130,7 +130,7 @@ class ActivityDetailPane extends StatelessWidget {
         const SizedBox(height: ELayout.spaceLg),
         if (uncategorizedOnly)
           TextButton(
-            onPressed: onClearUncategorizedFilter,
+            onPressed: onUncategorizedFilterCleared,
             style: TextButton.styleFrom(
               alignment: Alignment.centerLeft,
               padding: EdgeInsets.zero,
@@ -139,7 +139,7 @@ class ActivityDetailPane extends StatelessWidget {
           )
         else if (totalCount > 0)
           AppPrimaryButton(
-            onPressed: onShowUncategorized,
+            onPressed: onUncategorizedFilterApplied,
             child: const Text('Show uncategorized'),
           ),
       ],

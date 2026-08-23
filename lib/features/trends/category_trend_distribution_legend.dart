@@ -16,15 +16,15 @@ class CategoryTrendDistributionLegend extends StatelessWidget {
     required this.seriesList,
     required this.hiddenSeriesIds,
     required this.spendRate,
-    required this.onToggleSeries,
-    required this.onSoloSeries,
+    required this.onSeriesToggled,
+    required this.onSeriesSoloed,
   });
 
   final List<CategoryTrendSeries> seriesList;
   final Set<String> hiddenSeriesIds;
   final TrendSpendRate spendRate;
-  final ValueChanged<String> onToggleSeries;
-  final ValueChanged<String> onSoloSeries;
+  final ValueChanged<String> onSeriesToggled;
+  final ValueChanged<String> onSeriesSoloed;
 
   static const _whiskerHeight = 108.0;
   static const _labelBlockHeight = 66.0;
@@ -122,10 +122,10 @@ class CategoryTrendDistributionLegend extends StatelessWidget {
                                 pastYearTotalLabel: _pastYearTotalLabel(
                                   seriesList[index],
                                 ),
-                                onToggle: () =>
-                                    onToggleSeries(seriesList[index].id),
-                                onSolo: () =>
-                                    onSoloSeries(seriesList[index].id),
+                                onActivated: () =>
+                                    onSeriesToggled(seriesList[index].id),
+                                onSoloActivated: () =>
+                                    onSeriesSoloed(seriesList[index].id),
                               ),
                             ),
                           ],
@@ -199,8 +199,8 @@ class _DistributionColumn extends StatelessWidget {
     required this.isHidden,
     required this.formatAnnualized,
     required this.pastYearTotalLabel,
-    required this.onToggle,
-    required this.onSolo,
+    required this.onActivated,
+    required this.onSoloActivated,
   });
 
   final CategoryTrendSeries series;
@@ -209,8 +209,8 @@ class _DistributionColumn extends StatelessWidget {
   final bool isHidden;
   final String Function(int cents) formatAnnualized;
   final String pastYearTotalLabel;
-  final VoidCallback onToggle;
-  final VoidCallback onSolo;
+  final VoidCallback onActivated;
+  final VoidCallback onSoloActivated;
 
   @override
   Widget build(BuildContext context) {
@@ -226,8 +226,8 @@ class _DistributionColumn extends StatelessWidget {
     );
 
     return GestureDetector(
-      onTap: onToggle,
-      onDoubleTap: onSolo,
+      onTap: onActivated,
+      onDoubleTap: onSoloActivated,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [

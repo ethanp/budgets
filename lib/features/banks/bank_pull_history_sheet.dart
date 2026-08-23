@@ -95,7 +95,7 @@ class _BankPullHistorySheetState extends ConsumerState<BankPullHistorySheet> {
                     return _PullHistoryRow(
                       pull: pull,
                       expanded: _expandedPullId == pull.id,
-                      onToggle: () {
+                      onActivated: () {
                         setState(() {
                           _expandedPullId = _expandedPullId == pull.id
                               ? null
@@ -152,12 +152,12 @@ class _PullHistoryRow extends StatelessWidget {
   const _PullHistoryRow({
     required this.pull,
     required this.expanded,
-    required this.onToggle,
+    required this.onActivated,
   });
 
   final SimpleFinPullRecord pull;
   final bool expanded;
-  final VoidCallback onToggle;
+  final VoidCallback onActivated;
 
   static final _whenFormat = DateFormat('MMM d · h:mm a');
 
@@ -169,7 +169,7 @@ class _PullHistoryRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           InkWell(
-            onTap: onToggle,
+            onTap: onActivated,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
