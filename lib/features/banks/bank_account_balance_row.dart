@@ -1,5 +1,4 @@
 import 'package:ethan_ui/ethan_ui.dart';
-import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spend_trends/domain/account.dart';
@@ -63,7 +62,9 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
   @override
   Widget build(BuildContext context) {
     final exceptionLabel = _exceptionLabel(widget.account);
-    final isZero = widget.account.balanceCents == 0;
+    final balanceCaption = widget.account.balanceCaption;
+    final isMutedBalance =
+        widget.account.isCopilot || widget.account.balanceCents == 0;
     final nameStyle = exceptionLabel != null
         ? EText.body.copyWith(fontWeight: FontWeight.w600)
         : EText.body;
@@ -169,8 +170,8 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
           child: Align(
             alignment: Alignment.centerRight,
             child: Text(
-              formatCents(widget.account.balanceCents),
-              style: isZero
+              balanceCaption,
+              style: isMutedBalance
                   ? EText.body.copyWith(color: EColors.textMuted)
                   : EText.body.copyWith(fontWeight: FontWeight.w600),
               maxLines: 1,

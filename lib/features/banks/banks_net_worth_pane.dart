@@ -3,15 +3,18 @@ import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:spend_trends/domain/account.dart';
 import 'package:spend_trends/domain/account_kind.dart';
+import 'package:spend_trends/domain/owned_asset.dart';
 
 /// Banks right pane: net-worth overview or selected account detail.
 class BanksNetWorthPane extends StatelessWidget {
   const BanksNetWorthPane({
     required this.accounts,
+    required this.ownedAssets,
     required this.selectedAccountId,
   });
 
   final List<Account> accounts;
+  final List<OwnedAssetWithValuations> ownedAssets;
   final String? selectedAccountId;
 
   @override
@@ -38,11 +41,23 @@ class BanksNetWorthPane extends StatelessWidget {
     var totalCents = 0;
     final countsByKind = <AccountKind, int>{};
     for (final account in accounts) {
-      totalCents += account.balanceCents;
+      if (account.hasLiveBalance) {
+        totalCents += account.balanceCents;
+      }
       countsByKind.update(
         account.kind,
         (count) => count + 1,
         ifAbsent: () => 1,
+      );
+    }
+    if (ownedAssets.isNotEmpty) {
+      for (final ownedAsset in ownedAssets) {
+        totalCents += ownedAsset.currentValueCents;
+      }
+      countsByKind.update(
+        AccountKind.nonFinancialAssets,
+        (count) => count + ownedAssets.length,
+        ifAbsent: () => ownedAssets.length,
       );
     }
     final kindLines = AccountKind.values
@@ -59,11 +74,7 @@ class BanksNetWorthPane extends StatelessWidget {
         Text('Net worth now', style: EText.section),
         const SizedBox(height: ELayout.spaceSm),
         Text(formatCents(totalCents), style: EText.title),
-        Text(
-          '${accounts.length} '
-          '${accounts.length == 1 ? 'account' : 'accounts'}',
-          style: EText.caption,
-        ),
+        Text(_holdingsCaption, style: EText.caption),
         if (kindLines.isNotEmpty) ...[
           const SizedBox(height: ELayout.spaceLg),
           Text(
@@ -80,11 +91,21 @@ class BanksNetWorthPane extends StatelessWidget {
         const SizedBox(height: ELayout.spaceLg),
         Text(
           'Net worth plus annual burn will power FI runway later. '
-          'Select an account for its balance details.',
+          'Select an account or owned asset for its details.',
           style: EText.caption,
         ),
       ],
     );
+  }
+
+  String get _holdingsCaption {
+    final String ownedAssetsCaption = ownedAssets.isEmpty
+        ? ''
+        : ' · ${ownedAssets.length} '
+            '${ownedAssets.length == 1 ? 'owned asset' : 'owned assets'}';
+    return '${accounts.length} '
+        '${accounts.length == 1 ? 'account' : 'accounts'}'
+        '$ownedAssetsCaption';
   }
 
   Widget _accountDetail(Account account) {
@@ -100,7 +121,7 @@ class BanksNetWorthPane extends StatelessWidget {
           style: EText.caption.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: ELayout.spaceXs),
-        Text(formatCents(account.balanceCents), style: EText.title),
+        Text(account.balanceCaption, style: EText.title),
         const SizedBox(height: ELayout.spaceMd),
         Text(account.institutionDisplayName, style: EText.body),
         if (account.isCopilot) ...[

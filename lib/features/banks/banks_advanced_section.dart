@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spend_trends/features/banks/bank_pull_history_sheet.dart';
 import 'package:spend_trends/features/banks/banks_controller.dart';
-import 'package:spend_trends/features/banks/banks_pull_progress_sheet.dart';
+import 'package:spend_trends/features/banks/banks_pull_live_session.dart';
 import 'package:spend_trends/features/settings/settings_section.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/services/simplefin/simplefin_access_store.dart';
@@ -103,12 +103,13 @@ class BanksAdvancedSection extends ConsumerWidget {
               'Fetches ~2 years from SimpleFIN again. Everyday "Pull bank '
               'transactions" only covers since the last SimpleFIN update '
               '(window starts 2 days earlier).',
-          onActivated: () => BanksPullProgressSheet.showAndRun(
-            context,
-            run: (onProgress) => ref
-                .read(banksControllerProvider.notifier)
-                .refreshFullHistory(onProgress: onProgress),
-          ),
+          onActivated: () => ref
+              .read(banksPullLiveSessionProvider.notifier)
+              .runPull(
+                (onProgress) => ref
+                    .read(banksControllerProvider.notifier)
+                    .refreshFullHistory(onProgress: onProgress),
+              ),
           style: _style,
           busy: actionState.busy,
         ),

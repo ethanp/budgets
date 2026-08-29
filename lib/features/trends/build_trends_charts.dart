@@ -1,6 +1,7 @@
 import 'package:spend_trends/domain/account.dart';
 import 'package:spend_trends/domain/category.dart';
 import 'package:spend_trends/domain/category_group.dart';
+import 'package:spend_trends/domain/owned_asset.dart';
 import 'package:spend_trends/domain/special_category.dart';
 import 'package:spend_trends/domain/transaction.dart';
 import 'package:spend_trends/features/trends/cash_flow_trend_builder.dart';
@@ -19,6 +20,7 @@ class BuildTrendsCharts {
     required List<SpendCategory> categories,
     List<CategoryGroup> groups = const [],
     List<Account> accounts = const [],
+    List<OwnedAssetWithValuations> ownedAssets = const [],
     DateTime? endDate,
   }) {
     final chartEnd = (endDate ?? DateTime.now()).startOfDay;
@@ -41,6 +43,7 @@ class BuildTrendsCharts {
       cashFlowMaps: cashFlowMaps,
       inRangeTransactions: inRangeTransactions,
       accounts: accounts,
+      ownedAssets: ownedAssets,
       historyStart: historyStart,
       chartEnd: chartEnd,
     );
@@ -76,6 +79,7 @@ class BuildTrendsCharts {
         accounts: accounts,
         transactions: inRangeTransactions,
         chartDates: chartRange.dates,
+        ownedAssets: ownedAssets,
       ),
     );
   }
@@ -85,6 +89,7 @@ class BuildTrendsCharts {
     required CashFlowDailyMaps cashFlowMaps,
     required List<BankTransaction> inRangeTransactions,
     required List<Account> accounts,
+    required List<OwnedAssetWithValuations> ownedAssets,
     required DateTime historyStart,
     required DateTime chartEnd,
   }) {
@@ -105,7 +110,7 @@ class BuildTrendsCharts {
       chartStart = earliestSpend.isBefore(historyStart)
           ? historyStart
           : earliestSpend;
-    } else if (accounts.isNotEmpty) {
+    } else if (accounts.isNotEmpty || ownedAssets.isNotEmpty) {
       chartStart = earliestTxn != null && earliestTxn.isAfter(historyStart)
           ? earliestTxn
           : historyStart;

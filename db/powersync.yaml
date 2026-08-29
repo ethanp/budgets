@@ -47,3 +47,5 @@ sync_rules:
           - SELECT * FROM sync_state
           - SELECT * FROM simplefin_pulls
           - SELECT * FROM simplefin_pull_accounts
+          - SELECT * FROM owned_assets
+          - SELECT * FROM owned_asset_valuations

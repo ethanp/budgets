@@ -1,5 +1,7 @@
 import 'package:spend_trends/domain/account.dart';
 import 'package:spend_trends/domain/account_kind.dart';
+import 'package:spend_trends/domain/owned_asset.dart';
+import 'package:spend_trends/domain/owned_asset_kind.dart';
 import 'package:spend_trends/domain/transaction.dart';
 import 'package:spend_trends/features/trends/build_trends_charts.dart';
 import 'package:spend_trends/features/trends/net_worth_trend.dart';
@@ -245,7 +247,13 @@ void main() {
     );
     expect(
       accountSeries.map((entry) => entry.name).toList(),
-      ['Checking', 'Roth IRA', 'Account', 'Mortgage', 'Auto loan'],
+      [
+        'Charles Schwab US · Checking',
+        'Roth IRA',
+        'M1 · Account',
+        'Mortgage',
+        'Auto loan',
+      ],
     );
   });
 
@@ -438,6 +446,127 @@ void main() {
         (entry) => entry.id == TrendChartCatalog.accountSeriesId('copilot'),
       ),
       isFalse,
+    );
+  });
+
+  test('owned assets add to daily net worth and step on re-valuation', () {
+    final day0 = DateTime(2024, 1, 1);
+    final chartDates = [
+      for (var dayOffset = 0; dayOffset < 10; dayOffset++)
+        day0.add(Duration(days: dayOffset)),
+    ];
+    const accounts = [
+      Account(
+        id: 'checking',
+        externalId: 'ext-checking',
+        name: 'Checking',
+        currency: 'USD',
+        balanceCents: 10000,
+        status: AccountStatus.ok,
+        kind: AccountKind.checking,
+      ),
+    ];
+    final ownedAssets = [
+      OwnedAssetWithValuations(
+        asset: const OwnedAsset(
+          id: 'home',
+          name: 'Home',
+          kind: OwnedAssetKind.home,
+        ),
+        valuations: [
+          OwnedAssetValuation(
+            id: 'v1',
+            ownedAssetId: 'home',
+            valueCents: 20000000,
+            valuedOn: DateTime(2024, 1, 1),
+          ),
+          OwnedAssetValuation(
+            id: 'v2',
+            ownedAssetId: 'home',
+            valueCents: 25000000,
+            valuedOn: DateTime(2024, 1, 5),
+          ),
+        ],
+      ),
+    ];
+
+    final daily = NetWorthTrend.dailyCents(
+      accounts: accounts,
+      transactions: const [],
+      chartDates: chartDates,
+      ownedAssets: ownedAssets,
+    );
+
+    // Checking has no txns → only the last chart day.
+    expect(daily[0], 20000000.0);
+    expect(daily[3], 20000000.0);
+    expect(daily[4], 25000000.0);
+    expect(daily[8], 25000000.0);
+    expect(daily[9], 25010000.0);
+
+    final series = NetWorthTrend.series(
+      accounts: accounts,
+      transactions: const [],
+      chartDates: chartDates,
+      ownedAssets: ownedAssets,
+    );
+    expect(
+      series.map((entry) => entry.id).toList(),
+      containsAll([
+        TrendChartCatalog.netWorthSeriesId,
+        TrendChartCatalog.accountSeriesId('checking'),
+        TrendChartCatalog.ownedAssetSeriesId('home'),
+      ]),
+    );
+    final homeSeries = series.firstWhere(
+      (entry) => entry.id == TrendChartCatalog.ownedAssetSeriesId('home'),
+    );
+    expect(
+      homeSeries.legendGroup,
+      AccountKind.nonFinancialAssets.legendLabel,
+    );
+    expect(homeSeries.points[0].rollingCents, 20000000.0);
+    expect(homeSeries.points[4].rollingCents, 25000000.0);
+  });
+
+  test('factory includes owned assets in the net worth series', () {
+    final start = DateTime(2024, 1, 1);
+    final end = start.add(const Duration(days: 9));
+    final ownedAssets = [
+      OwnedAssetWithValuations(
+        asset: const OwnedAsset(
+          id: 'car',
+          name: 'Car',
+          kind: OwnedAssetKind.vehicle,
+        ),
+        valuations: [
+          OwnedAssetValuation(
+            id: 'v1',
+            ownedAssetId: 'car',
+            valueCents: 1800000,
+            valuedOn: start,
+          ),
+        ],
+      ),
+    ];
+
+    final bundle = const BuildTrendsCharts().build(
+      transactions: const [],
+      categories: const [],
+      ownedAssets: ownedAssets,
+      endDate: end,
+    );
+
+    expect(bundle.netWorth, isNotEmpty);
+    expect(
+      bundle.netWorth.any(
+        (entry) => entry.id == TrendChartCatalog.ownedAssetSeriesId('car'),
+      ),
+      isTrue,
+    );
+    expect(
+      bundle.netWorth.first.points.last.rollingCents,
+      closeTo(1800000, 0.01),
     );
   });
 }

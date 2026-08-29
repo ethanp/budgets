@@ -1,3 +1,4 @@
+import 'package:ethan_utils/ethan_utils.dart';
 import 'package:spend_trends/domain/account_kind.dart';
 
 class Account {
@@ -88,6 +89,12 @@ class Account {
   }
 
   bool get isCopilot => externalId.startsWith('copilot:');
+
+  /// Copilot imports carry transaction history only — no live balance.
+  bool get hasLiveBalance => !isCopilot;
+
+  String get balanceCaption =>
+      hasLiveBalance ? formatCents(balanceCents) : '—';
 
   bool get hasParent => belongsToAccountId != null;
 

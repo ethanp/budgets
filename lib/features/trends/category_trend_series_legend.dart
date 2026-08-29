@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:ethan_ui/ethan_ui.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/material.dart';
@@ -46,8 +44,6 @@ class CategoryTrendSeriesLegend extends StatelessWidget {
 
     final useNetWorthTable =
         !useDistributionLegend && _rankedSeriesHasLegendGroups(rankedSeries);
-    final needsWidthLayout =
-        rankedSeries.isNotEmpty && !useDistributionLegend && !useNetWorthTable;
 
     final rankedChild = rankedSeries.isEmpty
         ? null
@@ -67,50 +63,38 @@ class CategoryTrendSeriesLegend extends StatelessWidget {
             onSeriesToggled: onSeriesToggled,
             onSeriesSoloed: onSeriesSoloed,
           )
-        : null;
-
-    final row = Row(
-      crossAxisAlignment: needsWidthLayout
-          ? CrossAxisAlignment.start
-          : CrossAxisAlignment.stretch,
-      children: [
-        if (metaSeries.isNotEmpty) ...[
-          _MetaLegendColumn(
-            metaSeries: metaSeries,
+        : _WrappingLegend(
+            seriesList: rankedSeries,
             hiddenSeriesIds: hiddenSeriesIds,
             spendRate: spendRate,
             valueKind: valueKind,
             onSeriesToggled: onSeriesToggled,
             onSeriesSoloed: onSeriesSoloed,
-          ),
-          if (rankedSeries.isNotEmpty) ...[
-            const SizedBox(width: ELayout.spaceMd),
-            _LegendColumnDivider(height: needsWidthLayout ? 72 : null),
-            const SizedBox(width: ELayout.spaceMd),
-          ],
+          );
+
+    if (metaSeries.isEmpty) {
+      return rankedChild!;
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _MetaLegendColumn(
+          metaSeries: metaSeries,
+          hiddenSeriesIds: hiddenSeriesIds,
+          spendRate: spendRate,
+          valueKind: valueKind,
+          onSeriesToggled: onSeriesToggled,
+          onSeriesSoloed: onSeriesSoloed,
+        ),
+        if (rankedSeries.isNotEmpty) ...[
+          const SizedBox(width: ELayout.spaceMd),
+          const _LegendColumnDivider(height: 72),
+          const SizedBox(width: ELayout.spaceMd),
+          Expanded(child: rankedChild!),
         ],
-        if (rankedSeries.isNotEmpty)
-          Expanded(
-            child: needsWidthLayout
-                ? LayoutBuilder(
-                    builder: (context, constraints) => _ColumnMajorLegend(
-                      seriesList: rankedSeries,
-                      maxWidth: constraints.maxWidth,
-                      hiddenSeriesIds: hiddenSeriesIds,
-                      spendRate: spendRate,
-                      valueKind: valueKind,
-                      onSeriesToggled: onSeriesToggled,
-                      onSeriesSoloed: onSeriesSoloed,
-                    ),
-                  )
-                : rankedChild!,
-          ),
       ],
     );
-
-    // LayoutBuilder cannot sit under IntrinsicHeight.
-    if (needsWidthLayout) return row;
-    return IntrinsicHeight(child: row);
   }
 
   static bool _rankedSeriesHasLegendGroups(
@@ -250,10 +234,47 @@ class _MetaLegendColumn extends StatelessWidget {
   }
 }
 
+class _WrappingLegend extends StatelessWidget {
+  const _WrappingLegend({
+    required this.seriesList,
+    required this.hiddenSeriesIds,
+    required this.spendRate,
+    required this.valueKind,
+    required this.onSeriesToggled,
+    required this.onSeriesSoloed,
+  });
+
+  final List<CategoryTrendSeries> seriesList;
+  final Set<String> hiddenSeriesIds;
+  final TrendSpendRate spendRate;
+  final TrendValueKind valueKind;
+  final ValueChanged<String> onSeriesToggled;
+  final ValueChanged<String> onSeriesSoloed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: ELayout.spaceMd,
+      runSpacing: ELayout.spaceSm,
+      children: [
+        for (final series in seriesList)
+          TrendLegendChip(
+            series: series,
+            isHidden: hiddenSeriesIds.contains(series.id),
+            spendRate: spendRate,
+            valueKind: valueKind,
+            expandLabel: false,
+            onActivated: () => onSeriesToggled(series.id),
+            onSoloActivated: () => onSeriesSoloed(series.id),
+          ),
+      ],
+    );
+  }
+}
+
 class _LegendColumnDivider extends StatelessWidget {
   const _LegendColumnDivider({this.height});
 
-  /// Fixed height when the parent cannot stretch (e.g. beside a [LayoutBuilder]).
   final double? height;
 
   @override
@@ -263,79 +284,6 @@ class _LegendColumnDivider extends StatelessWidget {
       height: height,
       color: EColors.border.withValues(alpha: 0.8),
     );
-  }
-}
-
-class _ColumnMajorLegend extends StatelessWidget {
-  const _ColumnMajorLegend({
-    required this.seriesList,
-    required this.maxWidth,
-    required this.hiddenSeriesIds,
-    required this.spendRate,
-    required this.valueKind,
-    required this.onSeriesToggled,
-    required this.onSeriesSoloed,
-  });
-
-  final List<CategoryTrendSeries> seriesList;
-  final double maxWidth;
-  final Set<String> hiddenSeriesIds;
-  final TrendSpendRate spendRate;
-  final TrendValueKind valueKind;
-  final ValueChanged<String> onSeriesToggled;
-  final ValueChanged<String> onSeriesSoloed;
-
-  @override
-  Widget build(BuildContext context) {
-    const minColumnWidth = 148.0;
-    const columnGap = ELayout.spaceMd;
-    final columnCount = math.max(
-      1,
-      ((maxWidth + columnGap) / (minColumnWidth + columnGap)).floor(),
-    );
-    final rowCount = (seriesList.length + columnCount - 1) ~/ columnCount;
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        for (var columnIndex = 0; columnIndex < columnCount; columnIndex++) ...[
-          if (columnIndex > 0) const SizedBox(width: columnGap),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: _chipsForColumn(
-                columnIndex: columnIndex,
-                rowCount: rowCount,
-              ),
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
-  List<Widget> _chipsForColumn({
-    required int columnIndex,
-    required int rowCount,
-  }) {
-    final chips = <Widget>[];
-    for (var rowIndex = 0; rowIndex < rowCount; rowIndex++) {
-      final seriesIndex = columnIndex * rowCount + rowIndex;
-      if (seriesIndex >= seriesList.length) break;
-      if (rowIndex > 0) chips.add(const SizedBox(height: ELayout.spaceSm));
-      final series = seriesList[seriesIndex];
-      chips.add(
-        TrendLegendChip(
-          series: series,
-          isHidden: hiddenSeriesIds.contains(series.id),
-          spendRate: spendRate,
-          valueKind: valueKind,
-          onActivated: () => onSeriesToggled(series.id),
-          onSoloActivated: () => onSeriesSoloed(series.id),
-        ),
-      );
-    }
-    return chips;
   }
 }
 

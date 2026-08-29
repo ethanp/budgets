@@ -83,8 +83,10 @@ Server schema lives in this repo under `db/` and syncs to `../../infra/spend_tre
 
 ## Icon
 
+Source art: `assets/icon/app_icon.png`. Refresh platform assets with:
+
 ```bash
-./scripts/generate_icon.sh
+dart run flutter_launcher_icons
 ```
 
 ## Platforms

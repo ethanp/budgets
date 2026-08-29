@@ -62,9 +62,11 @@ class ChartDateLayout {
     if (spanDays <= 0) return [minDate];
 
     // Multi-month charts: calendar quarters (Jan / Apr / Jul / Oct).
-    if (spanDays > 90) return _quarterMonthTicks();
+    if (spanDays > 90) {
+      return _subsampleTicksForWidth(_quarterMonthTicks());
+    }
 
-    final targetCount = math.max(3, (width / 70).round());
+    final targetCount = _targetTickCount();
     final stepDays = math.max(1, (spanDays / targetCount).round());
     final ticks = <DateTime>[minDate];
     var cursor = minDate.shiftedByDays(stepDays);
@@ -74,7 +76,31 @@ class ChartDateLayout {
       cursor = cursor.shiftedByDays(stepDays);
     }
     ticks.add(maxDate);
-    return ticks;
+    return _subsampleTicksForWidth(ticks);
+  }
+
+  int _targetTickCount() => math.max(3, (width / 70).round());
+
+  /// Keeps tick labels from overlapping on narrow or multi-year charts.
+  List<DateTime> _subsampleTicksForWidth(List<DateTime> candidates) {
+    if (candidates.length <= 1) return candidates;
+
+    final targetCount = _targetTickCount();
+    if (candidates.length <= targetCount) return candidates;
+
+    final picked = <DateTime>[];
+    final indexStep = (candidates.length - 1) / (targetCount - 1);
+    for (var pickIndex = 0; pickIndex < targetCount; pickIndex++) {
+      final candidateIndex = (pickIndex * indexStep).round().clamp(
+        0,
+        candidates.length - 1,
+      );
+      final tick = candidates[candidateIndex];
+      if (picked.isEmpty || picked.last != tick) {
+        picked.add(tick);
+      }
+    }
+    return picked;
   }
 
   /// Firsts of Jan, Apr, Jul, Oct that fall inside the chart range.

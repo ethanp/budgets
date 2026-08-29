@@ -2,12 +2,8 @@ import 'package:ethan_ui/ethan_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:spend_trends/features/banks/banks_controller.dart';
-import 'package:spend_trends/features/banks/banks_pull_progress_sheet.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/services/sqlite/simplefin_pull_history.dart';
-import 'package:spend_trends/theme/finance_colors.dart';
-import 'package:spend_trends/widgets/app_primary_button.dart';
 import 'package:spend_trends/widgets/app_sheet_panel.dart';
 
 /// Browse recent SimpleFIN pulls and per-account outage outcomes.
@@ -34,9 +30,6 @@ class _BankPullHistorySheetState extends ConsumerState<BankPullHistorySheet> {
   @override
   Widget build(BuildContext context) {
     final pullsAsync = ref.watch(simpleFinPullHistoryListProvider);
-    final connectionAsync = ref.watch(connectionStatusProvider);
-    final actionState = ref.watch(banksControllerProvider);
-    final isConnected = connectionAsync.asData?.value.isConnected ?? false;
 
     return AppSheetPanel(
       heightFraction: 0.72,
@@ -50,20 +43,12 @@ class _BankPullHistorySheetState extends ConsumerState<BankPullHistorySheet> {
             style: EText.body.copyWith(color: EColors.danger),
           ),
         ),
-        data: (pulls) => _body(
-          pulls: pulls,
-          isConnected: isConnected,
-          busy: actionState.busy,
-        ),
+        data: (pulls) => _body(pulls: pulls),
       ),
     );
   }
 
-  Widget _body({
-    required List<SimpleFinPullRecord> pulls,
-    required bool isConnected,
-    required bool busy,
-  }) {
+  Widget _body({required List<SimpleFinPullRecord> pulls}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -106,43 +91,13 @@ class _BankPullHistorySheetState extends ConsumerState<BankPullHistorySheet> {
                   },
                 ),
         ),
-        if (isConnected)
-          Padding(
-            padding: const EdgeInsets.all(ELayout.spaceLg),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                AppPrimaryButton(
-                  onPressed: busy
-                      ? null
-                      : () => BanksPullProgressSheet.showAndRun(
-                          context,
-                          run: (onProgress) => ref
-                              .read(banksControllerProvider.notifier)
-                              .syncLatest(onProgress: onProgress),
-                        ),
-                  child: const Text('Pull latest'),
-                ),
-                const SizedBox(height: ELayout.spaceSm),
-                TextButton(
-                  onPressed: busy
-                      ? null
-                      : () => BanksPullProgressSheet.showAndRun(
-                          context,
-                          run: (onProgress) => ref
-                              .read(banksControllerProvider.notifier)
-                              .refreshFullHistory(onProgress: onProgress),
-                        ),
-                  child: Text(
-                    'Re-download all history',
-                    style: EText.body.copyWith(
-                      color: FinanceColors.accentPrimary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+        Padding(
+          padding: const EdgeInsets.all(ELayout.spaceLg),
+          child: Text(
+            'Start a pull from the Banks tab to see live progress there.',
+            style: EText.caption,
           ),
+        ),
       ],
     );
   }

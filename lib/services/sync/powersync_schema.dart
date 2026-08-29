@@ -84,4 +84,14 @@ const Schema spendTrendsSchema = Schema([
     Column.text('status'),
     Column.text('error_message'),
   ]),
+  Table('owned_assets', [
+    Column.text('name'),
+    Column.text('asset_kind'),
+    Column.text('note'),
+  ]),
+  Table('owned_asset_valuations', [
+    Column.text('owned_asset_id'),
+    Column.integer('value_cents'),
+    Column.integer('valued_on'),
+  ]),
 ]);

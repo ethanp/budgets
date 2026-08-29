@@ -11,7 +11,7 @@ import 'package:spend_trends/services/sqlite/simplefin_pull_history.dart';
 import 'package:spend_trends/theme/finance_colors.dart';
 
 /// Dense institution-grouped account balances with exception-only status.
-class BankAccountsList extends ConsumerWidget {
+class BankAccountsList extends ConsumerStatefulWidget {
   const BankAccountsList({
     required this.status,
     this.actionError,
@@ -27,21 +27,28 @@ class BankAccountsList extends ConsumerWidget {
   final void Function(String accountId)? onAccountSelected;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<BankAccountsList> createState() => _BankAccountsListState();
+}
+
+class _BankAccountsListState extends ConsumerState<BankAccountsList> {
+  bool _copilotAccountsExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(_caption, style: EText.caption),
         const SizedBox(height: ELayout.spaceMd),
         ..._institutionGroups(),
-        if (status.errors.isNotEmpty) ...[
+        if (widget.status.errors.isNotEmpty) ...[
           const SizedBox(height: ELayout.spaceMd),
-          ...status.errors.map(_bridgeError),
+          ...widget.status.errors.map(_bridgeError),
         ],
-        if (actionError != null) ...[
+        if (widget.actionError != null) ...[
           const SizedBox(height: ELayout.spaceSm),
           SelectableText(
-            actionError!,
+            widget.actionError!,
             style: EText.caption.copyWith(color: EColors.danger),
           ),
         ],
@@ -50,6 +57,7 @@ class BankAccountsList extends ConsumerWidget {
   }
 
   String get _caption {
+    final status = widget.status;
     final source = status.fromEnv ? 'SimpleFIN (.env)' : 'SimpleFIN';
     final updated = status.lastSyncedAt == null
         ? 'never synced'
@@ -61,6 +69,7 @@ class BankAccountsList extends ConsumerWidget {
   }
 
   String _pullOutcomeSuffix() {
+    final status = widget.status;
     final running = status.latestRunningPull;
     if (running != null) return ' · pulling…';
 
@@ -83,9 +92,9 @@ class BankAccountsList extends ConsumerWidget {
   }
 
   List<Widget> _institutionGroups() {
-    final groups = BankAccountsByInstitution.groups(status.accounts);
+    final groups = BankAccountsByInstitution.groups(widget.status.accounts);
     final amountColumnWidth = BankAccountsByInstitution.amountColumnWidth(
-      status.accounts,
+      widget.status.accounts,
     );
     final showInstitutionLabels =
         groups.length > 1 ||
@@ -94,16 +103,22 @@ class BankAccountsList extends ConsumerWidget {
     for (var groupIndex = 0; groupIndex < groups.length; groupIndex++) {
       final group = groups[groupIndex];
       if (groupIndex > 0) widgets.add(const SizedBox(height: ELayout.spaceMd));
+      final sampleAccount = group.accounts.first;
+      final isCopilotGroup = sampleAccount.isCopilot;
+      final showAccountRows = !isCopilotGroup || _copilotAccountsExpanded;
       if (showInstitutionLabels) {
         widgets.add(
-          BankInstitutionHeader(
-            sampleAccount: group.accounts.first,
-            displayName: group.displayName,
-            accentColor: accentColor,
+          _institutionGroupHeader(
+            group: group,
+            isCopilotGroup: isCopilotGroup,
+            showAccountRows: showAccountRows,
           ),
         );
-        widgets.add(const SizedBox(height: ELayout.spaceXs));
+        if (showAccountRows) {
+          widgets.add(const SizedBox(height: ELayout.spaceXs));
+        }
       }
+      if (!showAccountRows) continue;
       for (var rowIndex = 0; rowIndex < group.accounts.length; rowIndex++) {
         if (rowIndex > 0) widgets.add(const SizedBox(height: ELayout.spaceXs));
         final account = group.accounts[rowIndex];
@@ -111,15 +126,48 @@ class BankAccountsList extends ConsumerWidget {
           BankAccountBalanceRow(
             account: account,
             amountColumnWidth: amountColumnWidth,
-            selected: selectedAccountId == account.id,
-            onActivated: onAccountSelected == null
+            selected: widget.selectedAccountId == account.id,
+            onActivated: widget.onAccountSelected == null
                 ? null
-                : () => onAccountSelected!(account.id),
+                : () => widget.onAccountSelected!(account.id),
           ),
         );
       }
     }
     return widgets;
+  }
+
+  Widget _institutionGroupHeader({
+    required BankInstitutionGroup group,
+    required bool isCopilotGroup,
+    required bool showAccountRows,
+  }) {
+    final header = BankInstitutionHeader(
+      sampleAccount: group.accounts.first,
+      displayName: group.displayName,
+      accentColor: widget.accentColor,
+    );
+    if (!isCopilotGroup) return header;
+
+    final accountCount = group.accounts.length;
+    final accountCountLabel =
+        '$accountCount ${accountCount == 1 ? 'account' : 'accounts'}';
+    return GestureDetector(
+      onTap: () => setState(() => _copilotAccountsExpanded = !showAccountRows),
+      behavior: HitTestBehavior.opaque,
+      child: Row(
+        children: [
+          Expanded(child: header),
+          Text(accountCountLabel, style: EText.caption),
+          const SizedBox(width: ELayout.spaceXs),
+          Icon(
+            showAccountRows ? Icons.expand_more : Icons.chevron_right,
+            size: 18,
+            color: EColors.textMuted,
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _bridgeError(SimpleFinError error) {

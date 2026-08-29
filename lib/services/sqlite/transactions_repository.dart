@@ -45,6 +45,22 @@ class TransactionsRepository {
     return listPostedBetween(start, start.startOfNextMonth);
   }
 
+  /// Inclusive of [start], inclusive of [end], by `imported_at`.
+  Future<List<BankTransaction>> listImportedBetween(
+    DateTime start,
+    DateTime end,
+  ) async {
+    final rows = await _powerSync.getAll(
+      '''
+      SELECT * FROM transactions
+      WHERE imported_at >= ? AND imported_at <= ?
+      ORDER BY posted_at DESC, id DESC
+      ''',
+      [start.toUtc().millisecondsSinceEpoch, end.toUtc().millisecondsSinceEpoch],
+    );
+    return rows.map(_fromRow).toList();
+  }
+
   /// Inclusive of [start], exclusive of [end], by `posted_at`.
   Future<List<BankTransaction>> listPostedBetween(
     DateTime start,

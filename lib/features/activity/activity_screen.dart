@@ -14,7 +14,7 @@ import 'package:spend_trends/features/activity/manage_rule_sheet.dart';
 import 'package:spend_trends/features/activity/recategorize_sheet.dart';
 import 'package:spend_trends/features/activity/suggest_categories_sheet.dart';
 import 'package:spend_trends/features/banks/banks_controller.dart';
-import 'package:spend_trends/features/banks/banks_pull_progress_sheet.dart';
+import 'package:spend_trends/features/banks/banks_pull_live_session.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/widgets/app_browse_split_shell.dart';
 import 'package:spend_trends/widgets/app_card.dart';
@@ -67,9 +67,8 @@ class ActivityScreen extends ConsumerWidget {
       return;
     }
     if (!context.mounted) return;
-    await BanksPullProgressSheet.showAndRun(
-      context,
-      run: (onProgress) => ref
+    await ref.read(banksPullLiveSessionProvider.notifier).runPull(
+      (onProgress) => ref
           .read(banksControllerProvider.notifier)
           .syncLatest(onProgress: onProgress),
     );

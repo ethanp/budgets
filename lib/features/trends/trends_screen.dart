@@ -6,6 +6,7 @@ import 'package:spend_trends/domain/account.dart';
 import 'package:spend_trends/domain/category.dart';
 import 'package:spend_trends/domain/category_group.dart';
 import 'package:spend_trends/domain/life_event.dart';
+import 'package:spend_trends/domain/owned_asset.dart';
 import 'package:spend_trends/domain/stay_chain.dart';
 import 'package:spend_trends/domain/transaction.dart';
 import 'package:spend_trends/domain/trend_spend_rate.dart';
@@ -29,6 +30,7 @@ class TrendsScreen extends ConsumerWidget {
     final housingAsync = ref.watch(housingChainProvider);
     final jobAsync = ref.watch(jobChainProvider);
     final accountsAsync = ref.watch(accountsMapProvider);
+    final ownedAssetsAsync = ref.watch(ownedAssetsListProvider);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -52,7 +54,10 @@ class TrendsScreen extends ConsumerWidget {
           ),
           data: (bundle) => _trendsBody(
             bundle,
-            currentNetWorthCents: _sumAccountBalances(accountsAsync),
+            currentNetWorthCents: _sumNetWorthCents(
+              accountsAsync,
+              ownedAssetsAsync,
+            ),
             transactions:
                 transactionsAsync.asData?.value ?? const <BankTransaction>[],
             categories:
@@ -141,7 +146,7 @@ class TrendsScreen extends ConsumerWidget {
               netWorthSeries: bundle.netWorth,
             ),
             subtitle:
-                'Current = Banks sum · Smoothed = chart line tip · '
+                'Current = accounts + owned assets · Smoothed = chart line tip · '
                 'grouped by account kind · |balance|, dashed = liability',
             seriesList: bundle.netWorth,
             transactions: transactions,
@@ -158,15 +163,20 @@ class TrendsScreen extends ConsumerWidget {
     );
   }
 
-  static int? _sumAccountBalances(
+  static int? _sumNetWorthCents(
     AsyncValue<Map<String, Account>> accountsAsync,
+    AsyncValue<List<OwnedAssetWithValuations>> ownedAssetsAsync,
   ) {
     final accounts = accountsAsync.asData?.value;
-    if (accounts == null) return null;
+    final ownedAssets = ownedAssetsAsync.asData?.value;
+    if (accounts == null || ownedAssets == null) return null;
     var totalCents = 0;
     for (final account in accounts.values) {
       if (account.hasParent) continue;
       totalCents += account.balanceCents;
+    }
+    for (final ownedAsset in ownedAssets) {
+      totalCents += ownedAsset.currentValueCents;
     }
     return totalCents;
   }

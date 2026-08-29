@@ -6,11 +6,14 @@ import 'package:spend_trends/domain/category.dart';
 import 'package:spend_trends/domain/category_group.dart';
 import 'package:spend_trends/domain/remove_copilot_duplicates.dart';
 import 'package:spend_trends/domain/life_event.dart';
+import 'package:spend_trends/domain/owned_asset.dart';
 import 'package:spend_trends/domain/month_summary.dart';
 import 'package:spend_trends/domain/stay_chain.dart';
 import 'package:spend_trends/domain/transaction.dart';
 import 'package:spend_trends/domain/pull_simplefin_transactions.dart';
 import 'package:spend_trends/domain/trend_spend_rate.dart';
+import 'package:spend_trends/features/banks/banks_pull_live_session.dart';
+import 'package:spend_trends/features/banks/pull_import_window.dart';
 import 'package:spend_trends/features/trends/build_trends_charts.dart';
 import 'package:spend_trends/features/trends/trends_chart_bundle.dart';
 import 'package:spend_trends/services/simplefin/simplefin_access_store.dart';
@@ -20,6 +23,7 @@ import 'package:spend_trends/services/sqlite/accounts_repository.dart';
 import 'package:spend_trends/services/sqlite/categories_repository.dart';
 import 'package:spend_trends/services/sqlite/chain_stays_repository.dart';
 import 'package:spend_trends/services/sqlite/life_events_repository.dart';
+import 'package:spend_trends/services/sqlite/owned_assets_repository.dart';
 import 'package:spend_trends/services/sqlite/simplefin_pull_history.dart';
 import 'package:spend_trends/services/sqlite/transactions_repository.dart';
 import 'package:spend_trends/services/sync/powersync_database_provider.dart';
@@ -67,6 +71,21 @@ final lifeEventsProvider = FutureProvider<List<LifeEvent>>((ref) async {
   ref.watch(spendDataChangedProvider);
   final repository = await ref.watch(lifeEventsRepositoryProvider.future);
   return repository.listNewestFirst();
+});
+
+final ownedAssetsRepositoryProvider = FutureProvider<OwnedAssetsRepository>((
+  ref,
+) async {
+  final database = await ref.watch(powerSyncDatabaseProvider.future);
+  return OwnedAssetsRepository(database);
+});
+
+final ownedAssetsListProvider = FutureProvider<List<OwnedAssetWithValuations>>((
+  ref,
+) async {
+  ref.watch(spendDataChangedProvider);
+  final repository = await ref.watch(ownedAssetsRepositoryProvider.future);
+  return repository.listWithValuations();
 });
 
 final housingStaysRepositoryProvider = FutureProvider<ChainStaysRepository>((
@@ -218,6 +237,18 @@ final simpleFinPullHistoryListProvider =
       return history.listRecent();
     });
 
+final pullImportedTransactionsProvider =
+    FutureProvider.family<List<BankTransaction>, PullImportWindow>((
+      ref,
+      window,
+    ) async {
+      ref.watch(spendDataChangedProvider);
+      ref.watch(banksPullLiveSessionProvider);
+      final repository = await ref.watch(transactionsRepositoryProvider.future);
+      final end = window.finishedAt ?? DateTime.now().toUtc();
+      return repository.listImportedBetween(window.startedAt, end);
+    });
+
 final transactionsListProvider = FutureProvider<List<BankTransaction>>((
   ref,
 ) async {
@@ -280,10 +311,14 @@ final trendsChartBundleProvider = FutureProvider<TrendsChartBundle>((
     categoriesRepositoryProvider.future,
   );
   final accountsRepository = await ref.watch(accountsRepositoryProvider.future);
+  final ownedAssetsRepository = await ref.watch(
+    ownedAssetsRepositoryProvider.future,
+  );
   return const BuildTrendsCharts().build(
     transactions: await transactionsRepository.listAll(),
     categories: await categoriesRepository.listActive(),
     groups: await categoriesRepository.listGroups(),
     accounts: await accountsRepository.listAccounts(),
+    ownedAssets: await ownedAssetsRepository.listWithValuations(),
   );
 });

@@ -2,8 +2,9 @@ import 'package:ethan_ui/ethan_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spend_trends/features/banks/bank_accounts_list.dart';
+import 'package:spend_trends/features/owned_assets/owned_assets_section.dart';
 import 'package:spend_trends/features/banks/banks_controller.dart';
-import 'package:spend_trends/features/banks/banks_pull_progress_sheet.dart';
+import 'package:spend_trends/features/banks/banks_pull_live_session.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/services/simplefin/simplefin_access_store.dart';
 import 'package:spend_trends/theme/finance_colors.dart';
@@ -11,10 +12,17 @@ import 'package:spend_trends/widgets/app_primary_button.dart';
 
 /// Everyday bank UI: connect, accounts, pull bank transactions.
 class BanksSourceSection extends ConsumerStatefulWidget {
-  const BanksSourceSection({this.selectedAccountId, this.onAccountSelected});
+  const BanksSourceSection({
+    this.selectedAccountId,
+    this.onAccountSelected,
+    this.selectedOwnedAssetId,
+    this.onOwnedAssetSelected,
+  });
 
   final String? selectedAccountId;
   final void Function(String accountId)? onAccountSelected;
+  final String? selectedOwnedAssetId;
+  final void Function(String ownedAssetId)? onOwnedAssetSelected;
 
   @override
   ConsumerState<BanksSourceSection> createState() => _BanksSourceSectionState();
@@ -123,12 +131,16 @@ class _BanksSourceSectionState extends ConsumerState<BanksSourceSection> {
           selectedAccountId: widget.selectedAccountId,
           onAccountSelected: widget.onAccountSelected,
         ),
+        const SizedBox(height: ELayout.spaceXl),
+        OwnedAssetsSection(
+          selectedOwnedAssetId: widget.selectedOwnedAssetId,
+          onOwnedAssetSelected: widget.onOwnedAssetSelected,
+        ),
         const SizedBox(height: ELayout.spaceMd),
         AppPrimaryButton(
           busy: busy,
-          onPressed: () => BanksPullProgressSheet.showAndRun(
-            context,
-            run: (onProgress) => controller.syncLatest(onProgress: onProgress),
+          onPressed: () => ref.read(banksPullLiveSessionProvider.notifier).runPull(
+            (onProgress) => controller.syncLatest(onProgress: onProgress),
           ),
           child: const Row(
             mainAxisSize: MainAxisSize.min,

@@ -1,5 +1,6 @@
 import 'package:spend_trends/domain/account.dart';
 import 'package:spend_trends/domain/account_kind.dart' show AccountKind;
+import 'package:spend_trends/domain/owned_asset.dart';
 import 'package:spend_trends/domain/transaction.dart';
 import 'package:spend_trends/features/trends/category_trend_point.dart';
 import 'package:spend_trends/features/trends/category_trend_series.dart';
@@ -22,6 +23,7 @@ class NetWorthTrend {
     required List<Account> accounts,
     required List<BankTransaction> transactions,
     required List<DateTime> chartDates,
+    List<OwnedAssetWithValuations> ownedAssets = const [],
   }) {
     if (chartDates.isEmpty) return const [];
     final roots = _rootAccounts(accounts);
@@ -36,6 +38,12 @@ class NetWorthTrend {
       );
       for (var dayIndex = 0; dayIndex < chartDates.length; dayIndex++) {
         totals[dayIndex] += accountDaily[dayIndex];
+      }
+    }
+    for (final ownedAsset in ownedAssets) {
+      final assetDaily = ownedAsset.dailyCents(chartDates);
+      for (var dayIndex = 0; dayIndex < chartDates.length; dayIndex++) {
+        totals[dayIndex] += assetDaily[dayIndex];
       }
     }
     return totals;
@@ -104,8 +112,11 @@ class NetWorthTrend {
     required List<Account> accounts,
     required List<BankTransaction> transactions,
     required List<DateTime> chartDates,
+    List<OwnedAssetWithValuations> ownedAssets = const [],
   }) {
-    if (accounts.isEmpty || chartDates.length < 2) return const [];
+    if ((accounts.isEmpty && ownedAssets.isEmpty) || chartDates.length < 2) {
+      return const [];
+    }
 
     final roots = _rootAccounts(accounts);
     final childIdsByParent = _childIdsByParent(accounts);
@@ -118,39 +129,112 @@ class NetWorthTrend {
         accounts: accounts,
         transactions: transactions,
         chartDates: chartDates,
+        ownedAssets: ownedAssets,
       ),
       chartDates: chartDates,
       percentileAreaFill: true,
     );
     if (netWorthSeries == null) return const [];
 
-    final accountSeries = <CategoryTrendSeries>[];
+    return [
+      netWorthSeries,
+      ..._breakdownSeries(
+        roots: roots,
+        childIdsByParent: childIdsByParent,
+        transactions: transactions,
+        chartDates: chartDates,
+        ownedAssets: ownedAssets,
+      ),
+    ];
+  }
+
+  static List<CategoryTrendSeries> _breakdownSeries({
+    required List<Account> roots,
+    required Map<String, Set<String>> childIdsByParent,
+    required List<BankTransaction> transactions,
+    required List<DateTime> chartDates,
+    required List<OwnedAssetWithValuations> ownedAssets,
+  }) {
+    final breakdownSeries = <CategoryTrendSeries>[];
+    var emittedOwnedAssets = false;
     for (final group in _accountsByKind(roots)) {
       for (final account in group.accounts) {
-        final signedDaily = accountDailyCents(
+        final built = _accountSeries(
           account: account,
+          kind: group.kind,
           transactions: transactions,
           chartDates: chartDates,
           includeAccountIds: {account.id, ...?childIdsByParent[account.id]},
         );
-        final isLiability = account.balanceCents < 0;
-        final built = _levelSeries(
-          id: TrendChartCatalog.accountSeriesId(account.id),
-          name: account.displayNameWithInstitution,
-          lineColor: AccountKindColor.forAccount(
-            kind: group.kind,
-            accountId: account.id,
-          ),
-          daily: [for (final value in signedDaily) value.abs()],
-          chartDates: chartDates,
-          dotted: isLiability,
-          legendGroup: group.kind.legendLabel,
+        if (built != null) breakdownSeries.add(built);
+      }
+      if (group.kind == AccountKind.nonFinancialAssets) {
+        breakdownSeries.addAll(
+          _ownedAssetSeries(ownedAssets: ownedAssets, chartDates: chartDates),
         );
-        if (built != null) accountSeries.add(built);
+        emittedOwnedAssets = true;
       }
     }
+    if (!emittedOwnedAssets) {
+      breakdownSeries.addAll(
+        _ownedAssetSeries(ownedAssets: ownedAssets, chartDates: chartDates),
+      );
+    }
+    return breakdownSeries;
+  }
 
-    return [netWorthSeries, ...accountSeries];
+  static CategoryTrendSeries? _accountSeries({
+    required Account account,
+    required AccountKind kind,
+    required List<BankTransaction> transactions,
+    required List<DateTime> chartDates,
+    required Set<String> includeAccountIds,
+  }) {
+    final signedDaily = accountDailyCents(
+      account: account,
+      transactions: transactions,
+      chartDates: chartDates,
+      includeAccountIds: includeAccountIds,
+    );
+    return _levelSeries(
+      id: TrendChartCatalog.accountSeriesId(account.id),
+      name: account.displayNameWithInstitution,
+      lineColor: AccountKindColor.forAccount(
+        kind: kind,
+        accountId: account.id,
+      ),
+      daily: [for (final value in signedDaily) value.abs()],
+      chartDates: chartDates,
+      dotted: account.balanceCents < 0,
+      legendGroup: kind.legendLabel,
+    );
+  }
+
+  static List<CategoryTrendSeries> _ownedAssetSeries({
+    required List<OwnedAssetWithValuations> ownedAssets,
+    required List<DateTime> chartDates,
+  }) {
+    final series = <CategoryTrendSeries>[];
+    final sorted = [...ownedAssets]
+      ..sort(
+        (left, right) => right.currentValueCents.abs().compareTo(
+          left.currentValueCents.abs(),
+        ),
+      );
+    for (final ownedAsset in sorted) {
+      final built = _levelSeries(
+        id: TrendChartCatalog.ownedAssetSeriesId(ownedAsset.asset.id),
+        name: ownedAsset.asset.name,
+        lineColor: ownedAsset.asset.kind.lineColor.shadeKeyedBy(
+          ownedAsset.asset.id,
+        ),
+        daily: ownedAsset.dailyCents(chartDates),
+        chartDates: chartDates,
+        legendGroup: AccountKind.nonFinancialAssets.legendLabel,
+      );
+      if (built != null) series.add(built);
+    }
+    return series;
   }
 
   static List<Account> _rootAccounts(List<Account> accounts) => [

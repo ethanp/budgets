@@ -46,10 +46,10 @@ class BankAccountsByInstitution {
   static double amountColumnWidth(List<Account> accounts) {
     var widest = 0.0;
     for (final account in accounts) {
-      final amountStyle = account.balanceCents == 0
+      final amountStyle = account.isCopilot || account.balanceCents == 0
           ? EText.body.copyWith(color: EColors.textMuted)
           : EText.body.copyWith(fontWeight: FontWeight.w600);
-      final width = formatCents(account.balanceCents).measureWidth(amountStyle);
+      final width = account.balanceCaption.measureWidth(amountStyle);
       if (width > widest) widest = width;
     }
     return widest;

@@ -19,6 +19,8 @@ class ActivityTransactionTile extends StatelessWidget {
     required this.columnWidths,
     this.onRuleSelected,
     this.selected = false,
+    this.extraTrailing,
+    this.categoryCaption,
   });
 
   final BankTransaction transaction;
@@ -28,6 +30,8 @@ class ActivityTransactionTile extends StatelessWidget {
   final VoidCallback? onRuleSelected;
   final bool selected;
   final ActivityColumnWidths columnWidths;
+  final Widget? extraTrailing;
+  final String? categoryCaption;
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +55,9 @@ class ActivityTransactionTile extends StatelessWidget {
         TransactionListRow.cell(
           width: columnWidths.category,
           child: Text(
-            category?.name ?? 'Uncategorized',
+            categoryCaption ??
+                category?.name ??
+                'Uncategorized',
             style: EText.caption.copyWith(
               fontWeight: FontWeight.w600,
               color: categoryColor,
@@ -100,14 +106,20 @@ class ActivityTransactionTile extends StatelessWidget {
               ),
             ),
           );
-    if (statusIcons == null && ruleButton == null) return null;
+    if (statusIcons == null && ruleButton == null && extraTrailing == null) {
+      return null;
+    }
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         ?statusIcons,
-        if (statusIcons != null && ruleButton != null)
+        if (statusIcons != null &&
+            (ruleButton != null || extraTrailing != null))
           const SizedBox(width: ELayout.spaceXs),
         ?ruleButton,
+        if (ruleButton != null && extraTrailing != null)
+          const SizedBox(width: ELayout.spaceXs),
+        ?extraTrailing,
       ],
     );
   }
