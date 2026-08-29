@@ -40,7 +40,7 @@ class _BankPullHistorySheetState extends ConsumerState<BankPullHistorySheet> {
           padding: const EdgeInsets.all(ELayout.spaceLg),
           child: Text(
             '$error',
-            style: EText.body.copyWith(color: EColors.danger),
+            style: EText.body.medium.copyWith(color: EColors.danger),
           ),
         ),
         data: (pulls) => _body(pulls: pulls),
@@ -67,7 +67,7 @@ class _BankPullHistorySheetState extends ConsumerState<BankPullHistorySheet> {
                   padding: const EdgeInsets.all(ELayout.spaceLg),
                   child: Text(
                     'No bank pulls yet. Pull from the Banks tab.',
-                    style: EText.body,
+                    style: EText.body.medium,
                   ),
                 )
               : ListView.builder(

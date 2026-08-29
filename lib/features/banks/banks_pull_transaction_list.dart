@@ -67,7 +67,7 @@ class _BanksPullTransactionListState extends ConsumerState<BanksPullTransactionL
       return AppCard(
         child: Text(
           'No new transactions in this pull yet.',
-          style: EText.body,
+          style: EText.body.medium,
         ),
       );
     }
@@ -101,7 +101,7 @@ class _BanksPullTransactionListState extends ConsumerState<BanksPullTransactionL
                   ? 'No uncategorized transactions in this pull.'
                   : 'All transactions are hidden as offsetting pairs. '
                         'Turn off “Hide offsetting pairs” to see them.',
-              style: EText.body,
+              style: EText.body.medium,
             ),
           )
         else
@@ -201,7 +201,7 @@ class _BanksPullTransactionListState extends ConsumerState<BanksPullTransactionL
         padding: const EdgeInsets.only(top: ELayout.spaceSm),
         child: Text(
           listItem.label,
-          style: EText.body.copyWith(
+          style: EText.body.medium.copyWith(
             fontWeight: FontWeight.w600,
             color: EColors.textSecondary,
           ),

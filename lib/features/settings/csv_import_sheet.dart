@@ -73,7 +73,7 @@ class _CsvImportSheetState extends ConsumerState<CsvImportSheet> {
   Widget _buildAccountField() {
     return TextField(
       controller: _accountController,
-      style: EText.body.copyWith(color: EColors.textPrimary),
+      style: EText.body.medium.copyWith(color: EColors.textPrimary),
       decoration: EInput.filled(hintText: 'Account name'),
     );
   }

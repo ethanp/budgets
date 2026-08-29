@@ -33,7 +33,7 @@ class BanksAdvancedSection extends ConsumerWidget {
           loading: () => const CircularProgressIndicator(),
           error: (error, _) => SelectableText(
             '$error',
-            style: EText.body.copyWith(color: EColors.danger),
+            style: EText.body.medium.copyWith(color: EColors.danger),
           ),
           data: (status) => _body(context, ref, status, actionState),
         ),

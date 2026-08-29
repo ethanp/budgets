@@ -52,7 +52,7 @@ class _BanksScreenState extends ConsumerState<BanksScreen> {
           error: (error, _) => Center(
             child: Text(
               '$error',
-              style: EText.body.copyWith(color: EColors.danger),
+              style: EText.body.medium.copyWith(color: EColors.danger),
             ),
           ),
           data: (status) {

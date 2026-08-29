@@ -35,7 +35,7 @@ class SyncStatusSheet extends ConsumerWidget {
           padding: const EdgeInsets.all(ELayout.spaceLg),
           child: Text(
             '$error',
-            style: EText.body.copyWith(color: EColors.danger),
+            style: EText.body.medium.copyWith(color: EColors.danger),
           ),
         ),
         data: (status) => _SyncStatusBody(status: status),
@@ -85,7 +85,7 @@ class _SyncStatusBody extends ConsumerWidget {
             status.isConnected
                 ? 'No accounts yet.'
                 : 'Connect a bank on the Banks tab to sync accounts.',
-            style: EText.body,
+            style: EText.body.medium,
           )
         else
           ...status.accounts.map(
@@ -130,10 +130,10 @@ class _SyncStatusBody extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Bank pull', style: EText.body),
+                Text('Bank pull', style: EText.body.medium),
                 Text(
                   primary,
-                  style: EText.body.copyWith(fontWeight: FontWeight.w600),
+                  style: EText.body.medium.copyWith(fontWeight: FontWeight.w600),
                 ),
                 if (secondary != null)
                   Text(
@@ -207,8 +207,8 @@ class _SyncStatusBody extends ConsumerWidget {
   Widget _statusLine({required String label, required String value}) {
     return Row(
       children: [
-        Expanded(child: Text(label, style: EText.body)),
-        Text(value, style: EText.body.copyWith(fontWeight: FontWeight.w600)),
+        Expanded(child: Text(label, style: EText.body.medium)),
+        Text(value, style: EText.body.medium.copyWith(fontWeight: FontWeight.w600)),
       ],
     );
   }

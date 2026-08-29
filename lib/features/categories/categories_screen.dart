@@ -74,7 +74,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
       return Center(
         child: Text(
           '${categoriesAsync.error}',
-          style: EText.body.copyWith(color: EColors.danger),
+          style: EText.body.medium.copyWith(color: EColors.danger),
         ),
       );
     }
@@ -82,7 +82,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
       return Center(
         child: Text(
           '${groupsAsync.error}',
-          style: EText.body.copyWith(color: EColors.danger),
+          style: EText.body.medium.copyWith(color: EColors.danger),
         ),
       );
     }
@@ -187,7 +187,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
             const SizedBox(height: ELayout.spaceSm),
             Text(
               'Add categories to organize spending.',
-              style: EText.body,
+              style: EText.body.medium,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: ELayout.spaceLg),

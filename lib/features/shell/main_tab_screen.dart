@@ -17,9 +17,6 @@ class MainTab {
   final IconData icon;
   final String label;
   final Widget screen;
-
-  BottomNavigationBarItem get navigationItem =>
-      BottomNavigationBarItem(icon: Icon(icon, size: 26), label: label);
 }
 
 const mainTabs = <MainTab>[
@@ -39,62 +36,42 @@ class MainTabScreen extends StatefulWidget {
 }
 
 class _MainTabScreenState extends State<MainTabScreen> {
-  int _selectedIndex = 0;
+  int _selectedTabIndex = 0;
+  final _navigatorKeys = List<GlobalKey<NavigatorState>>.generate(
+    mainTabs.length,
+    (_) => GlobalKey<NavigatorState>(),
+  );
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: EColors.background,
+    return EScaffoldShell(
+      contentMaxWidth: double.infinity,
+      bottomBar: ETabBar(
+        selectedIndex: _selectedTabIndex,
+        tabs: [
+          for (final tab in mainTabs) ETab(icon: tab.icon, label: tab.label),
+        ],
+        onSelected: (index) {
+          if (index == _selectedTabIndex) {
+            _navigatorKeys[index].currentState?.popUntil((route) => route.isFirst);
+            return;
+          }
+          setState(() => _selectedTabIndex = index);
+        },
+      ),
       body: IndexedStack(
-        index: _selectedIndex,
+        index: _selectedTabIndex,
         children: [
-          for (var index = 0; index < mainTabs.length; index++)
+          for (var tabIndex = 0; tabIndex < mainTabs.length; tabIndex++)
             Navigator(
-              onGenerateRoute: (settings) => MaterialPageRoute(
+              key: _navigatorKeys[tabIndex],
+              onGenerateRoute: (settings) => MaterialPageRoute<void>(
                 settings: settings,
-                builder: (context) => _TabChrome(child: mainTabs[index].screen),
+                builder: (_) => mainTabs[tabIndex].screen,
               ),
             ),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) => setState(() => _selectedIndex = index),
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: EColors.frostFill,
-        selectedItemColor: EColors.accentGlow,
-        unselectedItemColor: EColors.textMuted,
-        items: mainTabs.map((tab) => tab.navigationItem).toList(),
-      ),
-    );
-  }
-}
-
-class _TabChrome extends StatelessWidget {
-  const _TabChrome({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        const DecoratedBox(
-          decoration: BoxDecoration(gradient: EColors.scaffoldGradient),
-        ),
-        const Align(
-          alignment: Alignment.topCenter,
-          child: SizedBox(
-            height: 200,
-            width: double.infinity,
-            child: DecoratedBox(
-              decoration: BoxDecoration(gradient: EColors.ambientGlowGradient),
-            ),
-          ),
-        ),
-        child,
-      ],
     );
   }
 }

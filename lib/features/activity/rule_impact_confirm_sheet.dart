@@ -279,7 +279,7 @@ class _RuleImpactConfirmSheetState
         controller: _patternControllers[groupIndex],
         focusNode: _patternFocusNodes[groupIndex],
         decoration: EInput.filledMd(hintText: 'contains pattern'),
-        style: EText.body.copyWith(color: EColors.textPrimary),
+        style: EText.body.medium.copyWith(color: EColors.textPrimary),
         onChanged: (value) {
           setState(() {});
           rematch.schedule(value);
@@ -431,11 +431,11 @@ class _TargetCategoryButton extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: Row(
         children: [
-          Text('→ ', style: EText.body.copyWith(fontWeight: FontWeight.w600)),
+          Text('→ ', style: EText.body.medium.copyWith(fontWeight: FontWeight.w600)),
           Flexible(
             child: Text(
               categoryName,
-              style: EText.body.copyWith(
+              style: EText.body.medium.copyWith(
                 fontWeight: FontWeight.w600,
                 color: FinanceColors.accentPrimary,
               ),

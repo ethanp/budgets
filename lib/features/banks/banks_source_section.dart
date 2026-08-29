@@ -47,7 +47,7 @@ class _BanksSourceSectionState extends ConsumerState<BanksSourceSection> {
       loading: () => const CircularProgressIndicator(),
       error: (error, _) => SelectableText(
         '$error',
-        style: EText.body.copyWith(color: EColors.danger),
+        style: EText.body.medium.copyWith(color: EColors.danger),
       ),
       data: (status) {
         if (!status.isConnected) return _disconnectedBody(actionState);
@@ -85,10 +85,10 @@ class _BanksSourceSectionState extends ConsumerState<BanksSourceSection> {
           controller: _tokenController,
           maxLines: 4,
           minLines: 3,
-          style: EText.body.copyWith(color: EColors.textPrimary),
+          style: EText.body.medium.copyWith(color: EColors.textPrimary),
           decoration: EInput.filled(
             hintText: 'Paste Setup Token',
-            hintStyle: EText.body.copyWith(color: EColors.textMuted),
+            hintStyle: EText.body.medium.copyWith(color: EColors.textMuted),
             fillColor: EColors.surfaceInset,
             focusedBorder: EInput.outlineSm.copyWith(
               borderSide: const BorderSide(color: FinanceColors.accentPrimary),

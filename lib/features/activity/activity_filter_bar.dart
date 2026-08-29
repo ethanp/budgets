@@ -85,7 +85,7 @@ class _RuleMatchFilterToggle extends StatelessWidget {
               children: [
                 Text(
                   'Hide auto-categorized',
-                  style: EText.body.copyWith(fontWeight: FontWeight.w600),
+                  style: EText.body.medium.copyWith(fontWeight: FontWeight.w600),
                 ),
                 Text(
                   hideRuleMatched
@@ -139,7 +139,7 @@ class ActivityVisibleSumBar extends StatelessWidget {
         children: [
           Text(
             'Sum visible list',
-            style: EText.body.copyWith(fontWeight: FontWeight.w600),
+            style: EText.body.medium.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: ELayout.spaceXs),
           Row(

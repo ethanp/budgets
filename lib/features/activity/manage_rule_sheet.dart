@@ -99,7 +99,7 @@ class _ManageRuleSheetState extends ConsumerState<ManageRuleSheet> {
           const SizedBox(height: ELayout.spaceSm),
           Text(
             'contains “${_rule.pattern}”',
-            style: EText.body.copyWith(
+            style: EText.body.medium.copyWith(
               fontWeight: FontWeight.w600,
               color: FinanceColors.accentPrimary,
             ),
@@ -144,7 +144,7 @@ class _ManageRuleSheetState extends ConsumerState<ManageRuleSheet> {
           padding: const EdgeInsets.all(ELayout.spaceLg),
           child: Text(
             '$_loadError',
-            style: EText.body.copyWith(color: EColors.danger),
+            style: EText.body.medium.copyWith(color: EColors.danger),
           ),
         ),
       );
@@ -157,7 +157,7 @@ class _ManageRuleSheetState extends ConsumerState<ManageRuleSheet> {
       return Center(
         child: Text(
           'No transactions currently use this rule.',
-          style: EText.body.copyWith(color: EColors.textMuted),
+          style: EText.body.medium.copyWith(color: EColors.textMuted),
         ),
       );
     }
@@ -213,7 +213,7 @@ class _ManageRuleSheetState extends ConsumerState<ManageRuleSheet> {
                     )
                   : Text(
                       'Remove rule',
-                      style: EText.body.copyWith(
+                      style: EText.body.medium.copyWith(
                         fontWeight: FontWeight.w600,
                         color: EColors.danger,
                       ),
@@ -460,7 +460,7 @@ class _PrimaryMatchRow extends StatelessWidget {
                 children: [
                   Text(
                     _title,
-                    style: EText.body.copyWith(fontWeight: FontWeight.w600),
+                    style: EText.body.medium.copyWith(fontWeight: FontWeight.w600),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -480,7 +480,7 @@ class _PrimaryMatchRow extends StatelessWidget {
             const SizedBox(width: ELayout.spaceSm),
             Text(
               formatCents(transaction.amountCents),
-              style: EText.body.copyWith(fontWeight: FontWeight.w600),
+              style: EText.body.medium.copyWith(fontWeight: FontWeight.w600),
               maxLines: 1,
             ),
           ],

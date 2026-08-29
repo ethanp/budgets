@@ -48,7 +48,7 @@ class LifeEventsScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(ELayout.spaceLg),
                 child: SelectableText(
                   '$error',
-                  style: EText.body.copyWith(color: EColors.danger),
+                  style: EText.body.medium.copyWith(color: EColors.danger),
                 ),
               ),
             );
@@ -86,7 +86,7 @@ class _LifeEventsBody extends ConsumerWidget {
         const SizedBox(height: ELayout.spaceLg),
         Text(
           'Milestones',
-          style: EText.body.copyWith(fontWeight: FontWeight.w600),
+          style: EText.body.medium.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: ELayout.spaceSm),
         if (lifeEvents.isEmpty)

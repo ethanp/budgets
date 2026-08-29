@@ -27,11 +27,11 @@ class AppDateField extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Text(label, style: EText.body),
+            Text(label, style: EText.body.medium),
             const Spacer(),
             Text(
               DateFormat.yMMMd().format(date),
-              style: EText.body.copyWith(fontWeight: FontWeight.w600),
+              style: EText.body.medium.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(width: ELayout.spaceSm),
             const Icon(

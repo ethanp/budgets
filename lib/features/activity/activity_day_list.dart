@@ -150,7 +150,7 @@ class _ActivityDayHeaderTile extends StatelessWidget {
         children: [
           Text(
             label,
-            style: EText.body.copyWith(
+            style: EText.body.medium.copyWith(
               fontWeight: FontWeight.w600,
               color: EColors.textSecondary,
               letterSpacing: 0.2,

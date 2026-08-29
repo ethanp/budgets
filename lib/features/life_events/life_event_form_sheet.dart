@@ -133,7 +133,7 @@ class _LifeEventFormSheetState extends ConsumerState<LifeEventFormSheet> {
     return TextField(
       controller: _titleController,
       autofocus: !_isEditing,
-      style: EText.body.copyWith(color: EColors.textPrimary),
+      style: EText.body.medium.copyWith(color: EColors.textPrimary),
       decoration: EInput.filled(hintText: 'Title'),
     );
   }
@@ -167,7 +167,7 @@ class _LifeEventFormSheetState extends ConsumerState<LifeEventFormSheet> {
       controller: _noteController,
       maxLines: 3,
       minLines: 2,
-      style: EText.body.copyWith(color: EColors.textPrimary),
+      style: EText.body.medium.copyWith(color: EColors.textPrimary),
       decoration: EInput.filled(hintText: 'Note (optional)'),
     );
   }

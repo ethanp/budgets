@@ -68,7 +68,7 @@ class RuleImpactMatchRow extends StatelessWidget {
                         Expanded(
                           child: Text(
                             _title,
-                            style: EText.body.copyWith(
+                            style: EText.body.medium.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
                             maxLines: 1,
@@ -78,7 +78,7 @@ class RuleImpactMatchRow extends StatelessWidget {
                         const SizedBox(width: ELayout.spaceSm),
                         Text(
                           formatCents(transaction.amountCents),
-                          style: EText.body.copyWith(
+                          style: EText.body.medium.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
                           maxLines: 1,

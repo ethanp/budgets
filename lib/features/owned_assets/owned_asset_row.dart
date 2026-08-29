@@ -20,8 +20,8 @@ class OwnedAssetRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final amountStyle = ownedAsset.currentValueCents == 0
-        ? EText.body.copyWith(color: EColors.textMuted)
-        : EText.body.copyWith(fontWeight: FontWeight.w600);
+        ? EText.body.medium.copyWith(color: EColors.textMuted)
+        : EText.body.medium.copyWith(fontWeight: FontWeight.w600);
     final body = Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -31,7 +31,7 @@ class OwnedAssetRow extends StatelessWidget {
             children: [
               Text(
                 ownedAsset.asset.name,
-                style: EText.body,
+                style: EText.body.medium,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),

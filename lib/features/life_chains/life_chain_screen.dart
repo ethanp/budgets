@@ -32,7 +32,7 @@ class LifeChainScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(ELayout.spaceLg),
             child: Text(
               '$error',
-              style: EText.body.copyWith(color: EColors.danger),
+              style: EText.body.medium.copyWith(color: EColors.danger),
             ),
           ),
         ),
@@ -62,7 +62,7 @@ class _ChainBody extends ConsumerWidget {
           kind == LifeChainKind.housing
               ? 'Where you’ve lived — a path of places over time.'
               : 'Where you’ve worked — a path of roles over time.',
-          style: EText.body.copyWith(color: EColors.textMuted),
+          style: EText.body.medium.copyWith(color: EColors.textMuted),
         ),
         const SizedBox(height: ELayout.spaceLg),
         if (chain.isEmpty)

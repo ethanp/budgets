@@ -85,7 +85,7 @@ class BanksNetWorthPane extends StatelessWidget {
           for (final line in kindLines)
             Padding(
               padding: const EdgeInsets.only(bottom: ELayout.spaceXs),
-              child: Text(line, style: EText.body),
+              child: Text(line, style: EText.body.medium),
             ),
         ],
         const SizedBox(height: ELayout.spaceLg),
@@ -123,7 +123,7 @@ class BanksNetWorthPane extends StatelessWidget {
         const SizedBox(height: ELayout.spaceXs),
         Text(account.balanceCaption, style: EText.title),
         const SizedBox(height: ELayout.spaceMd),
-        Text(account.institutionDisplayName, style: EText.body),
+        Text(account.institutionDisplayName, style: EText.body.medium),
         if (account.isCopilot) ...[
           const SizedBox(height: ELayout.spaceXs),
           Text('Copilot import', style: EText.caption),

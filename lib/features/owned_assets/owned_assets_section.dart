@@ -31,7 +31,7 @@ class OwnedAssetsSection extends ConsumerWidget {
       ),
       error: (error, _) => Text(
         '$error',
-        style: EText.body.copyWith(color: EColors.danger),
+        style: EText.body.medium.copyWith(color: EColors.danger),
       ),
       data: (ownedAssets) => _section(context, ownedAssets),
     );
@@ -94,8 +94,8 @@ class OwnedAssetsSection extends ConsumerWidget {
     var widest = 0.0;
     for (final ownedAsset in ownedAssets) {
       final amountStyle = ownedAsset.currentValueCents == 0
-          ? EText.body.copyWith(color: EColors.textMuted)
-          : EText.body.copyWith(fontWeight: FontWeight.w600);
+          ? EText.body.medium.copyWith(color: EColors.textMuted)
+          : EText.body.medium.copyWith(fontWeight: FontWeight.w600);
       final width = formatCents(
         ownedAsset.currentValueCents,
       ).measureWidth(amountStyle);

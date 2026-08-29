@@ -66,8 +66,8 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
     final isMutedBalance =
         widget.account.isCopilot || widget.account.balanceCents == 0;
     final nameStyle = exceptionLabel != null
-        ? EText.body.copyWith(fontWeight: FontWeight.w600)
-        : EText.body;
+        ? EText.body.medium.copyWith(fontWeight: FontWeight.w600)
+        : EText.body.medium;
 
     final nameRow = Row(
       mainAxisSize: MainAxisSize.min,
@@ -172,8 +172,8 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
             child: Text(
               balanceCaption,
               style: isMutedBalance
-                  ? EText.body.copyWith(color: EColors.textMuted)
-                  : EText.body.copyWith(fontWeight: FontWeight.w600),
+                  ? EText.body.medium.copyWith(color: EColors.textMuted)
+                  : EText.body.medium.copyWith(fontWeight: FontWeight.w600),
               maxLines: 1,
               textAlign: TextAlign.right,
             ),
@@ -256,15 +256,15 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
                 title: Text(
                   kind.legendLabel,
                   style: kind == widget.account.kind
-                      ? EText.body.copyWith(fontWeight: FontWeight.w600)
-                      : EText.body,
+                      ? EText.body.medium.copyWith(fontWeight: FontWeight.w600)
+                      : EText.body.medium,
                 ),
                 onTap: () => Navigator.of(sheetContext).pop(kind),
               ),
             ListTile(
               title: Text(
                 'Cancel',
-                style: EText.body.copyWith(color: EColors.textMuted),
+                style: EText.body.medium.copyWith(color: EColors.textMuted),
               ),
               onTap: () => Navigator.of(sheetContext).pop(),
             ),
@@ -333,8 +333,8 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
               title: Text(
                 'None',
                 style: widget.account.belongsToAccountId == null
-                    ? EText.body.copyWith(fontWeight: FontWeight.w600)
-                    : EText.body,
+                    ? EText.body.medium.copyWith(fontWeight: FontWeight.w600)
+                    : EText.body.medium,
               ),
               onTap: () => Navigator.of(sheetContext).pop(''),
             ),
@@ -343,15 +343,15 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
                 title: Text(
                   parent.displayNameWithInstitution,
                   style: parent.id == widget.account.belongsToAccountId
-                      ? EText.body.copyWith(fontWeight: FontWeight.w600)
-                      : EText.body,
+                      ? EText.body.medium.copyWith(fontWeight: FontWeight.w600)
+                      : EText.body.medium,
                 ),
                 onTap: () => Navigator.of(sheetContext).pop(parent.id),
               ),
             ListTile(
               title: Text(
                 'Cancel',
-                style: EText.body.copyWith(color: EColors.textMuted),
+                style: EText.body.medium.copyWith(color: EColors.textMuted),
               ),
               onTap: () => Navigator.of(sheetContext).pop(),
             ),

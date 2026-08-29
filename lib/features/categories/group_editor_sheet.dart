@@ -62,7 +62,7 @@ class _GroupEditorSheetState extends ConsumerState<GroupEditorSheet> {
             TextField(
               controller: _nameController,
               autofocus: !_isEditing,
-              style: EText.body.copyWith(color: EColors.textPrimary),
+              style: EText.body.medium.copyWith(color: EColors.textPrimary),
               decoration: EInput.filled(hintText: 'Name (e.g. Wants)'),
             ),
             if (_error != null) ...[

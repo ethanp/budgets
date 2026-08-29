@@ -94,7 +94,7 @@ class _ChainStayFormSheetState extends ConsumerState<ChainStayFormSheet> {
               TextField(
                 controller: _labelController,
                 autofocus: !_isEditing,
-                style: EText.body.copyWith(color: EColors.textPrimary),
+                style: EText.body.medium.copyWith(color: EColors.textPrimary),
                 decoration: EInput.filled(
                   hintText: widget.kind.labelPlaceholder,
                 ),
@@ -110,7 +110,7 @@ class _ChainStayFormSheetState extends ConsumerState<ChainStayFormSheet> {
                 controller: _noteController,
                 maxLines: 3,
                 minLines: 2,
-                style: EText.body.copyWith(color: EColors.textPrimary),
+                style: EText.body.medium.copyWith(color: EColors.textPrimary),
                 decoration: EInput.filled(hintText: 'Note (optional)'),
               ),
               if (_error != null) ...[

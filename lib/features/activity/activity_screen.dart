@@ -51,7 +51,7 @@ class ActivityScreen extends ConsumerWidget {
           error: (error, _) => Center(
             child: Text(
               '$error',
-              style: EText.body.copyWith(color: EColors.danger),
+              style: EText.body.medium.copyWith(color: EColors.danger),
             ),
           ),
           data: (transactions) => _ActivityBody(transactions: transactions),
@@ -284,7 +284,7 @@ class _ActivityBodyState extends ConsumerState<_ActivityBody> {
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: ELayout.spaceLg),
       sliver: SliverToBoxAdapter(
-        child: AppCard(child: Text(message, style: EText.body)),
+        child: AppCard(child: Text(message, style: EText.body.medium)),
       ),
     );
   }
@@ -300,7 +300,7 @@ class _ActivityBodyState extends ConsumerState<_ActivityBody> {
             connected
                 ? 'No transactions yet.'
                 : 'Connect a bank on the Banks tab to see activity.',
-            style: EText.body,
+            style: EText.body.medium,
           ),
         ),
       ],

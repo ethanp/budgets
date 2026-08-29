@@ -132,7 +132,7 @@ class _OwnedAssetFormSheetState extends ConsumerState<OwnedAssetFormSheet> {
     return TextField(
       controller: _nameController,
       autofocus: !_isEditing,
-      style: EText.body.copyWith(color: EColors.textPrimary),
+      style: EText.body.medium.copyWith(color: EColors.textPrimary),
       decoration: EInput.filled(hintText: 'Name (e.g. Home, Car)'),
     );
   }
@@ -155,7 +155,7 @@ class _OwnedAssetFormSheetState extends ConsumerState<OwnedAssetFormSheet> {
       controller: _valueController,
       autofocus: widget.updateValueOnly,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      style: EText.body.copyWith(color: EColors.textPrimary),
+      style: EText.body.medium.copyWith(color: EColors.textPrimary),
       decoration: EInput.filled(hintText: 'Value (dollars)'),
     );
   }
@@ -165,7 +165,7 @@ class _OwnedAssetFormSheetState extends ConsumerState<OwnedAssetFormSheet> {
       controller: _noteController,
       maxLines: 3,
       minLines: 2,
-      style: EText.body.copyWith(color: EColors.textPrimary),
+      style: EText.body.medium.copyWith(color: EColors.textPrimary),
       decoration: EInput.filled(hintText: 'Note (optional)'),
     );
   }

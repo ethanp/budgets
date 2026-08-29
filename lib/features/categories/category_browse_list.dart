@@ -183,7 +183,7 @@ class CategoryBrowseFactRow extends StatelessWidget {
           ? null
           : Text(
               formatCents(row?.spentCents ?? 0),
-              style: EText.body.copyWith(fontWeight: FontWeight.w600),
+              style: EText.body.medium.copyWith(fontWeight: FontWeight.w600),
               maxLines: 1,
             ),
       amountWidth: _isFlow ? null : amountWidth,

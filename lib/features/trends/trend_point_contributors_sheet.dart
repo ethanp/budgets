@@ -114,7 +114,7 @@ class _TrendPointContributorsSheetState
   Widget _emptyState() {
     return Expanded(
       child: Center(
-        child: Text('No transactions in this window.', style: EText.body),
+        child: Text('No transactions in this window.', style: EText.body.medium),
       ),
     );
   }
@@ -221,17 +221,17 @@ class _ContributorColumnWidths {
     required List<TrendPointContributor> contributors,
     required String Function(TrendPointContributor contributor) categoryNameFor,
   }) {
-    final rankStyle = EText.body.copyWith(
+    final rankStyle = EText.body.medium.copyWith(
       fontWeight: FontWeight.w600,
       color: EColors.textMuted,
     );
-    final dateStyle = EText.body.copyWith(color: EColors.textMuted);
-    final merchantStyle = EText.body.copyWith(fontWeight: FontWeight.w600);
-    final paceStyle = EText.body.copyWith(
+    final dateStyle = EText.body.medium.copyWith(color: EColors.textMuted);
+    final merchantStyle = EText.body.medium.copyWith(fontWeight: FontWeight.w600);
+    final paceStyle = EText.body.medium.copyWith(
       fontWeight: FontWeight.w600,
       color: EColors.textMuted,
     );
-    final amountStyle = EText.body.copyWith(fontWeight: FontWeight.w600);
+    final amountStyle = EText.body.medium.copyWith(fontWeight: FontWeight.w600);
     final categoryStyle = EText.caption.copyWith(
       fontWeight: FontWeight.w600,
       color: FinanceColors.accentPrimary,
@@ -397,7 +397,7 @@ class _ContributorRow extends StatelessWidget {
       width: columnWidths.rank,
       child: Text(
         '$rank',
-        style: EText.body.copyWith(
+        style: EText.body.medium.copyWith(
           fontWeight: FontWeight.w600,
           color: EColors.textMuted,
         ),
@@ -411,7 +411,7 @@ class _ContributorRow extends StatelessWidget {
       width: columnWidths.date,
       child: Text(
         DateFormat.yMMMd().format(contributor.transaction.postedAt),
-        style: EText.body.copyWith(color: EColors.textMuted),
+        style: EText.body.medium.copyWith(color: EColors.textMuted),
         maxLines: 1,
       ),
     );
@@ -427,7 +427,7 @@ class _ContributorRow extends StatelessWidget {
             width: width,
             child: Text(
               _merchantName,
-              style: EText.body.copyWith(fontWeight: FontWeight.w600),
+              style: EText.body.medium.copyWith(fontWeight: FontWeight.w600),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -443,7 +443,7 @@ class _ContributorRow extends StatelessWidget {
       alignment: Alignment.centerRight,
       child: Text(
         formatPaceCents(contributor.smoothedContributionCents.round()),
-        style: EText.body.copyWith(
+        style: EText.body.medium.copyWith(
           fontWeight: FontWeight.w600,
           color: EColors.textMuted,
         ),
@@ -459,7 +459,7 @@ class _ContributorRow extends StatelessWidget {
       alignment: Alignment.centerRight,
       child: Text(
         formatCents(contributor.transaction.amountCents),
-        style: EText.body.copyWith(fontWeight: FontWeight.w600),
+        style: EText.body.medium.copyWith(fontWeight: FontWeight.w600),
         maxLines: 1,
         textAlign: TextAlign.right,
       ),

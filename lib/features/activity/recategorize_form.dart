@@ -104,7 +104,7 @@ class _RecategorizeFormState extends ConsumerState<RecategorizeForm> {
         padding: const EdgeInsets.all(ELayout.spaceLg),
         child: Text(
           '${categoriesAsync.error}',
-          style: EText.body.copyWith(color: EColors.danger),
+          style: EText.body.medium.copyWith(color: EColors.danger),
         ),
       );
     }
@@ -156,7 +156,7 @@ class _RecategorizeFormState extends ConsumerState<RecategorizeForm> {
         const SizedBox(height: ELayout.spaceXs),
         Text(
           _description,
-          style: EText.body.copyWith(fontWeight: FontWeight.w600),
+          style: EText.body.medium.copyWith(fontWeight: FontWeight.w600),
           maxLines: 3,
           overflow: TextOverflow.ellipsis,
         ),
@@ -180,7 +180,7 @@ class _RecategorizeFormState extends ConsumerState<RecategorizeForm> {
           decoration: EInput.filledMd(hintText: 'Optional note'),
           maxLines: 3,
           minLines: 1,
-          style: EText.body.copyWith(color: EColors.textPrimary),
+          style: EText.body.medium.copyWith(color: EColors.textPrimary),
           onChanged: (_) => setState(() {}),
         ),
         if (_noteDirty) ...[
@@ -216,7 +216,7 @@ class _RecategorizeFormState extends ConsumerState<RecategorizeForm> {
           },
         ),
         const SizedBox(width: ELayout.spaceSm),
-        Expanded(child: Text('Also create a rule', style: EText.body)),
+        Expanded(child: Text('Also create a rule', style: EText.body.medium)),
       ],
     );
   }
@@ -246,7 +246,7 @@ class _RecategorizeFormState extends ConsumerState<RecategorizeForm> {
         TextField(
           controller: _patternController,
           decoration: EInput.filledMd(hintText: 'e.g. bbq'),
-          style: EText.body.copyWith(color: EColors.textPrimary),
+          style: EText.body.medium.copyWith(color: EColors.textPrimary),
           onChanged: (value) {
             setState(() {});
             _patternRematch.schedule(value);

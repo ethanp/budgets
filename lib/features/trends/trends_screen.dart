@@ -48,7 +48,7 @@ class TrendsScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(ELayout.spaceLg),
               child: Text(
                 '$error',
-                style: EText.body.copyWith(color: EColors.danger),
+                style: EText.body.medium.copyWith(color: EColors.danger),
               ),
             ),
           ),
@@ -89,7 +89,7 @@ class TrendsScreen extends ConsumerWidget {
           child: Text(
             'Connect a bank on the Banks tab and sync, or import CSV in '
             'Settings, to see long-term trends.',
-            style: EText.body,
+            style: EText.body.medium,
             textAlign: TextAlign.center,
           ),
         ),

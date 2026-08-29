@@ -214,7 +214,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
       annual == 0
           ? '${formatCents(spent)} this month'
           : '${formatCents(spent)} this month · ${formatCents(annual)} / yr',
-      style: EText.body,
+      style: EText.body.medium,
     );
   }
 
@@ -233,7 +233,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
           categoryRules.length == 1
               ? '1 rule'
               : '${categoryRules.length} rules',
-          style: EText.body,
+          style: EText.body.medium,
         ),
         const SizedBox(height: ELayout.spaceXs),
         for (final rule in preview)
@@ -289,7 +289,7 @@ class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
     return TextField(
       controller: _nameController,
       autofocus: autofocus,
-      style: EText.body.copyWith(color: EColors.textPrimary),
+      style: EText.body.medium.copyWith(color: EColors.textPrimary),
       decoration: EInput.filled(hintText: 'Name'),
     );
   }

@@ -141,7 +141,7 @@ class _SuggestCategoriesSheetState
         Expanded(
           child: Text(
             'Also create a rule for each merchant',
-            style: EText.body,
+            style: EText.body.medium,
           ),
         ),
       ],
@@ -155,13 +155,13 @@ class _SuggestCategoriesSheetState
     if (_error != null) {
       return Padding(
         padding: const EdgeInsets.all(ELayout.spaceLg),
-        child: Text(_error!, style: EText.body.copyWith(color: EColors.danger)),
+        child: Text(_error!, style: EText.body.medium.copyWith(color: EColors.danger)),
       );
     }
     if (_suggestions.isEmpty) {
       return Padding(
         padding: const EdgeInsets.all(ELayout.spaceLg),
-        child: Text('Nothing uncategorized to suggest.', style: EText.body),
+        child: Text('Nothing uncategorized to suggest.', style: EText.body.medium),
       );
     }
     return _buildSuggestionList();
@@ -208,7 +208,7 @@ class _SuggestCategoriesSheetState
                   const SizedBox(height: ELayout.spaceXs),
                   Text(
                     _amountsLabel(suggestion),
-                    style: EText.body.copyWith(fontWeight: FontWeight.w600),
+                    style: EText.body.medium.copyWith(fontWeight: FontWeight.w600),
                   ),
                 ],
               ],

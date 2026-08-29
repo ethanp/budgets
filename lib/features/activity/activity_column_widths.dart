@@ -59,8 +59,8 @@ class ActivityColumnWidths {
   }) {
     final categoryStyle = EText.caption.copyWith(fontWeight: FontWeight.w600);
     final accountStyle = EText.caption;
-    final titleStyle = EText.body.copyWith(fontWeight: FontWeight.w600);
-    final amountStyle = EText.body.copyWith(
+    final titleStyle = EText.body.medium.copyWith(fontWeight: FontWeight.w600);
+    final amountStyle = EText.body.medium.copyWith(
       fontWeight: FontWeight.w600,
       fontFeatures: const [FontFeature.tabularFigures()],
     );

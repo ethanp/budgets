@@ -76,7 +76,7 @@ class OwnedAssetDetailPane extends ConsumerWidget {
         ],
         if (ownedAsset.asset.note != null) ...[
           const SizedBox(height: ELayout.spaceMd),
-          Text(ownedAsset.asset.note!, style: EText.body),
+          Text(ownedAsset.asset.note!, style: EText.body.medium),
         ],
         const SizedBox(height: ELayout.spaceLg),
         ..._actions(context, ownedAsset),
@@ -154,10 +154,10 @@ class OwnedAssetDetailPane extends ConsumerWidget {
           Expanded(
             child: Text(
               DateFormat.yMMMd().format(valuation.valuedOn),
-              style: EText.body,
+              style: EText.body.medium,
             ),
           ),
-          Text(formatCents(valuation.valueCents), style: EText.body),
+          Text(formatCents(valuation.valueCents), style: EText.body.medium),
           if (canDelete)
             IconButton(
               tooltip: 'Remove this valuation',

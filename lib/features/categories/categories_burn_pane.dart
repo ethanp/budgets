@@ -83,7 +83,7 @@ class CategoriesBurnPane extends ConsumerWidget {
                   : '${row.categoryName} · '
                         '${_percentOf(row.annualizedSpendCents, totalBurn)} · '
                         '${formatCents(row.annualizedSpendCents)} / yr',
-              style: EText.body,
+              style: EText.body.medium,
             ),
             const SizedBox(height: ELayout.spaceXs),
           ],
@@ -159,7 +159,7 @@ class CategoriesBurnPane extends ConsumerWidget {
             categoryRules.length == 1
                 ? '1 rule'
                 : '${categoryRules.length} rules',
-            style: EText.body,
+            style: EText.body.medium,
           ),
           for (final rule in categoryRules.take(5))
             Text(_ruleCaption(rule), style: EText.caption),

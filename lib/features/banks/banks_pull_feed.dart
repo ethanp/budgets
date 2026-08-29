@@ -55,7 +55,7 @@ class _BanksPullFeedState extends ConsumerState<BanksPullFeed> {
       ),
       error: (error, _) => SelectableText(
         '$error',
-        style: EText.body.copyWith(color: EColors.danger),
+        style: EText.body.medium.copyWith(color: EColors.danger),
       ),
       data: (pulls) {
         if (pulls.isEmpty && liveSession == null) {
@@ -288,7 +288,7 @@ class _BanksPullFeedState extends ConsumerState<BanksPullFeed> {
         Text(
           '$accountCount ${accountCount == 1 ? 'account' : 'accounts'} · '
           '$transactionCount ${transactionCount == 1 ? 'transaction' : 'transactions'}',
-          style: EText.body.copyWith(fontWeight: FontWeight.w600),
+          style: EText.body.medium.copyWith(fontWeight: FontWeight.w600),
         ),
         if (pull.errors.isNotEmpty) ...[
           const SizedBox(height: ELayout.spaceSm),

@@ -157,7 +157,7 @@ class _SyncStatusTileState extends ConsumerState<SyncStatusTile> {
         Expanded(
           child: Text(
             description,
-            style: EText.body.copyWith(color: EColors.textMuted),
+            style: EText.body.medium.copyWith(color: EColors.textMuted),
           ),
         ),
       ],
@@ -269,7 +269,7 @@ class _SyncStatusTileState extends ConsumerState<SyncStatusTile> {
           ),
           child: Text(
             'Switch to ${alternate.label}',
-            style: EText.body.copyWith(
+            style: EText.body.medium.copyWith(
               fontWeight: FontWeight.w600,
               color: _style.accent,
             ),

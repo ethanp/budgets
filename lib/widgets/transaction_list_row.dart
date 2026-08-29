@@ -54,7 +54,7 @@ class TransactionListRow extends StatelessWidget {
                     Expanded(
                       child: Text(
                         title,
-                        style: EText.body.copyWith(
+                        style: EText.body.medium.copyWith(
                           fontWeight: FontWeight.w600,
                           color: EColors.textPrimary,
                         ),
@@ -65,7 +65,7 @@ class TransactionListRow extends StatelessWidget {
                     const SizedBox(width: ELayout.spaceMd),
                     Text(
                       formatCents(amountCents),
-                      style: EText.body.copyWith(
+                      style: EText.body.medium.copyWith(
                         fontWeight: FontWeight.w600,
                         color: amountColor,
                         fontFeatures: const [FontFeature.tabularFigures()],
