@@ -11,26 +11,18 @@ import 'package:spend_trends/services/sqlite/simplefin_pull_history.dart';
 import 'package:spend_trends/theme/finance_colors.dart';
 
 /// Dense institution-grouped account balances with exception-only status.
-class BankAccountsList extends ConsumerStatefulWidget {
-  const BankAccountsList({
-    required this.status,
-    this.actionError,
-    this.accentColor = FinanceColors.accentPrimary,
-    this.selectedAccountId,
-    this.onAccountSelected,
-  });
-
-  final ConnectionStatus status;
-  final String? actionError;
-  final Color accentColor;
-  final String? selectedAccountId;
-  final void Function(String accountId)? onAccountSelected;
-
+class const BankAccountsList({
+  required final ConnectionStatus status,
+  final String? actionError,
+  final Color accentColor = FinanceColors.accentPrimary,
+  final String? selectedAccountId,
+  final void Function(String accountId)? onAccountSelected,
+}) extends ConsumerStatefulWidget {
   @override
   ConsumerState<BankAccountsList> createState() => _BankAccountsListState();
 }
 
-class _BankAccountsListState extends ConsumerState<BankAccountsList> {
+class _BankAccountsListState() extends ConsumerState<BankAccountsList> {
   bool _copilotAccountsExpanded = false;
 
   @override

@@ -1,36 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:spend_trends/features/trends/category_trend_point.dart';
 
-class CategoryTrendSeries {
-  const CategoryTrendSeries({
-    required this.id,
-    required this.name,
-    required this.lineColor,
-    required this.points,
-    this.dotted = false,
-    this.guide = false,
-    this.percentileAreaFill = false,
-    this.legendGroup,
-  });
-
+class const CategoryTrendSeries({
   /// Category id, or `'__all__'` for total spend.
-  final String id;
-  final String name;
-  final Color lineColor;
-  final List<CategoryTrendPoint> points;
+  required final String id,
+  required final String name,
+  required final Color lineColor,
+  required final List<CategoryTrendPoint> points,
 
   /// Total-spend overlay uses a dotted stroke so it reads apart from categories.
-  final bool dotted;
+  final bool dotted = false,
 
   /// Thin long-dash reference line (e.g. affordability threshold).
-  final bool guide;
+  final bool guide = false,
 
   /// Fill under the line; opacity encodes each point's percentile in the series.
-  final bool percentileAreaFill;
+  final bool percentileAreaFill = false,
 
   /// Optional legend section header (e.g. bank institution for net worth).
-  final String? legendGroup;
-
+  final String? legendGroup,
+}) {
   double get latestSmoothedCents =>
       points.isEmpty ? 0 : points.last.smoothedCents;
 

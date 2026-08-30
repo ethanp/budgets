@@ -9,9 +9,7 @@ import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/services/simplefin/simplefin_access_store.dart';
 
 /// Settings-only bank maintenance: full history re-fetch and disconnect.
-class BanksAdvancedSection extends ConsumerWidget {
-  const BanksAdvancedSection();
-
+class const BanksAdvancedSection() extends ConsumerWidget {
   static const _style = SettingsSectionStyle.banks;
 
   @override

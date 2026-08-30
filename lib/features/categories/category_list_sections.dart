@@ -4,30 +4,18 @@ import 'package:spend_trends/domain/month_summary.dart';
 import 'package:spend_trends/domain/special_category.dart';
 
 /// One block on the Categories list: a named group, Ungrouped, or Cash flow.
-class CategoryListSection {
-  const CategoryListSection({
-    required this.title,
-    required this.categories,
-    required this.monthTotalCents,
-    this.group,
-  });
-
-  final String title;
+class const CategoryListSection({
+  required final String title,
+  required final List<SpendCategory> categories,
+  required final int monthTotalCents,
 
   /// Non-null when the header opens the group editor.
-  final CategoryGroup? group;
-
-  final List<SpendCategory> categories;
-  final int monthTotalCents;
-}
+  final CategoryGroup? group,
+});
 
 /// Groups → Ungrouped → Cash flow; members sorted by this-month spend desc.
-class CategoryListSections {
-  CategoryListSections._(this.sections);
-
-  final List<CategoryListSection> sections;
-
-  factory CategoryListSections.from({
+class CategoryListSections._(final List<CategoryListSection> sections) {
+  factory from({
     required List<SpendCategory> categories,
     required List<CategoryGroup> groups,
     required Map<String, CategoryMonthRow> rowsById,

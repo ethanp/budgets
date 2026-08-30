@@ -1,6 +1,4 @@
-class CategorySuggestPrompt {
-  const CategorySuggestPrompt();
-
+class const CategorySuggestPrompt() {
   String buildSystemPrompt() => '''
 You categorize bank transactions for a personal budget app.
 Return JSON only: {"suggestions":[{"merchant":"...","category":"..."}]}.

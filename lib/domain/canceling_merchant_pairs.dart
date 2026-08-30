@@ -7,9 +7,7 @@ import 'package:spend_trends/domain/transaction.dart';
 /// - Non-investment: same local day + same merchant (e.g. dividend reinvest).
 /// - Investment (IRA / brokerage): merchant ignored; amounts may settle across
 ///   a few calendar days (sell MM on Friday, buy fund on Monday).
-class CancelingMerchantPairs {
-  CancelingMerchantPairs._();
-
+class CancelingMerchantPairs._() {
   /// Max calendar-day gap for investment fund-swap pairing.
   static const investmentPairMaxCalendarDays = 7;
 
@@ -86,7 +84,7 @@ class CancelingMerchantPairs {
   }
 }
 
-class _AmountBucket {
+class _AmountBucket() {
   final List<BankTransaction> inflows = [];
   final List<BankTransaction> outflows = [];
 

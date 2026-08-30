@@ -7,25 +7,19 @@ import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/theme/finance_colors.dart';
 import 'package:spend_trends/widgets/app_sheet_panel.dart';
 
-class BankAccountBalanceRow extends ConsumerStatefulWidget {
-  const BankAccountBalanceRow({
-    required this.account,
-    required this.amountColumnWidth,
-    this.selected = false,
-    this.onActivated,
-  });
-
-  final Account account;
-  final double amountColumnWidth;
-  final bool selected;
-  final VoidCallback? onActivated;
-
+class const BankAccountBalanceRow({
+  required final Account account,
+  required final double amountColumnWidth,
+  final bool selected = false,
+  final VoidCallback? onActivated,
+}) extends ConsumerStatefulWidget {
   @override
   ConsumerState<BankAccountBalanceRow> createState() =>
       _BankAccountBalanceRowState();
 }
 
-class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
+class _BankAccountBalanceRowState()
+    extends ConsumerState<BankAccountBalanceRow> {
   late final TextEditingController _nameController;
   late final FocusNode _focusNode;
   bool _editing = false;
@@ -41,7 +35,8 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
   @override
   void didUpdateWidget(covariant BankAccountBalanceRow oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!_editing && oldWidget.account.displayName != widget.account.displayName) {
+    if (!_editing &&
+        oldWidget.account.displayName != widget.account.displayName) {
       _nameController.text = widget.account.displayName;
     }
   }
@@ -399,7 +394,8 @@ class _BankAccountBalanceRowState extends ConsumerState<BankAccountBalanceRow> {
     final unchanged =
         nextLabel == widget.account.displayName ||
         (nextLabel.isEmpty &&
-            (widget.account.userLabel == null || widget.account.userLabel!.isEmpty));
+            (widget.account.userLabel == null ||
+                widget.account.userLabel!.isEmpty));
     if (unchanged) {
       setState(() => _editing = false);
       return;

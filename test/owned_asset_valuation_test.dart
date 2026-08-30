@@ -3,11 +3,7 @@ import 'package:spend_trends/domain/owned_asset.dart';
 import 'package:spend_trends/domain/owned_asset_kind.dart';
 
 void main() {
-  const home = OwnedAsset(
-    id: 'home',
-    name: 'Home',
-    kind: OwnedAssetKind.home,
-  );
+  const home = OwnedAsset(id: 'home', name: 'Home', kind: OwnedAssetKind.home);
 
   OwnedAssetWithValuations assetWith(List<OwnedAssetValuation> valuations) {
     return OwnedAssetWithValuations(asset: home, valuations: valuations);

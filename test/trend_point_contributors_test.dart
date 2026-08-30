@@ -92,7 +92,8 @@ void main() {
       }
 
       // Same-day spikes share the time kernel; contribution scales with spend.
-      final bigOverMid = topContributors[0].smoothedContributionCents /
+      final bigOverMid =
+          topContributors[0].smoothedContributionCents /
           topContributors[1].smoothedContributionCents;
       expect(bigOverMid, closeTo(2.0, 0.01));
 
@@ -228,8 +229,7 @@ void main() {
       endDate: end,
     );
     final guide = bundle.cashFlows.firstWhere(
-      (series) =>
-          series.id == TrendChartCatalog.fireSavingsGuideSeriesId,
+      (series) => series.id == TrendChartCatalog.fireSavingsGuideSeriesId,
     );
     expect(
       TrendPointContributors.topForSeries(

@@ -5,15 +5,13 @@ import 'package:spend_trends/features/settings/settings_section.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 
 /// Releases Copilot user-locked categories to suggested and removes bad import rules.
-class UnlockCopilotCategoriesTile extends ConsumerStatefulWidget {
-  const UnlockCopilotCategoriesTile();
-
+class const UnlockCopilotCategoriesTile() extends ConsumerStatefulWidget {
   @override
   ConsumerState<UnlockCopilotCategoriesTile> createState() =>
       _UnlockCopilotCategoriesTileState();
 }
 
-class _UnlockCopilotCategoriesTileState
+class _UnlockCopilotCategoriesTileState()
     extends ConsumerState<UnlockCopilotCategoriesTile> {
   bool _busy = false;
   String? _message;

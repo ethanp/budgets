@@ -11,9 +11,7 @@ import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/material.dart';
 
 /// Reconstructs daily net worth from current balances + later transactions.
-class NetWorthTrend {
-  NetWorthTrend._();
-
+class NetWorthTrend._() {
   /// Sum of per-account [accountDailyCents] (keeps total NW consistent with
   /// breakdown lines, including investment accounts with no transaction history).
   ///
@@ -199,10 +197,7 @@ class NetWorthTrend {
     return _levelSeries(
       id: TrendChartCatalog.accountSeriesId(account.id),
       name: account.displayNameWithInstitution,
-      lineColor: AccountKindColor.forAccount(
-        kind: kind,
-        accountId: account.id,
-      ),
+      lineColor: AccountKindColor.forAccount(kind: kind, accountId: account.id),
       daily: [for (final value in signedDaily) value.abs()],
       chartDates: chartDates,
       dotted: account.balanceCents < 0,
@@ -306,9 +301,7 @@ class NetWorthTrend {
   }
 }
 
-class _KindAccountGroup {
-  const _KindAccountGroup({required this.kind, required this.accounts});
-
-  final AccountKind kind;
-  final List<Account> accounts;
-}
+class const _KindAccountGroup({
+  required final AccountKind kind,
+  required final List<Account> accounts,
+});

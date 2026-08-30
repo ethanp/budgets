@@ -12,9 +12,7 @@ import 'package:spend_trends/features/trends/trends_chart_bundle.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 
 /// Builds Trends chart series from transactions, categories, and accounts.
-class BuildTrendsCharts {
-  const BuildTrendsCharts();
-
+class const BuildTrendsCharts() {
   TrendsChartBundle build({
     required List<BankTransaction> transactions,
     required List<SpendCategory> categories,
@@ -147,14 +145,8 @@ class BuildTrendsCharts {
   }
 }
 
-class _ChartDateRange {
-  const _ChartDateRange({
-    required this.start,
-    required this.dates,
-    required this.hasSpendHistory,
-  });
-
-  final DateTime start;
-  final List<DateTime> dates;
-  final bool hasSpendHistory;
-}
+class const _ChartDateRange({
+  required final DateTime start,
+  required final List<DateTime> dates,
+  required final bool hasSpendHistory,
+});

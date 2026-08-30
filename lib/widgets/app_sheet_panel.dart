@@ -6,14 +6,14 @@ import 'package:flutter/material.dart';
 /// Tall panels pass [heightFraction] (typically `0.85`). Omit it for a
 /// content-sized compact panel. Keyboard inset padding is on by default.
 class AppSheetPanel extends StatelessWidget {
-  const AppSheetPanel({
+  const new({
     required this.child,
     this.heightFraction = 0.85,
     this.padForKeyboard = true,
   });
 
   /// Content-sized panel (no fixed viewport fraction).
-  const AppSheetPanel.compact({required this.child, this.padForKeyboard = true})
+  const new compact({required this.child, this.padForKeyboard = true})
     : heightFraction = null;
 
   final Widget child;

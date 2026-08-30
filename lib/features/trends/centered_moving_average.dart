@@ -2,13 +2,11 @@ import 'package:spend_trends/features/trends/category_trend_point.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 
 /// Simple centered moving-average smoother (level series like net worth).
-class CenteredMovingAverage {
-  const CenteredMovingAverage({this.halfWindowDays = 21, this.passCount = 3});
-
+class const CenteredMovingAverage({
+  final int halfWindowDays = 21,
+  final int passCount = 3,
+}) {
   static const standard = CenteredMovingAverage();
-
-  final int halfWindowDays;
-  final int passCount;
 
   List<CategoryTrendPoint> smoothPoints(List<CategoryTrendPoint> rawPoints) {
     var smoothedValues = rawPoints.mapL((point) => point.rollingCents);

@@ -17,14 +17,12 @@ import 'package:spend_trends/widgets/app_primary_button.dart';
 import 'package:spend_trends/widgets/app_sheet_panel.dart';
 import 'package:spend_trends/widgets/sync_status_nav_button.dart';
 
-class CategoriesScreen extends ConsumerStatefulWidget {
-  const CategoriesScreen();
-
+class const CategoriesScreen() extends ConsumerStatefulWidget {
   @override
   ConsumerState<CategoriesScreen> createState() => _CategoriesScreenState();
 }
 
-class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
+class _CategoriesScreenState() extends ConsumerState<CategoriesScreen> {
   static final _monthLabelFormat = DateFormat('MMM yyyy');
 
   String? _selectedCategoryId;

@@ -10,17 +10,11 @@ import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/material.dart';
 
 /// Daily spend totals keyed by category (and rollups).
-class CategorySpendDailyMaps {
-  const CategorySpendDailyMaps({
-    required this.byCategoryId,
-    required this.uncategorizedByDay,
-    required this.totalByDay,
-  });
-
-  final Map<String, Map<DateTime, double>> byCategoryId;
-  final Map<DateTime, double> uncategorizedByDay;
-  final Map<DateTime, double> totalByDay;
-
+class const CategorySpendDailyMaps({
+  required final Map<String, Map<DateTime, double>> byCategoryId,
+  required final Map<DateTime, double> uncategorizedByDay,
+  required final Map<DateTime, double> totalByDay,
+}) {
   static CategorySpendDailyMaps fromTransactions({
     required List<BankTransaction> transactions,
     required Set<String> flowCategoryIds,
@@ -72,17 +66,15 @@ class CategorySpendDailyMaps {
 }
 
 /// Builds category / group / all-spend / affordability guide series.
-class CategorySpendTrendBuilder {
-  const CategorySpendTrendBuilder({
-    required this.spendMaps,
-    required this.incomeByDay,
-    required this.categories,
-    required this.groups,
-    required this.flowCategoryIds,
-    required this.chartDates,
-    required this.historyFloor,
-  });
-
+class const CategorySpendTrendBuilder({
+  required final CategorySpendDailyMaps spendMaps,
+  required final Map<DateTime, double> incomeByDay,
+  required final List<SpendCategory> categories,
+  required final List<CategoryGroup> groups,
+  required final Set<String> flowCategoryIds,
+  required final List<DateTime> chartDates,
+  required final DateTime historyFloor,
+}) {
   /// Ten high-chroma hues for dark backgrounds (not All / Uncategorized).
   static const _palette = <Color>[
     Color(0xFF4CC9F0),
@@ -96,14 +88,6 @@ class CategorySpendTrendBuilder {
     Color(0xFF2EC4B6),
     Color(0xFFF72585),
   ];
-
-  final CategorySpendDailyMaps spendMaps;
-  final Map<DateTime, double> incomeByDay;
-  final List<SpendCategory> categories;
-  final List<CategoryGroup> groups;
-  final Set<String> flowCategoryIds;
-  final List<DateTime> chartDates;
-  final DateTime historyFloor;
 
   List<CategoryTrendSeries> build() {
     if (spendMaps.totalByDay.isEmpty) return const [];
@@ -314,24 +298,13 @@ class CategorySpendTrendBuilder {
   }
 }
 
-class _CategoryPartition {
-  const _CategoryPartition({
-    required this.membersByGroupId,
-    required this.ungroupedCategories,
-  });
+class const _CategoryPartition({
+  required final Map<String, List<SpendCategory>> membersByGroupId,
+  required final List<SpendCategory> ungroupedCategories,
+});
 
-  final Map<String, List<SpendCategory>> membersByGroupId;
-  final List<SpendCategory> ungroupedCategories;
-}
-
-class _RankedSpendSeries {
-  const _RankedSpendSeries({
-    required this.rankedSeries,
-    required this.otherSeries,
-    required this.representedCategoryIds,
-  });
-
-  final List<CategoryTrendSeries> rankedSeries;
-  final CategoryTrendSeries? otherSeries;
-  final Set<String> representedCategoryIds;
-}
+class const _RankedSpendSeries({
+  required final List<CategoryTrendSeries> rankedSeries,
+  required final CategoryTrendSeries? otherSeries,
+  required final Set<String> representedCategoryIds,
+});

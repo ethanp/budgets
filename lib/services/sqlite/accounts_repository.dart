@@ -4,11 +4,7 @@ import 'package:ethan_sync/ethan_sync.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:powersync/powersync.dart';
 
-class AccountsRepository {
-  AccountsRepository(this._powerSync);
-
-  final PowerSyncDatabase _powerSync;
-
+class AccountsRepository(final PowerSyncDatabase _powerSync) {
   Future<List<Account>> listAccounts() async {
     final rows = await _powerSync.getAll(
       'SELECT * FROM accounts ORDER BY name COLLATE NOCASE',

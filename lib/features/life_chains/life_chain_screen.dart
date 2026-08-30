@@ -8,11 +8,8 @@ import 'package:spend_trends/features/life_chains/chain_stay_form_sheet.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/widgets/app_primary_button.dart';
 
-class LifeChainScreen extends ConsumerWidget {
-  const LifeChainScreen({required this.kind});
-
-  final LifeChainKind kind;
-
+class const LifeChainScreen({required final LifeChainKind kind})
+    extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final chainAsync = switch (kind) {
@@ -42,12 +39,10 @@ class LifeChainScreen extends ConsumerWidget {
   }
 }
 
-class _ChainBody extends ConsumerWidget {
-  const _ChainBody({required this.kind, required this.chain});
-
-  final LifeChainKind kind;
-  final StayChain chain;
-
+class const _ChainBody({
+  required final LifeChainKind kind,
+  required final StayChain chain,
+}) extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return ListView(
@@ -89,11 +84,8 @@ class _ChainBody extends ConsumerWidget {
   }
 }
 
-class _EmptyChain extends StatelessWidget {
-  const _EmptyChain({required this.kind});
-
-  final LifeChainKind kind;
-
+class const _EmptyChain({required final LifeChainKind kind})
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -123,12 +115,10 @@ class _EmptyChain extends StatelessWidget {
   }
 }
 
-class _ChainPath extends ConsumerWidget {
-  const _ChainPath({required this.kind, required this.chain});
-
-  final LifeChainKind kind;
-  final StayChain chain;
-
+class const _ChainPath({
+  required final LifeChainKind kind,
+  required final StayChain chain,
+}) extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final segmentsNewestFirst = chain.segments.reversed.toList();
@@ -153,11 +143,8 @@ class _ChainPath extends ConsumerWidget {
   }
 }
 
-class _PathConnector extends StatelessWidget {
-  const _PathConnector({required this.color});
-
-  final Color color;
-
+class const _PathConnector({required final Color color})
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -182,17 +169,11 @@ class _PathConnector extends StatelessWidget {
   }
 }
 
-class _StayNode extends StatelessWidget {
-  const _StayNode({
-    required this.kind,
-    required this.segment,
-    required this.onActivated,
-  });
-
-  final LifeChainKind kind;
-  final ChainStaySegment segment;
-  final VoidCallback onActivated;
-
+class const _StayNode({
+  required final LifeChainKind kind,
+  required final ChainStaySegment segment,
+  required final VoidCallback onActivated,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = kind.trendBandColor;

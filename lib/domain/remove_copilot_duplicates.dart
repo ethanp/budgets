@@ -7,37 +7,23 @@ import 'package:flutter/foundation.dart';
 
 const _log = ELogger('RemoveCopilotDuplicates');
 
-class RemoveCopilotDuplicatesResult {
-  const RemoveCopilotDuplicatesResult({
-    required this.deletedCopilotCount,
-    required this.categoriesCopiedToSimplefin,
-    required this.linkedAccountMasks,
-    this.deletedSameAccountCount = 0,
-  });
-
-  final int deletedCopilotCount;
-  final int categoriesCopiedToSimplefin;
-  final int linkedAccountMasks;
-  final int deletedSameAccountCount;
-}
+class const RemoveCopilotDuplicatesResult({
+  required final int deletedCopilotCount,
+  required final int categoriesCopiedToSimplefin,
+  required final int linkedAccountMasks,
+  final int deletedSameAccountCount = 0,
+});
 
 /// In-memory SimpleFIN matcher used by duplicate removal and Copilot CSV import.
-class MatchingSimplefinCharges {
-  MatchingSimplefinCharges._({
-    required Map<String, String> copilotLinkKeyByAccountId,
-    required Map<String, List<BankTransaction>> simplefinByGroupKey,
-    required this.linkCount,
-  }) : _copilotLinkKeyByAccountId = copilotLinkKeyByAccountId,
-       _simplefinByGroupKey = simplefinByGroupKey;
-
-  final Map<String, String> _copilotLinkKeyByAccountId;
-  final Map<String, List<BankTransaction>> _simplefinByGroupKey;
+class MatchingSimplefinCharges._({
+  required final Map<String, String> _copilotLinkKeyByAccountId,
+  required final Map<String, List<BankTransaction>> _simplefinByGroupKey,
+  required final int linkCount,
+}) {
   final Set<String> _matchedSimplefinIds = {};
-  final int linkCount;
-
   bool get isEmpty => linkCount == 0;
 
-  factory MatchingSimplefinCharges.from({
+  factory from({
     required List<Account> accounts,
     required List<BankTransaction> transactions,
   }) {
@@ -120,16 +106,10 @@ class MatchingSimplefinCharges {
 /// Links accounts by explicit [Account.belongsToAccountId] or by trailing
 /// 4-digit mask. Keeps SimpleFIN as canonical; copies a Copilot user category
 /// onto the matching SimpleFIN charge when that charge is uncategorized.
-class RemoveCopilotDuplicates {
-  RemoveCopilotDuplicates({
-    required AccountsRepository accountsRepository,
-    required TransactionsRepository transactionsRepository,
-  }) : _accountsRepository = accountsRepository,
-       _transactionsRepository = transactionsRepository;
-
-  final AccountsRepository _accountsRepository;
-  final TransactionsRepository _transactionsRepository;
-
+class RemoveCopilotDuplicates({
+  required final AccountsRepository _accountsRepository,
+  required final TransactionsRepository _transactionsRepository,
+}) {
   Future<RemoveCopilotDuplicatesResult> run() async {
     final crossAccount = await _removeLinkedCopilotDuplicates();
     final sameAccountDeleted = await removeSameAccountDuplicates();
@@ -273,9 +253,8 @@ class RemoveCopilotDuplicates {
     BankTransaction left,
     BankTransaction right,
   ) {
-    final scoreCompare = _keepScore(
-      right,
-    ).compareTo(_keepScore(left)); // higher first
+    final scoreCompare = _keepScore(right)
+        .compareTo(_keepScore(left)); // higher first
     if (scoreCompare != 0) return scoreCompare;
     final leftImported = left.importedAt ?? left.postedAt;
     final rightImported = right.importedAt ?? right.postedAt;
@@ -365,17 +344,11 @@ int _merchantSimilarity(String left, String right) {
 }
 
 /// Explicit belongs-to pairs plus mask-intersection pairs for unlinked accounts.
-class _AccountLinks {
-  _AccountLinks({
-    required this.copilotKeyByAccountId,
-    required this.simplefinKeysByAccountId,
-    required this.linkCount,
-  });
-
-  final Map<String, String> copilotKeyByAccountId;
-  final Map<String, Set<String>> simplefinKeysByAccountId;
-  final int linkCount;
-
+class _AccountLinks({
+  required final Map<String, String> copilotKeyByAccountId,
+  required final Map<String, Set<String>> simplefinKeysByAccountId,
+  required final int linkCount,
+}) {
   bool get isEmpty => linkCount == 0;
 
   String? keyForCopilot(Account account) => copilotKeyByAccountId[account.id];
@@ -383,7 +356,7 @@ class _AccountLinks {
   Set<String> keysForSimplefin(Account account) =>
       simplefinKeysByAccountId[account.id] ?? const {};
 
-  factory _AccountLinks.fromAccounts(List<Account> accounts) {
+  factory fromAccounts(List<Account> accounts) {
     final accountsById = {for (final account in accounts) account.id: account};
     final copilotKeyByAccountId = <String, String>{};
     final simplefinKeysByAccountId = <String, Set<String>>{};

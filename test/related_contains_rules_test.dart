@@ -3,12 +3,12 @@ import 'package:spend_trends/features/activity/overlapping_merchant_contains_rul
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  const categoryNames = {
-    'cat_groceries': 'Groceries',
-    'cat_dining': 'Dining',
-  };
+  const categoryNames = {'cat_groceries': 'Groceries', 'cat_dining': 'Dining'};
 
-  CategorizationRule containsRule(String pattern, {String categoryId = 'cat_groceries'}) {
+  CategorizationRule containsRule(
+    String pattern, {
+    String categoryId = 'cat_groceries',
+  }) {
     return CategorizationRule(
       id: 'rule_$pattern',
       matchType: RuleMatchType.merchantContains,

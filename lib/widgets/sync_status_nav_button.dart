@@ -8,9 +8,7 @@ import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/services/sync/sync_config.dart';
 
 /// Collective sync indicator for navigation bars. Opens per-account detail.
-class SyncStatusNavButton extends ConsumerWidget {
-  const SyncStatusNavButton();
-
+class const SyncStatusNavButton() extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final connectionAsync = ref.watch(connectionStatusProvider);
@@ -54,15 +52,13 @@ class SyncStatusNavButton extends ConsumerWidget {
   }
 }
 
-enum _CollectiveSyncLook {
+enum _CollectiveSyncLook({
+  required final IconData icon,
+  required final Color color,
+}) {
   disconnected(icon: Icons.link, color: EColors.textMuted),
   offline(icon: Icons.wifi_off, color: EColors.warning),
   busy(icon: Icons.sync, color: EColors.accentGlow),
   warning(icon: Icons.warning, color: EColors.warning),
-  ok(icon: Icons.cloud, color: EColors.success);
-
-  const _CollectiveSyncLook({required this.icon, required this.color});
-
-  final IconData icon;
-  final Color color;
+  ok(icon: Icons.cloud, color: EColors.success),
 }

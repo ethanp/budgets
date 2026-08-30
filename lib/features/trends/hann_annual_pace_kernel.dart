@@ -1,34 +1,27 @@
 import 'dart:math' as math;
 
 /// One day in a renormalized kernel support.
-class KernelWeightSample {
-  const KernelWeightSample({required this.dayIndex, required this.weight});
-
-  final int dayIndex;
+class const KernelWeightSample({
+  required final int dayIndex,
 
   /// Normalized weight (samples at a center sum to 1).
-  final double weight;
-}
+  required final double weight,
+});
 
 /// Hann-tapered support for centered annualized pace.
 ///
 /// Weights are 1 at the center and fall to 0 at ±[halfWidthDays], so large
 /// deposits fade in/out instead of cliff-entering a hard box window.
-class HannAnnualPaceKernel {
-  const HannAnnualPaceKernel({
-    this.halfWidthDays = defaultHalfWidthDays,
-    this.yearDays = defaultYearDays,
-  });
-
+class const HannAnnualPaceKernel({
+  final int halfWidthDays = defaultHalfWidthDays,
+  final int yearDays = defaultYearDays,
+}) {
   /// ~36-month support (`2 * halfWidth + 1` ≈ 1095 days) so seasonal /
   /// bonus-scale lumps fade instead of drawing multi-month waves.
   static const defaultHalfWidthDays = 547;
 
   /// Annualize mean daily cents onto a year.
   static const defaultYearDays = 365;
-
-  final int halfWidthDays;
-  final int yearDays;
 
   int get supportDays => 2 * halfWidthDays + 1;
 

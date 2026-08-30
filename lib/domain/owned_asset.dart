@@ -1,19 +1,12 @@
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:spend_trends/domain/owned_asset_kind.dart';
 
-class OwnedAsset {
-  const OwnedAsset({
-    required this.id,
-    required this.name,
-    required this.kind,
-    this.note,
-  });
-
-  final String id;
-  final String name;
-  final OwnedAssetKind kind;
-  final String? note;
-
+class const OwnedAsset({
+  required final String id,
+  required final String name,
+  required final OwnedAssetKind kind,
+  final String? note,
+}) {
   OwnedAsset copyWith({
     String? id,
     String? name,
@@ -30,29 +23,19 @@ class OwnedAsset {
   }
 }
 
-class OwnedAssetValuation {
-  const OwnedAssetValuation({
-    required this.id,
-    required this.ownedAssetId,
-    required this.valueCents,
-    required this.valuedOn,
-  });
-
-  final String id;
-  final String ownedAssetId;
-  final int valueCents;
-  final DateTime valuedOn;
-}
+class const OwnedAssetValuation({
+  required final String id,
+  required final String ownedAssetId,
+  required final int valueCents,
+  required final DateTime valuedOn,
+});
 
 /// An owned asset plus its valuation snapshots, newest [valuedOn] first.
-class OwnedAssetWithValuations {
-  OwnedAssetWithValuations({
-    required this.asset,
-    required List<OwnedAssetValuation> valuations,
-  }) : valuations = _newestFirst(valuations);
-
-  final OwnedAsset asset;
-  final List<OwnedAssetValuation> valuations;
+class OwnedAssetWithValuations({
+  required final OwnedAsset asset,
+  required List<OwnedAssetValuation> valuations,
+}) {
+  final List<OwnedAssetValuation> valuations = _newestFirst(valuations);
 
   int get currentValueCents {
     if (valuations.isEmpty) return 0;

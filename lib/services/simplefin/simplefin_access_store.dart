@@ -8,20 +8,17 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 ///
 /// Note: Setup Tokens are one-time; store the claimed Access URL, not the
 /// Setup Token.
-class SimpleFinAccessStore {
-  SimpleFinAccessStore({FlutterSecureStorage? storage})
-    : _storage =
-          storage ??
-          const FlutterSecureStorage(
-            // Legacy macOS keychain — avoids Data Protection Keychain
-            // entitlement / provisioning issues during local debug runs.
-            mOptions: MacOsOptions(useDataProtectionKeyChain: false),
-          );
-
+class SimpleFinAccessStore({FlutterSecureStorage? storage}) {
   static const envAccessUrlKey = 'SIMPLEFIN_ACCESS_URL';
   static const _keychainAccessUrlKey = 'simplefin_access_url';
 
-  final FlutterSecureStorage _storage;
+  final FlutterSecureStorage _storage =
+      storage ??
+      const FlutterSecureStorage(
+        // Legacy macOS keychain — avoids Data Protection Keychain
+        // entitlement / provisioning issues during local debug runs.
+        mOptions: MacOsOptions(useDataProtectionKeyChain: false),
+      );
 
   Future<void> save(Uri accessUrl) async {
     await _storage.write(

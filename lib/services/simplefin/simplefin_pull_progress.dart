@@ -1,35 +1,23 @@
 import 'package:spend_trends/services/simplefin/simplefin_models.dart';
 
 /// One newly inserted transaction for pull progress UI.
-class SimpleFinPulledTransaction {
-  const SimpleFinPulledTransaction({
-    required this.id,
-    required this.externalId,
-    required this.description,
-    required this.amountCents,
-    required this.postedAt,
-    required this.pending,
-    this.categoryId,
-    this.categoryName,
-    this.matchedRulePattern,
-  });
-
-  final String id;
-  final String externalId;
-  final String description;
-  final int amountCents;
-  final DateTime postedAt;
-  final bool pending;
+class const SimpleFinPulledTransaction({
+  required final String id,
+  required final String externalId,
+  required final String description,
+  required final int amountCents,
+  required final DateTime postedAt,
+  required final bool pending,
 
   /// Filled after category rules run for this pull.
-  final String? categoryId;
+  final String? categoryId,
 
   /// Filled after category rules run for this pull.
-  final String? categoryName;
+  final String? categoryName,
 
   /// Rule pattern that explained [categoryName], if any.
-  final String? matchedRulePattern;
-
+  final String? matchedRulePattern,
+}) {
   bool get isCategorized =>
       categoryName != null && categoryName!.trim().isNotEmpty;
 
@@ -55,40 +43,31 @@ class SimpleFinPulledTransaction {
   }
 }
 
-class SimpleFinPullResult {
-  const SimpleFinPullResult({
-    required this.accountCount,
-    required this.transactionCount,
-    required this.errors,
-    this.accessUrl,
-  });
-
-  final int accountCount;
-  final int transactionCount;
-  final List<SimpleFinError> errors;
-  final Uri? accessUrl;
-}
+class const SimpleFinPullResult({
+  required final int accountCount,
+  required final int transactionCount,
+  required final List<SimpleFinError> errors,
+  final Uri? accessUrl,
+});
 
 /// Live updates while a SimpleFIN pull runs.
-class SimpleFinPullProgress {
-  const SimpleFinPullProgress._({
-    required this.phase,
-    this.windowStart,
-    this.windowEnd,
-    this.windowIndex,
-    this.windowCount,
-    this.accountExternalId,
-    this.accountLabel,
-    this.accountTransactionCount,
-    this.accountTransactions = const [],
-    this.accountsDone,
-    this.accountsTotal,
-    this.finishedAccountCount,
-    this.finishedTransactionCount,
-    this.errors = const [],
-  });
-
-  factory SimpleFinPullProgress.fetching({
+class const SimpleFinPullProgress._({
+  required final SimpleFinPullProgressPhase phase,
+  final DateTime? windowStart,
+  final DateTime? windowEnd,
+  final int? windowIndex,
+  final int? windowCount,
+  final String? accountExternalId,
+  final String? accountLabel,
+  final int? accountTransactionCount,
+  final List<SimpleFinPulledTransaction> accountTransactions = const [],
+  final int? accountsDone,
+  final int? accountsTotal,
+  final int? finishedAccountCount,
+  final int? finishedTransactionCount,
+  final List<SimpleFinError> errors = const [],
+}) {
+  factory fetching({
     required DateTime windowStart,
     required DateTime windowEnd,
     int? windowIndex,
@@ -101,7 +80,7 @@ class SimpleFinPullProgress {
     windowCount: windowCount,
   );
 
-  factory SimpleFinPullProgress.accountLoaded({
+  factory accountLoaded({
     required String accountExternalId,
     required String accountLabel,
     required int transactionCount,
@@ -118,7 +97,7 @@ class SimpleFinPullProgress {
     accountsTotal: accountsTotal,
   );
 
-  factory SimpleFinPullProgress.finished({
+  factory finished({
     required int accountCount,
     required int transactionCount,
     required List<SimpleFinError> errors,
@@ -128,21 +107,10 @@ class SimpleFinPullProgress {
     finishedTransactionCount: transactionCount,
     errors: errors,
   );
-
-  final SimpleFinPullProgressPhase phase;
-  final DateTime? windowStart;
-  final DateTime? windowEnd;
-  final int? windowIndex;
-  final int? windowCount;
-  final String? accountExternalId;
-  final String? accountLabel;
-  final int? accountTransactionCount;
-  final List<SimpleFinPulledTransaction> accountTransactions;
-  final int? accountsDone;
-  final int? accountsTotal;
-  final int? finishedAccountCount;
-  final int? finishedTransactionCount;
-  final List<SimpleFinError> errors;
 }
 
-enum SimpleFinPullProgressPhase { fetching, accountLoaded, finished }
+enum SimpleFinPullProgressPhase() {
+  fetching,
+  accountLoaded,
+  finished,
+}

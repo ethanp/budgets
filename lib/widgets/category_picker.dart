@@ -7,21 +7,15 @@ import 'package:ethan_ui/ethan_ui.dart';
 import 'package:flutter/material.dart';
 
 /// One titled block of category chips (group, ungrouped, or cash flow).
-class CategoryPickerSection {
-  const CategoryPickerSection({required this.title, required this.categories});
-
-  final String? title;
-  final List<SpendCategory> categories;
-}
+class const CategoryPickerSection({
+  required final String? title,
+  required final List<SpendCategory> categories,
+});
 
 /// Groups active categories into picker sections (named groups → ungrouped →
 /// cash flow).
-class CategoryPickerSections {
-  CategoryPickerSections._(this.sections);
-
-  final List<CategoryPickerSection> sections;
-
-  factory CategoryPickerSections.from({
+class CategoryPickerSections._(final List<CategoryPickerSection> sections) {
+  factory from({
     required List<SpendCategory> categories,
     required List<CategoryGroup> groups,
   }) {
@@ -70,19 +64,12 @@ class CategoryPickerSections {
 }
 
 /// Renders [CategoryPickerSections] as titled chip wraps.
-class CategoryPicker extends StatelessWidget {
-  const CategoryPicker({
-    required this.categories,
-    required this.groups,
-    required this.selectedId,
-    required this.onCategorySelected,
-  });
-
-  final List<SpendCategory> categories;
-  final List<CategoryGroup> groups;
-  final String? selectedId;
-  final ValueChanged<SpendCategory> onCategorySelected;
-
+class const CategoryPicker({
+  required final List<SpendCategory> categories,
+  required final List<CategoryGroup> groups,
+  required final String? selectedId,
+  required final ValueChanged<SpendCategory> onCategorySelected,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sections = CategoryPickerSections.from(
@@ -105,17 +92,11 @@ class CategoryPicker extends StatelessWidget {
   }
 }
 
-class _CategoryPickerSectionBlock extends StatelessWidget {
-  const _CategoryPickerSectionBlock({
-    required this.section,
-    required this.selectedId,
-    required this.onCategorySelected,
-  });
-
-  final CategoryPickerSection section;
-  final String? selectedId;
-  final ValueChanged<SpendCategory> onCategorySelected;
-
+class const _CategoryPickerSectionBlock({
+  required final CategoryPickerSection section,
+  required final String? selectedId,
+  required final ValueChanged<SpendCategory> onCategorySelected,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(

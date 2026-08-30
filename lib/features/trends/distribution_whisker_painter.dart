@@ -4,9 +4,7 @@ import 'package:spend_trends/features/trends/category_trend_distribution.dart';
 import 'package:spend_trends/features/trends/trend_value_scale.dart';
 
 /// Shared stroke/mark drawing for whiskers and the symbol key.
-class DistributionWhiskerMarks {
-  DistributionWhiskerMarks._();
-
+class DistributionWhiskerMarks._() {
   static void paintRangeStem(
     Canvas canvas, {
     required Offset top,
@@ -102,19 +100,12 @@ class DistributionWhiskerMarks {
 }
 
 /// Vertical min–max whisker with median tick, avg cross, and current dot.
-class DistributionWhiskerPainter extends CustomPainter {
-  DistributionWhiskerPainter({
-    required this.distribution,
-    required this.scale,
-    required this.seriesColor,
-    required this.isDimmed,
-  });
-
-  final CategoryTrendDistribution distribution;
-  final TrendValueScale scale;
-  final Color seriesColor;
-  final bool isDimmed;
-
+class DistributionWhiskerPainter({
+  required final CategoryTrendDistribution distribution,
+  required final TrendValueScale scale,
+  required final Color seriesColor,
+  required final bool isDimmed,
+}) extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final color = isDimmed ? EColors.textMuted : seriesColor;
@@ -160,14 +151,15 @@ class DistributionWhiskerPainter extends CustomPainter {
   }
 }
 
-enum DistributionWhiskerGlyph { range, median, average, now }
+enum DistributionWhiskerGlyph() {
+  range,
+  median,
+  average,
+  now,
+}
 
-class _GlyphPainter extends CustomPainter {
-  _GlyphPainter(this.glyph, this.color);
-
-  final DistributionWhiskerGlyph glyph;
-  final Color color;
-
+class _GlyphPainter(final DistributionWhiskerGlyph glyph, final Color color)
+    extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
@@ -209,11 +201,9 @@ class _GlyphPainter extends CustomPainter {
 }
 
 /// Dashed horizontals at each readable Y tick of the shared whisker scale.
-class DistributionWhiskerGridPainter extends CustomPainter {
-  const DistributionWhiskerGridPainter({required this.scale});
-
-  final TrendValueScale scale;
-
+class const DistributionWhiskerGridPainter({
+  required final TrendValueScale scale,
+}) extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
@@ -255,9 +245,7 @@ class DistributionWhiskerGridPainter extends CustomPainter {
 }
 
 /// Compact key explaining whisker marks (range / med / avg / now).
-class DistributionWhiskerSymbolKey extends StatelessWidget {
-  const DistributionWhiskerSymbolKey();
-
+class const DistributionWhiskerSymbolKey() extends StatelessWidget {
   static const _entries = <(DistributionWhiskerGlyph, String)>[
     (DistributionWhiskerGlyph.range, 'min–max'),
     (DistributionWhiskerGlyph.median, 'median'),
@@ -268,6 +256,7 @@ class DistributionWhiskerSymbolKey extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.symmetric(
         horizontal: ELayout.spaceSm,
         vertical: ELayout.spaceXs,
@@ -281,21 +270,12 @@ class DistributionWhiskerSymbolKey extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
+          Wrap(
+            spacing: ELayout.spaceMd,
+            runSpacing: ELayout.spaceXs,
             children: [
-              for (var index = 0; index < _entries.length; index++) ...[
-                if (index > 0) ...[
-                  const SizedBox(width: ELayout.spaceSm),
-                  Container(
-                    width: 1,
-                    height: 14,
-                    color: EColors.border.withValues(alpha: 0.7),
-                  ),
-                  const SizedBox(width: ELayout.spaceSm),
-                ],
-                _keyItem(glyph: _entries[index].$1, label: _entries[index].$2),
-              ],
+              for (final entry in _entries)
+                _keyItem(glyph: entry.$1, label: entry.$2),
             ],
           ),
           const SizedBox(height: 4),

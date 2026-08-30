@@ -18,32 +18,22 @@ const _logger = ELogger('PullSimpleFinTransactions');
 ///
 /// Window policy, remote→local mapping, outage journaling, and UI progress
 /// DTOs live in dedicated modules under `services/simplefin/`.
-class PullSimpleFinTransactions {
-  PullSimpleFinTransactions({
-    required SimpleFinClient client,
-    required SimpleFinAccessStore accessStore,
-    required AccountsRepository accountsRepository,
-    required TransactionsRepository transactionsRepository,
-    required SimpleFinPullHistory simpleFinPullHistory,
-  }) : _client = client,
-       _accessStore = accessStore,
-       _accountsRepository = accountsRepository,
-       _simpleFinPullHistory = simpleFinPullHistory,
-       _ingester = SimpleFinWindowIngester(
-         client: client,
-         accountMapper: SimpleFinAccountMapper(
-           accountsRepository: accountsRepository,
-         ),
-         transactionMapper: SimpleFinTransactionMapper(
-           transactionsRepository: transactionsRepository,
-         ),
-       );
-
-  final SimpleFinClient _client;
-  final SimpleFinAccessStore _accessStore;
-  final AccountsRepository _accountsRepository;
-  final SimpleFinPullHistory _simpleFinPullHistory;
-  final SimpleFinWindowIngester _ingester;
+class PullSimpleFinTransactions({
+  required final SimpleFinClient _client,
+  required final SimpleFinAccessStore _accessStore,
+  required final AccountsRepository _accountsRepository,
+  required TransactionsRepository transactionsRepository,
+  required final SimpleFinPullHistory _simpleFinPullHistory,
+}) {
+  final SimpleFinWindowIngester _ingester = SimpleFinWindowIngester(
+    client: _client,
+    accountMapper: SimpleFinAccountMapper(
+      accountsRepository: _accountsRepository,
+    ),
+    transactionMapper: SimpleFinTransactionMapper(
+      transactionsRepository: transactionsRepository,
+    ),
+  );
 
   Future<SimpleFinPullResult> connectWithSetupToken(
     String setupToken, {

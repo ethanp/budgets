@@ -1,11 +1,8 @@
-class LlmException implements Exception {
-  LlmException(this.message);
-  final String message;
-
+class LlmException(final String message) implements Exception {
   @override
   String toString() => message;
 }
 
-class RateLimitedException extends LlmException {
-  RateLimitedException() : super('LLM rate limited. Try again later.');
+class RateLimitedException() extends LlmException {
+  this : super('LLM rate limited. Try again later.');
 }

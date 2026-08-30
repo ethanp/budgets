@@ -91,43 +91,45 @@ void main() {
     expect(cardDaily, [0.0, 0.0, -3000.0]);
   });
 
-  test('investment balance with no transactions stays at zero until balanceAsOf',
-      () {
-    final day0 = DateTime(2024, 1, 1);
-    final day1 = DateTime(2024, 1, 2);
-    final day2 = DateTime(2024, 1, 3);
-    const m1 = Account(
-      id: 'm1',
-      externalId: 'ext-m1',
-      name: 'Account',
-      currency: 'USD',
-      balanceCents: 114817902,
-      balanceAsOf: null, // falls back to chart end
-      status: AccountStatus.ok,
-    );
-
-    final daily = NetWorthTrend.accountDailyCents(
-      account: m1,
-      transactions: const [],
-      chartDates: [day0, day1, day2],
-    );
-    expect(daily, [0.0, 0.0, 114817902.0]);
-
-    final withAsOf = NetWorthTrend.accountDailyCents(
-      account: Account(
-        id: m1.id,
-        externalId: m1.externalId,
-        name: m1.name,
-        currency: m1.currency,
-        balanceCents: m1.balanceCents,
-        balanceAsOf: day1,
+  test(
+    'investment balance with no transactions stays at zero until balanceAsOf',
+    () {
+      final day0 = DateTime(2024, 1, 1);
+      final day1 = DateTime(2024, 1, 2);
+      final day2 = DateTime(2024, 1, 3);
+      const m1 = Account(
+        id: 'm1',
+        externalId: 'ext-m1',
+        name: 'Account',
+        currency: 'USD',
+        balanceCents: 114817902,
+        balanceAsOf: null, // falls back to chart end
         status: AccountStatus.ok,
-      ),
-      transactions: const [],
-      chartDates: [day0, day1, day2],
-    );
-    expect(withAsOf, [0.0, 114817902.0, 114817902.0]);
-  });
+      );
+
+      final daily = NetWorthTrend.accountDailyCents(
+        account: m1,
+        transactions: const [],
+        chartDates: [day0, day1, day2],
+      );
+      expect(daily, [0.0, 0.0, 114817902.0]);
+
+      final withAsOf = NetWorthTrend.accountDailyCents(
+        account: Account(
+          id: m1.id,
+          externalId: m1.externalId,
+          name: m1.name,
+          currency: m1.currency,
+          balanceCents: m1.balanceCents,
+          balanceAsOf: day1,
+          status: AccountStatus.ok,
+        ),
+        transactions: const [],
+        chartDates: [day0, day1, day2],
+      );
+      expect(withAsOf, [0.0, 114817902.0, 114817902.0]);
+    },
+  );
 
   test('series includes total plus dashed liability account lines', () {
     final day0 = DateTime(2024, 1, 1);
@@ -241,20 +243,20 @@ void main() {
         if (entry.id != TrendChartCatalog.netWorthSeriesId) entry,
     ];
 
-    expect(
-      accountSeries.map((entry) => entry.legendGroup).toList(),
-      ['Checking', 'Investment', 'Investment', 'Loans', 'Loans'],
-    );
-    expect(
-      accountSeries.map((entry) => entry.name).toList(),
-      [
-        'Charles Schwab US · Checking',
-        'Roth IRA',
-        'M1 · Account',
-        'Mortgage',
-        'Auto loan',
-      ],
-    );
+    expect(accountSeries.map((entry) => entry.legendGroup).toList(), [
+      'Checking',
+      'Investment',
+      'Investment',
+      'Loans',
+      'Loans',
+    ]);
+    expect(accountSeries.map((entry) => entry.name).toList(), [
+      'Charles Schwab US · Checking',
+      'Roth IRA',
+      'M1 · Account',
+      'Mortgage',
+      'Auto loan',
+    ]);
   });
 
   test('account series colors share a kind hue with per-account shades', () {
@@ -350,11 +352,11 @@ void main() {
     );
 
     expect(bundle.netWorth, isNotEmpty);
+    expect(bundle.netWorth.first.id, TrendChartCatalog.netWorthSeriesId);
     expect(
-      bundle.netWorth.first.id,
-      TrendChartCatalog.netWorthSeriesId,
+      bundle.netWorth.first.points.last.rollingCents,
+      closeTo(500000, 0.01),
     );
-    expect(bundle.netWorth.first.points.last.rollingCents, closeTo(500000, 0.01));
   });
 
   test('Copilot child history folds into SimpleFIN parent net worth', () {
@@ -434,13 +436,10 @@ void main() {
           day0.add(Duration(days: dayOffset)),
       ],
     );
-    expect(
-      series.map((entry) => entry.id).toList(),
-      [
-        TrendChartCatalog.netWorthSeriesId,
-        TrendChartCatalog.accountSeriesId('simplefin'),
-      ],
-    );
+    expect(series.map((entry) => entry.id).toList(), [
+      TrendChartCatalog.netWorthSeriesId,
+      TrendChartCatalog.accountSeriesId('simplefin'),
+    ]);
     expect(
       series.any(
         (entry) => entry.id == TrendChartCatalog.accountSeriesId('copilot'),
@@ -521,10 +520,7 @@ void main() {
     final homeSeries = series.firstWhere(
       (entry) => entry.id == TrendChartCatalog.ownedAssetSeriesId('home'),
     );
-    expect(
-      homeSeries.legendGroup,
-      AccountKind.nonFinancialAssets.legendLabel,
-    );
+    expect(homeSeries.legendGroup, AccountKind.nonFinancialAssets.legendLabel);
     expect(homeSeries.points[0].rollingCents, 20000000.0);
     expect(homeSeries.points[4].rollingCents, 25000000.0);
   });

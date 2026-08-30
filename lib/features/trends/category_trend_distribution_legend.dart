@@ -11,21 +11,13 @@ import 'package:spend_trends/features/trends/trend_legend_swatch.dart';
 import 'package:spend_trends/features/trends/trend_value_scale.dart';
 
 /// Shared-scale min/med/avg/max/now whiskers for ranked category/group series.
-class CategoryTrendDistributionLegend extends StatelessWidget {
-  const CategoryTrendDistributionLegend({
-    required this.seriesList,
-    required this.hiddenSeriesIds,
-    required this.spendRate,
-    required this.onSeriesToggled,
-    required this.onSeriesSoloed,
-  });
-
-  final List<CategoryTrendSeries> seriesList;
-  final Set<String> hiddenSeriesIds;
-  final TrendSpendRate spendRate;
-  final ValueChanged<String> onSeriesToggled;
-  final ValueChanged<String> onSeriesSoloed;
-
+class const CategoryTrendDistributionLegend({
+  required final List<CategoryTrendSeries> seriesList,
+  required final Set<String> hiddenSeriesIds,
+  required final TrendSpendRate spendRate,
+  required final ValueChanged<String> onSeriesToggled,
+  required final ValueChanged<String> onSeriesSoloed,
+}) extends StatelessWidget {
   static const _whiskerHeight = 108.0;
   static const _labelBlockHeight = 66.0;
   static const _columnWidth = 96.0;
@@ -154,17 +146,11 @@ class CategoryTrendDistributionLegend extends StatelessWidget {
   }
 }
 
-class _DistributionAxisLabels extends StatelessWidget {
-  const _DistributionAxisLabels({
-    required this.scale,
-    required this.whiskerHeight,
-    required this.formatTick,
-  });
-
-  final TrendValueScale scale;
-  final double whiskerHeight;
-  final String Function(int cents) formatTick;
-
+class const _DistributionAxisLabels({
+  required final TrendValueScale scale,
+  required final double whiskerHeight,
+  required final String Function(int cents) formatTick,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tickStyle = EText.caption.copyWith(fontSize: 10);
@@ -191,27 +177,16 @@ class _DistributionAxisLabels extends StatelessWidget {
   }
 }
 
-class _DistributionColumn extends StatelessWidget {
-  const _DistributionColumn({
-    required this.series,
-    required this.pair,
-    required this.scale,
-    required this.isHidden,
-    required this.formatAnnualized,
-    required this.pastYearTotalLabel,
-    required this.onActivated,
-    required this.onSoloActivated,
-  });
-
-  final CategoryTrendSeries series;
-  final CategoryTrendDistributionPair? pair;
-  final TrendValueScale scale;
-  final bool isHidden;
-  final String Function(int cents) formatAnnualized;
-  final String pastYearTotalLabel;
-  final VoidCallback onActivated;
-  final VoidCallback onSoloActivated;
-
+class const _DistributionColumn({
+  required final CategoryTrendSeries series,
+  required final CategoryTrendDistributionPair? pair,
+  required final TrendValueScale scale,
+  required final bool isHidden,
+  required final String Function(int cents) formatAnnualized,
+  required final String pastYearTotalLabel,
+  required final VoidCallback onActivated,
+  required final VoidCallback onSoloActivated,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final nowCents =
@@ -348,19 +323,12 @@ class _DistributionColumn extends StatelessWidget {
   }
 }
 
-class _DistributionWhisker extends StatelessWidget {
-  const _DistributionWhisker({
-    required this.distribution,
-    required this.scale,
-    required this.seriesColor,
-    required this.isHidden,
-  });
-
-  final CategoryTrendDistribution? distribution;
-  final TrendValueScale scale;
-  final Color seriesColor;
-  final bool isHidden;
-
+class const _DistributionWhisker({
+  required final CategoryTrendDistribution? distribution,
+  required final TrendValueScale scale,
+  required final Color seriesColor,
+  required final bool isHidden,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (distribution == null) {

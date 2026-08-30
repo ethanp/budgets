@@ -7,10 +7,7 @@ import 'package:uuid/uuid.dart';
 
 const _log = ELogger('OwnedAssetsRepository');
 
-class OwnedAssetsRepository {
-  OwnedAssetsRepository(this._powerSync);
-
-  final PowerSyncDatabase _powerSync;
+class OwnedAssetsRepository(final PowerSyncDatabase _powerSync) {
   final _uuid = const Uuid();
 
   Future<List<OwnedAssetWithValuations>> listWithValuations() async {

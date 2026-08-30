@@ -20,9 +20,7 @@ import 'package:spend_trends/widgets/app_browse_split_shell.dart';
 import 'package:spend_trends/widgets/app_card.dart';
 import 'package:spend_trends/widgets/sync_status_nav_button.dart';
 
-class ActivityScreen extends ConsumerWidget {
-  const ActivityScreen();
-
+class const ActivityScreen() extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final transactionsAsync = ref.watch(transactionsListProvider);
@@ -67,24 +65,23 @@ class ActivityScreen extends ConsumerWidget {
       return;
     }
     if (!context.mounted) return;
-    await ref.read(banksPullLiveSessionProvider.notifier).runPull(
-      (onProgress) => ref
-          .read(banksControllerProvider.notifier)
-          .syncLatest(onProgress: onProgress),
-    );
+    await ref
+        .read(banksPullLiveSessionProvider.notifier)
+        .runPull(
+          (onProgress) => ref
+              .read(banksControllerProvider.notifier)
+              .syncLatest(onProgress: onProgress),
+        );
   }
 }
 
-class _ActivityBody extends ConsumerStatefulWidget {
-  const _ActivityBody({required this.transactions});
-
-  final List<BankTransaction> transactions;
-
+class const _ActivityBody({required final List<BankTransaction> transactions})
+    extends ConsumerStatefulWidget {
   @override
   ConsumerState<_ActivityBody> createState() => _ActivityBodyState();
 }
 
-class _ActivityBodyState extends ConsumerState<_ActivityBody> {
+class _ActivityBodyState() extends ConsumerState<_ActivityBody> {
   /// Left pane comfort width before the right pane starts growing.
   static const _leftComfortWidth = 1200.0;
 
@@ -217,9 +214,7 @@ class _ActivityBodyState extends ConsumerState<_ActivityBody> {
   }) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final columnWidths = naturalColumnWidths.allocate(
-          constraints.maxWidth,
-        );
+        final columnWidths = naturalColumnWidths.allocate(constraints.maxWidth);
         return RefreshIndicator(
           onRefresh: () => ActivityScreen.refresh(context, ref),
           child: CustomScrollView(
@@ -236,16 +231,12 @@ class _ActivityBodyState extends ConsumerState<_ActivityBody> {
                   accounts: accounts,
                   categories: categories,
                   ruleMatchIndex: filtered.ruleMatchIndex,
-                  explainingByTransactionId:
-                      filtered.explainingByTransactionId,
+                  explainingByTransactionId: filtered.explainingByTransactionId,
                   selectedTransactionId: _selectedTransactionId,
                   columnWidths: columnWidths,
                   onTransactionSelected: _selectTransaction,
-                  onRuleSelected: (rule) => ManageRuleSheet.show(
-                    context,
-                    ref: ref,
-                    rule: rule,
-                  ),
+                  onRuleSelected: (rule) =>
+                      ManageRuleSheet.show(context, ref: ref, rule: rule),
                 ),
             ],
           ),

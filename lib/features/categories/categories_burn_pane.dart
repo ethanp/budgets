@@ -8,19 +8,12 @@ import 'package:spend_trends/domain/special_category.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/widgets/app_primary_button.dart';
 
-class CategoriesBurnPane extends ConsumerWidget {
-  const CategoriesBurnPane({
-    required this.selectedCategoryId,
-    required this.categoriesById,
-    required this.rowsById,
-    required this.onCategoryOpened,
-  });
-
-  final String? selectedCategoryId;
-  final Map<String, SpendCategory> categoriesById;
-  final Map<String, CategoryMonthRow> rowsById;
-  final void Function(SpendCategory category) onCategoryOpened;
-
+class const CategoriesBurnPane({
+  required final String? selectedCategoryId,
+  required final Map<String, SpendCategory> categoriesById,
+  required final Map<String, CategoryMonthRow> rowsById,
+  required final void Function(SpendCategory category) onCategoryOpened,
+}) extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selected = selectedCategoryId == null

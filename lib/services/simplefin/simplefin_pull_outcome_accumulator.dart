@@ -3,7 +3,7 @@ import 'package:spend_trends/services/simplefin/simplefin_models.dart';
 import 'package:spend_trends/services/sqlite/simplefin_pull_history.dart';
 
 /// Accumulates per-account pull outcomes for history journaling.
-class SimpleFinPullOutcomeAccumulator {
+class SimpleFinPullOutcomeAccumulator() {
   final Map<String, SimpleFinPullAccountDraft> _byExternalId = {};
 
   List<SimpleFinPullAccountDraft> get drafts => _byExternalId.values.toList();

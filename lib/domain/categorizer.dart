@@ -5,40 +5,23 @@ import 'package:spend_trends/services/sqlite/categories_repository.dart';
 import 'package:spend_trends/services/sqlite/transactions_repository.dart';
 import 'package:uuid/uuid.dart';
 
-class CopilotDefaultRuleMigrationResult {
-  const CopilotDefaultRuleMigrationResult({
-    required this.defaultImportRulesDeleted,
-    required this.transactionsReleased,
-  });
+class const CopilotDefaultRuleMigrationResult({
+  required final int defaultImportRulesDeleted,
+  required final int transactionsReleased,
+});
 
-  final int defaultImportRulesDeleted;
-  final int transactionsReleased;
-}
-
-class CopilotDefaultRuleMigrationProgress {
-  const CopilotDefaultRuleMigrationProgress({
-    required this.completed,
-    required this.total,
-  });
-
-  final int completed;
-  final int total;
-
+class const CopilotDefaultRuleMigrationProgress({
+  required final int completed,
+  required final int total,
+}) {
   double get fraction => total <= 0 ? 0 : completed / total;
 }
 
-class Categorizer {
-  Categorizer({
-    required CategoriesRepository categoriesRepository,
-    required TransactionsRepository transactionsRepository,
-    required AccountsRepository accountsRepository,
-  }) : _categoriesRepository = categoriesRepository,
-       _transactionsRepository = transactionsRepository,
-       _accountsRepository = accountsRepository;
-
-  final CategoriesRepository _categoriesRepository;
-  final TransactionsRepository _transactionsRepository;
-  final AccountsRepository _accountsRepository;
+class Categorizer({
+  required final CategoriesRepository _categoriesRepository,
+  required final TransactionsRepository _transactionsRepository,
+  required final AccountsRepository _accountsRepository,
+}) {
   final _uuid = const Uuid();
 
   /// Case-insensitive match of [rule] against the transaction description.
@@ -422,22 +405,14 @@ class Categorizer {
   }
 }
 
-class RemoveRuleReclaimResult {
-  const RemoveRuleReclaimResult({
-    required this.clearedTransactionCount,
-    required this.reclaimedByOtherRulesCount,
-  });
-
-  final int clearedTransactionCount;
-  final int reclaimedByOtherRulesCount;
-}
+class const RemoveRuleReclaimResult({
+  required final int clearedTransactionCount,
+  required final int reclaimedByOtherRulesCount,
+});
 
 /// Pre-normalized rules for repeated matching without re-trimming patterns.
-class RuleMatchIndex {
-  RuleMatchIndex(List<CategorizationRule> rules)
-    : _preparedRules = _prepareRules(rules);
-
-  final List<_PreparedRule> _preparedRules;
+class RuleMatchIndex(List<CategorizationRule> rules) {
+  final List<_PreparedRule> _preparedRules = _prepareRules(rules);
 
   CategorizationRule? bestMatchingRule(BankTransaction transaction) {
     if (_preparedRules.isEmpty) return null;
@@ -530,14 +505,8 @@ class RuleMatchIndex {
   }
 }
 
-class _PreparedRule {
-  const _PreparedRule({
-    required this.rule,
-    required this.pattern,
-    required this.patternLength,
-  });
-
-  final CategorizationRule rule;
-  final String pattern;
-  final int patternLength;
-}
+class const _PreparedRule({
+  required final CategorizationRule rule,
+  required final String pattern,
+  required final int patternLength,
+});

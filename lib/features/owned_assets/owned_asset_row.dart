@@ -4,19 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:spend_trends/domain/owned_asset.dart';
 
 /// Name, kind, and current value for one owned asset in the Banks list.
-class OwnedAssetRow extends StatelessWidget {
-  const OwnedAssetRow({
-    required this.ownedAsset,
-    required this.amountColumnWidth,
-    this.selected = false,
-    this.onActivated,
-  });
-
-  final OwnedAssetWithValuations ownedAsset;
-  final double amountColumnWidth;
-  final bool selected;
-  final VoidCallback? onActivated;
-
+class const OwnedAssetRow({
+  required final OwnedAssetWithValuations ownedAsset,
+  required final double amountColumnWidth,
+  final bool selected = false,
+  final VoidCallback? onActivated,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final amountStyle = ownedAsset.currentValueCents == 0

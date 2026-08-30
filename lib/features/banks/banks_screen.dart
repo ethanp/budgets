@@ -14,14 +14,12 @@ import 'package:spend_trends/widgets/app_browse_split_shell.dart';
 import 'package:spend_trends/widgets/sync_status_nav_button.dart';
 
 /// Everyday SimpleFIN connect / accounts / sync.
-class BanksScreen extends ConsumerStatefulWidget {
-  const BanksScreen();
-
+class const BanksScreen() extends ConsumerStatefulWidget {
   @override
   ConsumerState<BanksScreen> createState() => _BanksScreenState();
 }
 
-class _BanksScreenState extends ConsumerState<BanksScreen> {
+class _BanksScreenState() extends ConsumerState<BanksScreen> {
   String? _selectedAccountId;
   String? _selectedOwnedAssetId;
   String? _selectedPullTransactionId;
@@ -133,8 +131,7 @@ class _BanksScreenState extends ConsumerState<BanksScreen> {
     }
     return BanksNetWorthPane(
       accounts: accounts,
-      ownedAssets:
-          ref.watch(ownedAssetsListProvider).asData?.value ?? const [],
+      ownedAssets: ref.watch(ownedAssetsListProvider).asData?.value ?? const [],
       selectedAccountId: _selectedAccountId,
     );
   }

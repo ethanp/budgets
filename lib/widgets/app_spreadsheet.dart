@@ -2,17 +2,11 @@ import 'package:ethan_ui/ethan_ui.dart';
 import 'package:flutter/material.dart';
 
 /// Fixed-width cell so sibling rows share a column edge.
-class AppSpreadsheetCell extends StatelessWidget {
-  const AppSpreadsheetCell({
-    required this.width,
-    required this.child,
-    this.alignment = Alignment.centerLeft,
-  });
-
-  final double width;
-  final Widget child;
-  final Alignment alignment;
-
+class const AppSpreadsheetCell({
+  required final double width,
+  required final Widget child,
+  final Alignment alignment = Alignment.centerLeft,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -26,21 +20,13 @@ class AppSpreadsheetCell extends StatelessWidget {
 ///
 /// Use the same [trailingWidth] across sibling rows so values form a column,
 /// sized to the widest cell (see [TextsPaintMeasure.maxPaintedWidth]).
-class AppSpreadsheetRow extends StatelessWidget {
-  const AppSpreadsheetRow({
-    required this.leading,
-    required this.trailing,
-    required this.trailingWidth,
-    this.gap = ELayout.spaceMd,
-    this.crossAxisAlignment = CrossAxisAlignment.center,
-  });
-
-  final Widget leading;
-  final Widget trailing;
-  final double trailingWidth;
-  final double gap;
-  final CrossAxisAlignment crossAxisAlignment;
-
+class const AppSpreadsheetRow({
+  required final Widget leading,
+  required final Widget trailing,
+  required final double trailingWidth,
+  final double gap = ELayout.spaceMd,
+  final CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment.center,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(

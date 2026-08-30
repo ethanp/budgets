@@ -7,26 +7,17 @@ import 'package:ethan_utils/ethan_utils.dart';
 const _logger = ELogger('InProgressCopilotCsvImport');
 
 /// In-memory state for one Copilot CSV import run.
-class InProgressCopilotCsvImport {
-  InProgressCopilotCsvImport({
-    required this.categoryIdByName,
-    required this.existingByExternalKey,
-    required this.existingByContentKey,
-    required this.matchingCharges,
-    required this.dataRowCount,
-    required this.importedAt,
-  });
-
-  final Map<String, String> categoryIdByName;
-  final Map<String, TransactionPresence> existingByExternalKey;
-  final Map<String, TransactionPresence> existingByContentKey;
-  final MatchingSimplefinCharges matchingCharges;
+class InProgressCopilotCsvImport({
+  required final Map<String, String> categoryIdByName,
+  required final Map<String, TransactionPresence> existingByExternalKey,
+  required final Map<String, TransactionPresence> existingByContentKey,
+  required final MatchingSimplefinCharges matchingCharges,
+  required final int dataRowCount,
+  required final DateTime importedAt,
+}) {
   final Map<String, String> accountIdByKey = {};
   final Map<String, String> pendingNoteById = {};
   final Map<String, String> pendingExternalIdById = {};
-  final int dataRowCount;
-  final DateTime importedAt;
-
   var processedRows = 0;
   var importedTransactions = 0;
   var skippedRows = 0;

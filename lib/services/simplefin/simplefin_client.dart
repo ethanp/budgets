@@ -12,18 +12,10 @@ const simpleFinBridgeUrl = 'https://bridge.simplefin.org/';
 /// One-time Setup Token page for claiming a new Access URL.
 const simpleFinCreateUrl = 'https://bridge.simplefin.org/simplefin/create';
 
-class _FetchWindow {
-  const _FetchWindow({this.startUnix, this.endUnix});
+class const _FetchWindow({final int? startUnix, final int? endUnix});
 
-  final int? startUnix;
-  final int? endUnix;
-}
-
-class SimpleFinClient {
-  SimpleFinClient({http.Client? httpClient})
-    : _httpClient = httpClient ?? http.Client();
-
-  final http.Client _httpClient;
+class SimpleFinClient({http.Client? httpClient}) {
+  final http.Client _httpClient = httpClient ?? http.Client();
 
   Future<Uri> claimAccessUrl(String setupToken) async {
     final claimUrl = _decodeClaimUrl(setupToken);

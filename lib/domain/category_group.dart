@@ -1,11 +1,5 @@
-class CategoryGroup {
-  const CategoryGroup({
-    required this.id,
-    required this.name,
-    required this.sortOrder,
-  });
-
-  final String id;
-  final String name;
-  final int sortOrder;
-}
+class const CategoryGroup({
+  required final String id,
+  required final String name,
+  required final int sortOrder,
+});

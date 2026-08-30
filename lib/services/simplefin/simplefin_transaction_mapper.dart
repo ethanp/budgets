@@ -7,15 +7,11 @@ import 'package:ethan_utils/ethan_utils.dart';
 import 'package:uuid/uuid.dart';
 
 /// Maps SimpleFIN remote transactions into local [BankTransaction] rows.
-class SimpleFinTransactionMapper {
-  SimpleFinTransactionMapper({
-    required TransactionsRepository transactionsRepository,
-    Uuid? uuid,
-  }) : _transactionsRepository = transactionsRepository,
-       _uuid = uuid ?? const Uuid();
-
-  final TransactionsRepository _transactionsRepository;
-  final Uuid _uuid;
+class SimpleFinTransactionMapper({
+  required final TransactionsRepository _transactionsRepository,
+  Uuid? uuid,
+}) {
+  final Uuid _uuid = uuid ?? const Uuid();
 
   Future<List<SimpleFinPulledTransaction>> upsertFromRemote({
     required SimpleFinAccount remoteAccount,

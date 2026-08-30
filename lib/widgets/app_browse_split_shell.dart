@@ -4,47 +4,36 @@ import 'package:ethan_ui/ethan_ui.dart';
 import 'package:flutter/material.dart';
 
 /// Which pane has a fixed (draggable) width; the other expands.
-enum AppBrowseSplitSizedSide { left, right }
+enum AppBrowseSplitSizedSide() {
+  left,
+  right,
+}
 
 /// Auto-grow policy for a left-sized split as the window widens.
 ///
 /// Phase 1: grow left until [leftComfortWidth] (right stays at minimum).
 /// Phase 2: grow right until [rightComfortWidth] (left stays at comfort).
 /// Phase 3: grow left again (right stays at its comfort).
-class AppBrowseSplitGrowth {
-  const AppBrowseSplitGrowth({
-    required this.leftComfortWidth,
-    required this.rightComfortWidth,
-  });
-
-  final double leftComfortWidth;
-  final double rightComfortWidth;
-}
+class const AppBrowseSplitGrowth({
+  required final double leftComfortWidth,
+  required final double rightComfortWidth,
+});
 
 /// Wide-layout browse: one sized pane + one expanding pane.
 ///
 /// Below [breakpoint] only [left] is shown (phone / narrow window).
 /// Drag the divider to resize the sized pane.
-class AppBrowseSplitShell extends StatefulWidget {
-  const AppBrowseSplitShell({
-    required this.left,
-    required this.right,
-    this.breakpoint = 900,
-    this.sizedSide = AppBrowseSplitSizedSide.right,
-    this.initialSizedWidth = 320,
-    this.growth,
-  });
-
-  final Widget left;
-  final Widget right;
-  final double breakpoint;
-  final AppBrowseSplitSizedSide sizedSide;
-  final double initialSizedWidth;
+class const AppBrowseSplitShell({
+  required final Widget left,
+  required final Widget right,
+  final double breakpoint = 900,
+  final AppBrowseSplitSizedSide sizedSide = AppBrowseSplitSizedSide.right,
+  final double initialSizedWidth = 320,
 
   /// When set with a left-sized pane, width follows [AppBrowseSplitGrowth]
   /// until the user drags the divider.
-  final AppBrowseSplitGrowth? growth;
-
+  final AppBrowseSplitGrowth? growth,
+}) extends StatefulWidget {
   static const minRightWidth = 260.0;
   static const maxRightWidth = 480.0;
   static const minLeftWidth = 440.0;
@@ -60,7 +49,7 @@ class AppBrowseSplitShell extends StatefulWidget {
   State<AppBrowseSplitShell> createState() => _AppBrowseSplitShellState();
 }
 
-class _AppBrowseSplitShellState extends State<AppBrowseSplitShell> {
+class _AppBrowseSplitShellState() extends State<AppBrowseSplitShell> {
   final _shellKey = GlobalKey();
   late double _sizedWidth = widget.initialSizedWidth;
   bool _userDragged = false;
@@ -177,11 +166,9 @@ class _AppBrowseSplitShellState extends State<AppBrowseSplitShell> {
   }
 }
 
-class _ResizeDivider extends StatelessWidget {
-  const _ResizeDivider({required this.onDragAt});
-
-  final void Function(Offset globalPosition) onDragAt;
-
+class const _ResizeDivider({
+  required final void Function(Offset globalPosition) onDragAt,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MouseRegion(

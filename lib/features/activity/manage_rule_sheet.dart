@@ -12,11 +12,8 @@ import 'package:spend_trends/widgets/app_sheet_panel.dart';
 import 'package:spend_trends/widgets/category_picker.dart';
 
 /// Lists transactions where [rule] is primary; retarget or remove the rule.
-class ManageRuleSheet extends ConsumerStatefulWidget {
-  const ManageRuleSheet({required this.rule});
-
-  final CategorizationRule rule;
-
+class const ManageRuleSheet({required final CategorizationRule rule})
+    extends ConsumerStatefulWidget {
   static Future<void> show(
     BuildContext context, {
     required WidgetRef ref,
@@ -34,7 +31,7 @@ class ManageRuleSheet extends ConsumerStatefulWidget {
   ConsumerState<ManageRuleSheet> createState() => _ManageRuleSheetState();
 }
 
-class _ManageRuleSheetState extends ConsumerState<ManageRuleSheet> {
+class _ManageRuleSheetState() extends ConsumerState<ManageRuleSheet> {
   late CategorizationRule _rule = widget.rule;
   List<BankTransaction>? _primaryMatches;
   Object? _loadError;
@@ -240,7 +237,8 @@ class _ManageRuleSheetState extends ConsumerState<ManageRuleSheet> {
         categories: categories,
         groups: groups,
         selectedCategoryId: _rule.categoryId,
-        onCategorySelected: (category) => Navigator.of(sheetContext).pop(category),
+        onCategorySelected: (category) =>
+            Navigator.of(sheetContext).pop(category),
       ),
     );
     if (selected == null || !mounted) return;
@@ -378,19 +376,12 @@ class _ManageRuleSheetState extends ConsumerState<ManageRuleSheet> {
   }
 }
 
-class _TargetCategoryPickerSheet extends StatelessWidget {
-  const _TargetCategoryPickerSheet({
-    required this.categories,
-    required this.groups,
-    required this.selectedCategoryId,
-    required this.onCategorySelected,
-  });
-
-  final List<SpendCategory> categories;
-  final List<CategoryGroup> groups;
-  final String selectedCategoryId;
-  final ValueChanged<SpendCategory> onCategorySelected;
-
+class const _TargetCategoryPickerSheet({
+  required final List<SpendCategory> categories,
+  required final List<CategoryGroup> groups,
+  required final String selectedCategoryId,
+  required final ValueChanged<SpendCategory> onCategorySelected,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppSheetPanel(
@@ -427,15 +418,10 @@ class _TargetCategoryPickerSheet extends StatelessWidget {
   }
 }
 
-class _PrimaryMatchRow extends StatelessWidget {
-  const _PrimaryMatchRow({
-    required this.transaction,
-    required this.categoryName,
-  });
-
-  final BankTransaction transaction;
-  final String categoryName;
-
+class const _PrimaryMatchRow({
+  required final BankTransaction transaction,
+  required final String categoryName,
+}) extends StatelessWidget {
   String get _title => transaction.rawDescription.isEmpty
       ? transaction.normalizedMerchant
       : transaction.rawDescription;
@@ -460,7 +446,9 @@ class _PrimaryMatchRow extends StatelessWidget {
                 children: [
                   Text(
                     _title,
-                    style: EText.body.medium.copyWith(fontWeight: FontWeight.w600),
+                    style: EText.body.medium.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),

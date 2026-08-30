@@ -2,17 +2,12 @@ import 'package:ethan_utils/ethan_utils.dart';
 import 'package:spend_trends/features/trends/chart_date_layout.dart';
 
 /// Y scale snapped to human-readable tick steps for the data max.
-class TrendValueScale {
-  const TrendValueScale({required this.maxCents, required this.tickCents});
-
-  final double maxCents;
-  final List<double> tickCents;
-
-  factory TrendValueScale.niceForMax(double dataMaxCents) {
-    final scale = NiceValueScale.forMax(
-      dataMaxCents,
-      fallbackMax: 10000,
-    );
+class const TrendValueScale({
+  required final double maxCents,
+  required final List<double> tickCents,
+}) {
+  factory niceForMax(double dataMaxCents) {
+    final scale = NiceValueScale.forMax(dataMaxCents, fallbackMax: 10000);
     return TrendValueScale(maxCents: scale.max, tickCents: scale.ticks);
   }
 

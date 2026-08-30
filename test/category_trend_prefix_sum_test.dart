@@ -36,8 +36,9 @@ void main() {
       endDate: start.add(const Duration(days: 9)),
     );
 
-    final dining = bundle.categorySpend
-        .firstWhere((series) => series.id == 'cat_dining');
+    final dining = bundle.categorySpend.firstWhere(
+      (series) => series.id == 'cat_dining',
+    );
     expect(dining.points.length, 10);
     expect(dining.points.first.rollingCents, closeTo(36500, 0.01));
     expect(dining.points[4].rollingCents, closeTo(36500, 0.01));
@@ -65,8 +66,7 @@ void main() {
         .weight;
     final nearEdgeWeight = samples
         .firstWhere(
-          (sample) =>
-              sample.dayIndex == centerIndex + kernel.halfWidthDays - 1,
+          (sample) => sample.dayIndex == centerIndex + kernel.halfWidthDays - 1,
         )
         .weight;
     expect(centerWeight, greaterThan(nearEdgeWeight));
@@ -82,9 +82,11 @@ void main() {
     final start = DateTime(2024, 1, 1);
     final end = DateTime(2025, 12, 31);
     final transactions = <BankTransaction>[
-      for (var day = start;
-          !day.isAfter(end);
-          day = day.add(const Duration(days: 1)))
+      for (
+        var day = start;
+        !day.isAfter(end);
+        day = day.add(const Duration(days: 1))
+      )
         BankTransaction(
           id: 'd${day.year}_${day.month}_${day.day}',
           accountId: 'a1',
@@ -110,8 +112,9 @@ void main() {
       ],
       endDate: end,
     );
-    final dining = bundle.categorySpend
-        .firstWhere((series) => series.id == 'cat_dining');
+    final dining = bundle.categorySpend.firstWhere(
+      (series) => series.id == 'cat_dining',
+    );
 
     expect(dining.points.first.rollingCents, closeTo(36500, 0.01));
     expect(dining.points.last.rollingCents, closeTo(36500, 0.01));

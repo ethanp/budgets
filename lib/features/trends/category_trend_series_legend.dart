@@ -10,24 +10,16 @@ import 'package:spend_trends/features/trends/trend_legend_swatch.dart';
 import 'package:spend_trends/theme/finance_colors.dart';
 
 /// Legend under a trends chart: meta chips, plus ranked chips or distribution.
-class CategoryTrendSeriesLegend extends StatelessWidget {
-  const CategoryTrendSeriesLegend({
-    required this.seriesList,
-    required this.hiddenSeriesIds,
-    required this.spendRate,
-    required this.useDistributionLegend,
-    required this.onSeriesToggled,
-    required this.onSeriesSoloed,
-    this.valueKind = TrendValueKind.pace,
-  });
-
-  final List<CategoryTrendSeries> seriesList;
-  final Set<String> hiddenSeriesIds;
-  final TrendSpendRate spendRate;
-  final TrendValueKind valueKind;
-  final bool useDistributionLegend;
-  final ValueChanged<String> onSeriesToggled;
-  final ValueChanged<String> onSeriesSoloed;
+class const CategoryTrendSeriesLegend({
+  required final List<CategoryTrendSeries> seriesList,
+  required final Set<String> hiddenSeriesIds,
+  required final TrendSpendRate spendRate,
+  required final bool useDistributionLegend,
+  required final ValueChanged<String> onSeriesToggled,
+  required final ValueChanged<String> onSeriesSoloed,
+  final TrendValueKind valueKind = TrendValueKind.pace,
+}) extends StatelessWidget {
+  static const _sideBySideMinWidth = 560.0;
 
   @override
   Widget build(BuildContext context) {
@@ -72,27 +64,62 @@ class CategoryTrendSeriesLegend extends StatelessWidget {
             onSeriesSoloed: onSeriesSoloed,
           );
 
-    if (metaSeries.isEmpty) {
-      return rankedChild!;
+    if (metaSeries.isEmpty) return rankedChild!;
+    if (rankedChild == null) {
+      return _MetaLegendColumn(
+        metaSeries: metaSeries,
+        hiddenSeriesIds: hiddenSeriesIds,
+        spendRate: spendRate,
+        valueKind: valueKind,
+        fillAvailableWidth: true,
+        onSeriesToggled: onSeriesToggled,
+        onSeriesSoloed: onSeriesSoloed,
+      );
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) => _metaAndRanked(
+        stackVertically: constraints.maxWidth < _sideBySideMinWidth,
+        metaSeries: metaSeries,
+        rankedChild: rankedChild,
+      ),
+    );
+  }
+
+  Widget _metaAndRanked({
+    required bool stackVertically,
+    required List<CategoryTrendSeries> metaSeries,
+    required Widget rankedChild,
+  }) {
+    final metaColumn = _MetaLegendColumn(
+      metaSeries: metaSeries,
+      hiddenSeriesIds: hiddenSeriesIds,
+      spendRate: spendRate,
+      valueKind: valueKind,
+      fillAvailableWidth: stackVertically,
+      onSeriesToggled: onSeriesToggled,
+      onSeriesSoloed: onSeriesSoloed,
+    );
+
+    if (stackVertically) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          metaColumn,
+          const SizedBox(height: ELayout.spaceMd),
+          rankedChild,
+        ],
+      );
     }
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _MetaLegendColumn(
-          metaSeries: metaSeries,
-          hiddenSeriesIds: hiddenSeriesIds,
-          spendRate: spendRate,
-          valueKind: valueKind,
-          onSeriesToggled: onSeriesToggled,
-          onSeriesSoloed: onSeriesSoloed,
-        ),
-        if (rankedSeries.isNotEmpty) ...[
-          const SizedBox(width: ELayout.spaceMd),
-          const _LegendColumnDivider(height: 72),
-          const SizedBox(width: ELayout.spaceMd),
-          Expanded(child: rankedChild!),
-        ],
+        metaColumn,
+        const SizedBox(width: ELayout.spaceMd),
+        const _LegendColumnDivider(height: 72),
+        const SizedBox(width: ELayout.spaceMd),
+        Expanded(child: rankedChild),
       ],
     );
   }
@@ -119,25 +146,15 @@ class CategoryTrendSeriesLegend extends StatelessWidget {
   }
 }
 
-class TrendLegendChip extends StatelessWidget {
-  const TrendLegendChip({
-    required this.series,
-    required this.isHidden,
-    required this.spendRate,
-    required this.onActivated,
-    required this.onSoloActivated,
-    this.valueKind = TrendValueKind.pace,
-    this.expandLabel = true,
-  });
-
-  final CategoryTrendSeries series;
-  final bool isHidden;
-  final TrendSpendRate spendRate;
-  final TrendValueKind valueKind;
-  final VoidCallback onActivated;
-  final VoidCallback onSoloActivated;
-  final bool expandLabel;
-
+class const TrendLegendChip({
+  required final CategoryTrendSeries series,
+  required final bool isHidden,
+  required final TrendSpendRate spendRate,
+  required final VoidCallback onActivated,
+  required final VoidCallback onSoloActivated,
+  final TrendValueKind valueKind = TrendValueKind.pace,
+  final bool expandLabel = true,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Level charts (net worth): show current rolling balance, not CMA tip —
@@ -182,25 +199,34 @@ class TrendLegendChip extends StatelessWidget {
   }
 }
 
-class _MetaLegendColumn extends StatelessWidget {
-  const _MetaLegendColumn({
-    required this.metaSeries,
-    required this.hiddenSeriesIds,
-    required this.spendRate,
-    required this.valueKind,
-    required this.onSeriesToggled,
-    required this.onSeriesSoloed,
-  });
-
-  final List<CategoryTrendSeries> metaSeries;
-  final Set<String> hiddenSeriesIds;
-  final TrendSpendRate spendRate;
-  final TrendValueKind valueKind;
-  final ValueChanged<String> onSeriesToggled;
-  final ValueChanged<String> onSeriesSoloed;
-
+class const _MetaLegendColumn({
+  required final List<CategoryTrendSeries> metaSeries,
+  required final Set<String> hiddenSeriesIds,
+  required final TrendSpendRate spendRate,
+  required final TrendValueKind valueKind,
+  required final ValueChanged<String> onSeriesToggled,
+  required final ValueChanged<String> onSeriesSoloed,
+  final bool fillAvailableWidth = false,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final chips = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var index = 0; index < metaSeries.length; index++) ...[
+          if (index > 0) const SizedBox(height: ELayout.spaceSm),
+          TrendLegendChip(
+            series: metaSeries[index],
+            isHidden: hiddenSeriesIds.contains(metaSeries[index].id),
+            spendRate: spendRate,
+            valueKind: valueKind,
+            expandLabel: fillAvailableWidth,
+            onActivated: () => onSeriesToggled(metaSeries[index].id),
+            onSoloActivated: () => onSeriesSoloed(metaSeries[index].id),
+          ),
+        ],
+      ],
+    );
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: ELayout.spaceSm,
@@ -211,46 +237,19 @@ class _MetaLegendColumn extends StatelessWidget {
         borderRadius: ELayout.borderRadiusSm,
         border: Border.all(color: EColors.border.withValues(alpha: 0.7)),
       ),
-      child: IntrinsicWidth(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            for (var index = 0; index < metaSeries.length; index++) ...[
-              if (index > 0) const SizedBox(height: ELayout.spaceSm),
-              TrendLegendChip(
-                series: metaSeries[index],
-                isHidden: hiddenSeriesIds.contains(metaSeries[index].id),
-                spendRate: spendRate,
-                valueKind: valueKind,
-                expandLabel: false,
-                onActivated: () => onSeriesToggled(metaSeries[index].id),
-                onSoloActivated: () => onSeriesSoloed(metaSeries[index].id),
-              ),
-            ],
-          ],
-        ),
-      ),
+      child: fillAvailableWidth ? chips : IntrinsicWidth(child: chips),
     );
   }
 }
 
-class _WrappingLegend extends StatelessWidget {
-  const _WrappingLegend({
-    required this.seriesList,
-    required this.hiddenSeriesIds,
-    required this.spendRate,
-    required this.valueKind,
-    required this.onSeriesToggled,
-    required this.onSeriesSoloed,
-  });
-
-  final List<CategoryTrendSeries> seriesList;
-  final Set<String> hiddenSeriesIds;
-  final TrendSpendRate spendRate;
-  final TrendValueKind valueKind;
-  final ValueChanged<String> onSeriesToggled;
-  final ValueChanged<String> onSeriesSoloed;
-
+class const _WrappingLegend({
+  required final List<CategoryTrendSeries> seriesList,
+  required final Set<String> hiddenSeriesIds,
+  required final TrendSpendRate spendRate,
+  required final TrendValueKind valueKind,
+  required final ValueChanged<String> onSeriesToggled,
+  required final ValueChanged<String> onSeriesSoloed,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Wrap(
@@ -272,11 +271,8 @@ class _WrappingLegend extends StatelessWidget {
   }
 }
 
-class _LegendColumnDivider extends StatelessWidget {
-  const _LegendColumnDivider({this.height});
-
-  final double? height;
-
+class const _LegendColumnDivider({final double? height})
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -288,21 +284,13 @@ class _LegendColumnDivider extends StatelessWidget {
 }
 
 /// Net worth account rows as a signed-amount table, grouped by account kind.
-class _NetWorthLegendTable extends StatelessWidget {
-  const _NetWorthLegendTable({
-    required this.seriesList,
-    required this.hiddenSeriesIds,
-    required this.valueKind,
-    required this.onSeriesToggled,
-    required this.onSeriesSoloed,
-  });
-
-  final List<CategoryTrendSeries> seriesList;
-  final Set<String> hiddenSeriesIds;
-  final TrendValueKind valueKind;
-  final ValueChanged<String> onSeriesToggled;
-  final ValueChanged<String> onSeriesSoloed;
-
+class const _NetWorthLegendTable({
+  required final List<CategoryTrendSeries> seriesList,
+  required final Set<String> hiddenSeriesIds,
+  required final TrendValueKind valueKind,
+  required final ValueChanged<String> onSeriesToggled,
+  required final ValueChanged<String> onSeriesSoloed,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final groups = _groupsFromSeries(seriesList);
@@ -458,15 +446,10 @@ class _NetWorthLegendTable extends StatelessWidget {
   }
 }
 
-class _LegendSectionGroup {
-  const _LegendSectionGroup({
-    required this.sectionName,
-    required this.seriesList,
-  });
-
-  final String sectionName;
-  final List<CategoryTrendSeries> seriesList;
-}
+class const _LegendSectionGroup({
+  required final String sectionName,
+  required final List<CategoryTrendSeries> seriesList,
+});
 
 int _legendDisplayCents(
   CategoryTrendSeries series, {

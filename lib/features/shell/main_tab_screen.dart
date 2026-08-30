@@ -7,17 +7,11 @@ import 'package:spend_trends/features/life_events/life_events_screen.dart';
 import 'package:spend_trends/features/settings/settings_screen.dart';
 import 'package:spend_trends/features/trends/trends_screen.dart';
 
-class MainTab {
-  const MainTab({
-    required this.icon,
-    required this.label,
-    required this.screen,
-  });
-
-  final IconData icon;
-  final String label;
-  final Widget screen;
-}
+class const MainTab({
+  required final IconData icon,
+  required final String label,
+  required final Widget screen,
+});
 
 const mainTabs = <MainTab>[
   MainTab(icon: Icons.bar_chart, label: 'Trends', screen: TrendsScreen()),
@@ -28,14 +22,12 @@ const mainTabs = <MainTab>[
   MainTab(icon: Icons.settings, label: 'Settings', screen: SettingsScreen()),
 ];
 
-class MainTabScreen extends StatefulWidget {
-  const MainTabScreen();
-
+class const MainTabScreen() extends StatefulWidget {
   @override
   State<MainTabScreen> createState() => _MainTabScreenState();
 }
 
-class _MainTabScreenState extends State<MainTabScreen> {
+class _MainTabScreenState() extends State<MainTabScreen> {
   int _selectedTabIndex = 0;
   final _navigatorKeys = List<GlobalKey<NavigatorState>>.generate(
     mainTabs.length,
@@ -53,7 +45,9 @@ class _MainTabScreenState extends State<MainTabScreen> {
         ],
         onSelected: (index) {
           if (index == _selectedTabIndex) {
-            _navigatorKeys[index].currentState?.popUntil((route) => route.isFirst);
+            _navigatorKeys[index].currentState?.popUntil(
+              (route) => route.isFirst,
+            );
             return;
           }
           setState(() => _selectedTabIndex = index);

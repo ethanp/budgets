@@ -14,23 +14,16 @@ import 'package:http/http.dart' as http;
 
 const _logger = ELogger('SuggestMerchantCategories');
 
-class CategorySuggestion {
-  const CategorySuggestion({
-    required this.merchant,
-    required this.categoryName,
-    this.categoryId,
-    this.transactionAmountCents = const [],
-  });
-
-  final String merchant;
+class const CategorySuggestion({
+  required final String merchant,
+  required final String categoryName,
 
   /// Null when this suggestion would create a new category on accept.
-  final String? categoryId;
-  final String categoryName;
+  final String? categoryId,
 
   /// Amounts of uncategorized transactions for [merchant], newest first.
-  final List<int> transactionAmountCents;
-
+  final List<int> transactionAmountCents = const [],
+}) {
   bool get createsCategory => categoryId == null;
 
   int get totalAmountCents =>
@@ -52,29 +45,17 @@ class CategorySuggestion {
       );
 }
 
-class SuggestMerchantCategories {
-  SuggestMerchantCategories({
-    required this.proxyUrl,
-    required this.appName,
-    required this.appSecret,
-    required this.clientId,
-    required AccountsRepository accountsRepository,
-    required CategoriesRepository categoriesRepository,
-    required TransactionsRepository transactionsRepository,
-    http.Client? httpClient,
-  }) : _accountsRepository = accountsRepository,
-       _categoriesRepository = categoriesRepository,
-       _transactionsRepository = transactionsRepository,
-       _httpClient = httpClient ?? http.Client();
-
-  final String proxyUrl;
-  final String appName;
-  final String appSecret;
-  final String clientId;
-  final AccountsRepository _accountsRepository;
-  final CategoriesRepository _categoriesRepository;
-  final TransactionsRepository _transactionsRepository;
-  final http.Client _httpClient;
+class SuggestMerchantCategories({
+  required final String proxyUrl,
+  required final String appName,
+  required final String appSecret,
+  required final String clientId,
+  required final AccountsRepository _accountsRepository,
+  required final CategoriesRepository _categoriesRepository,
+  required final TransactionsRepository _transactionsRepository,
+  http.Client? httpClient,
+}) {
+  final http.Client _httpClient = httpClient ?? http.Client();
   final _prompt = const CategorySuggestPrompt();
 
   Future<List<CategorySuggestion>> forUncategorizedMerchants({

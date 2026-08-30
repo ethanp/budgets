@@ -6,15 +6,11 @@ import 'package:powersync/powersync.dart';
 import 'package:uuid/uuid.dart';
 
 /// Kind of SimpleFIN account fetch for one pull run.
-enum SimpleFinPullKind {
+enum SimpleFinPullKind({required final String displayLabel}) {
   full(displayLabel: 'Full history'),
   incremental(displayLabel: 'Incremental');
 
-  const SimpleFinPullKind({required this.displayLabel});
-
   String get storageValue => name;
-
-  final String displayLabel;
 
   static SimpleFinPullKind fromStorage(String value) {
     for (final kind in values) {
@@ -25,7 +21,7 @@ enum SimpleFinPullKind {
 }
 
 /// Outcome of a SimpleFIN pull row in [simplefin_pulls].
-enum SimpleFinPullStatus {
+enum SimpleFinPullStatus() {
   running,
   success,
   failed;
@@ -41,32 +37,18 @@ enum SimpleFinPullStatus {
 }
 
 /// Per-account outcome within a pull.
-enum SimpleFinPullAccountStatus {
-  ok(
-    storageValue: 'ok',
-    displayLabel: 'OK',
-    severityRank: 0,
-  ),
+enum SimpleFinPullAccountStatus({
+  required final String storageValue,
+  required final String displayLabel,
+  required final int severityRank,
+}) {
+  ok(storageValue: 'ok', displayLabel: 'OK', severityRank: 0),
   needsRelink(
     storageValue: 'needs_relink',
     displayLabel: 'Needs re-link',
     severityRank: 1,
   ),
-  error(
-    storageValue: 'error',
-    displayLabel: 'Error',
-    severityRank: 2,
-  );
-
-  const SimpleFinPullAccountStatus({
-    required this.storageValue,
-    required this.displayLabel,
-    required this.severityRank,
-  });
-
-  final String storageValue;
-  final String displayLabel;
-  final int severityRank;
+  error(storageValue: 'error', displayLabel: 'Error', severityRank: 2);
 
   bool get isIssue => this != SimpleFinPullAccountStatus.ok;
 
@@ -80,54 +62,30 @@ enum SimpleFinPullAccountStatus {
 }
 
 /// One account's outcome for a pull (write + read).
-class SimpleFinPullAccountRecord {
-  const SimpleFinPullAccountRecord({
-    required this.id,
-    required this.pullId,
-    this.accountId,
-    this.accountExternalId,
-    this.connId,
-    required this.accountLabel,
-    required this.transactionCount,
-    required this.status,
-    this.errorMessage,
-  });
-
-  final String id;
-  final String pullId;
-  final String? accountId;
-  final String? accountExternalId;
-  final String? connId;
-  final String accountLabel;
-  final int transactionCount;
-  final SimpleFinPullAccountStatus status;
-  final String? errorMessage;
-}
+class const SimpleFinPullAccountRecord({
+  required final String id,
+  required final String pullId,
+  final String? accountId,
+  final String? accountExternalId,
+  final String? connId,
+  required final String accountLabel,
+  required final int transactionCount,
+  required final SimpleFinPullAccountStatus status,
+  final String? errorMessage,
+});
 
 /// One SimpleFIN pull run with optional per-account outcomes.
-class SimpleFinPullRecord {
-  const SimpleFinPullRecord({
-    required this.id,
-    required this.kind,
-    required this.status,
-    required this.startedAt,
-    this.finishedAt,
-    this.accountCount,
-    this.transactionCount,
-    this.errors = const [],
-    this.accounts = const [],
-  });
-
-  final String id;
-  final SimpleFinPullKind kind;
-  final SimpleFinPullStatus status;
-  final DateTime startedAt;
-  final DateTime? finishedAt;
-  final int? accountCount;
-  final int? transactionCount;
-  final List<SimpleFinError> errors;
-  final List<SimpleFinPullAccountRecord> accounts;
-
+class const SimpleFinPullRecord({
+  required final String id,
+  required final SimpleFinPullKind kind,
+  required final SimpleFinPullStatus status,
+  required final DateTime startedAt,
+  final DateTime? finishedAt,
+  final int? accountCount,
+  final int? transactionCount,
+  final List<SimpleFinError> errors = const [],
+  final List<SimpleFinPullAccountRecord> accounts = const [],
+}) {
   Duration? get duration {
     final end = finishedAt;
     if (end == null) return null;
@@ -144,25 +102,15 @@ class SimpleFinPullRecord {
 }
 
 /// Draft used while a pull is in progress before persist.
-class SimpleFinPullAccountDraft {
-  SimpleFinPullAccountDraft({
-    this.accountId,
-    this.accountExternalId,
-    this.connId,
-    required this.accountLabel,
-    this.transactionCount = 0,
-    this.status = SimpleFinPullAccountStatus.ok,
-    this.errorMessage,
-  });
-
-  String? accountId;
-  String? accountExternalId;
-  String? connId;
-  String accountLabel;
-  int transactionCount;
-  SimpleFinPullAccountStatus status;
-  String? errorMessage;
-
+class SimpleFinPullAccountDraft({
+  var String? accountId,
+  var String? accountExternalId,
+  var String? connId,
+  required var String accountLabel,
+  var int transactionCount = 0,
+  var SimpleFinPullAccountStatus status = SimpleFinPullAccountStatus.ok,
+  var String? errorMessage,
+}) {
   void addTransactions(int count) {
     transactionCount += count;
   }
@@ -180,10 +128,7 @@ class SimpleFinPullAccountDraft {
 
 /// Append-only log of SimpleFIN pulls. Incremental watermark is the latest
 /// successful [finished_at] — full-history runs never erase prior successes.
-class SimpleFinPullHistory {
-  SimpleFinPullHistory(this._powerSync);
-
-  final PowerSyncDatabase _powerSync;
+class SimpleFinPullHistory(final PowerSyncDatabase _powerSync) {
   final _uuid = const Uuid();
 
   static const _legacyLastSuccessfulPullKey = 'last_successful_pull_at';

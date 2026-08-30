@@ -6,10 +6,7 @@ import 'package:ethan_utils/ethan_utils.dart';
 import 'package:powersync/powersync.dart';
 import 'package:uuid/uuid.dart';
 
-class CategoriesRepository {
-  CategoriesRepository(this._powerSync);
-
-  final PowerSyncDatabase _powerSync;
+class CategoriesRepository(final PowerSyncDatabase _powerSync) {
   final _uuid = const Uuid();
 
   Future<List<SpendCategory>> listActive() async {

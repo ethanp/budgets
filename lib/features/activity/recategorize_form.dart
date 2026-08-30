@@ -16,23 +16,18 @@ import 'package:spend_trends/widgets/category_picker.dart';
 import 'package:spend_trends/widgets/select_all_none_row.dart';
 
 /// Inline / sheet body for assigning a category (and optional contains-rule).
-class RecategorizeForm extends ConsumerStatefulWidget {
-  const RecategorizeForm({
-    required this.transaction,
-    required this.onCompleted,
-  });
-
-  final BankTransaction transaction;
+class const RecategorizeForm({
+  required final BankTransaction transaction,
 
   /// Called after a successful category assign ([categoryId]) or note-only save
   /// (`null`).
-  final void Function(String? categoryId) onCompleted;
-
+  required final void Function(String? categoryId) onCompleted,
+}) extends ConsumerStatefulWidget {
   @override
   ConsumerState<RecategorizeForm> createState() => _RecategorizeFormState();
 }
 
-class _RecategorizeFormState extends ConsumerState<RecategorizeForm> {
+class _RecategorizeFormState() extends ConsumerState<RecategorizeForm> {
   bool _createRule = true;
   bool _savingNote = false;
   late final TextEditingController _patternController;
@@ -288,7 +283,8 @@ class _RecategorizeFormState extends ConsumerState<RecategorizeForm> {
               categoryNameById,
             ),
             selected: _selectedMatchIds.contains(transaction.id),
-            onSelectionChanged: (selected) => _setSelected(transaction.id, selected),
+            onSelectionChanged: (selected) =>
+                _setSelected(transaction.id, selected),
           ),
       ],
     );

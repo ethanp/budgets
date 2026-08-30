@@ -9,9 +9,7 @@ import 'package:spend_trends/services/csv/csv_importer.dart';
 import 'package:spend_trends/widgets/app_primary_button.dart';
 import 'package:spend_trends/widgets/app_sheet_panel.dart';
 
-class CsvImportSheet extends ConsumerStatefulWidget {
-  const CsvImportSheet();
-
+class const CsvImportSheet() extends ConsumerStatefulWidget {
   static Future<void> show(BuildContext context) {
     return showModalBottomSheet<void>(
       context: context,
@@ -25,7 +23,7 @@ class CsvImportSheet extends ConsumerStatefulWidget {
   ConsumerState<CsvImportSheet> createState() => _CsvImportSheetState();
 }
 
-class _CsvImportSheetState extends ConsumerState<CsvImportSheet> {
+class _CsvImportSheetState() extends ConsumerState<CsvImportSheet> {
   final TextEditingController _accountController = TextEditingController(
     text: 'CSV Import',
   );

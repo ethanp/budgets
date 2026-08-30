@@ -6,41 +6,24 @@ import 'package:spend_trends/domain/transaction.dart';
 import 'package:spend_trends/features/activity/activity_search.dart';
 
 /// Result of the Activity list filter pipeline.
-class ActivityVisibleTransactions {
-  const ActivityVisibleTransactions({
-    required this.searchMatchCount,
-    required this.visible,
-    required this.ruleMatchIndex,
-    required this.explainingByTransactionId,
-  });
-
-  final int searchMatchCount;
-  final List<BankTransaction> visible;
-  final RuleMatchIndex ruleMatchIndex;
-  final Map<String, CategorizationRule?> explainingByTransactionId;
-}
+class const ActivityVisibleTransactions({
+  required final int searchMatchCount,
+  required final List<BankTransaction> visible,
+  required final RuleMatchIndex ruleMatchIndex,
+  required final Map<String, CategorizationRule?> explainingByTransactionId,
+});
 
 /// Filters Activity transactions: Copilot links, search, canceling pairs,
 /// auto-categorized hide, and optional uncategorized-only.
-class ActivityVisibleTransactionsQuery {
-  const ActivityVisibleTransactionsQuery({
-    required this.transactions,
-    required this.accounts,
-    required this.categories,
-    required this.rules,
-    required this.searchQuery,
-    required this.hideRuleMatched,
-    required this.uncategorizedOnly,
-  });
-
-  final List<BankTransaction> transactions;
-  final Map<String, Account> accounts;
-  final Map<String, SpendCategory> categories;
-  final List<CategorizationRule> rules;
-  final String searchQuery;
-  final bool hideRuleMatched;
-  final bool uncategorizedOnly;
-
+class const ActivityVisibleTransactionsQuery({
+  required final List<BankTransaction> transactions,
+  required final Map<String, Account> accounts,
+  required final Map<String, SpendCategory> categories,
+  required final List<CategorizationRule> rules,
+  required final String searchQuery,
+  required final bool hideRuleMatched,
+  required final bool uncategorizedOnly,
+}) {
   ActivityVisibleTransactions run() {
     final hasSearch = searchQuery.trim().isNotEmpty;
     final searchHits = [

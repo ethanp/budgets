@@ -7,26 +7,16 @@ import 'package:spend_trends/features/activity/recategorize_form.dart';
 import 'package:spend_trends/widgets/app_primary_button.dart';
 
 /// Activity right pane: visible sum, uncategorized overview, or categorizer.
-class ActivityDetailPane extends StatelessWidget {
-  const ActivityDetailPane({
-    required this.uncategorized,
-    required this.visibleTransactions,
-    required this.selected,
-    required this.uncategorizedOnly,
-    required this.onUncategorizedFilterApplied,
-    required this.onUncategorizedFilterCleared,
-    required this.onCategorized,
-  });
-
+class const ActivityDetailPane({
   /// Same uncategorized set the list uses for “Show uncategorized”.
-  final List<BankTransaction> uncategorized;
-  final List<BankTransaction> visibleTransactions;
-  final BankTransaction? selected;
-  final bool uncategorizedOnly;
-  final VoidCallback onUncategorizedFilterApplied;
-  final VoidCallback onUncategorizedFilterCleared;
-  final VoidCallback onCategorized;
-
+  required final List<BankTransaction> uncategorized,
+  required final List<BankTransaction> visibleTransactions,
+  required final BankTransaction? selected,
+  required final bool uncategorizedOnly,
+  required final VoidCallback onUncategorizedFilterApplied,
+  required final VoidCallback onUncategorizedFilterCleared,
+  required final VoidCallback onCategorized,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(

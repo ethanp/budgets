@@ -9,25 +9,15 @@ import 'package:spend_trends/util/category_color.dart';
 import 'package:spend_trends/widgets/app_compact_fact_row.dart';
 
 /// Left Categories browse list (month strip + grouped compact fact rows).
-class CategoryBrowseList extends StatelessWidget {
-  const CategoryBrowseList({
-    required this.yearMonthLabel,
-    required this.sections,
-    required this.rowsById,
-    required this.selectedCategoryId,
-    required this.onGroupOpened,
-    required this.onCategorySelected,
-    required this.onCategoryOpened,
-  });
-
-  final String yearMonthLabel;
-  final List<CategoryListSection> sections;
-  final Map<String, CategoryMonthRow> rowsById;
-  final String? selectedCategoryId;
-  final void Function(CategoryListSection section) onGroupOpened;
-  final void Function(SpendCategory category) onCategorySelected;
-  final void Function(SpendCategory category) onCategoryOpened;
-
+class const CategoryBrowseList({
+  required final String yearMonthLabel,
+  required final List<CategoryListSection> sections,
+  required final Map<String, CategoryMonthRow> rowsById,
+  required final String? selectedCategoryId,
+  required final void Function(CategoryListSection section) onGroupOpened,
+  required final void Function(SpendCategory category) onCategorySelected,
+  required final void Function(SpendCategory category) onCategoryOpened,
+}) extends StatelessWidget {
   static double amountColumnWidth(
     List<CategoryListSection> sections,
     Map<String, CategoryMonthRow> rowsById,
@@ -36,9 +26,8 @@ class CategoryBrowseList extends StatelessWidget {
     var widest = formatCents(0).measureWidth(semiboldCaption);
     for (final section in sections) {
       if (section.title != 'Cash flow') {
-        final headerWidth = formatCents(
-          section.monthTotalCents,
-        ).measureWidth(semiboldCaption);
+        final headerWidth = formatCents(section.monthTotalCents)
+            .measureWidth(semiboldCaption);
         if (headerWidth > widest) widest = headerWidth;
       }
       for (final category in section.categories) {
@@ -78,25 +67,15 @@ class CategoryBrowseList extends StatelessWidget {
   }
 }
 
-class CategoryBrowseSection extends StatelessWidget {
-  const CategoryBrowseSection({
-    required this.section,
-    required this.rowsById,
-    required this.amountWidth,
-    required this.selectedCategoryId,
-    required this.onGroupOpened,
-    required this.onCategorySelected,
-    required this.onCategoryOpened,
-  });
-
-  final CategoryListSection section;
-  final Map<String, CategoryMonthRow> rowsById;
-  final double amountWidth;
-  final String? selectedCategoryId;
-  final VoidCallback? onGroupOpened;
-  final void Function(SpendCategory category) onCategorySelected;
-  final void Function(SpendCategory category) onCategoryOpened;
-
+class const CategoryBrowseSection({
+  required final CategoryListSection section,
+  required final Map<String, CategoryMonthRow> rowsById,
+  required final double amountWidth,
+  required final String? selectedCategoryId,
+  required final VoidCallback? onGroupOpened,
+  required final void Function(SpendCategory category) onCategorySelected,
+  required final void Function(SpendCategory category) onCategoryOpened,
+}) extends StatelessWidget {
   bool get _isCashFlow => section.title == 'Cash flow';
 
   @override
@@ -149,23 +128,14 @@ class CategoryBrowseSection extends StatelessWidget {
   }
 }
 
-class CategoryBrowseFactRow extends StatelessWidget {
-  const CategoryBrowseFactRow({
-    required this.category,
-    required this.row,
-    required this.amountWidth,
-    required this.selected,
-    required this.onCategorySelected,
-    required this.onCategoryOpened,
-  });
-
-  final SpendCategory category;
-  final CategoryMonthRow? row;
-  final double amountWidth;
-  final bool selected;
-  final VoidCallback onCategorySelected;
-  final VoidCallback onCategoryOpened;
-
+class const CategoryBrowseFactRow({
+  required final SpendCategory category,
+  required final CategoryMonthRow? row,
+  required final double amountWidth,
+  required final bool selected,
+  required final VoidCallback onCategorySelected,
+  required final VoidCallback onCategoryOpened,
+}) extends StatelessWidget {
   bool get _isFlow => category.isFlow;
 
   @override

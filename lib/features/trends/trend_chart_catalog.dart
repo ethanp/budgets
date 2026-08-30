@@ -3,9 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:spend_trends/theme/finance_colors.dart';
 
 /// Series ids, colors, and shared Trends chart constants.
-class TrendChartCatalog {
-  TrendChartCatalog._();
-
+class TrendChartCatalog._() {
   static const allSpendSeriesId = '__all__';
   static const uncategorizedSeriesId = '__uncategorized__';
   static const incomeSeriesId = '__income__';

@@ -10,29 +10,17 @@ import 'package:spend_trends/util/category_color.dart';
 import 'package:spend_trends/widgets/transaction_list_row.dart';
 
 /// One Activity row: [category | account | title | amount].
-class ActivityTransactionTile extends StatelessWidget {
-  const ActivityTransactionTile({
-    required this.transaction,
-    required this.account,
-    required this.category,
-    required this.onActivated,
-    required this.columnWidths,
-    this.onRuleSelected,
-    this.selected = false,
-    this.extraTrailing,
-    this.categoryCaption,
-  });
-
-  final BankTransaction transaction;
-  final Account? account;
-  final SpendCategory? category;
-  final VoidCallback onActivated;
-  final VoidCallback? onRuleSelected;
-  final bool selected;
-  final ActivityColumnWidths columnWidths;
-  final Widget? extraTrailing;
-  final String? categoryCaption;
-
+class const ActivityTransactionTile({
+  required final BankTransaction transaction,
+  required final Account? account,
+  required final SpendCategory? category,
+  required final VoidCallback onActivated,
+  required final ActivityColumnWidths columnWidths,
+  final VoidCallback? onRuleSelected,
+  final bool selected = false,
+  final Widget? extraTrailing,
+  final String? categoryCaption,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final categoryColor = CategoryColor.forCategoryId(
@@ -55,9 +43,7 @@ class ActivityTransactionTile extends StatelessWidget {
         TransactionListRow.cell(
           width: columnWidths.category,
           child: Text(
-            categoryCaption ??
-                category?.name ??
-                'Uncategorized',
+            categoryCaption ?? category?.name ?? 'Uncategorized',
             style: EText.caption.copyWith(
               fontWeight: FontWeight.w600,
               color: categoryColor,

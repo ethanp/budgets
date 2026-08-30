@@ -10,9 +10,7 @@ import 'package:spend_trends/services/sqlite/simplefin_pull_history.dart';
 import 'package:spend_trends/services/sync/sync_config.dart';
 import 'package:spend_trends/widgets/app_sheet_panel.dart';
 
-class SyncStatusSheet extends ConsumerWidget {
-  const SyncStatusSheet();
-
+class const SyncStatusSheet() extends ConsumerWidget {
   static Future<void> show(BuildContext context) {
     return showModalBottomSheet<void>(
       context: context,
@@ -44,11 +42,8 @@ class SyncStatusSheet extends ConsumerWidget {
   }
 }
 
-class _SyncStatusBody extends ConsumerWidget {
-  const _SyncStatusBody({required this.status});
-
-  final ConnectionStatus status;
-
+class const _SyncStatusBody({required final ConnectionStatus status})
+    extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final latestFinished = status.latestFinishedPull;
@@ -133,7 +128,9 @@ class _SyncStatusBody extends ConsumerWidget {
                 Text('Bank pull', style: EText.body.medium),
                 Text(
                   primary,
-                  style: EText.body.medium.copyWith(fontWeight: FontWeight.w600),
+                  style: EText.body.medium.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 if (secondary != null)
                   Text(
@@ -208,7 +205,10 @@ class _SyncStatusBody extends ConsumerWidget {
     return Row(
       children: [
         Expanded(child: Text(label, style: EText.body.medium)),
-        Text(value, style: EText.body.medium.copyWith(fontWeight: FontWeight.w600)),
+        Text(
+          value,
+          style: EText.body.medium.copyWith(fontWeight: FontWeight.w600),
+        ),
       ],
     );
   }
@@ -225,24 +225,16 @@ class _SyncStatusBody extends ConsumerWidget {
   }
 }
 
-class _SecondaryLine {
-  const _SecondaryLine(
-    this.text, {
-    this.isError = false,
-    this.isWarning = false,
-  });
+class const _SecondaryLine(
+  final String text, {
+  final bool isError = false,
+  final bool isWarning = false,
+});
 
-  final String text;
-  final bool isError;
-  final bool isWarning;
-}
-
-class _AccountSyncRow extends StatelessWidget {
-  const _AccountSyncRow({required this.account, this.lastPullIssue});
-
-  final Account account;
-  final SimpleFinPullAccountRecord? lastPullIssue;
-
+class const _AccountSyncRow({
+  required final Account account,
+  final SimpleFinPullAccountRecord? lastPullIssue,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final needsRelink = account.status == AccountStatus.needsRelink;

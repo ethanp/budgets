@@ -5,7 +5,17 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 /// Which life-chain timeline a stay belongs to.
-enum LifeChainKind {
+enum LifeChainKind({
+  required final String emptyHeroCaption,
+  required final String currentCaption,
+  required final String addCta,
+  required final String labelPlaceholder,
+  required final String startDateLabel,
+  required final IconData icon,
+
+  /// Base Trends band color for this chain (distinct from life-event gold).
+  required final Color trendBandColor,
+}) {
   housing(
     emptyHeroCaption: 'No housing yet',
     currentCaption: 'Current home',
@@ -25,27 +35,7 @@ enum LifeChainKind {
     trendBandColor: EColors.success,
   );
 
-  const LifeChainKind({
-    required this.emptyHeroCaption,
-    required this.currentCaption,
-    required this.addCta,
-    required this.labelPlaceholder,
-    required this.startDateLabel,
-    required this.icon,
-    required this.trendBandColor,
-  });
-
   String get screenTitle => nameAsCapitalizedWords;
-
-  final String emptyHeroCaption;
-  final String currentCaption;
-  final String addCta;
-  final String labelPlaceholder;
-  final String startDateLabel;
-  final IconData icon;
-
-  /// Base Trends band color for this chain (distinct from life-event gold).
-  final Color trendBandColor;
 
   /// Mild per-era accent for labels/edges — tiny hue nudge, odd eras slightly darker.
   ///
@@ -68,36 +58,22 @@ enum LifeChainKind {
   }
 }
 
-class ChainStay {
-  const ChainStay({
-    required this.id,
-    required this.label,
-    required this.startedOn,
-    this.note,
-  });
-
-  final String id;
-  final String label;
-  final DateTime startedOn;
-  final String? note;
-}
+class const ChainStay({
+  required final String id,
+  required final String label,
+  required final DateTime startedOn,
+  final String? note,
+});
 
 /// One link in a [StayChain] with a computed residence/employment range.
-class ChainStaySegment {
-  const ChainStaySegment({
-    required this.stay,
-    required this.rangeStart,
-    required this.rangeEnd,
-    required this.isCurrent,
-  });
-
-  final ChainStay stay;
-  final DateTime rangeStart;
+class const ChainStaySegment({
+  required final ChainStay stay,
+  required final DateTime rangeStart,
 
   /// Null when this is the open-ended current stay.
-  final DateTime? rangeEnd;
-  final bool isCurrent;
-
+  required final DateTime? rangeEnd,
+  required final bool isCurrent,
+}) {
   String get dateCaption {
     final formatter = DateFormat.yMMMd();
     final startLabel = formatter.format(rangeStart);
@@ -121,16 +97,13 @@ class ChainStaySegment {
   }
 }
 
-class StayChain {
-  StayChain(List<ChainStay> stays)
-    : segments = _segmentsFor(
-        [...stays]..sort(
-          (firstStay, secondStay) =>
-              firstStay.startedOn.compareTo(secondStay.startedOn),
-        ),
-      );
-
-  final List<ChainStaySegment> segments;
+class StayChain(List<ChainStay> stays) {
+  final List<ChainStaySegment> segments = _segmentsFor(
+    [...stays]..sort(
+      (firstStay, secondStay) =>
+          firstStay.startedOn.compareTo(secondStay.startedOn),
+    ),
+  );
 
   bool get isEmpty => segments.isEmpty;
 

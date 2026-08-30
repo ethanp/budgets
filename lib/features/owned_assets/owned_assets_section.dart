@@ -11,15 +11,10 @@ import 'package:spend_trends/widgets/app_browse_split_shell.dart';
 import 'package:spend_trends/widgets/app_primary_button.dart';
 
 /// Banks section: manually tracked home / vehicle / other asset values.
-class OwnedAssetsSection extends ConsumerWidget {
-  const OwnedAssetsSection({
-    this.selectedOwnedAssetId,
-    this.onOwnedAssetSelected,
-  });
-
-  final String? selectedOwnedAssetId;
-  final void Function(String ownedAssetId)? onOwnedAssetSelected;
-
+class const OwnedAssetsSection({
+  final String? selectedOwnedAssetId,
+  final void Function(String ownedAssetId)? onOwnedAssetSelected,
+}) extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ownedAssetsAsync = ref.watch(ownedAssetsListProvider);
@@ -96,9 +91,8 @@ class OwnedAssetsSection extends ConsumerWidget {
       final amountStyle = ownedAsset.currentValueCents == 0
           ? EText.body.medium.copyWith(color: EColors.textMuted)
           : EText.body.medium.copyWith(fontWeight: FontWeight.w600);
-      final width = formatCents(
-        ownedAsset.currentValueCents,
-      ).measureWidth(amountStyle);
+      final width = formatCents(ownedAsset.currentValueCents)
+          .measureWidth(amountStyle);
       if (width > widest) widest = width;
     }
     return widest;

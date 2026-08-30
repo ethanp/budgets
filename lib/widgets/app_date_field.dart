@@ -3,17 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 /// Tappable labeled date row that opens the app date picker flow.
-class AppDateField extends StatelessWidget {
-  const AppDateField({
-    required this.label,
-    required this.date,
-    required this.onActivated,
-  });
-
-  final String label;
-  final DateTime date;
-  final VoidCallback onActivated;
-
+class const AppDateField({
+  required final String label,
+  required final DateTime date,
+  required final VoidCallback onActivated,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(

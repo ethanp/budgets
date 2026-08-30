@@ -5,11 +5,10 @@ import 'package:powersync/powersync.dart';
 import 'package:uuid/uuid.dart';
 
 /// CRUD for a single stay-chain table (`housing_stays` or `job_stays`).
-class ChainStaysRepository {
-  ChainStaysRepository(this._powerSync, {required this.tableName});
-
-  final PowerSyncDatabase _powerSync;
-  final String tableName;
+class ChainStaysRepository(
+  final PowerSyncDatabase _powerSync, {
+  required final String tableName,
+}) {
   final _uuid = const Uuid();
 
   Future<StayChain> loadChain() async {

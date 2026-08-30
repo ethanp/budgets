@@ -9,30 +9,17 @@ import 'package:ethan_utils/ethan_utils.dart';
 
 const _logger = ELogger('SimpleFinWindowIngester');
 
-class SimpleFinWindowIngestResult {
-  const SimpleFinWindowIngestResult({
-    required this.transactionCount,
-    required this.errors,
-  });
-
-  final int transactionCount;
-  final List<SimpleFinError> errors;
-}
+class const SimpleFinWindowIngestResult({
+  required final int transactionCount,
+  required final List<SimpleFinError> errors,
+});
 
 /// Fetches one date window from SimpleFIN and persists accounts/transactions.
-class SimpleFinWindowIngester {
-  SimpleFinWindowIngester({
-    required SimpleFinClient client,
-    required SimpleFinAccountMapper accountMapper,
-    required SimpleFinTransactionMapper transactionMapper,
-  }) : _client = client,
-       _accountMapper = accountMapper,
-       _transactionMapper = transactionMapper;
-
-  final SimpleFinClient _client;
-  final SimpleFinAccountMapper _accountMapper;
-  final SimpleFinTransactionMapper _transactionMapper;
-
+class SimpleFinWindowIngester({
+  required final SimpleFinClient _client,
+  required final SimpleFinAccountMapper _accountMapper,
+  required final SimpleFinTransactionMapper _transactionMapper,
+}) {
   Future<SimpleFinWindowIngestResult> ingest({
     required Uri accessUrl,
     required SimpleFinDateWindow window,

@@ -4,20 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:spend_trends/domain/account.dart';
 
 /// Accounts under one institution label for the Banks list.
-class BankInstitutionGroup {
-  const BankInstitutionGroup({
-    required this.displayName,
-    required this.accounts,
-  });
-
-  final String displayName;
-  final List<Account> accounts;
-}
+class const BankInstitutionGroup({
+  required final String displayName,
+  required final List<Account> accounts,
+});
 
 /// Groups / sorts accounts by institution (Copilot last) and measures amounts.
-class BankAccountsByInstitution {
-  BankAccountsByInstitution._();
-
+class BankAccountsByInstitution._() {
   static List<BankInstitutionGroup> groups(List<Account> accounts) {
     final byKey = <String, List<Account>>{};
     for (final account in accounts) {

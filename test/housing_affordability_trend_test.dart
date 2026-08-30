@@ -45,8 +45,7 @@ void main() {
     );
 
     final affordability = bundle.categorySpend.firstWhere(
-      (series) =>
-          series.id == TrendChartCatalog.housingAffordabilitySeriesId,
+      (series) => series.id == TrendChartCatalog.housingAffordabilitySeriesId,
     );
     final income = bundle.cashFlows.firstWhere(
       (series) => series.id == TrendChartCatalog.incomeSeriesId,
@@ -56,9 +55,7 @@ void main() {
     expect(affordability.dotted, isFalse);
     expect(affordability.name, '30% of income');
     expect(affordability.points.length, income.points.length);
-    for (var pointIndex = 0;
-        pointIndex < income.points.length;
-        pointIndex++) {
+    for (var pointIndex = 0; pointIndex < income.points.length; pointIndex++) {
       expect(
         affordability.points[pointIndex].rollingCents,
         closeTo(

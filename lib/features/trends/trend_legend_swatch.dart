@@ -3,12 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:spend_trends/features/trends/category_trend_series.dart';
 
 /// Color chip for a trend series (solid, dotted, or long-dash guide).
-class TrendLegendSwatch extends StatelessWidget {
-  const TrendLegendSwatch({required this.series, required this.isHidden});
-
-  final CategoryTrendSeries series;
-  final bool isHidden;
-
+class const TrendLegendSwatch({
+  required final CategoryTrendSeries series,
+  required final bool isHidden,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = isHidden ? EColors.textMuted : series.lineColor;
@@ -32,12 +30,10 @@ class TrendLegendSwatch extends StatelessWidget {
   }
 }
 
-class _DottedLegendSwatchPainter extends CustomPainter {
-  _DottedLegendSwatchPainter(this.color, {this.longDash = false});
-
-  final Color color;
-  final bool longDash;
-
+class _DottedLegendSwatchPainter(
+  final Color color, {
+  final bool longDash = false,
+}) extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()

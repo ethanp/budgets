@@ -17,9 +17,7 @@ import 'package:spend_trends/features/trends/trends_chart_bundle.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/widgets/sync_status_nav_button.dart';
 
-class TrendsScreen extends ConsumerWidget {
-  const TrendsScreen();
-
+class const TrendsScreen() extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final trendsAsync = ref.watch(trendsChartBundleProvider);

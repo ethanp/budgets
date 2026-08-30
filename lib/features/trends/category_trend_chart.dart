@@ -24,65 +24,44 @@ import 'package:spend_trends/theme/finance_colors.dart';
 import 'dart:math' as math;
 
 /// Labeled amount shown under a Trends chart title.
-class ChartHeadlineFigure {
-  const ChartHeadlineFigure({required this.label, required this.cents});
-
-  final String label;
-  final int cents;
-}
+class const ChartHeadlineFigure({
+  required final String label,
+  required final int cents,
+});
 
 /// One SimCity-style multi-line chart with a color legend.
-class CategoryTrendChart extends ConsumerStatefulWidget {
-  const CategoryTrendChart({
-    required this.title,
-    required this.seriesList,
-    required this.transactions,
-    required this.categories,
-    required this.groups,
-    this.lifeEvents = const [],
-    this.housingChain,
-    this.jobChain,
-    this.subtitle =
-        'Annual pace · tap a line for top contributors · drag to inspect · '
-        'tap legend to show/hide · double-tap to solo',
-    this.initiallyHiddenSeriesIds = const {},
-    this.showSpendRateToggle = false,
-    this.useDistributionLegend = false,
-    this.valueKind = TrendValueKind.pace,
-    this.enableContributors = true,
-    this.headlineFigures = const [],
-  });
-
-  final String title;
-  final String subtitle;
-  final List<CategoryTrendSeries> seriesList;
-  final List<BankTransaction> transactions;
-  final List<SpendCategory> categories;
-  final List<CategoryGroup> groups;
-  final List<LifeEvent> lifeEvents;
-  final StayChain? housingChain;
-  final StayChain? jobChain;
-  final Set<String> initiallyHiddenSeriesIds;
+class const CategoryTrendChart({
+  required final String title,
+  required final List<CategoryTrendSeries> seriesList,
+  required final List<BankTransaction> transactions,
+  required final List<SpendCategory> categories,
+  required final List<CategoryGroup> groups,
+  final List<LifeEvent> lifeEvents = const [],
+  final StayChain? housingChain,
+  final StayChain? jobChain,
+  final String subtitle =
+      'Annual pace · tap a line for top contributors · drag to inspect · '
+      'tap legend to show/hide · double-tap to solo',
+  final Set<String> initiallyHiddenSeriesIds = const {},
 
   /// When true, shows the shared yr/mo/day control (only one chart should).
-  final bool showSpendRateToggle;
+  final bool showSpendRateToggle = false,
 
   /// Shared-scale min/med/avg/max/now whiskers for ranked category/group series.
-  final bool useDistributionLegend;
-
-  final TrendValueKind valueKind;
+  final bool useDistributionLegend = false,
+  final TrendValueKind valueKind = TrendValueKind.pace,
 
   /// Tap-to-open top contributors (disabled for level charts like net worth).
-  final bool enableContributors;
+  final bool enableContributors = true,
 
   /// Optional labeled amounts under the title (e.g. current + smoothed NW).
-  final List<ChartHeadlineFigure> headlineFigures;
-
+  final List<ChartHeadlineFigure> headlineFigures = const [],
+}) extends ConsumerStatefulWidget {
   @override
   ConsumerState<CategoryTrendChart> createState() => _CategoryTrendChartState();
 }
 
-class _CategoryTrendChartState extends ConsumerState<CategoryTrendChart> {
+class _CategoryTrendChartState() extends ConsumerState<CategoryTrendChart> {
   static const _tapSlop = 18.0;
 
   static final _headlineAmountStyle = EText.section.copyWith(fontSize: 22);

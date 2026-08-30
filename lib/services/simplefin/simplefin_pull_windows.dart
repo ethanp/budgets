@@ -1,7 +1,5 @@
 /// SimpleFIN bridge date-window policy (45-day max, overlap for late posts).
-class SimpleFinPullWindows {
-  SimpleFinPullWindows._();
-
+class SimpleFinPullWindows._() {
   /// beta-bridge rejects ranges of 45+ days.
   static const windowDays = 44;
   static const fullHistoryDays = 365 * 2;
@@ -33,9 +31,7 @@ class SimpleFinPullWindows {
   }
 }
 
-class SimpleFinDateWindow {
-  const SimpleFinDateWindow({required this.start, required this.end});
-
-  final DateTime start;
-  final DateTime end;
-}
+class const SimpleFinDateWindow({
+  required final DateTime start,
+  required final DateTime end,
+});

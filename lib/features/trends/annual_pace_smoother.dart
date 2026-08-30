@@ -6,24 +6,20 @@ import 'package:spend_trends/features/trends/hann_annual_pace_kernel.dart';
 import 'package:flutter/material.dart';
 
 /// Inclusive index span where a kernel centered at a day has support.
-class KernelSupportSpan {
-  const KernelSupportSpan({required this.startIndex, required this.endIndex});
-
-  final int startIndex;
-  final int endIndex;
-}
+class const KernelSupportSpan({
+  required final int startIndex,
+  required final int endIndex,
+});
 
 /// Builds annualized `/ yr` pace series with a tapered [HannAnnualPaceKernel].
 ///
 /// Pace at day D is `yearDays ×` weighted mean daily cents under the kernel
 /// (renormalized at chart edges). No separate CMA pass — the kernel is the
 /// low-pass.
-class AnnualPaceSmoother {
-  const AnnualPaceSmoother({this.kernel = const HannAnnualPaceKernel()});
-
+class const AnnualPaceSmoother({
+  final HannAnnualPaceKernel kernel = const HannAnnualPaceKernel(),
+}) {
   static const standard = AnnualPaceSmoother();
-
-  final HannAnnualPaceKernel kernel;
 
   /// Calendar-year length used for annualization / trailing-year helpers.
   int get yearDays => kernel.yearDays;

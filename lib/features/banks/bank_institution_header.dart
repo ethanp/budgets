@@ -4,23 +4,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spend_trends/domain/account.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 
-class BankInstitutionHeader extends ConsumerStatefulWidget {
-  const BankInstitutionHeader({
-    required this.sampleAccount,
-    required this.displayName,
-    required this.accentColor,
-  });
-
-  final Account sampleAccount;
-  final String displayName;
-  final Color accentColor;
-
+class const BankInstitutionHeader({
+  required final Account sampleAccount,
+  required final String displayName,
+  required final Color accentColor,
+}) extends ConsumerStatefulWidget {
   @override
   ConsumerState<BankInstitutionHeader> createState() =>
       _BankInstitutionHeaderState();
 }
 
-class _BankInstitutionHeaderState extends ConsumerState<BankInstitutionHeader> {
+class _BankInstitutionHeaderState()
+    extends ConsumerState<BankInstitutionHeader> {
   late final TextEditingController _nameController;
   late final FocusNode _focusNode;
   bool _editing = false;

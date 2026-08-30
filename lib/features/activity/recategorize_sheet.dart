@@ -5,11 +5,8 @@ import 'package:spend_trends/features/activity/recategorize_form.dart';
 import 'package:spend_trends/widgets/app_sheet_panel.dart';
 
 /// Modal wrapper around [RecategorizeForm] for narrow / non-split layouts.
-class RecategorizeSheet extends StatelessWidget {
-  const RecategorizeSheet({required this.transaction});
-
-  final BankTransaction transaction;
-
+class const RecategorizeSheet({required final BankTransaction transaction})
+    extends StatelessWidget {
   /// Returns the assigned category id, or null if dismissed / note-only save.
   static Future<String?> show(
     BuildContext context, {

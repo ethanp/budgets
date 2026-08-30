@@ -8,19 +8,12 @@ import 'package:spend_trends/theme/finance_colors.dart';
 /// One matching transaction in a rule-impact preview list.
 ///
 /// Row: [checkbox | category | title | amount] with date under the title.
-class RuleImpactMatchRow extends StatelessWidget {
-  const RuleImpactMatchRow({
-    required this.transaction,
-    required this.currentCategoryName,
-    required this.selected,
-    required this.onSelectionChanged,
-  });
-
-  final BankTransaction transaction;
-  final String currentCategoryName;
-  final bool selected;
-  final ValueChanged<bool> onSelectionChanged;
-
+class const RuleImpactMatchRow({
+  required final BankTransaction transaction,
+  required final String currentCategoryName,
+  required final bool selected,
+  required final ValueChanged<bool> onSelectionChanged,
+}) extends StatelessWidget {
   static String categoryLabel(
     BankTransaction transaction,
     Map<String, String> categoryNameById,

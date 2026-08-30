@@ -11,9 +11,7 @@ import 'package:spend_trends/services/llm/suggest_merchant_categories.dart';
 import 'package:spend_trends/theme/finance_colors.dart';
 import 'package:spend_trends/widgets/app_sheet_panel.dart';
 
-class SuggestCategoriesSheet extends ConsumerStatefulWidget {
-  const SuggestCategoriesSheet();
-
+class const SuggestCategoriesSheet() extends ConsumerStatefulWidget {
   static Future<void> show(BuildContext context) {
     return showModalBottomSheet<void>(
       context: context,
@@ -28,7 +26,7 @@ class SuggestCategoriesSheet extends ConsumerStatefulWidget {
       _SuggestCategoriesSheetState();
 }
 
-class _SuggestCategoriesSheetState
+class _SuggestCategoriesSheetState()
     extends ConsumerState<SuggestCategoriesSheet> {
   bool _loading = true;
   bool _createRules = true;
@@ -155,13 +153,19 @@ class _SuggestCategoriesSheetState
     if (_error != null) {
       return Padding(
         padding: const EdgeInsets.all(ELayout.spaceLg),
-        child: Text(_error!, style: EText.body.medium.copyWith(color: EColors.danger)),
+        child: Text(
+          _error!,
+          style: EText.body.medium.copyWith(color: EColors.danger),
+        ),
       );
     }
     if (_suggestions.isEmpty) {
       return Padding(
         padding: const EdgeInsets.all(ELayout.spaceLg),
-        child: Text('Nothing uncategorized to suggest.', style: EText.body.medium),
+        child: Text(
+          'Nothing uncategorized to suggest.',
+          style: EText.body.medium,
+        ),
       );
     }
     return _buildSuggestionList();
@@ -208,7 +212,9 @@ class _SuggestCategoriesSheetState
                   const SizedBox(height: ELayout.spaceXs),
                   Text(
                     _amountsLabel(suggestion),
-                    style: EText.body.medium.copyWith(fontWeight: FontWeight.w600),
+                    style: EText.body.medium.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ],

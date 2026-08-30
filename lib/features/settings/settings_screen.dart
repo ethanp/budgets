@@ -11,9 +11,7 @@ import 'package:spend_trends/features/settings/settings_section.dart';
 import 'package:spend_trends/features/settings/sync_status_tile.dart';
 import 'package:spend_trends/widgets/sync_status_nav_button.dart';
 
-class SettingsScreen extends ConsumerWidget {
-  const SettingsScreen();
-
+class const SettingsScreen() extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(

@@ -10,9 +10,7 @@ import 'package:flutter/material.dart';
 /// Grouped categories share a hue from [SpendCategory.groupId], with a
 /// per-category shade so members stay related but distinct. Ungrouped
 /// categories keep a per-category palette color. Built-ins stay pinned.
-class CategoryColor {
-  CategoryColor._();
-
+class CategoryColor._() {
   static const uncategorized = EColors.textMuted;
   static const housing = FinanceColors.housing;
   static const income = EColors.success;

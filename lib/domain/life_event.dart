@@ -1,23 +1,15 @@
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:intl/intl.dart';
 
-class LifeEvent {
-  const LifeEvent({
-    required this.id,
-    required this.title,
-    required this.startedOn,
-    this.endedOn,
-    this.note,
-  });
-
-  final String id;
-  final String title;
-  final DateTime startedOn;
+class const LifeEvent({
+  required final String id,
+  required final String title,
+  required final DateTime startedOn,
 
   /// Null = open-ended. Equal to [startedOn] = point-in-time. After = closed range.
-  final DateTime? endedOn;
-  final String? note;
-
+  final DateTime? endedOn,
+  final String? note,
+}) {
   bool get isPoint {
     final end = endedOn;
     if (end == null) return false;

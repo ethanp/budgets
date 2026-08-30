@@ -24,37 +24,22 @@ BoxDecoration appTintedCardDecoration({
 /// Does not stretch title and amount to opposite edges of a wide window.
 /// Pass the same [amountWidth] across sibling rows so amounts align inside a
 /// narrow browse pane.
-class AppCompactFactRow extends StatelessWidget {
-  const AppCompactFactRow({
-    required this.title,
-    this.leading,
-    this.caption,
-    this.amount,
-    this.amountWidth,
-    this.trailing,
-    this.titleMaxWidth = 260,
-    this.tintColor,
-    this.selected = false,
-    this.decorate = true,
-    this.onActivated,
-    this.padding = const EdgeInsets.all(ELayout.spaceMd),
-  });
-
-  final Widget? leading;
-  final String title;
-  final String? caption;
-  final Widget? amount;
-  final double? amountWidth;
-  final Widget? trailing;
-  final double titleMaxWidth;
-  final Color? tintColor;
-  final bool selected;
+class const AppCompactFactRow({
+  required final String title,
+  final Widget? leading,
+  final String? caption,
+  final Widget? amount,
+  final double? amountWidth,
+  final Widget? trailing,
+  final double titleMaxWidth = 260,
+  final Color? tintColor,
+  final bool selected = false,
 
   /// When false, renders only the compact columns (caller owns chrome).
-  final bool decorate;
-  final VoidCallback? onActivated;
-  final EdgeInsetsGeometry padding;
-
+  final bool decorate = true,
+  final VoidCallback? onActivated,
+  final EdgeInsetsGeometry padding = const EdgeInsets.all(ELayout.spaceMd),
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final row = Padding(

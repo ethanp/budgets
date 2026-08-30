@@ -11,19 +11,12 @@ import 'package:spend_trends/domain/transaction.dart';
 ///
 /// [measure] captures natural (no-ellipsis) widths. [allocate] shrinks those
 /// into a concrete pane width when the window is too narrow to fit everything.
-class ActivityColumnWidths {
-  const ActivityColumnWidths({
-    required this.category,
-    required this.account,
-    required this.title,
-    required this.amount,
-  });
-
-  final double category;
-  final double account;
-  final double title;
-  final double amount;
-
+class const ActivityColumnWidths({
+  required final double category,
+  required final double account,
+  required final double title,
+  required final double amount,
+}) {
   static const titleFloor = 200.0;
   static const _stripe = 5.0;
   static const _surfaceBorder = 2.0;
@@ -90,9 +83,8 @@ class ActivityColumnWidths {
       final titlePaint = merchantName.measureWidth(titleStyle);
       if (titlePaint > titleWidth) titleWidth = titlePaint;
 
-      final amountPaint = formatCents(
-        transaction.amountCents,
-      ).measureWidth(amountStyle);
+      final amountPaint = formatCents(transaction.amountCents)
+          .measureWidth(amountStyle);
       if (amountPaint > amountWidth) amountWidth = amountPaint;
     }
 

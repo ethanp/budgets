@@ -1,9 +1,5 @@
 /// Category display name with case/whitespace-insensitive identity.
-class CategoryName {
-  const CategoryName(this.value);
-
-  final String value;
-
+class const CategoryName(final String value) {
   String get normalized => value.trim().toLowerCase();
 
   bool matches(CategoryName other) => normalized == other.normalized;
@@ -19,23 +15,14 @@ class CategoryName {
   String toString() => value;
 }
 
-class SpendCategory {
-  const SpendCategory({
-    required this.id,
-    required this.name,
-    required this.sortOrder,
-    required this.archived,
-    this.colorToken,
-    this.groupId,
-  });
-
-  final String id;
-  final String name;
-  final int sortOrder;
-  final bool archived;
-  final String? colorToken;
-  final String? groupId;
-
+class const SpendCategory({
+  required final String id,
+  required final String name,
+  required final int sortOrder,
+  required final bool archived,
+  final String? colorToken,
+  final String? groupId,
+}) {
   SpendCategory copyWith({
     String? name,
     int? sortOrder,
@@ -55,33 +42,25 @@ class SpendCategory {
   }
 }
 
-class CategorizationRule {
-  const CategorizationRule({
-    required this.id,
-    required this.matchType,
-    required this.pattern,
-    required this.categoryId,
-    required this.priority,
-  });
-
+class const CategorizationRule({
+  required final String id,
+  required final RuleMatchType matchType,
+  required final String pattern,
+  required final String categoryId,
+  required final int priority,
+}) {
   /// Weakest priority — Copilot / import defaults lose to user-created rules.
   static const defaultImportPriority = 0;
 
   /// Priority for rules created from the Activity recategorize sheet.
   static const userCreatedPriority = 10;
 
-  final String id;
-  final RuleMatchType matchType;
-  final String pattern;
-  final String categoryId;
-  final int priority;
-
   bool get isDefaultImport => priority == defaultImportPriority;
 
   bool get beatsImportDefault => priority > defaultImportPriority;
 }
 
-enum RuleMatchType {
+enum RuleMatchType() {
   merchantContains,
   merchantExact;
 

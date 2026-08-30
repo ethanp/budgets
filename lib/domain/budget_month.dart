@@ -10,22 +10,12 @@ import 'package:spend_trends/services/sqlite/simplefin_pull_history.dart';
 import 'package:spend_trends/services/sqlite/transactions_repository.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 
-class BudgetMonth {
-  BudgetMonth({
-    required AccountsRepository accountsRepository,
-    required TransactionsRepository transactionsRepository,
-    required CategoriesRepository categoriesRepository,
-    required SimpleFinPullHistory simpleFinPullHistory,
-  }) : _accountsRepository = accountsRepository,
-       _transactionsRepository = transactionsRepository,
-       _categoriesRepository = categoriesRepository,
-       _simpleFinPullHistory = simpleFinPullHistory;
-
-  final AccountsRepository _accountsRepository;
-  final TransactionsRepository _transactionsRepository;
-  final CategoriesRepository _categoriesRepository;
-  final SimpleFinPullHistory _simpleFinPullHistory;
-
+class BudgetMonth({
+  required final AccountsRepository _accountsRepository,
+  required final TransactionsRepository _transactionsRepository,
+  required final CategoriesRepository _categoriesRepository,
+  required final SimpleFinPullHistory _simpleFinPullHistory,
+}) {
   Future<MonthSummary> snapshot(String yearMonth) async {
     final accounts = await _accountsRepository.listAccounts();
     final names = {

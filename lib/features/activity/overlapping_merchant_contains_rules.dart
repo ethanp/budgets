@@ -2,7 +2,7 @@ import 'package:spend_trends/domain/category.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 
 /// How an existing rule’s pattern relates to the candidate contains pattern.
-enum RelatedRuleRelation {
+enum RelatedRuleRelation() {
   same,
   broader,
   narrower;
@@ -10,17 +10,11 @@ enum RelatedRuleRelation {
   String get label => nameAsCapitalizedWords;
 }
 
-class RelatedExistingRule {
-  const RelatedExistingRule({
-    required this.rule,
-    required this.relation,
-    required this.categoryName,
-  });
-
-  final CategorizationRule rule;
-  final RelatedRuleRelation relation;
-  final String categoryName;
-}
+class const RelatedExistingRule({
+  required final CategorizationRule rule,
+  required final RelatedRuleRelation relation,
+  required final String categoryName,
+});
 
 /// Existing contains-rules whose pattern is a substring or superstring of
 /// [candidatePattern] (case-insensitive). Exact matches count as [RelatedRuleRelation.same].

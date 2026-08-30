@@ -24,12 +24,13 @@ void main() {
         day: DateTime(2026, 6, 30),
       );
 
+      expect(CancelingMerchantPairs.transactionIds([buy, sell, keep]), {
+        'buy',
+        'sell',
+      });
       expect(
-        CancelingMerchantPairs.transactionIds([buy, sell, keep]),
-        {'buy', 'sell'},
-      );
-      expect(
-        CancelingMerchantPairs.excludingCancelingPairs([buy, sell, keep]).map((t) => t.id),
+        CancelingMerchantPairs.excludingCancelingPairs([buy, sell, keep])
+            .map((t) => t.id),
         ['keep'],
       );
     });
@@ -41,7 +42,8 @@ void main() {
 
       expect(CancelingMerchantPairs.transactionIds([a, b, c]), {'a', 'b'});
       expect(
-        CancelingMerchantPairs.excludingCancelingPairs([a, b, c]).map((t) => t.id),
+        CancelingMerchantPairs.excludingCancelingPairs([a, b, c])
+            .map((t) => t.id),
         ['c'],
       );
     });

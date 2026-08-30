@@ -15,9 +15,7 @@ import 'package:spend_trends/widgets/sync_status_nav_button.dart';
 
 const _logger = ELogger('LifeEventsScreen');
 
-class LifeEventsScreen extends ConsumerWidget {
-  const LifeEventsScreen();
-
+class const LifeEventsScreen() extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final lifeEventsAsync = ref.watch(lifeEventsProvider);
@@ -64,17 +62,11 @@ class LifeEventsScreen extends ConsumerWidget {
   }
 }
 
-class _LifeEventsBody extends ConsumerWidget {
-  const _LifeEventsBody({
-    required this.lifeEvents,
-    required this.housingChain,
-    required this.jobChain,
-  });
-
-  final List<LifeEvent> lifeEvents;
-  final StayChain? housingChain;
-  final StayChain? jobChain;
-
+class const _LifeEventsBody({
+  required final List<LifeEvent> lifeEvents,
+  required final StayChain? housingChain,
+  required final StayChain? jobChain,
+}) extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return ListView(
@@ -128,12 +120,10 @@ class _LifeEventsBody extends ConsumerWidget {
   }
 }
 
-class _LifeChainHeroCard extends StatelessWidget {
-  const _LifeChainHeroCard({required this.kind, required this.chain});
-
-  final LifeChainKind kind;
-  final StayChain? chain;
-
+class const _LifeChainHeroCard({
+  required final LifeChainKind kind,
+  required final StayChain? chain,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final current = chain?.current;
@@ -199,12 +189,10 @@ class _LifeChainHeroCard extends StatelessWidget {
   }
 }
 
-class _LifeEventListTile extends StatelessWidget {
-  const _LifeEventListTile({required this.lifeEvent, required this.onActivated});
-
-  final LifeEvent lifeEvent;
-  final VoidCallback onActivated;
-
+class const _LifeEventListTile({
+  required final LifeEvent lifeEvent,
+  required final VoidCallback onActivated,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(

@@ -6,10 +6,7 @@ import 'package:uuid/uuid.dart';
 
 const _log = ELogger('LifeEventsRepository');
 
-class LifeEventsRepository {
-  LifeEventsRepository(this._powerSync);
-
-  final PowerSyncDatabase _powerSync;
+class LifeEventsRepository(final PowerSyncDatabase _powerSync) {
   final _uuid = const Uuid();
 
   Future<List<LifeEvent>> listNewestFirst() async {

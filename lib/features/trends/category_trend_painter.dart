@@ -19,15 +19,13 @@ TextStyle get _chartAxisLabelStyle => EText.caption.copyWith(
   height: 1.1,
 );
 
-class CategoryTrendPainter extends CustomPainter {
-  CategoryTrendPainter({
-    required this.seriesList,
-    this.lifeEvents = const [],
-    this.housingChain,
-    this.jobChain,
-    this.hoverPosition,
-  });
-
+class CategoryTrendPainter({
+  required final List<CategoryTrendSeries> seriesList,
+  final List<LifeEvent> lifeEvents = const [],
+  final StayChain? housingChain,
+  final StayChain? jobChain,
+  final Offset? hoverPosition,
+}) extends CustomPainter {
   static const leftPadding = 48.0;
   static const rightPadding = 12.0;
 
@@ -41,12 +39,6 @@ class CategoryTrendPainter extends CustomPainter {
   static const housingLane = 1;
   static const jobLane = 2;
   static const lifeEventLane = 3;
-
-  final List<CategoryTrendSeries> seriesList;
-  final List<LifeEvent> lifeEvents;
-  final StayChain? housingChain;
-  final StayChain? jobChain;
-  final Offset? hoverPosition;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -105,32 +97,21 @@ class CategoryTrendPainter extends CustomPainter {
 }
 
 /// One `paint()` frame: canvas + layout + scale, with draw helpers as methods.
-class _CategoryTrendPaintSession {
-  _CategoryTrendPaintSession({
-    required this.canvas,
-    required this.layout,
-    required this.scale,
-    required this.drawableSeries,
-    required this.lifeEvents,
-    required this.housingChain,
-    required this.jobChain,
-    required this.hoverPosition,
-  });
-
+class _CategoryTrendPaintSession({
+  required final Canvas canvas,
+  required final ChartDateLayout layout,
+  required final TrendValueScale scale,
+  required final List<CategoryTrendSeries> drawableSeries,
+  required final List<LifeEvent> lifeEvents,
+  required final StayChain? housingChain,
+  required final StayChain? jobChain,
+  required final Offset? hoverPosition,
+}) {
   static const _labelMaxWidth = 96.0;
   static const _labelStackStep = 11.0;
   static const _labelStackGapPx = 6.0;
   static const _eraEdgeAlpha = 0.4;
   static const _eraEdgeStroke = 1.0;
-
-  final Canvas canvas;
-  final ChartDateLayout layout;
-  final TrendValueScale scale;
-  final List<CategoryTrendSeries> drawableSeries;
-  final List<LifeEvent> lifeEvents;
-  final StayChain? housingChain;
-  final StayChain? jobChain;
-  final Offset? hoverPosition;
 
   double _laneTop(int laneIndex) =>
       laneIndex * CategoryTrendPainter.overlayLaneHeight;

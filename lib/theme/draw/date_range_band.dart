@@ -5,22 +5,15 @@ import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/painting.dart';
 
 /// Clipped date-range band for Trends overlays (life events, housing, job).
-class DateRangeBandGeometry {
-  const DateRangeBandGeometry({
-    required this.leftX,
-    required this.rightX,
-    required this.drawLeftEdge,
-    required this.drawRightEdge,
-  });
-
-  final double leftX;
-  final double rightX;
-  final bool drawLeftEdge;
-  final bool drawRightEdge;
-}
+class const DateRangeBandGeometry({
+  required final double leftX,
+  required final double rightX,
+  required final bool drawLeftEdge,
+  required final bool drawRightEdge,
+});
 
 /// Lane fill treatments that alternate between consecutive chain eras.
-enum DateRangeBandFillStyle {
+enum DateRangeBandFillStyle() {
   /// Uniform tint across the band.
   solid,
 

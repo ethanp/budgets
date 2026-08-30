@@ -5,23 +5,14 @@ import 'package:spend_trends/domain/transaction.dart';
 import 'package:spend_trends/widgets/app_card.dart';
 
 /// Sticky Activity chrome: search and hide-auto-categorized.
-class ActivityFilterBar extends StatelessWidget {
-  const ActivityFilterBar({
-    required this.searchController,
-    required this.onSearchChanged,
-    required this.hideRuleMatched,
-    required this.searchMatchCount,
-    required this.visibleCount,
-    required this.onHideRuleMatchedChanged,
-  });
-
-  final TextEditingController searchController;
-  final ValueChanged<String> onSearchChanged;
-  final bool hideRuleMatched;
-  final int searchMatchCount;
-  final int visibleCount;
-  final ValueChanged<bool> onHideRuleMatchedChanged;
-
+class const ActivityFilterBar({
+  required final TextEditingController searchController,
+  required final ValueChanged<String> onSearchChanged,
+  required final bool hideRuleMatched,
+  required final int searchMatchCount,
+  required final int visibleCount,
+  required final ValueChanged<bool> onHideRuleMatchedChanged,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
@@ -57,19 +48,12 @@ class ActivityFilterBar extends StatelessWidget {
   }
 }
 
-class _RuleMatchFilterToggle extends StatelessWidget {
-  const _RuleMatchFilterToggle({
-    required this.hideRuleMatched,
-    required this.hiddenCount,
-    required this.visibleCount,
-    required this.onChanged,
-  });
-
-  final bool hideRuleMatched;
-  final int hiddenCount;
-  final int visibleCount;
-  final ValueChanged<bool> onChanged;
-
+class const _RuleMatchFilterToggle({
+  required final bool hideRuleMatched,
+  required final int hiddenCount,
+  required final int visibleCount,
+  required final ValueChanged<bool> onChanged,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppCard(
@@ -85,7 +69,9 @@ class _RuleMatchFilterToggle extends StatelessWidget {
               children: [
                 Text(
                   'Hide auto-categorized',
-                  style: EText.body.medium.copyWith(fontWeight: FontWeight.w600),
+                  style: EText.body.medium.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 Text(
                   hideRuleMatched
@@ -104,11 +90,9 @@ class _RuleMatchFilterToggle extends StatelessWidget {
 }
 
 /// Sum of the currently visible Activity list (right-pane chrome).
-class ActivityVisibleSumBar extends StatelessWidget {
-  const ActivityVisibleSumBar({required this.visibleTransactions});
-
-  final List<BankTransaction> visibleTransactions;
-
+class const ActivityVisibleSumBar({
+  required final List<BankTransaction> visibleTransactions,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var netCents = 0;

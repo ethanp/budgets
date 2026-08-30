@@ -6,9 +6,7 @@ import 'package:flutter/material.dart';
 ///
 /// Each [AccountKind] has a base hue; accounts within a kind share that family
 /// with a per-account shade (same pattern as [CategoryColor] group members).
-class AccountKindColor {
-  AccountKindColor._();
-
+class AccountKindColor._() {
   static Color forKind(AccountKind kind) => switch (kind) {
     AccountKind.checking => const Color(0xFF4CC9F0),
     AccountKind.savings => const Color(0xFF2EC4B6),

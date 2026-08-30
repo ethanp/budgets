@@ -1,20 +1,13 @@
-class SimpleFinError {
-  const SimpleFinError({
-    required this.code,
-    required this.message,
-    this.connId,
-    this.accountId,
-  });
-
-  final String code;
-  final String message;
-  final String? connId;
-  final String? accountId;
-
+class const SimpleFinError({
+  required final String code,
+  required final String message,
+  final String? connId,
+  final String? accountId,
+}) {
   bool get isAuthFailure =>
       code == 'con.auth' || code.startsWith('con.auth') || code == 'gen.auth';
 
-  factory SimpleFinError.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     return SimpleFinError(
       code: json['code'] as String? ?? 'gen.',
       message: json['msg'] as String? ?? 'Unknown error',
@@ -24,18 +17,12 @@ class SimpleFinError {
   }
 }
 
-class SimpleFinConnection {
-  const SimpleFinConnection({
-    required this.id,
-    required this.name,
-    this.orgUrl,
-  });
-
-  final String id;
-  final String name;
-  final String? orgUrl;
-
-  factory SimpleFinConnection.fromJson(Map<String, dynamic> json) {
+class const SimpleFinConnection({
+  required final String id,
+  required final String name,
+  final String? orgUrl,
+}) {
+  factory fromJson(Map<String, dynamic> json) {
     return SimpleFinConnection(
       id: json['conn_id'] as String? ?? '',
       name: json['name'] as String? ?? '',
@@ -44,41 +31,23 @@ class SimpleFinConnection {
   }
 }
 
-class SimpleFinAccountSet {
-  const SimpleFinAccountSet({
-    required this.errors,
-    required this.accounts,
-    this.connections = const [],
-  });
+class const SimpleFinAccountSet({
+  required final List<SimpleFinError> errors,
+  required final List<SimpleFinAccount> accounts,
+  final List<SimpleFinConnection> connections = const [],
+});
 
-  final List<SimpleFinError> errors;
-  final List<SimpleFinAccount> accounts;
-  final List<SimpleFinConnection> connections;
-}
-
-class SimpleFinAccount {
-  const SimpleFinAccount({
-    required this.id,
-    required this.name,
-    required this.currency,
-    required this.balance,
-    this.availableBalance,
-    required this.balanceDate,
-    this.connId,
-    this.connName,
-    required this.transactions,
-  });
-
-  final String id;
-  final String name;
-  final String currency;
-  final String balance;
-  final String? availableBalance;
-  final int balanceDate;
-  final String? connId;
-  final String? connName;
-  final List<SimpleFinTransaction> transactions;
-
+class const SimpleFinAccount({
+  required final String id,
+  required final String name,
+  required final String currency,
+  required final String balance,
+  final String? availableBalance,
+  required final int balanceDate,
+  final String? connId,
+  final String? connName,
+  required final List<SimpleFinTransaction> transactions,
+}) {
   SimpleFinAccount copyWith({String? connName}) {
     return SimpleFinAccount(
       id: id,
@@ -94,38 +63,22 @@ class SimpleFinAccount {
   }
 }
 
-class SimpleFinTransaction {
-  const SimpleFinTransaction({
-    required this.id,
-    required this.posted,
-    required this.amount,
-    required this.description,
-    required this.pending,
-  });
+class const SimpleFinTransaction({
+  required final String id,
+  required final int posted,
+  required final String amount,
+  required final String description,
+  required final bool pending,
+});
 
-  final String id;
-  final int posted;
-  final String amount;
-  final String description;
-  final bool pending;
-}
-
-class SimpleFinClaimException implements Exception {
-  SimpleFinClaimException(this.message, {this.statusCode});
-
-  final String message;
-  final int? statusCode;
-
+class SimpleFinClaimException(final String message, {final int? statusCode})
+    implements Exception {
   @override
   String toString() => message;
 }
 
-class SimpleFinFetchException implements Exception {
-  SimpleFinFetchException(this.message, {this.statusCode});
-
-  final String message;
-  final int? statusCode;
-
+class SimpleFinFetchException(final String message, {final int? statusCode})
+    implements Exception {
   @override
   String toString() => message;
 }

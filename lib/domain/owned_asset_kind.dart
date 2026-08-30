@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 
 /// Kind of a manually tracked owned asset (home, vehicle, other).
-enum OwnedAssetKind {
+enum OwnedAssetKind({
+  required final String legendLabel,
+  required final Color lineColor,
+}) {
   home(legendLabel: 'Home', lineColor: Color(0xFFF4A261)),
   vehicle(legendLabel: 'Vehicle', lineColor: Color(0xFFE76F51)),
   other(legendLabel: 'Other', lineColor: Color(0xFFE9A825));
-
-  const OwnedAssetKind({required this.legendLabel, required this.lineColor});
-
-  final String legendLabel;
-  final Color lineColor;
 
   String get storageValue => name;
 

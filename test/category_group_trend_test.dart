@@ -9,24 +9,9 @@ void main() {
   test('Trends emits group rollup plus member category series', () {
     final start = DateTime(2024, 1, 1);
     final transactions = [
-      _txn(
-        id: 'd0',
-        day: start,
-        categoryId: 'cat_dining',
-        amountCents: -1000,
-      ),
-      _txn(
-        id: 't0',
-        day: start,
-        categoryId: 'cat_travel',
-        amountCents: -2000,
-      ),
-      _txn(
-        id: 'h0',
-        day: start,
-        categoryId: 'cat_housing',
-        amountCents: -5000,
-      ),
+      _txn(id: 'd0', day: start, categoryId: 'cat_dining', amountCents: -1000),
+      _txn(id: 't0', day: start, categoryId: 'cat_travel', amountCents: -2000),
+      _txn(id: 'h0', day: start, categoryId: 'cat_housing', amountCents: -5000),
       _txn(
         id: 'd1',
         day: start.add(const Duration(days: 1)),
@@ -78,17 +63,13 @@ void main() {
     );
 
     final seriesIds = bundle.categorySpend.map((series) => series.id).toList();
-    expect(
-      seriesIds,
-      contains(TrendChartCatalog.groupSeriesId('grp_wants')),
-    );
+    expect(seriesIds, contains(TrendChartCatalog.groupSeriesId('grp_wants')));
     expect(seriesIds, contains('cat_housing'));
     expect(seriesIds, contains('cat_dining'));
     expect(seriesIds, contains('cat_travel'));
 
     final wants = bundle.categorySpend.firstWhere(
-      (series) =>
-          series.id == TrendChartCatalog.groupSeriesId('grp_wants'),
+      (series) => series.id == TrendChartCatalog.groupSeriesId('grp_wants'),
     );
     expect(wants.name, 'Wants');
     // Dining $10 + Travel $20 per day → $30/day → $10,950/yr annualized.

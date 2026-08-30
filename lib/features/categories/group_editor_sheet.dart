@@ -7,11 +7,8 @@ import 'package:spend_trends/widgets/app_primary_button.dart';
 import 'package:spend_trends/widgets/app_sheet_panel.dart';
 
 /// Create or edit a category group name.
-class GroupEditorSheet extends ConsumerStatefulWidget {
-  const GroupEditorSheet({this.group});
-
-  final CategoryGroup? group;
-
+class const GroupEditorSheet({final CategoryGroup? group})
+    extends ConsumerStatefulWidget {
   static Future<void> show(
     BuildContext context, {
     required WidgetRef ref,
@@ -29,7 +26,7 @@ class GroupEditorSheet extends ConsumerStatefulWidget {
   ConsumerState<GroupEditorSheet> createState() => _GroupEditorSheetState();
 }
 
-class _GroupEditorSheetState extends ConsumerState<GroupEditorSheet> {
+class _GroupEditorSheetState() extends ConsumerState<GroupEditorSheet> {
   late final TextEditingController _nameController;
   bool _busy = false;
   String? _error;

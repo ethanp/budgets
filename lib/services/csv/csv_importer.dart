@@ -14,37 +14,21 @@ import 'package:uuid/uuid.dart';
 
 const _logger = ELogger('CsvImporter');
 
-class CsvImportResult {
-  const CsvImportResult({
-    required this.importedCount,
-    required this.accountName,
-  });
+class const CsvImportResult({
+  required final int importedCount,
+  required final String accountName,
+});
 
-  final int importedCount;
-  final String accountName;
-}
+class const _CsvColumnIndices({
+  required final int date,
+  required final int amount,
+  required final int description,
+});
 
-class _CsvColumnIndices {
-  const _CsvColumnIndices({
-    required this.date,
-    required this.amount,
-    required this.description,
-  });
-
-  final int date;
-  final int amount;
-  final int description;
-}
-
-class CsvImporter {
-  CsvImporter({
-    required AccountsRepository accountsRepository,
-    required TransactionsRepository transactionsRepository,
-  }) : _accountsRepository = accountsRepository,
-       _transactionsRepository = transactionsRepository;
-
-  final AccountsRepository _accountsRepository;
-  final TransactionsRepository _transactionsRepository;
+class CsvImporter({
+  required final AccountsRepository _accountsRepository,
+  required final TransactionsRepository _transactionsRepository,
+}) {
   final _uuid = const Uuid();
 
   /// Expects headers including date, amount, description (case-insensitive).

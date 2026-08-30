@@ -9,13 +9,14 @@ import 'package:spend_trends/widgets/app_date_picker.dart';
 import 'package:spend_trends/widgets/app_primary_button.dart';
 import 'package:spend_trends/widgets/app_sheet_panel.dart';
 
-enum _LifeEventDateMode { day, range, ongoing }
+enum _LifeEventDateMode() {
+  day,
+  range,
+  ongoing,
+}
 
-class LifeEventFormSheet extends ConsumerStatefulWidget {
-  const LifeEventFormSheet({this.lifeEvent});
-
-  final LifeEvent? lifeEvent;
-
+class const LifeEventFormSheet({final LifeEvent? lifeEvent})
+    extends ConsumerStatefulWidget {
   static Future<void> show(
     BuildContext context, {
     required WidgetRef ref,
@@ -33,7 +34,7 @@ class LifeEventFormSheet extends ConsumerStatefulWidget {
   ConsumerState<LifeEventFormSheet> createState() => _LifeEventFormSheetState();
 }
 
-class _LifeEventFormSheetState extends ConsumerState<LifeEventFormSheet> {
+class _LifeEventFormSheetState() extends ConsumerState<LifeEventFormSheet> {
   late final TextEditingController _titleController;
   late final TextEditingController _noteController;
   late DateTime _startedOn;

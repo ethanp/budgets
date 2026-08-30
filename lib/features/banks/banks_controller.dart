@@ -9,12 +9,10 @@ import 'package:spend_trends/services/simplefin/simplefin_models.dart';
 import 'package:spend_trends/services/simplefin/simplefin_pull_progress.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class BanksActionState {
-  const BanksActionState({this.busy = false, this.actionError});
-
-  final bool busy;
-  final String? actionError;
-
+class const BanksActionState({
+  final bool busy = false,
+  final String? actionError,
+}) {
   BanksActionState copyWith({
     bool? busy,
     String? actionError,
@@ -31,7 +29,7 @@ final banksControllerProvider =
     NotifierProvider<BanksController, BanksActionState>(BanksController.new);
 
 /// Shared SimpleFIN connect / sync / disconnect actions for Banks + Settings.
-class BanksController extends Notifier<BanksActionState> {
+class BanksController() extends Notifier<BanksActionState> {
   @override
   BanksActionState build() => const BanksActionState();
 

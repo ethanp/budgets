@@ -1,4 +1,5 @@
 import 'package:ethan_utils/ethan_utils.dart';
+
 import 'dart:convert';
 
 import 'package:spend_trends/services/simplefin/simplefin_client.dart';
@@ -97,7 +98,10 @@ void main() {
       final accessUrl = await client.claimAccessUrl(
         'aHR0cHM6Ly9icmlkZ2Uuc2ltcGxlZmluLm9yZy9zaW1wbGVmaW4vY2xhaW0vZGVtbw==',
       );
-      expect(accessUrl.toString(), 'https://demo:demo@bridge.simplefin.org/simplefin');
+      expect(
+        accessUrl.toString(),
+        'https://demo:demo@bridge.simplefin.org/simplefin',
+      );
     });
 
     test('decodes url-safe base64 and ignores whitespace', () async {
@@ -114,12 +118,15 @@ void main() {
       final accessUrl = await client.claimAccessUrl(
         'https://bridge.simplefin.org/simplefin/claim/demo',
       );
-      expect(accessUrl.toString(), 'https://demo:demo@bridge.simplefin.org/simplefin');
+      expect(
+        accessUrl.toString(),
+        'https://demo:demo@bridge.simplefin.org/simplefin',
+      );
     });
   });
 }
 
-class _FakeClaimClient extends http.BaseClient {
+class _FakeClaimClient() extends http.BaseClient {
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     if (request.method == 'POST') {
@@ -127,18 +134,12 @@ class _FakeClaimClient extends http.BaseClient {
       final body = utf8.encode(
         'https://demo:demo@bridge.simplefin.org/simplefin',
       );
-      return http.StreamedResponse(
-        Stream<List<int>>.fromIterable([body]),
-        200,
-      );
+      return http.StreamedResponse(Stream<List<int>>.fromIterable([body]), 200);
     }
     expect(request.method, 'GET');
     expect(request.headers['Authorization'], isNotNull);
     expect(request.url.userInfo, isEmpty);
     final body = utf8.encode('{"errlist":[],"accounts":[]}');
-    return http.StreamedResponse(
-      Stream<List<int>>.fromIterable([body]),
-      200,
-    );
+    return http.StreamedResponse(Stream<List<int>>.fromIterable([body]), 200);
   }
 }

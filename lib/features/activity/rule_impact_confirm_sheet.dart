@@ -18,19 +18,12 @@ import 'package:spend_trends/widgets/select_all_none_row.dart';
 export 'package:spend_trends/features/activity/overlapping_merchant_contains_rules.dart';
 
 /// One proposed contains-rule and the existing transactions it would match.
-class RuleImpactGroup {
-  const RuleImpactGroup({
-    required this.pattern,
-    required this.categoryId,
-    required this.categoryName,
-    required this.transactions,
-  });
-
-  final String pattern;
-  final String categoryId;
-  final String categoryName;
-  final List<BankTransaction> transactions;
-
+class const RuleImpactGroup({
+  required final String pattern,
+  required final String categoryId,
+  required final String categoryName,
+  required final List<BankTransaction> transactions,
+}) {
   RuleImpactGroup copyWith({
     String? pattern,
     String? categoryId,
@@ -47,25 +40,18 @@ class RuleImpactGroup {
 }
 
 /// Confirmed selection plus final (possibly edited) rule groups.
-class RuleImpactConfirmResult {
-  const RuleImpactConfirmResult({
-    required this.selectedTransactionIds,
-    required this.groups,
-  });
-
-  final Set<String> selectedTransactionIds;
-  final List<RuleImpactGroup> groups;
-}
+class const RuleImpactConfirmResult({
+  required final Set<String> selectedTransactionIds,
+  required final List<RuleImpactGroup> groups,
+});
 
 /// Confirms which matching transactions should receive the new rule’s category.
 ///
 /// Lets you edit the contains pattern; rematches live and reveals existing
 /// rules that are a substring or superstring of the candidate.
-class RuleImpactConfirmSheet extends ConsumerStatefulWidget {
-  const RuleImpactConfirmSheet({required this.groups});
-
-  final List<RuleImpactGroup> groups;
-
+class const RuleImpactConfirmSheet({
+  required final List<RuleImpactGroup> groups,
+}) extends ConsumerStatefulWidget {
   static Future<RuleImpactConfirmResult?> show(
     BuildContext context, {
     required List<RuleImpactGroup> groups,
@@ -89,7 +75,7 @@ class RuleImpactConfirmSheet extends ConsumerStatefulWidget {
       _RuleImpactConfirmSheetState();
 }
 
-class _RuleImpactConfirmSheetState
+class _RuleImpactConfirmSheetState()
     extends ConsumerState<RuleImpactConfirmSheet> {
   late final List<TextEditingController> _patternControllers;
   late final List<FocusNode> _patternFocusNodes;
@@ -225,7 +211,10 @@ class _RuleImpactConfirmSheetState
   }
 
   Widget _selectionShortcuts() {
-    return SelectAllNoneRow(onAllSelected: _selectAll, onNoneSelected: _selectNone);
+    return SelectAllNoneRow(
+      onAllSelected: _selectAll,
+      onNoneSelected: _selectNone,
+    );
   }
 
   Widget _matchList({
@@ -314,7 +303,8 @@ class _RuleImpactConfirmSheetState
             categoryNameById,
           ),
           selected: _selectedIds.contains(transaction.id),
-            onSelectionChanged: (selected) => _setSelected(transaction.id, selected),
+          onSelectionChanged: (selected) =>
+              _setSelected(transaction.id, selected),
         ),
       const SizedBox(height: ELayout.spaceLg),
     ];
@@ -333,7 +323,8 @@ class _RuleImpactConfirmSheetState
         categories: categories,
         groups: categoryGroups,
         selectedCategoryId: _groups[groupIndex].categoryId,
-        onCategorySelected: (category) => Navigator.of(sheetContext).pop(category),
+        onCategorySelected: (category) =>
+            Navigator.of(sheetContext).pop(category),
       ),
     );
     if (selected == null || !mounted) return;
@@ -415,15 +406,10 @@ class _RuleImpactConfirmSheetState
   }
 }
 
-class _TargetCategoryButton extends StatelessWidget {
-  const _TargetCategoryButton({
-    required this.categoryName,
-    required this.onActivated,
-  });
-
-  final String categoryName;
-  final VoidCallback onActivated;
-
+class const _TargetCategoryButton({
+  required final String categoryName,
+  required final VoidCallback onActivated,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -431,7 +417,10 @@ class _TargetCategoryButton extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: Row(
         children: [
-          Text('→ ', style: EText.body.medium.copyWith(fontWeight: FontWeight.w600)),
+          Text(
+            '→ ',
+            style: EText.body.medium.copyWith(fontWeight: FontWeight.w600),
+          ),
           Flexible(
             child: Text(
               categoryName,
@@ -455,19 +444,12 @@ class _TargetCategoryButton extends StatelessWidget {
   }
 }
 
-class _TargetCategoryPickerSheet extends StatelessWidget {
-  const _TargetCategoryPickerSheet({
-    required this.categories,
-    required this.groups,
-    required this.selectedCategoryId,
-    required this.onCategorySelected,
-  });
-
-  final List<SpendCategory> categories;
-  final List<CategoryGroup> groups;
-  final String selectedCategoryId;
-  final ValueChanged<SpendCategory> onCategorySelected;
-
+class const _TargetCategoryPickerSheet({
+  required final List<SpendCategory> categories,
+  required final List<CategoryGroup> groups,
+  required final String selectedCategoryId,
+  required final ValueChanged<SpendCategory> onCategorySelected,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppSheetPanel(

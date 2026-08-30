@@ -7,9 +7,7 @@ import 'package:spend_trends/services/sqlite/simplefin_pull_history.dart';
 import 'package:spend_trends/widgets/app_sheet_panel.dart';
 
 /// Browse recent SimpleFIN pulls and per-account outage outcomes.
-class BankPullHistorySheet extends ConsumerStatefulWidget {
-  const BankPullHistorySheet();
-
+class const BankPullHistorySheet() extends ConsumerStatefulWidget {
   static Future<void> show(BuildContext context) {
     return showModalBottomSheet<void>(
       context: context,
@@ -24,7 +22,7 @@ class BankPullHistorySheet extends ConsumerStatefulWidget {
       _BankPullHistorySheetState();
 }
 
-class _BankPullHistorySheetState extends ConsumerState<BankPullHistorySheet> {
+class _BankPullHistorySheetState() extends ConsumerState<BankPullHistorySheet> {
   String? _expandedPullId;
 
   @override
@@ -103,17 +101,11 @@ class _BankPullHistorySheetState extends ConsumerState<BankPullHistorySheet> {
   }
 }
 
-class _PullHistoryRow extends StatelessWidget {
-  const _PullHistoryRow({
-    required this.pull,
-    required this.expanded,
-    required this.onActivated,
-  });
-
-  final SimpleFinPullRecord pull;
-  final bool expanded;
-  final VoidCallback onActivated;
-
+class const _PullHistoryRow({
+  required final SimpleFinPullRecord pull,
+  required final bool expanded,
+  required final VoidCallback onActivated,
+}) extends StatelessWidget {
   static final _whenFormat = DateFormat('MMM d · h:mm a');
 
   @override
@@ -207,19 +199,17 @@ class _PullHistoryRow extends StatelessWidget {
   }
 }
 
-class _PullDetail extends StatelessWidget {
-  const _PullDetail({required this.pull});
-
-  final SimpleFinPullRecord pull;
-
+class const _PullDetail({required final SimpleFinPullRecord pull})
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accountCount = pull.accountCount ?? pull.accounts.length;
     final transactionCount = pull.transactionCount ?? 0;
     final sortedAccounts = [...pull.accounts]
       ..sort((left, right) {
-        final severity =
-            right.status.severityRank.compareTo(left.status.severityRank);
+        final severity = right.status.severityRank.compareTo(
+          left.status.severityRank,
+        );
         if (severity != 0) return severity;
         return left.accountLabel.compareTo(right.accountLabel);
       });

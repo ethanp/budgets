@@ -26,10 +26,7 @@ void main() {
       expect(event.isPoint, isFalse);
       expect(event.isClosedRange, isFalse);
       expect(event.dateCaption, 'Jan 1, 2022 – present');
-      expect(
-        event.effectiveEndOn(DateTime(2025, 6, 1)),
-        DateTime(2025, 6, 1),
-      );
+      expect(event.effectiveEndOn(DateTime(2025, 6, 1)), DateTime(2025, 6, 1));
     });
 
     test('closed range when endedOn is after startedOn', () {

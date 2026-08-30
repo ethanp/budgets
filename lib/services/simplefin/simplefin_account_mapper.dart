@@ -6,15 +6,11 @@ import 'package:ethan_utils/ethan_utils.dart';
 import 'package:uuid/uuid.dart';
 
 /// Maps SimpleFIN remote accounts into local [Account] rows.
-class SimpleFinAccountMapper {
-  SimpleFinAccountMapper({
-    required AccountsRepository accountsRepository,
-    Uuid? uuid,
-  }) : _accountsRepository = accountsRepository,
-       _uuid = uuid ?? const Uuid();
-
-  final AccountsRepository _accountsRepository;
-  final Uuid _uuid;
+class SimpleFinAccountMapper({
+  required final AccountsRepository _accountsRepository,
+  Uuid? uuid,
+}) {
+  final Uuid _uuid = uuid ?? const Uuid();
 
   static String labelFor(SimpleFinAccount remoteAccount) {
     final institution = remoteAccount.connName?.trim();

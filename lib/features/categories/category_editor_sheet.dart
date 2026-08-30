@@ -13,11 +13,8 @@ import 'package:spend_trends/widgets/app_primary_button.dart';
 import 'package:spend_trends/widgets/app_sheet_panel.dart';
 
 /// Create or edit a category name (and optional group membership).
-class CategoryEditorSheet extends ConsumerStatefulWidget {
-  const CategoryEditorSheet({this.category});
-
-  final SpendCategory? category;
-
+class const CategoryEditorSheet({final SpendCategory? category})
+    extends ConsumerStatefulWidget {
   static Future<void> show(
     BuildContext context, {
     required WidgetRef ref,
@@ -36,7 +33,7 @@ class CategoryEditorSheet extends ConsumerStatefulWidget {
       _CategoryEditorSheetState();
 }
 
-class _CategoryEditorSheetState extends ConsumerState<CategoryEditorSheet> {
+class _CategoryEditorSheetState() extends ConsumerState<CategoryEditorSheet> {
   late final TextEditingController _nameController;
   String? _selectedGroupId;
   bool _busy = false;

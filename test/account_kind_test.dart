@@ -16,7 +16,10 @@ void main() {
       expect(_kind(name: '401(k)'), AccountKind.investment);
       expect(_kind(name: '529 College'), AccountKind.investment);
       expect(_kind(name: 'HSA'), AccountKind.investment);
-      expect(_kind(name: 'Brokerage', connName: 'Schwab'), AccountKind.investment);
+      expect(
+        _kind(name: 'Brokerage', connName: 'Schwab'),
+        AccountKind.investment,
+      );
       expect(
         _kind(name: 'Account', connName: 'M1', balanceCents: 100000),
         AccountKind.investment,

@@ -16,23 +16,19 @@ import 'package:spend_trends/widgets/app_browse_split_shell.dart';
 import 'package:spend_trends/widgets/app_card.dart';
 
 /// Interactive transaction list for one pull import window.
-class BanksPullTransactionList extends ConsumerStatefulWidget {
-  const BanksPullTransactionList({
-    required this.transactions,
-    required this.selectedTransactionId,
-    required this.onTransactionSelected,
-  });
-
-  final List<BankTransaction> transactions;
-  final String? selectedTransactionId;
-  final void Function(BankTransaction transaction) onTransactionSelected;
-
+class const BanksPullTransactionList({
+  required final List<BankTransaction> transactions,
+  required final String? selectedTransactionId,
+  required final void Function(BankTransaction transaction)
+  onTransactionSelected,
+}) extends ConsumerStatefulWidget {
   @override
   ConsumerState<BanksPullTransactionList> createState() =>
       _BanksPullTransactionListState();
 }
 
-class _BanksPullTransactionListState extends ConsumerState<BanksPullTransactionList> {
+class _BanksPullTransactionListState()
+    extends ConsumerState<BanksPullTransactionList> {
   bool _hideOffsettingPairs = true;
   bool _uncategorizedOnly = false;
 
@@ -174,7 +170,8 @@ class _BanksPullTransactionListState extends ConsumerState<BanksPullTransactionL
         FilterChip(
           label: const Text('Uncategorized only'),
           selected: _uncategorizedOnly,
-          onSelected: (selected) => setState(() => _uncategorizedOnly = selected),
+          onSelected: (selected) =>
+              setState(() => _uncategorizedOnly = selected),
         ),
         if (offsettingCount > 0)
           FilterChip(
@@ -231,7 +228,8 @@ class _BanksPullTransactionListState extends ConsumerState<BanksPullTransactionL
       selected: widget.selectedTransactionId == transaction.id,
       columnWidths: columnWidths,
       onActivated: () => _selectTransaction(transaction),
-      onRuleSelected: explainingRule != null && explainingRule.beatsImportDefault
+      onRuleSelected:
+          explainingRule != null && explainingRule.beatsImportDefault
           ? () => ManageRuleSheet.show(context, ref: ref, rule: explainingRule)
           : null,
       extraTrailing: isOffsetting

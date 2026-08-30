@@ -3,11 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:spend_trends/theme/finance_colors.dart';
 
 /// Per-section accent used for icons, links, and hairlines.
-class SettingsSectionStyle {
-  const SettingsSectionStyle({required this.accent});
-
-  final Color accent;
-
+class const SettingsSectionStyle({required final Color accent}) {
   /// Banks — teal (money / SimpleFIN).
   static const banks = SettingsSectionStyle(
     accent: FinanceColors.accentPrimary,
@@ -21,9 +17,7 @@ class SettingsSectionStyle {
 }
 
 /// Emphatic type roles for Settings (stronger than global EText defaults).
-class SettingsType {
-  SettingsType._();
-
+class SettingsType._() {
   static const sectionTitle = TextStyle(
     fontSize: 26,
     fontWeight: FontWeight.w700,
@@ -93,17 +87,11 @@ class SettingsType {
 }
 
 /// Bare accent icon — no chip background.
-class SettingsGlyph extends StatelessWidget {
-  const SettingsGlyph({
-    required this.icon,
-    required this.style,
-    this.size = 26,
-  });
-
-  final IconData icon;
-  final SettingsSectionStyle style;
-  final double size;
-
+class const SettingsGlyph({
+  required final IconData icon,
+  required final SettingsSectionStyle style,
+  final double size = 26,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -115,19 +103,12 @@ class SettingsGlyph extends StatelessWidget {
 }
 
 /// Icon + title (+ optional caption) for a Settings page section.
-class SettingsSectionHeader extends StatelessWidget {
-  const SettingsSectionHeader({
-    required this.icon,
-    required this.title,
-    required this.style,
-    this.caption,
-  });
-
-  final IconData icon;
-  final String title;
-  final SettingsSectionStyle style;
-  final String? caption;
-
+class const SettingsSectionHeader({
+  required final IconData icon,
+  required final String title,
+  required final SettingsSectionStyle style,
+  final String? caption,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -153,29 +134,17 @@ class SettingsSectionHeader extends StatelessWidget {
 }
 
 /// Full-row maintenance control with metal fill + finance accent overlay.
-class SettingsToolRow extends StatelessWidget {
-  const SettingsToolRow({
-    required this.icon,
-    required this.title,
-    required this.caption,
-    required this.onActivated,
-    required this.style,
-    this.busy = false,
-    this.message,
-    this.progress,
-    this.onDismiss,
-  });
-
-  final IconData icon;
-  final String title;
-  final String caption;
-  final VoidCallback? onActivated;
-  final SettingsSectionStyle style;
-  final bool busy;
-  final String? message;
-  final Widget? progress;
-  final VoidCallback? onDismiss;
-
+class const SettingsToolRow({
+  required final IconData icon,
+  required final String title,
+  required final String caption,
+  required final VoidCallback? onActivated,
+  required final SettingsSectionStyle style,
+  final bool busy = false,
+  final String? message,
+  final Widget? progress,
+  final VoidCallback? onDismiss,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -263,11 +232,8 @@ class SettingsToolRow extends StatelessWidget {
   }
 }
 
-class SettingsHairline extends StatelessWidget {
-  const SettingsHairline({this.style});
-
-  final SettingsSectionStyle? style;
-
+class const SettingsHairline({final SettingsSectionStyle? style})
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = style == null
@@ -278,17 +244,11 @@ class SettingsHairline extends StatelessWidget {
 }
 
 /// Thin accent progress bar shared by long-running maintenance tools.
-class SettingsProgressBar extends StatelessWidget {
-  const SettingsProgressBar({
-    required this.fraction,
-    required this.label,
-    required this.style,
-  });
-
-  final double fraction;
-  final String label;
-  final SettingsSectionStyle style;
-
+class const SettingsProgressBar({
+  required final double fraction,
+  required final String label,
+  required final SettingsSectionStyle style,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(

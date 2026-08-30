@@ -3,9 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:spend_trends/app_identity.dart';
 import 'package:spend_trends/features/shell/main_tab_screen.dart';
 
-class SpendTrendsApp extends StatelessWidget {
-  const SpendTrendsApp();
-
+class const SpendTrendsApp() extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

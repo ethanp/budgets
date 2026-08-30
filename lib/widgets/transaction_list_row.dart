@@ -6,27 +6,16 @@ import 'package:spend_trends/theme/finance_colors.dart';
 /// Metal transaction row shared by Activity and pull-progress lists.
 ///
 /// Layout: color bar | [leading cells…] | title | amount | [trailing].
-class TransactionListRow extends StatelessWidget {
-  const TransactionListRow({
-    required this.categoryColor,
-    required this.title,
-    required this.amountCents,
-    required this.amountColor,
-    this.leadingCells = const [],
-    this.trailing,
-    this.onActivated,
-    this.selected = false,
-  });
-
-  final Color categoryColor;
-  final String title;
-  final int amountCents;
-  final Color amountColor;
-  final List<Widget> leadingCells;
-  final Widget? trailing;
-  final VoidCallback? onActivated;
-  final bool selected;
-
+class const TransactionListRow({
+  required final Color categoryColor,
+  required final String title,
+  required final int amountCents,
+  required final Color amountColor,
+  final List<Widget> leadingCells = const [],
+  final Widget? trailing,
+  final VoidCallback? onActivated,
+  final bool selected = false,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ESurface(

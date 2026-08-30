@@ -2,21 +2,13 @@ import 'package:spend_trends/features/trends/category_trend_point.dart';
 import 'package:spend_trends/features/trends/hann_annual_pace_kernel.dart';
 
 /// Min / median / mean / max / current from a series' smoothed trendline.
-class CategoryTrendDistribution {
-  const CategoryTrendDistribution({
-    required this.minCents,
-    required this.medianCents,
-    required this.averageCents,
-    required this.maxCents,
-    required this.currentCents,
-  });
-
-  final double minCents;
-  final double medianCents;
-  final double averageCents;
-  final double maxCents;
-  final double currentCents;
-
+class const CategoryTrendDistribution({
+  required final double minCents,
+  required final double medianCents,
+  required final double averageCents,
+  required final double maxCents,
+  required final double currentCents,
+}) {
   @override
   bool operator ==(Object other) =>
       other is CategoryTrendDistribution &&
@@ -32,15 +24,10 @@ class CategoryTrendDistribution {
 }
 
 /// All-time and recent-year distributions for one series.
-class CategoryTrendDistributionPair {
-  const CategoryTrendDistributionPair({
-    required this.allTime,
-    required this.pastYear,
-  });
-
-  final CategoryTrendDistribution? allTime;
-  final CategoryTrendDistribution? pastYear;
-
+class const CategoryTrendDistributionPair({
+  required final CategoryTrendDistribution? allTime,
+  required final CategoryTrendDistribution? pastYear,
+}) {
   bool get isEmpty => allTime == null && pastYear == null;
 }
 

@@ -1,17 +1,11 @@
 import 'package:flutter/material.dart';
 
 /// App primary (filled) action button; shows a spinner while [busy].
-class AppPrimaryButton extends StatelessWidget {
-  const AppPrimaryButton({
-    this.busy = false,
-    required this.onPressed,
-    required this.child,
-  });
-
-  final bool busy;
-  final VoidCallback? onPressed;
-  final Widget child;
-
+class const AppPrimaryButton({
+  final bool busy = false,
+  required final VoidCallback? onPressed,
+  required final Widget child,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FilledButton(

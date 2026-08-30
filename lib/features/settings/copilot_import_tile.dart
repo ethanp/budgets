@@ -5,14 +5,12 @@ import 'package:spend_trends/features/settings/settings_section.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/services/csv/import_copilot_transactions_csv.dart';
 
-class CopilotImportTile extends ConsumerStatefulWidget {
-  const CopilotImportTile();
-
+class const CopilotImportTile() extends ConsumerStatefulWidget {
   @override
   ConsumerState<CopilotImportTile> createState() => _CopilotImportTileState();
 }
 
-class _CopilotImportTileState extends ConsumerState<CopilotImportTile> {
+class _CopilotImportTileState() extends ConsumerState<CopilotImportTile> {
   bool _busy = false;
   String? _message;
   CopilotImportProgress? _progress;

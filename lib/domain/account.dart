@@ -1,52 +1,34 @@
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:spend_trends/domain/account_kind.dart';
 
-class Account {
-  const Account({
-    required this.id,
-    required this.externalId,
-    required this.name,
-    required this.currency,
-    required this.balanceCents,
-    this.balanceAsOf,
-    this.connId,
-    this.connName,
-    this.lastSyncedAt,
-    required this.status,
-    this.statusMessage,
-    this.userLabel,
-    this.connUserLabel,
-    this.kind = AccountKind.other,
-    this.belongsToAccountId,
-  });
-
-  final String id;
-  final String externalId;
+class const Account({
+  required final String id,
+  required final String externalId,
 
   /// Official name from SimpleFIN / CSV import.
-  final String name;
-  final String currency;
-  final int balanceCents;
-  final DateTime? balanceAsOf;
-  final String? connId;
-  final String? connName;
-  final DateTime? lastSyncedAt;
-  final AccountStatus status;
-  final String? statusMessage;
+  required final String name,
+  required final String currency,
+  required final int balanceCents,
+  final DateTime? balanceAsOf,
+  final String? connId,
+  final String? connName,
+  final DateTime? lastSyncedAt,
+  required final AccountStatus status,
+  final String? statusMessage,
 
   /// Optional user-visible name; when set, [displayName] prefers it.
-  final String? userLabel;
+  final String? userLabel,
 
   /// Optional user-visible bank/institution name; when set,
   /// [institutionDisplayName] prefers it over [connName].
-  final String? connUserLabel;
+  final String? connUserLabel,
 
   /// Persisted account class (Checking, Investment, …); user-editable.
-  final AccountKind kind;
+  final AccountKind kind = AccountKind.other,
 
   /// Parent SimpleFIN (or other live) account for Copilot import history.
-  final String? belongsToAccountId;
-
+  final String? belongsToAccountId,
+}) {
   /// Name shown throughout the app.
   String get displayName {
     final label = userLabel?.trim();
@@ -93,8 +75,7 @@ class Account {
   /// Copilot imports carry transaction history only — no live balance.
   bool get hasLiveBalance => !isCopilot;
 
-  String get balanceCaption =>
-      hasLiveBalance ? formatCents(balanceCents) : '—';
+  String get balanceCaption => hasLiveBalance ? formatCents(balanceCents) : '—';
 
   bool get hasParent => belongsToAccountId != null;
 
@@ -144,7 +125,7 @@ class Account {
   }
 }
 
-enum AccountStatus {
+enum AccountStatus() {
   ok,
   stale,
   needsRelink,

@@ -5,15 +5,13 @@ import 'package:spend_trends/features/settings/settings_section.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 
 /// Removes duplicate transactions from Copilot re-imports and linked SimpleFIN.
-class RemoveDuplicateTransactionsTile extends ConsumerStatefulWidget {
-  const RemoveDuplicateTransactionsTile();
-
+class const RemoveDuplicateTransactionsTile() extends ConsumerStatefulWidget {
   @override
   ConsumerState<RemoveDuplicateTransactionsTile> createState() =>
       _RemoveDuplicateTransactionsTileState();
 }
 
-class _RemoveDuplicateTransactionsTileState
+class _RemoveDuplicateTransactionsTileState()
     extends ConsumerState<RemoveDuplicateTransactionsTile> {
   bool _busy = false;
   String? _message;

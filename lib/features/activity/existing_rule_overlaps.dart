@@ -4,11 +4,9 @@ import 'package:spend_trends/features/activity/overlapping_merchant_contains_rul
 import 'package:spend_trends/theme/finance_colors.dart';
 
 /// Chips for existing contains-rules that overlap a candidate pattern.
-class ExistingRuleOverlaps extends StatelessWidget {
-  const ExistingRuleOverlaps({required this.overlaps});
-
-  final List<RelatedExistingRule> overlaps;
-
+class const ExistingRuleOverlaps({
+  required final List<RelatedExistingRule> overlaps,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedSize(
@@ -45,11 +43,8 @@ class ExistingRuleOverlaps extends StatelessWidget {
   }
 }
 
-class _RelatedRuleChip extends StatelessWidget {
-  const _RelatedRuleChip({required this.entry});
-
-  final RelatedExistingRule entry;
-
+class const _RelatedRuleChip({required final RelatedExistingRule entry})
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = switch (entry.relation) {

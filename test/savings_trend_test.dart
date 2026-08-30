@@ -37,9 +37,7 @@ void main() {
 
     final bundle = const BuildTrendsCharts().build(
       transactions: transactions,
-      categories: [
-        SpecialCategory.income.asSpendCategory(),
-      ],
+      categories: [SpecialCategory.income.asSpendCategory()],
       endDate: end,
     );
 
@@ -54,17 +52,14 @@ void main() {
     );
 
     final fireGuide = bundle.cashFlows.firstWhere(
-      (series) =>
-          series.id == TrendChartCatalog.fireSavingsGuideSeriesId,
+      (series) => series.id == TrendChartCatalog.fireSavingsGuideSeriesId,
     );
 
     expect(savings.name, 'Savings');
     expect(fireGuide.name, '25% of income');
     expect(fireGuide.guide, isTrue);
     expect(savings.points.length, income.points.length);
-    for (var pointIndex = 0;
-        pointIndex < income.points.length;
-        pointIndex++) {
+    for (var pointIndex = 0; pointIndex < income.points.length; pointIndex++) {
       expect(
         savings.points[pointIndex].rollingCents,
         closeTo(

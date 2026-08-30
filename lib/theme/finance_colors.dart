@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// Finance product accents on top of ethan_ui chrome tokens.
-abstract final class FinanceColors {
+abstract final class FinanceColors() {
   /// Money / banks CTAs.
   static const accentPrimary = Color(0xFF2A9D8F);
 

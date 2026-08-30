@@ -1,15 +1,14 @@
 import 'package:ethan_utils/ethan_utils.dart';
+
 import 'dart:convert';
 
 import 'package:csv/csv.dart';
 
 /// Parsed Copilot Money CSV table (header map + data rows).
-class CopilotCsvTable {
-  const CopilotCsvTable({required this.columns, required this.dataRows});
-
-  final CopilotCsvColumns columns;
-  final List<List<dynamic>> dataRows;
-
+class const CopilotCsvTable({
+  required final CopilotCsvColumns columns,
+  required final List<List<dynamic>> dataRows,
+}) {
   int get dataRowCount => dataRows.length;
 
   static CopilotCsvTable parse(String csvText) {
@@ -31,33 +30,19 @@ class CopilotCsvTable {
   }
 }
 
-class CopilotCsvColumns {
-  const CopilotCsvColumns({
-    required this.date,
-    required this.name,
-    required this.amount,
-    required this.status,
-    required this.category,
-    required this.account,
-    required this.accountMask,
-    required this.note,
-    required this.type,
-    required this.excluded,
-    required this.recurring,
-  });
-
-  final int date;
-  final int name;
-  final int amount;
-  final int status;
-  final int category;
-  final int account;
-  final int accountMask;
-  final int note;
-  final int type;
-  final int excluded;
-  final int recurring;
-
+class const CopilotCsvColumns({
+  required final int date,
+  required final int name,
+  required final int amount,
+  required final int status,
+  required final int category,
+  required final int account,
+  required final int accountMask,
+  required final int note,
+  required final int type,
+  required final int excluded,
+  required final int recurring,
+}) {
   int get minimumWidth =>
       [
         date,
@@ -74,7 +59,7 @@ class CopilotCsvColumns {
       ].reduce((left, right) => left > right ? left : right) +
       1;
 
-  factory CopilotCsvColumns.fromHeaders(List<String> headers) {
+  factory fromHeaders(List<String> headers) {
     int require(String header) {
       final index = headers.indexOf(header);
       if (index < 0) {
@@ -100,41 +85,23 @@ class CopilotCsvColumns {
 }
 
 /// One validated Copilot CSV data row.
-class ParsedCopilotRow {
-  const ParsedCopilotRow({
-    required this.dateText,
-    required this.name,
-    required this.amountText,
-    required this.accountName,
-    required this.accountMask,
-    required this.status,
-    required this.categoryText,
-    required this.note,
-    required this.transactionType,
-    required this.excluded,
-    required this.recurringSeries,
-    required this.externalId,
-    required this.postedAt,
-    required this.amountCents,
-    required this.pending,
-  });
-
-  final String dateText;
-  final String name;
-  final String amountText;
-  final String accountName;
-  final String accountMask;
-  final String status;
-  final String categoryText;
-  final String? note;
-  final String? transactionType;
-  final bool excluded;
-  final String? recurringSeries;
-  final String externalId;
-  final DateTime postedAt;
-  final int amountCents;
-  final bool pending;
-
+class const ParsedCopilotRow({
+  required final String dateText,
+  required final String name,
+  required final String amountText,
+  required final String accountName,
+  required final String accountMask,
+  required final String status,
+  required final String categoryText,
+  required final String? note,
+  required final String? transactionType,
+  required final bool excluded,
+  required final String? recurringSeries,
+  required final String externalId,
+  required final DateTime postedAt,
+  required final int amountCents,
+  required final bool pending,
+}) {
   String get accountKey => '$accountName|$accountMask';
 
   static ParsedCopilotRow? tryParse(

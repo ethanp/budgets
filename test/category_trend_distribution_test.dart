@@ -59,15 +59,12 @@ void main() {
     });
 
     test('onOrAfter limits the sample window', () {
-      final distribution = distributionForSmoothed(
-        [
-          _point(date: DateTime(2023, 1, 1), smoothedCents: 1000),
-          _point(date: DateTime(2024, 6, 1), smoothedCents: 100),
-          _point(date: DateTime(2024, 7, 1), smoothedCents: 300),
-          _point(date: DateTime(2024, 8, 1), smoothedCents: 200),
-        ],
-        onOrAfter: DateTime(2024, 1, 1),
-      );
+      final distribution = distributionForSmoothed([
+        _point(date: DateTime(2023, 1, 1), smoothedCents: 1000),
+        _point(date: DateTime(2024, 6, 1), smoothedCents: 100),
+        _point(date: DateTime(2024, 7, 1), smoothedCents: 300),
+        _point(date: DateTime(2024, 8, 1), smoothedCents: 200),
+      ], onOrAfter: DateTime(2024, 1, 1));
 
       expect(distribution!.minCents, 100);
       expect(distribution.maxCents, 300);

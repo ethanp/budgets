@@ -13,22 +13,15 @@ import 'package:spend_trends/widgets/app_sheet_panel.dart';
 import 'package:spend_trends/widgets/app_spreadsheet.dart';
 
 /// Modal listing the top transactions feeding a trendline at a tap date.
-class TrendPointContributorsSheet extends ConsumerStatefulWidget {
-  const TrendPointContributorsSheet({
-    required this.seriesName,
-    required this.tapDate,
-    required this.contributors,
-    required this.linePaceCents,
-  });
-
-  static const _contentMaxWidth = 720.0;
-
-  final String seriesName;
-  final DateTime tapDate;
-  final List<TrendPointContributor> contributors;
+class const TrendPointContributorsSheet({
+  required final String seriesName,
+  required final DateTime tapDate,
+  required final List<TrendPointContributor> contributors,
 
   /// Series smoothed value at [tapDate], annualized (/ yr).
-  final int linePaceCents;
+  required final int linePaceCents,
+}) extends ConsumerStatefulWidget {
+  static const _contentMaxWidth = 720.0;
 
   static Future<void> show(
     BuildContext context, {
@@ -55,7 +48,7 @@ class TrendPointContributorsSheet extends ConsumerStatefulWidget {
       _TrendPointContributorsSheetState();
 }
 
-class _TrendPointContributorsSheetState
+class _TrendPointContributorsSheetState()
     extends ConsumerState<TrendPointContributorsSheet> {
   /// Local category picks so rows update before the chart snapshot refreshes.
   final Map<String, String> _categoryOverrides = {};
@@ -114,7 +107,10 @@ class _TrendPointContributorsSheetState
   Widget _emptyState() {
     return Expanded(
       child: Center(
-        child: Text('No transactions in this window.', style: EText.body.medium),
+        child: Text(
+          'No transactions in this window.',
+          style: EText.body.medium,
+        ),
       ),
     );
   }
@@ -194,25 +190,16 @@ class _TrendPointContributorsSheetState
   }
 }
 
-class _ContributorColumnWidths {
-  const _ContributorColumnWidths({
-    required this.rank,
-    required this.date,
-    required this.merchant,
-    required this.pace,
-    required this.amount,
-    required this.category,
-  });
-
+class const _ContributorColumnWidths({
+  required final double rank,
+  required final double date,
+  required final double merchant,
+  required final double pace,
+  required final double amount,
+  required final double category,
+}) {
   static const paceHeader = 'Pace';
   static const amountHeader = 'Amount';
-
-  final double rank;
-  final double date;
-  final double merchant;
-  final double pace;
-  final double amount;
-  final double category;
 
   static const _categoryChevronWidth = 12.0;
   static const _categoryChevronGap = 2.0;
@@ -226,7 +213,9 @@ class _ContributorColumnWidths {
       color: EColors.textMuted,
     );
     final dateStyle = EText.body.medium.copyWith(color: EColors.textMuted);
-    final merchantStyle = EText.body.medium.copyWith(fontWeight: FontWeight.w600);
+    final merchantStyle = EText.body.medium.copyWith(
+      fontWeight: FontWeight.w600,
+    );
     final paceStyle = EText.body.medium.copyWith(
       fontWeight: FontWeight.w600,
       color: EColors.textMuted,
@@ -288,11 +277,9 @@ class _ContributorColumnWidths {
   }
 }
 
-class _ContributorHeaderRow extends StatelessWidget {
-  const _ContributorHeaderRow({required this.columnWidths});
-
-  final _ContributorColumnWidths columnWidths;
-
+class const _ContributorHeaderRow({
+  required final _ContributorColumnWidths columnWidths,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -347,23 +334,14 @@ class _ContributorHeaderRow extends StatelessWidget {
   }
 }
 
-class _ContributorRow extends StatelessWidget {
-  const _ContributorRow({
-    required this.contributor,
-    required this.rank,
-    required this.columnWidths,
-    required this.showDivider,
-    required this.category,
-    required this.onCategorySelected,
-  });
-
-  final TrendPointContributor contributor;
-  final int rank;
-  final _ContributorColumnWidths columnWidths;
-  final bool showDivider;
-  final SpendCategory? category;
-  final VoidCallback onCategorySelected;
-
+class const _ContributorRow({
+  required final TrendPointContributor contributor,
+  required final int rank,
+  required final _ContributorColumnWidths columnWidths,
+  required final bool showDivider,
+  required final SpendCategory? category,
+  required final VoidCallback onCategorySelected,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(

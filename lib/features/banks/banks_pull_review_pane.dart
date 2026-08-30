@@ -5,15 +5,10 @@ import 'package:spend_trends/domain/transaction.dart';
 import 'package:spend_trends/features/activity/recategorize_form.dart';
 
 /// Banks right pane while reviewing a transaction from a pull.
-class BanksPullReviewPane extends ConsumerWidget {
-  const BanksPullReviewPane({
-    required this.transaction,
-    required this.onCategorized,
-  });
-
-  final BankTransaction transaction;
-  final VoidCallback onCategorized;
-
+class const BanksPullReviewPane({
+  required final BankTransaction transaction,
+  required final VoidCallback onCategorized,
+}) extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return ListView(

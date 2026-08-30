@@ -11,24 +11,17 @@ import 'package:spend_trends/theme/finance_colors.dart';
 import 'package:spend_trends/widgets/app_primary_button.dart';
 
 /// Everyday bank UI: connect, accounts, pull bank transactions.
-class BanksSourceSection extends ConsumerStatefulWidget {
-  const BanksSourceSection({
-    this.selectedAccountId,
-    this.onAccountSelected,
-    this.selectedOwnedAssetId,
-    this.onOwnedAssetSelected,
-  });
-
-  final String? selectedAccountId;
-  final void Function(String accountId)? onAccountSelected;
-  final String? selectedOwnedAssetId;
-  final void Function(String ownedAssetId)? onOwnedAssetSelected;
-
+class const BanksSourceSection({
+  final String? selectedAccountId,
+  final void Function(String accountId)? onAccountSelected,
+  final String? selectedOwnedAssetId,
+  final void Function(String ownedAssetId)? onOwnedAssetSelected,
+}) extends ConsumerStatefulWidget {
   @override
   ConsumerState<BanksSourceSection> createState() => _BanksSourceSectionState();
 }
 
-class _BanksSourceSectionState extends ConsumerState<BanksSourceSection> {
+class _BanksSourceSectionState() extends ConsumerState<BanksSourceSection> {
   final TextEditingController _tokenController = TextEditingController();
 
   @override
@@ -139,9 +132,11 @@ class _BanksSourceSectionState extends ConsumerState<BanksSourceSection> {
         const SizedBox(height: ELayout.spaceMd),
         AppPrimaryButton(
           busy: busy,
-          onPressed: () => ref.read(banksPullLiveSessionProvider.notifier).runPull(
-            (onProgress) => controller.syncLatest(onProgress: onProgress),
-          ),
+          onPressed: () => ref
+              .read(banksPullLiveSessionProvider.notifier)
+              .runPull(
+                (onProgress) => controller.syncLatest(onProgress: onProgress),
+              ),
           child: const Row(
             mainAxisSize: MainAxisSize.min,
             children: [

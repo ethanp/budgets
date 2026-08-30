@@ -11,12 +11,10 @@ import 'package:spend_trends/widgets/app_date_picker.dart';
 import 'package:spend_trends/widgets/app_primary_button.dart';
 import 'package:spend_trends/widgets/app_sheet_panel.dart';
 
-class OwnedAssetFormSheet extends ConsumerStatefulWidget {
-  const OwnedAssetFormSheet({this.ownedAsset, this.updateValueOnly = false});
-
-  final OwnedAssetWithValuations? ownedAsset;
-  final bool updateValueOnly;
-
+class const OwnedAssetFormSheet({
+  final OwnedAssetWithValuations? ownedAsset,
+  final bool updateValueOnly = false,
+}) extends ConsumerStatefulWidget {
   static Future<void> show(
     BuildContext context, {
     OwnedAssetWithValuations? ownedAsset,
@@ -38,7 +36,7 @@ class OwnedAssetFormSheet extends ConsumerStatefulWidget {
       _OwnedAssetFormSheetState();
 }
 
-class _OwnedAssetFormSheetState extends ConsumerState<OwnedAssetFormSheet> {
+class _OwnedAssetFormSheetState() extends ConsumerState<OwnedAssetFormSheet> {
   late final TextEditingController _nameController;
   late final TextEditingController _valueController;
   late final TextEditingController _noteController;

@@ -29,18 +29,11 @@ const copilotTransactionsRelativePath =
 /// Copilot amounts are the opposite sign of Budgets/SimpleFIN (Copilot expenses
 /// are positive). Re-imports skip existing Copilot rows and linked SimpleFIN
 /// matches (after belongs-to / mask linking), and can backfill empty notes.
-class ImportCopilotTransactionsCsv {
-  ImportCopilotTransactionsCsv({
-    required AccountsRepository accountsRepository,
-    required CategoriesRepository categoriesRepository,
-    required TransactionsRepository transactionsRepository,
-  }) : _accountsRepository = accountsRepository,
-       _categoriesRepository = categoriesRepository,
-       _transactionsRepository = transactionsRepository;
-
-  final AccountsRepository _accountsRepository;
-  final CategoriesRepository _categoriesRepository;
-  final TransactionsRepository _transactionsRepository;
+class ImportCopilotTransactionsCsv({
+  required final AccountsRepository _accountsRepository,
+  required final CategoriesRepository _categoriesRepository,
+  required final TransactionsRepository _transactionsRepository,
+}) {
   final _uuid = const Uuid();
 
   Future<CopilotImportResult> importLocalFile({

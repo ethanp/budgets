@@ -4,30 +4,18 @@ import 'package:ethan_sync/ethan_sync.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:powersync/powersync.dart';
 
-class TransactionPresence {
-  const TransactionPresence({required this.id, required this.hasNote});
+class const TransactionPresence({
+  required final String id,
+  required final bool hasNote,
+});
 
-  final String id;
-  final bool hasNote;
-}
+class const _MonthFlowTotals({
+  required final int outflowCents,
+  required final int inflowCents,
+  required final Map<String, int> spentByAccount,
+});
 
-class _MonthFlowTotals {
-  const _MonthFlowTotals({
-    required this.outflowCents,
-    required this.inflowCents,
-    required this.spentByAccount,
-  });
-
-  final int outflowCents;
-  final int inflowCents;
-  final Map<String, int> spentByAccount;
-}
-
-class TransactionsRepository {
-  TransactionsRepository(this._powerSync);
-
-  final PowerSyncDatabase _powerSync;
-
+class TransactionsRepository(final PowerSyncDatabase _powerSync) {
   Future<List<BankTransaction>> listAll({int? limit}) async {
     final sql = StringBuffer(
       'SELECT * FROM transactions ORDER BY posted_at DESC, id DESC',
@@ -56,7 +44,10 @@ class TransactionsRepository {
       WHERE imported_at >= ? AND imported_at <= ?
       ORDER BY posted_at DESC, id DESC
       ''',
-      [start.toUtc().millisecondsSinceEpoch, end.toUtc().millisecondsSinceEpoch],
+      [
+        start.toUtc().millisecondsSinceEpoch,
+        end.toUtc().millisecondsSinceEpoch,
+      ],
     );
     return rows.map(_fromRow).toList();
   }

@@ -6,17 +6,11 @@ import 'package:spend_trends/domain/account_kind.dart';
 import 'package:spend_trends/domain/owned_asset.dart';
 
 /// Banks right pane: net-worth overview or selected account detail.
-class BanksNetWorthPane extends StatelessWidget {
-  const BanksNetWorthPane({
-    required this.accounts,
-    required this.ownedAssets,
-    required this.selectedAccountId,
-  });
-
-  final List<Account> accounts;
-  final List<OwnedAssetWithValuations> ownedAssets;
-  final String? selectedAccountId;
-
+class const BanksNetWorthPane({
+  required final List<Account> accounts,
+  required final List<OwnedAssetWithValuations> ownedAssets,
+  required final String? selectedAccountId,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Account? selected;
@@ -102,7 +96,7 @@ class BanksNetWorthPane extends StatelessWidget {
     final String ownedAssetsCaption = ownedAssets.isEmpty
         ? ''
         : ' · ${ownedAssets.length} '
-            '${ownedAssets.length == 1 ? 'owned asset' : 'owned assets'}';
+              '${ownedAssets.length == 1 ? 'owned asset' : 'owned assets'}';
     return '${accounts.length} '
         '${accounts.length == 1 ? 'account' : 'accounts'}'
         '$ownedAssetsCaption';

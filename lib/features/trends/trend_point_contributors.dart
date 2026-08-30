@@ -8,22 +8,14 @@ import 'package:spend_trends/features/trends/trend_chart_catalog.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 
 /// One transaction's contribution to a trendline at a tap date.
-class TrendPointContributor {
-  const TrendPointContributor({
-    required this.transaction,
-    required this.smoothedContributionCents,
-    required this.rawAmountCents,
-  });
-
-  final BankTransaction transaction;
-  final double smoothedContributionCents;
-  final int rawAmountCents;
-}
+class const TrendPointContributor({
+  required final BankTransaction transaction,
+  required final double smoothedContributionCents,
+  required final int rawAmountCents,
+});
 
 /// Resolves top transactions feeding a series' smoothed pace at [tapDate].
-class TrendPointContributors {
-  TrendPointContributors._();
-
+class TrendPointContributors._() {
   static const topCount = 5;
 
   static List<TrendPointContributor> topForSeries({
@@ -200,7 +192,7 @@ class TrendPointContributors {
   }
 }
 
-enum _MembershipKind {
+enum _MembershipKind() {
   categorySpend,
   uncategorized,
   income,
@@ -209,35 +201,27 @@ enum _MembershipKind {
   savings,
 }
 
-class _SeriesMembership {
-  const _SeriesMembership._({
-    required this.kind,
-    this.categoryIds,
-    this.backedCategoryIds,
-  });
-
-  const _SeriesMembership.categorySpend({required Set<String>? categoryIds})
+class const _SeriesMembership._({
+  required final _MembershipKind kind,
+  final Set<String>? categoryIds,
+  final Set<String>? backedCategoryIds,
+}) {
+  const new categorySpend({required Set<String>? categoryIds})
     : this._(kind: _MembershipKind.categorySpend, categoryIds: categoryIds);
 
-  const _SeriesMembership.uncategorized({
-    required Set<String> backedCategoryIds,
-  }) : this._(
-         kind: _MembershipKind.uncategorized,
-         backedCategoryIds: backedCategoryIds,
-       );
+  const new uncategorized({required Set<String> backedCategoryIds})
+    : this._(
+        kind: _MembershipKind.uncategorized,
+        backedCategoryIds: backedCategoryIds,
+      );
 
-  const _SeriesMembership.income() : this._(kind: _MembershipKind.income);
+  const new income() : this._(kind: _MembershipKind.income);
 
-  const _SeriesMembership.cashFlowSpending()
-    : this._(kind: _MembershipKind.cashFlowSpending);
+  const new cashFlowSpending() : this._(kind: _MembershipKind.cashFlowSpending);
 
-  const _SeriesMembership.transfer() : this._(kind: _MembershipKind.transfer);
+  const new transfer() : this._(kind: _MembershipKind.transfer);
 
-  const _SeriesMembership.savings() : this._(kind: _MembershipKind.savings);
-
-  final _MembershipKind kind;
-  final Set<String>? categoryIds;
-  final Set<String>? backedCategoryIds;
+  const new savings() : this._(kind: _MembershipKind.savings);
 
   bool includes(BankTransaction transaction) {
     final categoryId = transaction.effectiveCategoryId;

@@ -4,17 +4,11 @@ import 'package:spend_trends/domain/transaction.dart';
 import 'package:flutter/foundation.dart';
 
 /// Debounced live rematch of a contains-pattern against existing transactions.
-class ContainsPatternRematch {
-  ContainsPatternRematch({
-    required Future<List<BankTransaction>> Function(String pattern)
-    fetchMatches,
-    required VoidCallback notify,
-  }) : _fetchMatches = fetchMatches,
-       _notify = notify;
-
-  final Future<List<BankTransaction>> Function(String pattern) _fetchMatches;
-  final VoidCallback _notify;
-
+class ContainsPatternRematch({
+  required final Future<List<BankTransaction>> Function(String pattern)
+  _fetchMatches,
+  required final VoidCallback _notify,
+}) {
   Timer? _timer;
   bool rematching = false;
   List<BankTransaction> matches = const [];

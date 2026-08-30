@@ -5,20 +5,14 @@ import 'package:spend_trends/domain/category.dart';
 /// [income] / [transfer] are cash-flow (excluded from spend totals).
 /// [housing] is a built-in spend category (kept in spend Trends / month rows)
 /// so its color and future housing-specific behavior stay consistent.
-enum SpecialCategory {
+enum SpecialCategory({
+  required final String id,
+  required final String name,
+  required final int sortOrder,
+}) {
   housing(id: 'cat_housing', name: 'Housing', sortOrder: 3),
   income(id: 'cat_income', name: 'Income', sortOrder: 1000),
   transfer(id: 'cat_transfer', name: 'Transfer', sortOrder: 1001);
-
-  const SpecialCategory({
-    required this.id,
-    required this.name,
-    required this.sortOrder,
-  });
-
-  final String id;
-  final String name;
-  final int sortOrder;
 
   static final ids = {for (final special in values) special.id};
 

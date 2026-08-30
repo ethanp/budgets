@@ -4,7 +4,7 @@ import 'package:ethan_utils/ethan_utils.dart';
 /// Fixed account classes for Trends / net-worth legend grouping.
 ///
 /// SimpleFIN does not send a type; we classify from account + institution names.
-enum AccountKind {
+enum AccountKind({final String? _legendLabel}) {
   checking(),
   savings(),
   investment(),
@@ -12,10 +12,6 @@ enum AccountKind {
   creditCard(legendLabel: 'Credit cards'),
   loans(),
   other();
-
-  const AccountKind({String? legendLabel}) : _legendLabel = legendLabel;
-
-  final String? _legendLabel;
 
   /// Legend section header.
   String get legendLabel => _legendLabel ?? nameAsCapitalizedWords;
@@ -36,9 +32,7 @@ enum AccountKind {
 }
 
 /// Maps an [Account] onto [AccountKind] via name / institution heuristics.
-class AccountKindClassifier {
-  AccountKindClassifier._();
-
+class AccountKindClassifier._() {
   static AccountKind classify(Account account) {
     final haystack = _haystackFor(account);
 

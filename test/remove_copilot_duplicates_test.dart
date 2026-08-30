@@ -117,52 +117,58 @@ void main() {
   });
 
   group('bestMerchantMatch', () {
-    test('accepts unique same-day amount candidate without merchant overlap', () {
-      final twin = bestMerchantMatch(
-        normalizedMerchant: 'COMPLETELY DIFFERENT',
-        candidates: [
-          BankTransaction(
-            id: 'sf1',
-            accountId: 'a',
-            externalId: 'e',
-            postedAt: DateTime(2026, 6, 30),
-            amountCents: -5000,
-            rawDescription: 'OTHER',
-            normalizedMerchant: 'OTHER',
-            pending: false,
-          ),
-        ],
-      );
-      expect(twin?.id, 'sf1');
-    });
+    test(
+      'accepts unique same-day amount candidate without merchant overlap',
+      () {
+        final twin = bestMerchantMatch(
+          normalizedMerchant: 'COMPLETELY DIFFERENT',
+          candidates: [
+            BankTransaction(
+              id: 'sf1',
+              accountId: 'a',
+              externalId: 'e',
+              postedAt: DateTime(2026, 6, 30),
+              amountCents: -5000,
+              rawDescription: 'OTHER',
+              normalizedMerchant: 'OTHER',
+              pending: false,
+            ),
+          ],
+        );
+        expect(twin?.id, 'sf1');
+      },
+    );
 
-    test('requires merchant overlap when multiple candidates share day+amount', () {
-      final twin = bestMerchantMatch(
-        normalizedMerchant: 'UBER TRIP',
-        candidates: [
-          BankTransaction(
-            id: 'lyft',
-            accountId: 'a',
-            externalId: 'e1',
-            postedAt: DateTime(2026, 6, 30),
-            amountCents: -5000,
-            rawDescription: 'LYFT',
-            normalizedMerchant: 'LYFT',
-            pending: false,
-          ),
-          BankTransaction(
-            id: 'uber',
-            accountId: 'a',
-            externalId: 'e2',
-            postedAt: DateTime(2026, 6, 30),
-            amountCents: -5000,
-            rawDescription: 'UBER',
-            normalizedMerchant: 'UBER TRIP HELP',
-            pending: false,
-          ),
-        ],
-      );
-      expect(twin?.id, 'uber');
-    });
+    test(
+      'requires merchant overlap when multiple candidates share day+amount',
+      () {
+        final twin = bestMerchantMatch(
+          normalizedMerchant: 'UBER TRIP',
+          candidates: [
+            BankTransaction(
+              id: 'lyft',
+              accountId: 'a',
+              externalId: 'e1',
+              postedAt: DateTime(2026, 6, 30),
+              amountCents: -5000,
+              rawDescription: 'LYFT',
+              normalizedMerchant: 'LYFT',
+              pending: false,
+            ),
+            BankTransaction(
+              id: 'uber',
+              accountId: 'a',
+              externalId: 'e2',
+              postedAt: DateTime(2026, 6, 30),
+              amountCents: -5000,
+              rawDescription: 'UBER',
+              normalizedMerchant: 'UBER TRIP HELP',
+              pending: false,
+            ),
+          ],
+        );
+        expect(twin?.id, 'uber');
+      },
+    );
   });
 }

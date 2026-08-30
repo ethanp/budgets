@@ -10,19 +10,13 @@ import 'package:spend_trends/widgets/app_date_picker.dart';
 import 'package:spend_trends/widgets/app_primary_button.dart';
 import 'package:spend_trends/widgets/app_sheet_panel.dart';
 
-class ChainStayFormSheet extends ConsumerStatefulWidget {
-  const ChainStayFormSheet({
-    required this.kind,
-    this.stay,
-    this.initialStartedOn,
-  });
-
-  final LifeChainKind kind;
-  final ChainStay? stay;
+class const ChainStayFormSheet({
+  required final LifeChainKind kind,
+  final ChainStay? stay,
 
   /// Suggested move-in/start day when creating (e.g. day before the oldest stay).
-  final DateTime? initialStartedOn;
-
+  final DateTime? initialStartedOn,
+}) extends ConsumerStatefulWidget {
   static Future<void> show(
     BuildContext context, {
     required WidgetRef ref,
@@ -46,7 +40,7 @@ class ChainStayFormSheet extends ConsumerStatefulWidget {
   ConsumerState<ChainStayFormSheet> createState() => _ChainStayFormSheetState();
 }
 
-class _ChainStayFormSheetState extends ConsumerState<ChainStayFormSheet> {
+class _ChainStayFormSheetState() extends ConsumerState<ChainStayFormSheet> {
   late final TextEditingController _labelController;
   late final TextEditingController _noteController;
   late DateTime _startedOn;

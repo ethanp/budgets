@@ -8,53 +8,30 @@ import 'package:spend_trends/domain/transaction.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/services/simplefin/simplefin_pull_progress.dart';
 
-class BanksPullAccountProgress {
-  BanksPullAccountProgress({
-    required this.externalId,
-    required this.label,
-    required this.transactions,
-    required this.done,
-  });
-
-  final String externalId;
-  String label;
-  List<SimpleFinPulledTransaction> transactions;
-  bool done;
-
+class BanksPullAccountProgress({
+  required final String externalId,
+  required var String label,
+  required var List<SimpleFinPulledTransaction> transactions,
+  required var bool done,
+}) {
   int get transactionCount => transactions.length;
 }
 
-class BanksPullLiveSessionState {
-  const BanksPullLiveSessionState({
-    required this.startedAt,
-    required this.statusLine,
-    this.queryWindowLine,
-    this.accounts = const [],
-    this.finished = false,
-    this.failed = false,
-    this.categorizationReady = false,
-    this.errorMessage,
-    this.overallAccounts,
-    this.overallTransactions,
-    this.bridgeWarningCount = 0,
-    this.displayedElapsed = Duration.zero,
-    this.finishedAt,
-  });
-
-  final DateTime startedAt;
-  final String statusLine;
-  final String? queryWindowLine;
-  final List<BanksPullAccountProgress> accounts;
-  final bool finished;
-  final bool failed;
-  final bool categorizationReady;
-  final String? errorMessage;
-  final int? overallAccounts;
-  final int? overallTransactions;
-  final int bridgeWarningCount;
-  final Duration displayedElapsed;
-  final DateTime? finishedAt;
-
+class const BanksPullLiveSessionState({
+  required final DateTime startedAt,
+  required final String statusLine,
+  final String? queryWindowLine,
+  final List<BanksPullAccountProgress> accounts = const [],
+  final bool finished = false,
+  final bool failed = false,
+  final bool categorizationReady = false,
+  final String? errorMessage,
+  final int? overallAccounts,
+  final int? overallTransactions,
+  final int bridgeWarningCount = 0,
+  final Duration displayedElapsed = Duration.zero,
+  final DateTime? finishedAt,
+}) {
   BanksPullLiveSessionState copyWith({
     String? statusLine,
     String? queryWindowLine,
@@ -93,7 +70,7 @@ final banksPullLiveSessionProvider =
     );
 
 /// Ephemeral live state for the in-progress or just-finished pull on Banks.
-class BanksPullLiveSession extends Notifier<BanksPullLiveSessionState?> {
+class BanksPullLiveSession() extends Notifier<BanksPullLiveSessionState?> {
   final Stopwatch _elapsed = Stopwatch();
   Timer? _ticker;
 

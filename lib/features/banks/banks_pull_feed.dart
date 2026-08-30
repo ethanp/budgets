@@ -12,20 +12,15 @@ import 'package:spend_trends/services/sqlite/simplefin_pull_history.dart';
 import 'package:spend_trends/theme/finance_colors.dart';
 
 /// In-screen pull history on Banks: date navigation and transaction review.
-class BanksPullFeed extends ConsumerStatefulWidget {
-  const BanksPullFeed({
-    this.selectedTransactionId,
-    this.onPullTransactionSelected,
-  });
-
-  final String? selectedTransactionId;
-  final void Function(BankTransaction transaction)? onPullTransactionSelected;
-
+class const BanksPullFeed({
+  final String? selectedTransactionId,
+  final void Function(BankTransaction transaction)? onPullTransactionSelected,
+}) extends ConsumerStatefulWidget {
   @override
   ConsumerState<BanksPullFeed> createState() => _BanksPullFeedState();
 }
 
-class _BanksPullFeedState extends ConsumerState<BanksPullFeed> {
+class _BanksPullFeedState() extends ConsumerState<BanksPullFeed> {
   static final _dayFormat = DateFormat('MMMM d');
   static final _yearFormat = DateFormat('yyyy');
   static final _timeFormat = DateFormat('h:mm a');
@@ -81,7 +76,9 @@ class _BanksPullFeedState extends ConsumerState<BanksPullFeed> {
         final PullImportWindow importWindow = viewingLive
             ? PullImportWindow(
                 startedAt: liveSession.startedAt.toUtc(),
-                finishedAt: liveSession.finished ? liveSession.finishedAt : null,
+                finishedAt: liveSession.finished
+                    ? liveSession.finishedAt
+                    : null,
               )
             : PullImportWindow(
                 startedAt: selectedPull!.startedAt,
@@ -345,7 +342,8 @@ class _BanksPullFeedState extends ConsumerState<BanksPullFeed> {
     final statusLabel = switch (pull.status) {
       SimpleFinPullStatus.running => 'In progress',
       SimpleFinPullStatus.failed => 'Failed',
-      SimpleFinPullStatus.success when pull.isPartialSuccess => 'Partial success',
+      SimpleFinPullStatus.success when pull.isPartialSuccess =>
+        'Partial success',
       SimpleFinPullStatus.success => 'Success',
     };
     final duration = pull.duration;

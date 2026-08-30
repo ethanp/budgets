@@ -10,29 +10,18 @@ import 'package:spend_trends/features/activity/activity_column_widths.dart';
 import 'package:spend_trends/features/activity/activity_transaction_tile.dart';
 
 /// Day-grouped Activity transaction list (sliver).
-class ActivityDayListSliver extends StatelessWidget {
-  const ActivityDayListSliver({
-    required this.transactions,
-    required this.accounts,
-    required this.categories,
-    required this.ruleMatchIndex,
-    required this.explainingByTransactionId,
-    required this.selectedTransactionId,
-    required this.columnWidths,
-    required this.onTransactionSelected,
-    required this.onRuleSelected,
-  });
-
-  final List<BankTransaction> transactions;
-  final Map<String, Account> accounts;
-  final Map<String, SpendCategory> categories;
-  final RuleMatchIndex ruleMatchIndex;
-  final Map<String, CategorizationRule?> explainingByTransactionId;
-  final String? selectedTransactionId;
-  final ActivityColumnWidths columnWidths;
-  final void Function(BankTransaction transaction) onTransactionSelected;
-  final void Function(CategorizationRule rule) onRuleSelected;
-
+class const ActivityDayListSliver({
+  required final List<BankTransaction> transactions,
+  required final Map<String, Account> accounts,
+  required final Map<String, SpendCategory> categories,
+  required final RuleMatchIndex ruleMatchIndex,
+  required final Map<String, CategorizationRule?> explainingByTransactionId,
+  required final String? selectedTransactionId,
+  required final ActivityColumnWidths columnWidths,
+  required final void Function(BankTransaction transaction)
+  onTransactionSelected,
+  required final void Function(CategorizationRule rule) onRuleSelected,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final listItems = ActivityDayGrouping.items(transactions);
@@ -81,9 +70,7 @@ class ActivityDayListSliver extends StatelessWidget {
 }
 
 /// Groups transactions under Today / Yesterday / weekday headers.
-class ActivityDayGrouping {
-  ActivityDayGrouping._();
-
+class ActivityDayGrouping._() {
   static List<ActivityDayListItem> items(List<BankTransaction> transactions) {
     final today = DateTime.now().startOfDay;
     final yesterday = today.subtract(const Duration(days: 1));
@@ -117,28 +104,19 @@ class ActivityDayGrouping {
   }
 }
 
-sealed class ActivityDayListItem {
-  const ActivityDayListItem();
-}
+sealed class const ActivityDayListItem();
 
-class ActivityDayHeader extends ActivityDayListItem {
-  const ActivityDayHeader({required this.label});
+class const ActivityDayHeader({required final String label})
+    extends ActivityDayListItem;
 
-  final String label;
-}
+class const ActivityDayTransactionItem({
+  required final BankTransaction transaction,
+}) extends ActivityDayListItem;
 
-class ActivityDayTransactionItem extends ActivityDayListItem {
-  const ActivityDayTransactionItem({required this.transaction});
-
-  final BankTransaction transaction;
-}
-
-class _ActivityDayHeaderTile extends StatelessWidget {
-  const _ActivityDayHeaderTile({required this.label, required this.isFirst});
-
-  final String label;
-  final bool isFirst;
-
+class const _ActivityDayHeaderTile({
+  required final String label,
+  required final bool isFirst,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(

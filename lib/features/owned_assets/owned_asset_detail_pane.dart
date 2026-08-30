@@ -10,11 +10,8 @@ import 'package:spend_trends/widgets/app_primary_button.dart';
 import 'package:spend_trends/widgets/app_sheet_panel.dart';
 
 /// Owned-asset detail: current value, valuation history, edit / update / delete.
-class OwnedAssetDetailPane extends ConsumerWidget {
-  const OwnedAssetDetailPane({required this.ownedAssetId});
-
-  final String ownedAssetId;
-
+class const OwnedAssetDetailPane({required final String ownedAssetId})
+    extends ConsumerWidget {
   static Future<void> showSheet(
     BuildContext context, {
     required String ownedAssetId,
@@ -107,10 +104,8 @@ class OwnedAssetDetailPane extends ConsumerWidget {
       ),
       const SizedBox(height: ELayout.spaceSm),
       TextButton(
-        onPressed: () => OwnedAssetFormSheet.show(
-          context,
-          ownedAsset: ownedAsset,
-        ),
+        onPressed: () =>
+            OwnedAssetFormSheet.show(context, ownedAsset: ownedAsset),
         child: const Text('Edit'),
       ),
     ];

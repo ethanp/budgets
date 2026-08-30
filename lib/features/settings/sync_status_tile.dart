@@ -9,14 +9,12 @@ import 'package:spend_trends/providers/sync_ui_provider.dart';
 import 'package:spend_trends/services/sync/sync_config.dart';
 
 /// PowerSync connection: status, Home LAN vs Tailscale reachability, Probe/Switch.
-class SyncStatusTile extends ConsumerStatefulWidget {
-  const SyncStatusTile();
-
+class const SyncStatusTile() extends ConsumerStatefulWidget {
   @override
   ConsumerState<SyncStatusTile> createState() => _SyncStatusTileState();
 }
 
-class _SyncStatusTileState extends ConsumerState<SyncStatusTile> {
+class _SyncStatusTileState() extends ConsumerState<SyncStatusTile> {
   static const _style = SettingsSectionStyle.sync;
 
   @override
@@ -35,8 +33,7 @@ class _SyncStatusTileState extends ConsumerState<SyncStatusTile> {
         icon: Icons.cloud,
         title: 'Sync',
         style: _style,
-        caption:
-            'Set POWERSYNC_JWT_SECRET and SERVER_HOST_LAN in .env to enable sync.',
+        caption: 'Set POWERSYNC_JWT_SECRET and SERVER_HOST_LAN in .env to enable sync.',
       );
     }
 
@@ -331,9 +328,7 @@ class _SyncStatusTileState extends ConsumerState<SyncStatusTile> {
   }
 }
 
-class _AlternateRoute {
-  const _AlternateRoute({required this.label, required this.host});
-
-  final String label;
-  final String host;
-}
+class const _AlternateRoute({
+  required final String label,
+  required final String host,
+});

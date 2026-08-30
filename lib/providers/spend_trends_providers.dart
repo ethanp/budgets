@@ -172,7 +172,7 @@ final spendDataChangedProvider = NotifierProvider<SpendDataChanged, int>(
   SpendDataChanged.new,
 );
 
-class SpendDataChanged extends Notifier<int> {
+class SpendDataChanged() extends Notifier<int> {
   @override
   int build() => 0;
 
@@ -185,32 +185,22 @@ final trendSpendRateProvider =
       TrendSpendRateNotifier.new,
     );
 
-class TrendSpendRateNotifier extends Notifier<TrendSpendRate> {
+class TrendSpendRateNotifier() extends Notifier<TrendSpendRate> {
   @override
   TrendSpendRate build() => TrendSpendRate.perYear;
 
   void setRate(TrendSpendRate rate) => state = rate;
 }
 
-class ConnectionStatus {
-  const ConnectionStatus({
-    required this.isConnected,
-    required this.fromEnv,
-    required this.accounts,
-    required this.errors,
-    this.lastSyncedAt,
-    this.latestFinishedPull,
-    this.latestRunningPull,
-  });
-
-  final bool isConnected;
-  final bool fromEnv;
-  final List<Account> accounts;
-  final List<SimpleFinError> errors;
-  final DateTime? lastSyncedAt;
-  final SimpleFinPullRecord? latestFinishedPull;
-  final SimpleFinPullRecord? latestRunningPull;
-}
+class const ConnectionStatus({
+  required final bool isConnected,
+  required final bool fromEnv,
+  required final List<Account> accounts,
+  required final List<SimpleFinError> errors,
+  final DateTime? lastSyncedAt,
+  final SimpleFinPullRecord? latestFinishedPull,
+  final SimpleFinPullRecord? latestRunningPull,
+});
 
 final connectionStatusProvider = FutureProvider<ConnectionStatus>((ref) async {
   ref.watch(spendDataChangedProvider);
