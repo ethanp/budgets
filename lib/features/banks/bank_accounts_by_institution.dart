@@ -42,7 +42,7 @@ class BankAccountsByInstitution._() {
       final amountStyle = account.isCopilot || account.balanceCents == 0
           ? EText.body.medium.copyWith(color: EColors.textMuted)
           : EText.body.medium.copyWith(fontWeight: FontWeight.w600);
-      final width = account.balanceCaption.measureWidth(amountStyle);
+      final width = account.balanceCaption.laidOutWidth(amountStyle);
       if (width > widest) widest = width;
     }
     return widest;

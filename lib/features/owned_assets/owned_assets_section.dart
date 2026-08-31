@@ -92,7 +92,7 @@ class const OwnedAssetsSection({
           ? EText.body.medium.copyWith(color: EColors.textMuted)
           : EText.body.medium.copyWith(fontWeight: FontWeight.w600);
       final width = formatCents(ownedAsset.currentValueCents)
-          .measureWidth(amountStyle);
+          .laidOutWidth(amountStyle);
       if (width > widest) widest = width;
     }
     return widest;

@@ -33,7 +33,7 @@ class CategoryTrendPainter({
   /// Tall enough for a few within-lane label stacks when stays are close.
   static const overlayLaneCount = 4;
   static const overlayLaneHeight = 34.0;
-  static const overlayStripHeight = overlayLaneCount * overlayLaneHeight;
+  static const overlayLanesHeight = overlayLaneCount * overlayLaneHeight;
 
   static const dateLane = 0;
   static const housingLane = 1;
@@ -47,10 +47,10 @@ class CategoryTrendPainter({
         .toList();
     if (drawableSeries.isEmpty) return;
 
-    _CategoryTrendPaintSession(
+    _CategoryTrendChartFrame(
       canvas: canvas,
-      layout: _layout(size, drawableSeries),
-      scale: _valueScale(drawableSeries),
+      layout: _dateRangeLayout(size, drawableSeries),
+      scale: _niceScaleForSmoothedMax(drawableSeries),
       drawableSeries: drawableSeries,
       lifeEvents: lifeEvents,
       housingChain: housingChain,
@@ -59,7 +59,10 @@ class CategoryTrendPainter({
     ).paint();
   }
 
-  ChartDateLayout _layout(Size size, List<CategoryTrendSeries> drawableSeries) {
+  ChartDateLayout _dateRangeLayout(
+    Size size,
+    List<CategoryTrendSeries> drawableSeries,
+  ) {
     final firstDate = drawableSeries
         .map((series) => series.points.first.date)
         .reduce((earlier, later) => earlier.isBefore(later) ? earlier : later);
@@ -70,14 +73,16 @@ class CategoryTrendPainter({
       size: size,
       leftPadding: leftPadding,
       rightPadding: rightPadding,
-      topPadding: overlayStripHeight,
+      topPadding: overlayLanesHeight,
       bottomPadding: 24,
       minDate: firstDate,
       maxDate: lastDate,
     );
   }
 
-  TrendValueScale _valueScale(List<CategoryTrendSeries> drawableSeries) {
+  TrendValueScale _niceScaleForSmoothedMax(
+    List<CategoryTrendSeries> drawableSeries,
+  ) {
     var highest = 0.0;
     for (final series in drawableSeries) {
       for (final point in series.points) {
@@ -96,8 +101,8 @@ class CategoryTrendPainter({
       hoverPosition != oldDelegate.hoverPosition;
 }
 
-/// One `paint()` frame: canvas + layout + scale, with draw helpers as methods.
-class _CategoryTrendPaintSession({
+/// One chart frame: canvas + date-range layout + value scale.
+class _CategoryTrendChartFrame({
   required final Canvas canvas,
   required final ChartDateLayout layout,
   required final TrendValueScale scale,
@@ -127,14 +132,14 @@ class _CategoryTrendPaintSession({
   };
 
   void paint() {
-    _drawBackground();
+    _paintDashedValueTicksAndDateLanes();
     for (final series in drawableSeries) {
       if (series.percentileAreaFill) {
-        _drawPercentileArea(series);
+        _paintPercentileRankAsColumnFade(series);
       }
     }
     for (final series in drawableSeries) {
-      _drawSeriesLine(series);
+      _strokeSmoothedPace(series);
     }
 
     final chartMin = layout.minDate.startOfDay;
@@ -154,22 +159,22 @@ class _CategoryTrendPaintSession({
       chartMax: chartMax,
     );
 
-    _drawStayChainBands(
+    _paintAlternatingStayEras(
       kind: LifeChainKind.housing,
       chain: housingChain,
       segments: housingSegments,
     );
-    _drawStayChainBands(
+    _paintAlternatingStayEras(
       kind: LifeChainKind.job,
       chain: jobChain,
       segments: jobSegments,
     );
-    _drawLifeEventMarkers(lifeEventsInRange);
-    _drawHoverMarker();
-    _drawAxisLabels();
+    _paintLifeEventSpansAndPointTicks(lifeEventsInRange);
+    _paintInspectDateHairlineAndPaceRings();
+    _paintValueTickLabels();
   }
 
-  void _drawBackground() {
+  void _paintDashedValueTicksAndDateLanes() {
     final gridPaint = Paint()
       ..color = EColors.border.withValues(alpha: 0.55)
       ..strokeWidth = 0.75
@@ -177,27 +182,24 @@ class _CategoryTrendPaintSession({
     for (final tickCents in scale.tickCents) {
       if (tickCents <= 0) continue;
       final lineY = scale.yForCents(tickCents, layout);
-      _drawDashedHorizontal(
+      _strokeDashedValueTick(
         start: Offset(layout.left, lineY),
         endX: layout.right,
         paint: gridPaint,
       );
     }
-    layout.drawAxes(canvas);
+    layout.strokeLeftAndBottomPlotEdges(canvas);
     layout.drawYearBoundaries(
       canvas,
       yearLabelY: _laneLabelY(CategoryTrendPainter.dateLane),
       labelStyle: _chartAxisLabelStyle,
     );
-    layout.drawDateLabels(canvas, labelStyle: _chartAxisLabelStyle);
+    layout.paintMonthOrDayTicks(canvas, labelStyle: _chartAxisLabelStyle);
   }
 
-  /// Area under the curve: vertical fade to the baseline, with opacity set by
-  /// each x-column's percentile rank within that series' smoothed history.
-  ///
-  /// Drawn per pixel column (not per data point) so multi-year daily series
-  /// still fill — consecutive days are often sub-pixel on the x-axis.
-  void _drawPercentileArea(CategoryTrendSeries series) {
+  /// Per pixel column (not per data point) so multi-year daily points still
+  /// fill — consecutive days are often sub-pixel on the x-axis.
+  void _paintPercentileRankAsColumnFade(CategoryTrendSeries series) {
     final points = series.points;
     if (points.length < 2) return;
 
@@ -290,7 +292,7 @@ class _CategoryTrendPaintSession({
     );
   }
 
-  void _drawSeriesLine(CategoryTrendSeries series) {
+  void _strokeSmoothedPace(CategoryTrendSeries series) {
     final offsets = <Offset>[
       for (final point in series.points)
         Offset(
@@ -312,11 +314,11 @@ class _CategoryTrendPaintSession({
       ..strokeJoin = StrokeJoin.round;
 
     if (series.guide) {
-      _drawDottedPolyline(offsets, linePaint, dashLength: 8, gapLength: 10);
+      _strokeDashedPace(offsets, linePaint, dashLength: 8, gapLength: 10);
       return;
     }
     if (series.dotted) {
-      _drawDottedPolyline(offsets, linePaint);
+      _strokeDashedPace(offsets, linePaint);
       return;
     }
 
@@ -327,7 +329,7 @@ class _CategoryTrendPaintSession({
     canvas.drawPath(seriesPath, linePaint);
   }
 
-  void _drawDashedHorizontal({
+  void _strokeDashedValueTick({
     required Offset start,
     required double endX,
     required Paint paint,
@@ -346,7 +348,7 @@ class _CategoryTrendPaintSession({
     }
   }
 
-  void _drawDottedPolyline(
+  void _strokeDashedPace(
     List<Offset> offsets,
     Paint linePaint, {
     double dashLength = 5,
@@ -420,7 +422,7 @@ class _CategoryTrendPaintSession({
     );
   }
 
-  void _drawStayChainBands({
+  void _paintAlternatingStayEras({
     required LifeChainKind kind,
     required StayChain? chain,
     required List<ChainStaySegment> segments,
@@ -570,7 +572,7 @@ class _CategoryTrendPaintSession({
     );
   }
 
-  void _drawLifeEventMarkers(List<LifeEvent> markersInRange) {
+  void _paintLifeEventSpansAndPointTicks(List<LifeEvent> markersInRange) {
     if (markersInRange.isEmpty) return;
     final chartMax = layout.maxDate.startOfDay;
     final fillTop = _laneTop(CategoryTrendPainter.lifeEventLane);
@@ -633,7 +635,7 @@ class _CategoryTrendPaintSession({
       );
 
       if (lifeEvent.isPoint) {
-        _drawDashedVertical(
+        _strokeDashedLifeEventTick(
           Offset(labelAnchorX, layout.top),
           Offset(labelAnchorX, layout.bottom),
           linePaint,
@@ -669,7 +671,7 @@ class _CategoryTrendPaintSession({
     }
   }
 
-  void _drawDashedVertical(Offset start, Offset end, Paint paint) {
+  void _strokeDashedLifeEventTick(Offset start, Offset end, Paint paint) {
     const dashLength = 4.0;
     const gapLength = 3.0;
     final height = end.dy - start.dy;
@@ -691,7 +693,7 @@ class _CategoryTrendPaintSession({
     }
   }
 
-  void _drawHoverMarker() {
+  void _paintInspectDateHairlineAndPaceRings() {
     final position = hoverPosition;
     if (position == null) return;
 
@@ -721,7 +723,7 @@ class _CategoryTrendPaintSession({
     }
   }
 
-  void _drawAxisLabels() {
+  void _paintValueTickLabels() {
     final axisStyle = _chartAxisLabelStyle;
     for (final tickCents in scale.tickCents) {
       final label = formatAxisCents(tickCents);

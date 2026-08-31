@@ -230,8 +230,8 @@ class const _ContributorColumnWidths({
     var rankWidth = 0.0;
     var dateWidth = 0.0;
     var merchantWidth = 0.0;
-    var paceWidth = paceHeader.measureWidth(headerStyle);
-    var amountWidth = amountHeader.measureWidth(headerStyle);
+    var paceWidth = paceHeader.laidOutWidth(headerStyle);
+    var amountWidth = amountHeader.laidOutWidth(headerStyle);
     var categoryWidth = 0.0;
 
     for (var index = 0; index < contributors.length; index++) {
@@ -272,7 +272,7 @@ class const _ContributorColumnWidths({
   }
 
   static double _maxWidth(double current, String text, TextStyle style) {
-    final width = text.measureWidth(style);
+    final width = text.laidOutWidth(style);
     return width > current ? width : current;
   }
 }

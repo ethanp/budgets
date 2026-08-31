@@ -53,7 +53,7 @@ class _RecategorizeFormState() extends ConsumerState<RecategorizeForm> {
         final categorizer = await ref.read(categorizerProvider.future);
         return categorizer.transactionsMatchingContains(pattern);
       },
-      notify: _applyRematchResults,
+      notify: _selectRematchedTransactions,
     );
     _patternRematch.rematch(_patternController.text);
   }
@@ -66,7 +66,7 @@ class _RecategorizeFormState() extends ConsumerState<RecategorizeForm> {
     super.dispose();
   }
 
-  void _applyRematchResults() {
+  void _selectRematchedTransactions() {
     if (!mounted) return;
     setState(() {
       if (_patternRematch.rematching) return;

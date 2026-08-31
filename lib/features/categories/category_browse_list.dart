@@ -23,17 +23,17 @@ class const CategoryBrowseList({
     Map<String, CategoryMonthRow> rowsById,
   ) {
     final semiboldCaption = EText.caption.copyWith(fontWeight: FontWeight.w600);
-    var widest = formatCents(0).measureWidth(semiboldCaption);
+    var widest = formatCents(0).laidOutWidth(semiboldCaption);
     for (final section in sections) {
       if (section.title != 'Cash flow') {
         final headerWidth = formatCents(section.monthTotalCents)
-            .measureWidth(semiboldCaption);
+            .laidOutWidth(semiboldCaption);
         if (headerWidth > widest) widest = headerWidth;
       }
       for (final category in section.categories) {
         if (category.isFlow) continue;
         final spent = rowsById[category.id]?.spentCents ?? 0;
-        final width = formatCents(spent).measureWidth(semiboldCaption);
+        final width = formatCents(spent).laidOutWidth(semiboldCaption);
         if (width > widest) widest = width;
       }
     }

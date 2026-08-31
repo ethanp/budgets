@@ -19,7 +19,7 @@ class const AppSpreadsheetCell({
 /// Leading content + a shared-width trailing column (right-aligned).
 ///
 /// Use the same [trailingWidth] across sibling rows so values form a column,
-/// sized to the widest cell (see [TextsPaintMeasure.maxPaintedWidth]).
+/// sized to the widest cell (see [StringsWidestLaidOutWidth.widestLaidOutWidth]).
 class const AppSpreadsheetRow({
   required final Widget leading,
   required final Widget trailing,

@@ -393,13 +393,13 @@ class _CategoryTrendChartState() extends ConsumerState<CategoryTrendChart> {
         .toList();
     if (drawable.isEmpty) return null;
 
-    final layout = _chartLayout(
+    final layout = _dateRangeLayout(
       Size(constraints.maxWidth, constraints.maxHeight),
       drawable,
     );
     if (position.dy < layout.top || position.dy > layout.bottom) return null;
 
-    final scale = _chartValueScale(drawable);
+    final scale = _niceScaleForSmoothedMax(drawable);
     CategoryTrendSeries? nearestSeries;
     var nearestDistance = double.infinity;
     for (final series in drawable) {
@@ -415,7 +415,7 @@ class _CategoryTrendChartState() extends ConsumerState<CategoryTrendChart> {
     return nearestSeries;
   }
 
-  ChartDateLayout _chartLayout(Size size, List<CategoryTrendSeries> drawable) {
+  ChartDateLayout _dateRangeLayout(Size size, List<CategoryTrendSeries> drawable) {
     final firstDate = drawable
         .map((series) => series.points.first.date)
         .reduce((earlier, later) => earlier.isBefore(later) ? earlier : later);
@@ -426,14 +426,16 @@ class _CategoryTrendChartState() extends ConsumerState<CategoryTrendChart> {
       size: size,
       leftPadding: CategoryTrendPainter.leftPadding,
       rightPadding: CategoryTrendPainter.rightPadding,
-      topPadding: CategoryTrendPainter.overlayStripHeight,
+      topPadding: CategoryTrendPainter.overlayLanesHeight,
       bottomPadding: 24,
       minDate: firstDate,
       maxDate: lastDate,
     );
   }
 
-  TrendValueScale _chartValueScale(List<CategoryTrendSeries> drawable) {
+  TrendValueScale _niceScaleForSmoothedMax(
+    List<CategoryTrendSeries> drawable,
+  ) {
     var highest = 0.0;
     for (final series in drawable) {
       for (final point in series.points) {

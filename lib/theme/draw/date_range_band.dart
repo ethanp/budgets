@@ -89,7 +89,7 @@ void paintDateRangeBand(
   if (fillPaint != null) {
     canvas.drawRect(fillRect, fillPaint);
   } else if (fillColor != null) {
-    _paintBandFill(
+    _fillBandSolidOrHatch(
       canvas,
       bandRect: fillRect,
       color: fillColor,
@@ -113,7 +113,7 @@ void paintDateRangeBand(
   }
 }
 
-void _paintBandFill(
+void _fillBandSolidOrHatch(
   Canvas canvas, {
   required Rect bandRect,
   required Color color,
@@ -129,7 +129,7 @@ void _paintBandFill(
           ..style = PaintingStyle.fill,
       );
     case DateRangeBandFillStyle.hatch:
-      _paintBandHatch(
+      _strokeSparseDiagonalHatch(
         canvas,
         bandRect: bandRect,
         color: color,
@@ -138,7 +138,7 @@ void _paintBandFill(
   }
 }
 
-void _paintBandHatch(
+void _strokeSparseDiagonalHatch(
   Canvas canvas, {
   required Rect bandRect,
   required Color color,

@@ -64,7 +64,7 @@ class ChartDateLayout({
       return _subsampleTicksForWidth(_quarterMonthTicks());
     }
 
-    final targetCount = _targetTickCount();
+    final targetCount = _tickCountAtSeventyPx();
     final stepDays = math.max(1, (spanDays / targetCount).round());
     final ticks = <DateTime>[minDate];
     var cursor = minDate.shiftedByDays(stepDays);
@@ -77,13 +77,13 @@ class ChartDateLayout({
     return _subsampleTicksForWidth(ticks);
   }
 
-  int _targetTickCount() => math.max(3, (width / 70).round());
+  int _tickCountAtSeventyPx() => math.max(3, (width / 70).round());
 
   /// Keeps tick labels from overlapping on narrow or multi-year charts.
   List<DateTime> _subsampleTicksForWidth(List<DateTime> candidates) {
     if (candidates.length <= 1) return candidates;
 
-    final targetCount = _targetTickCount();
+    final targetCount = _tickCountAtSeventyPx();
     if (candidates.length <= targetCount) return candidates;
 
     final picked = <DateTime>[];
@@ -119,7 +119,7 @@ class ChartDateLayout({
     return ticks;
   }
 
-  void drawDateLabels(Canvas canvas, {required TextStyle labelStyle}) {
+  void paintMonthOrDayTicks(Canvas canvas, {required TextStyle labelStyle}) {
     final spanDays = maxDate.difference(minDate).inDays;
     final tickPaint = Paint()
       ..color = EColors.textMuted
@@ -153,7 +153,7 @@ class ChartDateLayout({
     }
   }
 
-  void drawAxes(Canvas canvas) {
+  void strokeLeftAndBottomPlotEdges(Canvas canvas) {
     final axisPaint = Paint()
       ..color = EColors.textMuted.withValues(alpha: 0.5)
       ..strokeWidth = 1;

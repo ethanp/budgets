@@ -102,7 +102,7 @@ class _RuleImpactConfirmSheetState()
             final categorizer = await ref.read(categorizerProvider.future);
             return categorizer.transactionsMatchingContains(pattern);
           },
-          notify: () => _applyRematchResults(groupIndex),
+          notify: () => _replaceGroupWithRematch(groupIndex),
         ),
     ];
     for (var groupIndex = 0; groupIndex < _groups.length; groupIndex++) {
@@ -110,7 +110,7 @@ class _RuleImpactConfirmSheetState()
     }
   }
 
-  void _applyRematchResults(int groupIndex) {
+  void _replaceGroupWithRematch(int groupIndex) {
     if (!mounted) return;
     setState(() {
       final rematch = _rematches[groupIndex];

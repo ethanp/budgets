@@ -98,7 +98,7 @@ class BanksPullLiveSession() extends Notifier<BanksPullLiveSessionState?> {
     });
 
     try {
-      await action(_applyPullProgress);
+      await action(_mergeLivePullProgress);
       final session = state;
       if (session == null) return;
       state = session.copyWith(statusLine: 'Applying category rules…');
@@ -134,7 +134,7 @@ class BanksPullLiveSession() extends Notifier<BanksPullLiveSessionState?> {
     }
   }
 
-  void _applyPullProgress(SimpleFinPullProgress progress) {
+  void _mergeLivePullProgress(SimpleFinPullProgress progress) {
     final session = state;
     if (session == null) return;
 

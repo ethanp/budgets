@@ -112,11 +112,11 @@ class DistributionWhiskerPainter({
     final stemColor = color.withValues(alpha: isDimmed ? 0.45 : 0.85);
 
     final centerX = size.width / 2;
-    final minY = scale.yFromTop(distribution.minCents, size.height);
-    final maxY = scale.yFromTop(distribution.maxCents, size.height);
-    final medianY = scale.yFromTop(distribution.medianCents, size.height);
-    final averageY = scale.yFromTop(distribution.averageCents, size.height);
-    final currentY = scale.yFromTop(distribution.currentCents, size.height);
+    final minY = scale.yFromWhiskerBandTop(distribution.minCents, size.height);
+    final maxY = scale.yFromWhiskerBandTop(distribution.maxCents, size.height);
+    final medianY = scale.yFromWhiskerBandTop(distribution.medianCents, size.height);
+    final averageY = scale.yFromWhiskerBandTop(distribution.averageCents, size.height);
+    final currentY = scale.yFromWhiskerBandTop(distribution.currentCents, size.height);
 
     DistributionWhiskerMarks.paintRangeStem(
       canvas,
@@ -158,7 +158,7 @@ enum DistributionWhiskerGlyph() {
   now,
 }
 
-class _GlyphPainter(final DistributionWhiskerGlyph glyph, final Color color)
+class _WhiskerMarkPainter(final DistributionWhiskerGlyph glyph, final Color color)
     extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
@@ -196,7 +196,7 @@ class _GlyphPainter(final DistributionWhiskerGlyph glyph, final Color color)
   }
 
   @override
-  bool shouldRepaint(covariant _GlyphPainter oldDelegate) =>
+  bool shouldRepaint(covariant _WhiskerMarkPainter oldDelegate) =>
       oldDelegate.glyph != glyph || oldDelegate.color != color;
 }
 
@@ -212,12 +212,12 @@ class const DistributionWhiskerGridPainter({
       ..strokeCap = StrokeCap.round;
     for (final tickCents in scale.tickCents) {
       if (tickCents <= 0) continue;
-      final y = scale.yFromTop(tickCents, size.height);
-      _drawDashedHorizontal(canvas, y: y, width: size.width, paint: paint);
+      final y = scale.yFromWhiskerBandTop(tickCents, size.height);
+      _strokeDashedValueTick(canvas, y: y, width: size.width, paint: paint);
     }
   }
 
-  void _drawDashedHorizontal(
+  void _strokeDashedValueTick(
     Canvas canvas, {
     required double y,
     required double width,
@@ -303,7 +303,7 @@ class const DistributionWhiskerSymbolKey() extends StatelessWidget {
           width: glyph == DistributionWhiskerGlyph.range ? 12 : 14,
           height: glyph == DistributionWhiskerGlyph.range ? 16 : 14,
           child: CustomPaint(
-            painter: _GlyphPainter(glyph, EColors.textSecondary),
+            painter: _WhiskerMarkPainter(glyph, EColors.textSecondary),
           ),
         ),
         const SizedBox(width: 5),

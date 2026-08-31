@@ -13,8 +13,7 @@ class const TrendValueScale({
 
   double fractionFromBottom(double cents) => (cents / maxCents).clamp(0.0, 1.0);
 
-  /// Y from the top of a fixed-height band (whisker strip).
-  double yFromTop(double cents, double height) =>
+  double yFromWhiskerBandTop(double cents, double height) =>
       height * (1 - fractionFromBottom(cents));
 
   double yForCents(double cents, ChartDateLayout layout) {

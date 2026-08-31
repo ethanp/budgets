@@ -18,7 +18,7 @@ class const ActivityColumnWidths({
   required final double amount,
 }) {
   static const titleFloor = 200.0;
-  static const _stripe = 5.0;
+  static const _categoryColorBarWidth = 5.0;
   static const _surfaceBorder = 2.0;
   static const _scrollbarGutter = 16.0;
   static const _fitSlack = 32.0;
@@ -29,10 +29,10 @@ class const ActivityColumnWidths({
 
   /// Inflate painted widths slightly — fallback fonts and subpixel rounding
   /// otherwise make [contentFitWidth] stop short while cells still ellipsize.
-  static const _paintSafety = 1.12;
+  static const _fallbackFontWidthInflation = 1.12;
 
-  static double get _chromeWidth =>
-      _stripe +
+  static double get _colorBarAndInsetsWidth =>
+      _categoryColorBarWidth +
       _surfaceBorder +
       _scrollbarGutter +
       _fitSlack +
@@ -43,7 +43,7 @@ class const ActivityColumnWidths({
 
   /// Pane width that shows every measured cell without ellipsis.
   double get contentFitWidth =>
-      _chromeWidth + category + account + title + amount;
+      _colorBarAndInsetsWidth + category + account + title + amount;
 
   static ActivityColumnWidths measure({
     required List<BankTransaction> transactions,
@@ -58,20 +58,20 @@ class const ActivityColumnWidths({
       fontFeatures: const [FontFeature.tabularFigures()],
     );
 
-    var categoryWidth = 'Uncategorized'.measureWidth(categoryStyle);
+    var categoryWidth = 'Uncategorized'.laidOutWidth(categoryStyle);
     var accountWidth = 0.0;
     var titleWidth = titleFloor;
-    var amountWidth = formatCents(0).measureWidth(amountStyle);
+    var amountWidth = formatCents(0).laidOutWidth(amountStyle);
 
     for (final transaction in transactions) {
       final categoryName =
           categories[transaction.effectiveCategoryId]?.name ?? 'Uncategorized';
-      final categoryPaint = categoryName.measureWidth(categoryStyle);
+      final categoryPaint = categoryName.laidOutWidth(categoryStyle);
       if (categoryPaint > categoryWidth) categoryWidth = categoryPaint;
 
       final account = accounts[transaction.accountId];
       if (account != null) {
-        final accountPaint = account.displayNameWithInstitution.measureWidth(
+        final accountPaint = account.displayNameWithInstitution.laidOutWidth(
           accountStyle,
         );
         if (accountPaint > accountWidth) accountWidth = accountPaint;
@@ -80,26 +80,26 @@ class const ActivityColumnWidths({
       final merchantName = transaction.rawDescription.isEmpty
           ? transaction.normalizedMerchant
           : transaction.rawDescription;
-      final titlePaint = merchantName.measureWidth(titleStyle);
+      final titlePaint = merchantName.laidOutWidth(titleStyle);
       if (titlePaint > titleWidth) titleWidth = titlePaint;
 
       final amountPaint = formatCents(transaction.amountCents)
-          .measureWidth(amountStyle);
+          .laidOutWidth(amountStyle);
       if (amountPaint > amountWidth) amountWidth = amountPaint;
     }
 
     return ActivityColumnWidths(
-      category: categoryWidth * _paintSafety,
-      account: accountWidth * _paintSafety,
-      title: math.max(titleFloor, titleWidth * _paintSafety),
-      amount: amountWidth * _paintSafety,
+      category: categoryWidth * _fallbackFontWidthInflation,
+      account: accountWidth * _fallbackFontWidthInflation,
+      title: math.max(titleFloor, titleWidth * _fallbackFontWidthInflation),
+      amount: amountWidth * _fallbackFontWidthInflation,
     );
   }
 
   /// Column sizes for a concrete list pane width. Prefers natural widths;
   /// shrinks title first, then category/account together, when space is short.
   ActivityColumnWidths allocate(double listPaneWidth) {
-    final inner = math.max(0.0, listPaneWidth - _chromeWidth);
+    final inner = math.max(0.0, listPaneWidth - _colorBarAndInsetsWidth);
     final afterAmount = math.max(0.0, inner - amount);
     final naturalFlexible = category + account + title;
 

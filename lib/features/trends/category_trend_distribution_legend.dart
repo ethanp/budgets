@@ -162,7 +162,7 @@ class const _DistributionAxisLabels({
         children: [
           for (final tickCents in scale.tickCents)
             Positioned(
-              top: scale.yFromTop(tickCents, whiskerHeight) - 7,
+              top: scale.yFromWhiskerBandTop(tickCents, whiskerHeight) - 7,
               right: 0,
               child: Text(
                 formatTick(tickCents.round()),
