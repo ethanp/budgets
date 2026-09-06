@@ -110,19 +110,13 @@ class const TrendsScreen() extends ConsumerWidget {
             jobChain: jobChain,
             showSpendRateToggle: true,
             useDistributionLegend: true,
-            initiallyHiddenSeriesIds: const {
-              TrendChartCatalog.allSpendSeriesId,
-            },
           ),
         if (bundle.categorySpend.isNotEmpty && bundle.cashFlows.isNotEmpty)
           const SizedBox(height: ELayout.spaceLg),
         if (bundle.cashFlows.isNotEmpty)
           CategoryTrendChart(
             title: 'Income · Spending · Savings',
-            subtitle:
-                'Annual pace · Savings = Income − Spending · '
-                'dashed = 25% FIRE guide · tap a line for top contributors · '
-                'double-tap legend to solo',
+            subtitle: null,
             seriesList: bundle.cashFlows,
             transactions: transactions,
             categories: categories,

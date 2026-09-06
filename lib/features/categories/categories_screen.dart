@@ -23,6 +23,7 @@ class const CategoriesScreen() extends ConsumerStatefulWidget {
 }
 
 class _CategoriesScreenState() extends ConsumerState<CategoriesScreen> {
+  static const _rightPaneWidth = 640.0;
   static final _monthLabelFormat = DateFormat('MMM yyyy');
 
   String? _selectedCategoryId;
@@ -103,6 +104,8 @@ class _CategoriesScreenState() extends ConsumerState<CategoriesScreen> {
     };
 
     return AppBrowseSplitShell(
+      initialSizedWidth: _rightPaneWidth,
+      maxSizedWidth: _rightPaneWidth,
       left: CategoryBrowseList(
         yearMonthLabel: _formatYearMonth(yearMonth),
         sections: sections,

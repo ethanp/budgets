@@ -41,8 +41,10 @@ class _CategoryEditorSheetState() extends ConsumerState<CategoryEditorSheet> {
 
   bool get _isEditing => widget.category != null;
 
-  /// Income / Transfer only — Housing stays editable as a spend category.
-  bool get _isFlowBuiltin => widget.category?.isFlow ?? false;
+  /// Income / Transfer only — Housing and Investments stay editable.
+  bool get _isImmutableBuiltin =>
+      widget.category?.id == SpecialCategory.income.id ||
+      widget.category?.id == SpecialCategory.transfer.id;
 
   @override
   void initState() {
@@ -59,11 +61,11 @@ class _CategoryEditorSheetState() extends ConsumerState<CategoryEditorSheet> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isFlowBuiltin) {
+    if (_isImmutableBuiltin) {
       return AppSheetPanel.compact(
         child: Padding(
           padding: const EdgeInsets.all(ELayout.spaceLg),
-          child: _flowBuiltinBody(),
+          child: _immutableBuiltinBody(),
         ),
       );
     }
@@ -84,7 +86,7 @@ class _CategoryEditorSheetState() extends ConsumerState<CategoryEditorSheet> {
     );
   }
 
-  Widget _flowBuiltinBody() {
+  Widget _immutableBuiltinBody() {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -97,9 +99,12 @@ class _CategoryEditorSheetState() extends ConsumerState<CategoryEditorSheet> {
         ),
         const SizedBox(height: ELayout.spaceSm),
         Text(
-          'Cash flow · excluded from spend trends. '
-          'It cannot be renamed or deleted. '
-          'Use it when categorizing income or transfers.',
+          widget.category!.isIncome
+              ? 'Income · excluded from spend trends. '
+                    'It cannot be renamed or deleted.'
+              : 'Transfer · excluded from spend trends. '
+                    'It cannot be renamed or deleted. '
+                    'Use it for money moving between your own accounts.',
           style: EText.caption,
         ),
         const SizedBox(height: ELayout.spaceMd),

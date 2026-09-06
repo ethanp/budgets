@@ -44,6 +44,12 @@ void main() {
       endDate: end,
     );
 
+    final allSpending = bundle.categorySpend.firstWhere(
+      (series) => series.id == TrendChartCatalog.allSpendSeriesId,
+    );
+    expect(allSpending.name, 'All spending');
+    expect(allSpending.dotted, isTrue);
+
     final affordability = bundle.categorySpend.firstWhere(
       (series) => series.id == TrendChartCatalog.housingAffordabilitySeriesId,
     );

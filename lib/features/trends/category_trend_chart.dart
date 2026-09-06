@@ -347,7 +347,6 @@ class _CategoryTrendChartState() extends ConsumerState<CategoryTrendChart> {
       transactions: widget.transactions,
       categories: widget.categories,
       groups: widget.groups,
-      chartSeriesList: widget.seriesList,
     );
     if (contributors.isEmpty) return;
 
@@ -368,7 +367,7 @@ class _CategoryTrendChartState() extends ConsumerState<CategoryTrendChart> {
     CategoryTrendPlot plot,
     DateTime tapDate,
   ) {
-    if (position.dy < plot.layout.top || position.dy > plot.layout.bottom) {
+    if (position.dy < plot.chart.top || position.dy > plot.chart.bottom) {
       return null;
     }
 
@@ -382,7 +381,7 @@ class _CategoryTrendChartState() extends ConsumerState<CategoryTrendChart> {
       }
       final point = series.nearestPoint(tapDate);
       if (point == null) continue;
-      final seriesY = plot.scale.yForCents(point.smoothedCents, plot.layout);
+      final seriesY = plot.scale.yForCents(point.smoothedCents, plot.chart);
       final distance = (seriesY - position.dy).abs();
       if (distance < nearestDistance) {
         nearestDistance = distance;

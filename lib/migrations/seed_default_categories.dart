@@ -1,13 +1,14 @@
 /// Fresh installs have an empty `categories` table. The app assumes a fixed set
 /// of default spend buckets (Groceries, Dining, …) plus built-ins (Housing,
-/// Income, Transfer) so Copilot import mapping and Trends series have somewhere
-/// to land.
+/// Income, Transfer, Investments) so Copilot import mapping and Trends series
+/// have somewhere to land.
 ///
 /// This runs once at PowerSync startup when `categories` is empty. It is a no-op
 /// after the first seed (or after sync has already pulled categories).
 library;
 
 import 'package:spend_trends/domain/special_category.dart';
+import 'package:spend_trends/migrations/migrate_special_categories.dart';
 import 'package:ethan_sync/ethan_sync.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:powersync/powersync.dart';
@@ -20,6 +21,8 @@ Future<void> seedDefaultCategoriesIfNeeded(PowerSyncDatabase database) async {
   );
   final count = (countRow?['c'] as Object?).asIntOrNull() ?? 0;
   if (count > 0) return;
+
+  await ensureIncomeCategoryGroup(database);
 
   const spendDefaults = [
     'Groceries',
@@ -50,7 +53,7 @@ Future<void> seedDefaultCategoriesIfNeeded(PowerSyncDatabase database) async {
       'sort_order': special.sortOrder,
       'archived': 0,
       'color_token': null,
-      'group_id': null,
+      'group_id': special.defaultGroupId,
     });
   }
   _log.log(

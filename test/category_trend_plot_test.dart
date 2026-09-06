@@ -79,8 +79,8 @@ void main() {
 
       var expectedCount = 0;
       for (
-        var columnX = plot.layout.left;
-        columnX < plot.layout.right;
+        var columnX = plot.chart.left;
+        columnX < plot.chart.right;
         columnX += PaceLineSamples.columnWidth
       ) {
         expectedCount++;
@@ -92,7 +92,7 @@ void main() {
         final sampleDate = plot.dateForX(offset.dx);
         final expectedY = plot.scale.yForCents(
           series.smoothedCentsAt(sampleDate),
-          plot.layout,
+          plot.chart,
         );
         expect(offset.dy, closeTo(expectedY, 0.01));
       }

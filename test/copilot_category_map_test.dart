@@ -10,6 +10,7 @@ void main() {
   test('unknown names pass through for existing-category lookup', () {
     expect(spendCategoryNameForCopilot('Dining'), 'Dining');
     expect(spendCategoryNameForCopilot('  Travel  '), 'Travel');
+    expect(spendCategoryNameForCopilot('Investments'), 'Investments');
   });
 
   test('empty resolves to null', () {

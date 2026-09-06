@@ -18,6 +18,9 @@ class const BankAccountBalanceRow({
 
 class _BankAccountBalanceRowState()
     extends ConsumerState<BankAccountBalanceRow> {
+  /// Trailing room past the current name for the rename tap target / field.
+  static const _nameEditSlack = 50.0;
+
   late final TextEditingController _nameController;
   late final FocusNode _focusNode;
   bool _editing = false;
@@ -54,86 +57,6 @@ class _BankAccountBalanceRowState()
 
   @override
   Widget build(BuildContext context) {
-    final exceptionLabel = _exceptionLabel(widget.account);
-    final balanceCaption = widget.account.balanceCaption;
-    final isMutedBalance =
-        !widget.account.countsTowardNetWorth ||
-        widget.account.balanceCents == 0;
-    final nameStyle = exceptionLabel != null
-        ? EText.body.medium.copyWith(fontWeight: FontWeight.w600)
-        : EText.body.medium;
-
-    final nameRow = Row(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 280),
-          child: _editing
-              ? TextField(
-                  controller: _nameController,
-                  focusNode: _focusNode,
-                  style: nameStyle.copyWith(color: EColors.textPrimary),
-                  decoration: EInput.filled(
-                    isDense: true,
-                    hintText: widget.account.name,
-                    hintStyle: nameStyle.copyWith(color: EColors.textMuted),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: ELayout.spaceSm,
-                      vertical: ELayout.spaceXs,
-                    ),
-                    fillColor: EColors.surfaceInset,
-                    focusedBorder: EInput.outlineSm.copyWith(
-                      borderSide: const BorderSide(
-                        color: FinanceColors.accentPrimary,
-                      ),
-                    ),
-                  ),
-                  enabled: !_saving,
-                  onSubmitted: (_) => _commitRename(),
-                )
-              : GestureDetector(
-                  onTap: _beginEditing,
-                  behavior: HitTestBehavior.opaque,
-                  child: Text(
-                    widget.account.displayName,
-                    style: nameStyle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-        ),
-        const SizedBox(width: ELayout.spaceMd),
-        SizedBox(
-          width: widget.amountColumnWidth,
-          child: Align(
-            alignment: Alignment.centerRight,
-            child: Text(
-              balanceCaption,
-              style: isMutedBalance
-                  ? EText.body.medium.copyWith(color: EColors.textMuted)
-                  : EText.body.medium.copyWith(fontWeight: FontWeight.w600),
-              maxLines: 1,
-              textAlign: TextAlign.right,
-            ),
-          ),
-        ),
-      ],
-    );
-
-    final body = exceptionLabel == null
-        ? nameRow
-        : Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              nameRow,
-              Text(
-                exceptionLabel,
-                style: EText.caption.copyWith(color: EColors.warning),
-              ),
-            ],
-          );
-
     final decorated = widget.selected
         ? ESurface(
             kind: ESurfaceKind.tinted,
@@ -143,14 +66,14 @@ class _BankAccountBalanceRowState()
               vertical: ELayout.spaceXs,
             ),
             borderRadius: ELayout.borderRadiusSm,
-            child: body,
+            child: _rowBody(),
           )
         : Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: ELayout.spaceSm,
               vertical: ELayout.spaceXs,
             ),
-            child: body,
+            child: _rowBody(),
           );
 
     if (widget.onActivated == null) return decorated;
@@ -158,6 +81,104 @@ class _BankAccountBalanceRowState()
       behavior: HitTestBehavior.opaque,
       onTap: widget.onActivated,
       child: decorated,
+    );
+  }
+
+  Widget _rowBody() {
+    final exceptionLabel = _exceptionLabel(widget.account);
+    final nameAndBalance = _nameAndBalance(
+      emphasizeName: exceptionLabel != null,
+    );
+    if (exceptionLabel == null) return nameAndBalance;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        nameAndBalance,
+        Text(
+          exceptionLabel,
+          style: EText.caption.copyWith(color: EColors.warning),
+        ),
+      ],
+    );
+  }
+
+  Widget _nameAndBalance({required bool emphasizeName}) {
+    final isMutedBalance =
+        !widget.account.countsTowardNetWorth ||
+        widget.account.balanceCents == 0;
+    final nameStyle = emphasizeName
+        ? EText.body.medium.copyWith(fontWeight: FontWeight.w600)
+        : EText.body.medium;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return Align(
+                alignment: Alignment.centerLeft,
+                child: _accountName(nameStyle, maxWidth: constraints.maxWidth),
+              );
+            },
+          ),
+        ),
+        const SizedBox(width: ELayout.spaceMd),
+        SizedBox(
+          width: widget.amountColumnWidth,
+          child: Text(
+            widget.account.balanceCaption,
+            style: isMutedBalance
+                ? EText.body.medium.copyWith(color: EColors.textMuted)
+                : EText.body.medium.copyWith(fontWeight: FontWeight.w600),
+            maxLines: 1,
+            textAlign: TextAlign.right,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _accountName(TextStyle nameStyle, {required double maxWidth}) {
+    final typed = _nameController.text.trim();
+    final width = ETextField.widthForText(
+      typed.isNotEmpty ? typed : widget.account.displayName,
+      style: nameStyle,
+      extra: _nameEditSlack,
+    ).clamp(0.0, maxWidth);
+    final name = _editing
+        ? TextField(
+            controller: _nameController,
+            focusNode: _focusNode,
+            style: nameStyle.copyWith(color: EColors.textPrimary),
+            decoration: EInput.filled(
+              isDense: true,
+              hintText: widget.account.name,
+              hintStyle: nameStyle.copyWith(color: EColors.textMuted),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: ELayout.spaceSm,
+                vertical: ELayout.spaceXs,
+              ),
+              fillColor: EColors.surfaceInset,
+              focusedBorder: EInput.outlineSm.copyWith(
+                borderSide: const BorderSide(
+                  color: FinanceColors.accentPrimary,
+                ),
+              ),
+            ),
+            enabled: !_saving,
+            onChanged: (_) => setState(() {}),
+            onSubmitted: (_) => _commitRename(),
+          )
+        : Text(widget.account.displayName, style: nameStyle);
+    return SizedBox(
+      width: width,
+      child: _editing
+          ? name
+          : GestureDetector(
+              onTap: _beginEditing,
+              behavior: HitTestBehavior.opaque,
+              child: name,
+            ),
     );
   }
 

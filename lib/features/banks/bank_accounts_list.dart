@@ -9,6 +9,7 @@ import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/services/simplefin/simplefin_models.dart';
 import 'package:spend_trends/services/sqlite/simplefin_pull_history.dart';
 import 'package:spend_trends/theme/finance_colors.dart';
+import 'package:spend_trends/widgets/app_card.dart';
 
 /// Dense institution-grouped account balances with exception-only status.
 class const BankAccountsList({
@@ -28,7 +29,7 @@ class _BankAccountsListState() extends ConsumerState<BankAccountsList> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(_caption, style: EText.caption),
         const SizedBox(height: ELayout.spaceMd),
@@ -91,42 +92,70 @@ class _BankAccountsListState() extends ConsumerState<BankAccountsList> {
     final showInstitutionLabels =
         groups.length > 1 ||
         (groups.length == 1 && groups.first.displayName != 'Other');
-    final widgets = <Widget>[];
-    for (var groupIndex = 0; groupIndex < groups.length; groupIndex++) {
-      final group = groups[groupIndex];
-      if (groupIndex > 0) widgets.add(const SizedBox(height: ELayout.spaceMd));
-      final sampleAccount = group.accounts.first;
-      final isCopilotGroup = sampleAccount.isCopilot;
-      final showAccountRows = !isCopilotGroup || _copilotAccountsExpanded;
-      if (showInstitutionLabels) {
-        widgets.add(
-          _institutionGroupHeader(
-            group: group,
-            isCopilotGroup: isCopilotGroup,
-            showAccountRows: showAccountRows,
-          ),
-        );
-        if (showAccountRows) {
-          widgets.add(const SizedBox(height: ELayout.spaceXs));
-        }
+    return [
+      for (var groupIndex = 0; groupIndex < groups.length; groupIndex++) ...[
+        if (groupIndex > 0) const SizedBox(height: ELayout.spaceMd),
+        _institutionCard(
+          group: groups[groupIndex],
+          amountColumnWidth: amountColumnWidth,
+          showInstitutionLabel: showInstitutionLabels,
+        ),
+      ],
+    ];
+  }
+
+  Widget _institutionCard({
+    required BankInstitutionGroup group,
+    required double amountColumnWidth,
+    required bool showInstitutionLabel,
+  }) {
+    final isCopilotGroup = group.accounts.first.isCopilot;
+    final showAccountRows = !isCopilotGroup || _copilotAccountsExpanded;
+    return AppCard(
+      padding: const EdgeInsets.fromLTRB(
+        ELayout.spaceMd,
+        ELayout.spaceMd,
+        ELayout.spaceMd,
+        ELayout.spaceSm,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (showInstitutionLabel)
+            _institutionGroupHeader(
+              group: group,
+              isCopilotGroup: isCopilotGroup,
+              showAccountRows: showAccountRows,
+            ),
+          if (showInstitutionLabel && showAccountRows)
+            const SizedBox(height: ELayout.spaceMd),
+          if (showAccountRows) ..._accountRows(group, amountColumnWidth),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _accountRows(
+    BankInstitutionGroup group,
+    double amountColumnWidth,
+  ) {
+    final rows = <Widget>[];
+    for (final account in group.accounts) {
+      if (rows.isNotEmpty) {
+        rows.add(const SizedBox(height: ELayout.spaceXs));
       }
-      if (!showAccountRows) continue;
-      for (var rowIndex = 0; rowIndex < group.accounts.length; rowIndex++) {
-        if (rowIndex > 0) widgets.add(const SizedBox(height: ELayout.spaceXs));
-        final account = group.accounts[rowIndex];
-        widgets.add(
-          BankAccountBalanceRow(
-            account: account,
-            amountColumnWidth: amountColumnWidth,
-            selected: widget.selectedAccountId == account.id,
-            onActivated: widget.onAccountSelected == null
-                ? null
-                : () => widget.onAccountSelected!(account.id),
-          ),
-        );
-      }
+      rows.add(
+        BankAccountBalanceRow(
+          account: account,
+          amountColumnWidth: amountColumnWidth,
+          selected: widget.selectedAccountId == account.id,
+          onActivated: widget.onAccountSelected == null
+              ? null
+              : () => widget.onAccountSelected!(account.id),
+        ),
+      );
     }
-    return widgets;
+    return rows;
   }
 
   Widget _institutionGroupHeader({

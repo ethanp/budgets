@@ -7,7 +7,6 @@ const Map<String, String> copilotCategoryToBudgetsName = {
   'stuff and groceries': 'Shopping',
   'utilities': 'Utilities',
   'healthcare': 'Health',
-  'investments': 'Other',
   'car': 'Transport',
   'housing': 'Housing',
   'travel & vacation': 'Travel',

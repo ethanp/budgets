@@ -25,13 +25,13 @@ class CategoryTrendInspectPainter({
     if (inspectTarget == null) return;
 
     final hoverDate = inspectTarget.date;
-    final hoveredX = plot.layout.xForDate(hoverDate);
+    final hoveredX = plot.chart.xForDate(hoverDate);
     final markerPaint = Paint()
       ..color = EColors.textMuted.withValues(alpha: 0.6)
       ..strokeWidth = 1;
     canvas.drawLine(
-      Offset(hoveredX, plot.layout.top),
-      Offset(hoveredX, plot.layout.bottom),
+      Offset(hoveredX, plot.chart.top),
+      Offset(hoveredX, plot.chart.bottom),
       markerPaint,
     );
 
@@ -43,7 +43,7 @@ class CategoryTrendInspectPainter({
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2;
       canvas.drawCircle(
-        Offset(hoveredX, plot.scale.yForCents(point.smoothedCents, plot.layout)),
+        Offset(hoveredX, plot.scale.yForCents(point.smoothedCents, plot.chart)),
         4,
         ringPaint,
       );

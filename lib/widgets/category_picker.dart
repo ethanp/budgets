@@ -1,19 +1,17 @@
 import 'package:spend_trends/domain/category.dart';
 import 'package:spend_trends/domain/category_group.dart';
-import 'package:spend_trends/domain/special_category.dart';
 import 'package:spend_trends/theme/finance_colors.dart';
 import 'package:spend_trends/util/category_color.dart';
 import 'package:ethan_ui/ethan_ui.dart';
 import 'package:flutter/material.dart';
 
-/// One titled block of category chips (group, ungrouped, or cash flow).
+/// One titled block of category chips (named group or ungrouped).
 class const CategoryPickerSection({
   required final String? title,
   required final List<SpendCategory> categories,
 });
 
-/// Groups active categories into picker sections (named groups → ungrouped →
-/// cash flow).
+/// Groups active categories into picker sections (named groups → ungrouped).
 class CategoryPickerSections._(final List<CategoryPickerSection> sections) {
   factory from({
     required List<SpendCategory> categories,
@@ -22,13 +20,8 @@ class CategoryPickerSections._(final List<CategoryPickerSection> sections) {
     final groupsById = {for (final group in groups) group.id: group};
     final membersByGroupId = <String, List<SpendCategory>>{};
     final ungrouped = <SpendCategory>[];
-    final flow = <SpendCategory>[];
 
     for (final category in categories) {
-      if (category.isFlow) {
-        flow.add(category);
-        continue;
-      }
       final groupId = category.groupId;
       if (groupId != null && groupsById.containsKey(groupId)) {
         membersByGroupId.putIfAbsent(groupId, () => []).add(category);
@@ -47,7 +40,6 @@ class CategoryPickerSections._(final List<CategoryPickerSection> sections) {
       );
     }
     ungrouped.sort((left, right) => left.sortOrder.compareTo(right.sortOrder));
-    flow.sort((left, right) => left.sortOrder.compareTo(right.sortOrder));
     if (ungrouped.isNotEmpty) {
       sections.add(
         CategoryPickerSection(
@@ -55,9 +47,6 @@ class CategoryPickerSections._(final List<CategoryPickerSection> sections) {
           categories: ungrouped,
         ),
       );
-    }
-    if (flow.isNotEmpty) {
-      sections.add(CategoryPickerSection(title: 'Cash flow', categories: flow));
     }
     return CategoryPickerSections._(sections);
   }

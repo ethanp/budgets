@@ -20,6 +20,7 @@ class const CategoryTrendSeries({
 
   /// Optional legend section header (e.g. bank institution for net worth).
   final String? legendGroup,
+  final String? legendCaption,
 
   /// Group rollup series this category belongs to, when this is a member line.
   final String? memberOfGroupSeriesId,
@@ -43,13 +44,15 @@ class const CategoryTrendSeries({
     return false;
   }
 
-  /// Catch-all "Other" category series (by id or display name).
-  bool get isOtherCategory =>
-      id == 'cat_other' || name.toLowerCase() == 'other';
-
   bool get isMemberOfGroup => memberOfGroupSeriesId != null;
 
   bool get isAllSpend => id == TrendChartCatalog.allSpendSeriesId;
+
+  bool get isMetaLegend =>
+      isAllSpend ||
+      id == TrendChartCatalog.netWorthSeriesId ||
+      id == TrendChartCatalog.housingAffordabilitySeriesId ||
+      id == TrendChartCatalog.uncategorizedSeriesId;
 
   bool get canPlot => points.length >= 2;
 

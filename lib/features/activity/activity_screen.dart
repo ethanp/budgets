@@ -20,43 +20,9 @@ import 'package:spend_trends/widgets/app_browse_split_shell.dart';
 import 'package:spend_trends/widgets/app_card.dart';
 import 'package:spend_trends/widgets/sync_status_nav_button.dart';
 
-class const ActivityScreen() extends ConsumerWidget {
+class const ActivityScreen() extends ConsumerStatefulWidget {
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final transactionsAsync = ref.watch(transactionsListProvider);
-
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: EAppHeader(
-        eyebrow: AppIdentity.displayName,
-        title: 'Activity',
-        leading: const SyncStatusNavButton(),
-        automaticallyImplyLeading: false,
-        actions: [
-          TextButton(
-            onPressed: () => SuggestCategoriesSheet.show(context),
-            child: const Text('Suggest categories'),
-          ),
-          TextButton(
-            onPressed: () => refresh(context, ref),
-            child: const Text('Pull bank transactions'),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: transactionsAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => Center(
-            child: Text(
-              '$error',
-              style: EText.body.medium.copyWith(color: EColors.danger),
-            ),
-          ),
-          data: (transactions) => _ActivityBody(transactions: transactions),
-        ),
-      ),
-    );
-  }
+  ConsumerState<ActivityScreen> createState() => _ActivityScreenState();
 
   static Future<void> refresh(BuildContext context, WidgetRef ref) async {
     final connected = await ref.read(simpleFinAccessStoreProvider).isConnected;
@@ -75,13 +41,7 @@ class const ActivityScreen() extends ConsumerWidget {
   }
 }
 
-class const _ActivityBody({required final List<BankTransaction> transactions})
-    extends ConsumerStatefulWidget {
-  @override
-  ConsumerState<_ActivityBody> createState() => _ActivityBodyState();
-}
-
-class _ActivityBodyState() extends ConsumerState<_ActivityBody> {
+class _ActivityScreenState() extends ConsumerState<ActivityScreen> {
   /// Left pane comfort width before the right pane starts growing.
   static const _leftComfortWidth = 1200.0;
 
@@ -102,8 +62,58 @@ class _ActivityBodyState() extends ConsumerState<_ActivityBody> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.transactions.isEmpty) return _emptyState();
+    final transactionsAsync = ref.watch(transactionsListProvider);
 
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      appBar: EAppHeader(
+        eyebrow: AppIdentity.displayName,
+        title: 'Activity',
+        leading: const SyncStatusNavButton(),
+        automaticallyImplyLeading: false,
+        actions: [
+          TextButton(
+            onPressed: () => SuggestCategoriesSheet.show(context),
+            child: const Text('Suggest categories'),
+          ),
+          TextButton(
+            onPressed: () => ActivityScreen.refresh(context, ref),
+            child: const Text('Pull bank transactions'),
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: transactionsAsync.when(
+          skipLoadingOnReload: true,
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => Center(
+            child: Text(
+              '$error',
+              style: EText.body.medium.copyWith(color: EColors.danger),
+            ),
+          ),
+          data: _transactionList,
+        ),
+      ),
+    );
+  }
+
+  Widget _transactionList(List<BankTransaction> transactions) {
+    if (transactions.isEmpty) return _emptyState();
+    final snapshot = _listSnapshot(transactions);
+    return AppBrowseSplitShell(
+      sizedSide: AppBrowseSplitSizedSide.left,
+      initialSizedWidth: _leftComfortWidth,
+      growth: const AppBrowseSplitGrowth(
+        leftComfortWidth: _leftComfortWidth,
+        rightComfortWidth: _rightComfortWidth,
+      ),
+      left: _listPane(snapshot),
+      right: _detailPane(snapshot),
+    );
+  }
+
+  _ActivityListSnapshot _listSnapshot(List<BankTransaction> transactions) {
     final accounts = ref.watch(accountsMapProvider).asData?.value ?? {};
     final categories = {
       for (final category
@@ -114,9 +124,8 @@ class _ActivityBodyState() extends ConsumerState<_ActivityBody> {
     final rules =
         ref.watch(categorizationRulesProvider).asData?.value ??
         const <CategorizationRule>[];
-
     final filtered = ActivityVisibleTransactionsQuery(
-      transactions: widget.transactions,
+      transactions: transactions,
       accounts: accounts,
       categories: categories,
       rules: rules,
@@ -124,83 +133,84 @@ class _ActivityBodyState() extends ConsumerState<_ActivityBody> {
       hideRuleMatched: _hideRuleMatched,
       uncategorizedOnly: _uncategorizedOnly,
     ).run();
-    final uncategorized = ActivityVisibleTransactionsQuery.uncategorized(
-      transactions: widget.transactions,
-      accounts: accounts,
-    );
-
-    final hasSearch = _searchQuery.trim().isNotEmpty;
-    final naturalColumnWidths = ActivityColumnWidths.measure(
-      transactions: filtered.visible,
+    return _ActivityListSnapshot(
       accounts: accounts,
       categories: categories,
+      filtered: filtered,
+      uncategorized: ActivityVisibleTransactionsQuery.uncategorized(
+        transactions: transactions,
+        accounts: accounts,
+      ),
+      naturalColumnWidths: ActivityColumnWidths.measure(
+        transactions: filtered.visible,
+        accounts: accounts,
+        categories: categories,
+      ),
+      selectedTransaction: _transactionById(
+        _selectedTransactionId,
+        transactions,
+      ),
     );
-    final selectedTransaction = _transactionById(_selectedTransactionId);
+  }
 
-    final isSplit = AppBrowseSplitShell.isSplit(context);
-
-    return AppBrowseSplitShell(
-      sizedSide: AppBrowseSplitSizedSide.left,
-      initialSizedWidth: _ActivityBodyState._leftComfortWidth,
-      growth: const AppBrowseSplitGrowth(
-        leftComfortWidth: _ActivityBodyState._leftComfortWidth,
-        rightComfortWidth: _ActivityBodyState._rightComfortWidth,
-      ),
-      left: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          ActivityFilterBar(
-            searchController: _searchController,
-            onSearchChanged: (query) => setState(() => _searchQuery = query),
-            hideRuleMatched: _hideRuleMatched,
-            searchMatchCount: filtered.searchMatchCount,
-            visibleCount: filtered.visible.length,
-            onHideRuleMatchedChanged: (hide) {
-              setState(() => _hideRuleMatched = hide);
-            },
-          ),
-          if (!isSplit)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                ELayout.spaceLg,
-                0,
-                ELayout.spaceLg,
-                ELayout.spaceSm,
-              ),
-              child: ActivityVisibleSumBar(
-                visibleTransactions: filtered.visible,
-              ),
+  Widget _listPane(_ActivityListSnapshot snapshot) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ActivityFilterBar(
+          searchController: _searchController,
+          onSearchChanged: (query) => setState(() => _searchQuery = query),
+          hideRuleMatched: _hideRuleMatched,
+          searchMatchCount: snapshot.filtered.searchMatchCount,
+          visibleCount: snapshot.filtered.visible.length,
+          onHideRuleMatchedChanged: (hide) {
+            setState(() => _hideRuleMatched = hide);
+          },
+        ),
+        if (!AppBrowseSplitShell.isSplit(context))
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              ELayout.spaceLg,
+              0,
+              ELayout.spaceLg,
+              ELayout.spaceSm,
             ),
-          Expanded(
-            child: _visibleTransactionsScroll(
-              filtered: filtered,
-              accounts: accounts,
-              categories: categories,
-              naturalColumnWidths: naturalColumnWidths,
-              hasSearch: hasSearch,
+            child: ActivityVisibleSumBar(
+              visibleTransactions: snapshot.filtered.visible,
             ),
           ),
-        ],
-      ),
-      right: ActivityDetailPane(
-        uncategorized: uncategorized,
-        visibleTransactions: filtered.visible,
-        selected: selectedTransaction,
-        uncategorizedOnly: _uncategorizedOnly,
-        onUncategorizedFilterApplied: () {
-          setState(() {
-            _uncategorizedOnly = true;
-            _hideRuleMatched = false;
-            _selectedTransactionId = null;
-          });
-        },
-        onUncategorizedFilterCleared: () {
-          setState(() => _uncategorizedOnly = false);
-        },
-        onCategorized: () {
-          setState(() => _selectedTransactionId = null);
-        },
-      ),
+        Expanded(
+          child: _visibleTransactionsScroll(
+            filtered: snapshot.filtered,
+            accounts: snapshot.accounts,
+            categories: snapshot.categories,
+            naturalColumnWidths: snapshot.naturalColumnWidths,
+            hasSearch: _searchQuery.trim().isNotEmpty,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _detailPane(_ActivityListSnapshot snapshot) {
+    return ActivityDetailPane(
+      uncategorized: snapshot.uncategorized,
+      visibleTransactions: snapshot.filtered.visible,
+      selected: snapshot.selectedTransaction,
+      uncategorizedOnly: _uncategorizedOnly,
+      onUncategorizedFilterApplied: () {
+        setState(() {
+          _uncategorizedOnly = true;
+          _hideRuleMatched = false;
+          _selectedTransactionId = null;
+        });
+      },
+      onUncategorizedFilterCleared: () {
+        setState(() => _uncategorizedOnly = false);
+      },
+      onCategorized: () {
+        setState(() => _selectedTransactionId = null);
+      },
     );
   }
 
@@ -253,9 +263,12 @@ class _ActivityBodyState() extends ConsumerState<_ActivityBody> {
     setState(() => _selectedTransactionId = transaction.id);
   }
 
-  BankTransaction? _transactionById(String? id) {
+  BankTransaction? _transactionById(
+    String? id,
+    List<BankTransaction> transactions,
+  ) {
     if (id == null) return null;
-    for (final transaction in widget.transactions) {
+    for (final transaction in transactions) {
       if (transaction.id == id) return transaction;
     }
     return null;
@@ -298,3 +311,12 @@ class _ActivityBodyState() extends ConsumerState<_ActivityBody> {
     );
   }
 }
+
+class const _ActivityListSnapshot({
+  required final Map<String, Account> accounts,
+  required final Map<String, SpendCategory> categories,
+  required final ActivityVisibleTransactions filtered,
+  required final List<BankTransaction> uncategorized,
+  required final ActivityColumnWidths naturalColumnWidths,
+  required final BankTransaction? selectedTransaction,
+});

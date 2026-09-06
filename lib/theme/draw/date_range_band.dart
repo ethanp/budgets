@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:spend_trends/features/trends/chart_date_layout.dart';
+import 'package:ethan_ui/ethan_ui.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/painting.dart';
 
@@ -23,22 +23,22 @@ enum DateRangeBandFillStyle() {
 
 /// Computes chart-clipped band geometry, or null when the range is empty.
 DateRangeBandGeometry? dateRangeBandGeometry({
-  required ChartDateLayout layout,
+  required EChartPlot plot,
   required DateTime rangeStart,
   required DateTime rangeEnd,
   required bool showLeftEdge,
   required bool showRightEdge,
 }) {
-  final chartMin = layout.minDate.startOfDay;
-  final chartMax = layout.maxDate.startOfDay;
+  final chartMin = plot.start.startOfDay;
+  final chartMax = plot.end.startOfDay;
   var bandStart = rangeStart.startOfDay;
   var bandEnd = rangeEnd.startOfDay;
   if (bandStart.isBefore(chartMin)) bandStart = chartMin;
   if (bandEnd.isAfter(chartMax)) bandEnd = chartMax;
   if (bandEnd.isBefore(bandStart)) return null;
 
-  final leftX = layout.xForDate(bandStart);
-  final rightX = layout.xForDate(bandEnd);
+  final leftX = plot.xForDate(bandStart);
+  final rightX = plot.xForDate(bandEnd);
   return DateRangeBandGeometry(
     leftX: leftX,
     rightX: math.max(leftX + 1, rightX),
@@ -49,21 +49,21 @@ DateRangeBandGeometry? dateRangeBandGeometry({
 
 /// Label X at the visible left of a range (clamped into the chart).
 double dateRangeLabelAnchorX({
-  required ChartDateLayout layout,
+  required EChartPlot plot,
   required DateTime rangeStart,
 }) {
-  final chartMin = layout.minDate.startOfDay;
-  final chartMax = layout.maxDate.startOfDay;
+  final chartMin = plot.start.startOfDay;
+  final chartMax = plot.end.startOfDay;
   final visibleStart = rangeStart.startOfDay.isBefore(chartMin)
       ? chartMin
       : rangeStart.startOfDay;
   final clampedStart = visibleStart.isAfter(chartMax) ? chartMax : visibleStart;
-  return layout.xForDate(clampedStart);
+  return plot.xForDate(clampedStart);
 }
 
 void paintDateRangeBand(
   Canvas canvas, {
-  required ChartDateLayout layout,
+  required EChartPlot plot,
   required DateRangeBandGeometry geometry,
   required Paint edgePaint,
   Paint? fillPaint,
@@ -75,10 +75,10 @@ void paintDateRangeBand(
   double? edgeTop,
   double? edgeBottom,
 }) {
-  final resolvedFillTop = fillTop ?? layout.top;
-  final resolvedFillBottom = fillBottom ?? layout.bottom;
-  final resolvedEdgeTop = edgeTop ?? layout.top;
-  final resolvedEdgeBottom = edgeBottom ?? layout.bottom;
+  final resolvedFillTop = fillTop ?? plot.top;
+  final resolvedFillBottom = fillBottom ?? plot.bottom;
+  final resolvedEdgeTop = edgeTop ?? plot.top;
+  final resolvedEdgeBottom = edgeBottom ?? plot.bottom;
 
   final fillRect = Rect.fromLTRB(
     geometry.leftX,

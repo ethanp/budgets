@@ -1,5 +1,5 @@
+import 'package:ethan_ui/ethan_ui.dart';
 import 'package:ethan_utils/ethan_utils.dart';
-import 'package:spend_trends/features/trends/chart_date_layout.dart';
 
 /// Y scale snapped to human-readable tick steps for the data max.
 class const TrendValueScale({
@@ -16,7 +16,7 @@ class const TrendValueScale({
   double yFromWhiskerBandTop(double cents, double height) =>
       height * (1 - fractionFromBottom(cents));
 
-  double yForCents(double cents, ChartDateLayout layout) {
-    return layout.bottom - fractionFromBottom(cents) * layout.height;
+  double yForCents(double cents, EChartPlot plot) {
+    return plot.bottom - fractionFromBottom(cents) * plot.height;
   }
 }

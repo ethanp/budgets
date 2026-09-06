@@ -1,14 +1,15 @@
 /// Built-in categories with stable ids (`cat_housing`, `cat_income`,
-/// `cat_transfer`). Older data could:
+/// `cat_transfer`, `cat_investments`). Older data could:
 /// - lack those rows entirely
 /// - store Copilot `transaction_type` income/transfer as a *user* category lock
 ///   (so Activity treated them as manual instead of auto-categorized)
-/// - have duplicate named "Housing"/"Income"/"Transfer" categories from seeds
-///   or early imports
+/// - have duplicate named "Housing"/"Income"/"Transfer"/"Investments"
+///   categories from seeds or early imports
 ///
 /// This startup migration upserts the specials, moves type-derived locks onto
-/// `suggested_category_id`, backfills suggested from `transaction_type`, and
-/// merges duplicate-named categories onto the canonical ids. Idempotent.
+/// `suggested_category_id`, backfills suggested from `transaction_type`,
+/// merges duplicate-named categories onto the canonical ids, and puts Income
+/// + Investments in the Income group. Idempotent.
 library;
 
 import 'package:spend_trends/domain/special_category.dart';
@@ -19,21 +20,40 @@ import 'package:powersync/powersync.dart';
 const _log = ELogger('SpecialCategories');
 
 Future<void> ensureSpecialCategoriesMigrated(PowerSyncDatabase database) async {
+  await ensureIncomeCategoryGroup(database);
   await _upsertSpecialCategories(database);
   await _releaseTypeDerivedUserLocks(database);
   await _backfillFromTransactionType(database);
   await _mergeDuplicateNamedCategories(database);
 }
 
+Future<void> ensureIncomeCategoryGroup(PowerSyncDatabase database) async {
+  final existing = await database.getOptional(
+    'SELECT id FROM category_groups WHERE id = ?',
+    [SpecialCategory.incomeGroupId],
+  );
+  if (existing != null) return;
+  await database.upsert('category_groups', {
+    'id': SpecialCategory.incomeGroupId,
+    'name': SpecialCategory.incomeGroupName,
+    'sort_order': SpecialCategory.incomeGroupSortOrder,
+  });
+}
+
 Future<void> _upsertSpecialCategories(PowerSyncDatabase database) async {
   for (final special in SpecialCategory.values) {
+    final existing = await database.getOptional(
+      'SELECT group_id FROM categories WHERE id = ?',
+      [special.id],
+    );
+    final existingGroupId = existing?['group_id'] as String?;
     await database.upsert('categories', {
       'id': special.id,
       'name': special.name,
       'sort_order': special.sortOrder,
       'archived': 0,
       'color_token': null,
-      'group_id': null,
+      'group_id': existingGroupId ?? special.defaultGroupId,
     });
   }
 }

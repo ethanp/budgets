@@ -30,6 +30,10 @@ class const AppBrowseSplitShell({
   final AppBrowseSplitSizedSide sizedSide = AppBrowseSplitSizedSide.right,
   final double initialSizedWidth = 320,
 
+  /// Caps the sized pane. When null, a right-sized pane uses [maxRightWidth]
+  /// and 40% of the shell. A set value skips the 40% cap.
+  final double? maxSizedWidth,
+
   /// When set with a left-sized pane, width follows [AppBrowseSplitGrowth]
   /// until the user drags the divider.
   final AppBrowseSplitGrowth? growth,
@@ -159,10 +163,11 @@ class _AppBrowseSplitShellState() extends State<AppBrowseSplitShell> {
         totalWidth -
         AppBrowseSplitShell.minLeftWidth -
         AppBrowseSplitShell.dividerHitWidth;
-    return math.min(
-      AppBrowseSplitShell.maxRightWidth,
-      math.min(totalWidth * 0.4, maxForLeft),
-    );
+    final cap = widget.maxSizedWidth ?? AppBrowseSplitShell.maxRightWidth;
+    if (widget.maxSizedWidth != null) {
+      return math.min(cap, maxForLeft);
+    }
+    return math.min(cap, math.min(totalWidth * 0.4, maxForLeft));
   }
 }
 

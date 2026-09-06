@@ -9,14 +9,6 @@ import 'package:spend_trends/features/trends/pace_line_samples.dart';
 import 'package:spend_trends/theme/draw/date_range_band.dart';
 import 'package:spend_trends/theme/finance_colors.dart';
 
-TextStyle get _chartAxisLabelStyle => EText.body.tiny.copyWith(
-  fontSize: 11,
-  fontWeight: FontWeight.w400,
-  color: EColors.textMuted,
-  letterSpacing: 0,
-  height: 1.1,
-);
-
 class CategoryTrendPainter({
   required final List<CategoryTrendSeries> seriesList,
   final List<LifeEvent> lifeEvents = const [],
@@ -87,8 +79,8 @@ class _CategoryTrendChartFrame({
       samples.paintStroke(canvas);
     }
 
-    final chartMin = plot.layout.minDate.startOfDay;
-    final chartMax = plot.layout.maxDate.startOfDay;
+    final chartMin = plot.chart.start.startOfDay;
+    final chartMax = plot.chart.end.startOfDay;
     _paintAlternatingStayEras(
       kind: LifeChainKind.housing,
       chain: housingChain,
@@ -125,18 +117,19 @@ class _CategoryTrendChartFrame({
       tickPath.addPath(
         PaceLineSamples.dashedHorizontalPath(
           start: Offset(
-            plot.layout.left,
-            plot.scale.yForCents(tickCents, plot.layout),
+            plot.chart.left,
+            plot.scale.yForCents(tickCents, plot.chart),
           ),
-          endX: plot.layout.right,
+          endX: plot.chart.right,
         ),
         Offset.zero,
       );
     }
     canvas.drawPath(tickPath, gridPaint);
-    plot.layout.strokeLeftAndBottomPlotEdges(canvas);
-    plot.layout.paintYearBoundaryGuides(canvas);
-    plot.layout.paintMonthOrDayTicks(canvas, labelStyle: _chartAxisLabelStyle);
+    final chrome = EChartChrome(plot.chart);
+    chrome.strokePlotEdges(canvas);
+    chrome.paintYearBoundaryGuides(canvas);
+    chrome.paintDateTicks(canvas);
   }
 
   List<ChainStaySegment> _visibleStaySegments(
@@ -183,7 +176,7 @@ class _CategoryTrendChartFrame({
     final fillTop = _laneTop(laneIndex);
     final fillBottom = _laneBottom(laneIndex);
     final baseLabelY = _laneLabelY(laneIndex);
-    final chartMax = plot.layout.maxDate.startOfDay;
+    final chartMax = plot.chart.end.startOfDay;
     final chainSegments = chain?.segments ?? const <ChainStaySegment>[];
     final eraIndexByStayId = {
       for (var eraIndex = 0; eraIndex < chainSegments.length; eraIndex++)
@@ -208,12 +201,12 @@ class _CategoryTrendChartFrame({
         ellipsis: '…',
       )..layout(maxWidth: _labelMaxWidth);
       final labelAnchorX = dateRangeLabelAnchorX(
-        layout: plot.layout,
+        plot: plot.chart,
         rangeStart: segment.rangeStart,
       );
       final labelX = (labelAnchorX + 3).clamp(
-        plot.layout.left,
-        plot.layout.right - textPainter.width,
+        plot.chart.left,
+        plot.chart.right - textPainter.width,
       );
       labelLeftXs.add(labelX);
       labelWidths.add(textPainter.width);
@@ -236,7 +229,7 @@ class _CategoryTrendChartFrame({
         ..strokeWidth = _eraEdgeStroke;
 
       final geometry = dateRangeBandGeometry(
-        layout: plot.layout,
+        plot: plot.chart,
         rangeStart: segment.rangeStart,
         rangeEnd: segment.effectiveEndOn(chartMax),
         showLeftEdge: true,
@@ -245,7 +238,7 @@ class _CategoryTrendChartFrame({
       if (geometry != null) {
         paintDateRangeBand(
           canvas,
-          layout: plot.layout,
+          plot: plot.chart,
           geometry: geometry,
           edgePaint: edgePaint,
           fillColor: eraAccent,
@@ -253,8 +246,8 @@ class _CategoryTrendChartFrame({
           fillAlpha: 0.12,
           fillTop: fillTop,
           fillBottom: fillBottom,
-          edgeTop: plot.layout.top,
-          edgeBottom: plot.layout.bottom,
+          edgeTop: plot.chart.top,
+          edgeBottom: plot.chart.bottom,
         );
       }
 
@@ -327,7 +320,7 @@ class _CategoryTrendChartFrame({
     if (markersInRange.isEmpty) return;
     final lifeEventLane = plot.lifeEventLane;
     if (lifeEventLane == null) return;
-    final chartMax = plot.layout.maxDate.startOfDay;
+    final chartMax = plot.chart.end.startOfDay;
     final fillTop = _laneTop(lifeEventLane);
     final fillBottom = _laneBottom(lifeEventLane);
     final baseLabelY = _laneLabelY(lifeEventLane);
@@ -362,12 +355,12 @@ class _CategoryTrendChartFrame({
         ellipsis: '…',
       )..layout(maxWidth: _labelMaxWidth);
       final labelAnchorX = dateRangeLabelAnchorX(
-        layout: plot.layout,
+        plot: plot.chart,
         rangeStart: lifeEvent.startedOn,
       );
       final labelX = (labelAnchorX + 3).clamp(
-        plot.layout.left,
-        plot.layout.right - textPainter.width,
+        plot.chart.left,
+        plot.chart.right - textPainter.width,
       );
       labelLeftXs.add(labelX);
       labelWidths.add(textPainter.width);
@@ -385,21 +378,21 @@ class _CategoryTrendChartFrame({
     ) {
       final lifeEvent = markersInRange[markerIndex];
       final labelAnchorX = dateRangeLabelAnchorX(
-        layout: plot.layout,
+        plot: plot.chart,
         rangeStart: lifeEvent.startedOn,
       );
 
       if (lifeEvent.isPoint) {
         tickPath.addPath(
           _dashedVerticalTickPath(
-            Offset(labelAnchorX, plot.layout.top),
-            Offset(labelAnchorX, plot.layout.bottom),
+            Offset(labelAnchorX, plot.chart.top),
+            Offset(labelAnchorX, plot.chart.bottom),
           ),
           Offset.zero,
         );
       } else {
         final geometry = dateRangeBandGeometry(
-          layout: plot.layout,
+          plot: plot.chart,
           rangeStart: lifeEvent.startedOn,
           rangeEnd: lifeEvent.effectiveEndOn(chartMax),
           showLeftEdge: true,
@@ -408,14 +401,14 @@ class _CategoryTrendChartFrame({
         if (geometry != null) {
           paintDateRangeBand(
             canvas,
-            layout: plot.layout,
+            plot: plot.chart,
             geometry: geometry,
             fillPaint: bandFillPaint,
             edgePaint: bandEdgePaint,
             fillTop: fillTop,
             fillBottom: fillBottom,
-            edgeTop: plot.layout.top,
-            edgeBottom: plot.layout.bottom,
+            edgeTop: plot.chart.top,
+            edgeBottom: plot.chart.bottom,
           );
         }
       }
@@ -452,7 +445,7 @@ class _CategoryTrendChartFrame({
   }
 
   void _paintValueTickLabels() {
-    final axisStyle = _chartAxisLabelStyle;
+    final axisStyle = EChartAxis.tickLabel;
     for (final tickCents in plot.scale.tickCents) {
       final label = formatAxisCents(tickCents);
       final textPainter = TextPainter(
@@ -460,14 +453,14 @@ class _CategoryTrendChartFrame({
         textDirection: TextDirection.ltr,
       )..layout();
       final labelY =
-          plot.scale.yForCents(tickCents, plot.layout) - textPainter.height / 2;
+          plot.scale.yForCents(tickCents, plot.chart) - textPainter.height / 2;
       textPainter.paint(
         canvas,
         Offset(
-          plot.layout.left - textPainter.width - 4,
+          plot.chart.left - textPainter.width - 4,
           labelY.clamp(
-            plot.layout.top - 2,
-            plot.layout.bottom - textPainter.height,
+            plot.chart.top - 2,
+            plot.chart.bottom - textPainter.height,
           ),
         ),
       );

@@ -104,16 +104,16 @@ class CategoriesRepository(final PowerSyncDatabase _powerSync) {
     required String categoryId,
     required String name,
   }) async {
-    if (SpecialCategory.isFlowId(categoryId)) {
-      throw StateError('Cash-flow categories cannot be renamed.');
+    if (categoryId == SpecialCategory.income.id ||
+        categoryId == SpecialCategory.transfer.id) {
+      throw StateError('Built-in categories cannot be renamed.');
     }
     final trimmedName = name.trim();
     if (trimmedName.isEmpty) {
       throw ArgumentError('Category name is required.');
     }
-    if (SpecialCategory.isReservedName(trimmedName) &&
-        !(SpecialCategory.isHousingId(categoryId) &&
-            SpecialCategory.isHousingName(trimmedName))) {
+    final reservedId = SpecialCategory.idForReservedName(trimmedName);
+    if (reservedId != null && reservedId != categoryId) {
       throw ArgumentError(
         '"$trimmedName" is reserved for a built-in category.',
       );
@@ -144,9 +144,6 @@ class CategoriesRepository(final PowerSyncDatabase _powerSync) {
     required String categoryId,
     String? groupId,
   }) async {
-    if (SpecialCategory.isFlowId(categoryId)) {
-      throw StateError('Cash-flow categories cannot join a group.');
-    }
     if (groupId != null) {
       await _requireGroup(groupId);
     }
@@ -158,6 +155,9 @@ class CategoriesRepository(final PowerSyncDatabase _powerSync) {
 
   /// Deletes the group and clears membership on its categories.
   Future<void> deleteGroup(String groupId) async {
+    if (SpecialCategory.isIncomeGroupId(groupId)) {
+      throw StateError('The Income group cannot be deleted.');
+    }
     await _requireGroup(groupId);
     await _powerSync.execute(
       'UPDATE categories SET group_id = NULL WHERE group_id = ?',

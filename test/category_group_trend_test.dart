@@ -89,6 +89,80 @@ void main() {
       lessThan(seriesIds.indexOf('cat_dining')),
     );
   });
+
+  test('uncategorized series is only null-category spend', () {
+    final start = DateTime(2024, 1, 1);
+    final transactions = [
+      for (var dayOffset = 0; dayOffset < 10; dayOffset++) ...[
+        _txn(
+          id: 'd$dayOffset',
+          day: start.add(Duration(days: dayOffset)),
+          categoryId: 'cat_dining',
+          amountCents: -1000,
+        ),
+        _txn(
+          id: 'o$dayOffset',
+          day: start.add(Duration(days: dayOffset)),
+          categoryId: 'cat_orphan',
+          amountCents: -8000,
+        ),
+      ],
+    ];
+
+    final bundle = const BuildTrendsCharts().build(
+      transactions: transactions,
+      categories: const [
+        SpendCategory(
+          id: 'cat_dining',
+          name: 'Dining',
+          sortOrder: 0,
+          archived: false,
+        ),
+      ],
+      endDate: start.add(const Duration(days: 9)),
+    );
+
+    expect(
+      bundle.categorySpend.any(
+        (series) => series.id == TrendChartCatalog.uncategorizedSeriesId,
+      ),
+      isFalse,
+    );
+    expect(
+      bundle.categorySpend.any((series) => series.id == 'cat_dining'),
+      isTrue,
+    );
+  });
+
+  test('null-category spend still appears as uncategorized', () {
+    final start = DateTime(2024, 1, 1);
+    final transactions = [
+      for (var dayOffset = 0; dayOffset < 10; dayOffset++)
+        BankTransaction(
+          id: 'u$dayOffset',
+          accountId: 'a1',
+          externalId: 'u$dayOffset',
+          postedAt: start.add(Duration(days: dayOffset)),
+          amountCents: -2500,
+          rawDescription: 'Unknown',
+          normalizedMerchant: 'UNKNOWN',
+          pending: false,
+        ),
+    ];
+
+    final bundle = const BuildTrendsCharts().build(
+      transactions: transactions,
+      categories: const [],
+      endDate: start.add(const Duration(days: 9)),
+    );
+
+    expect(
+      bundle.categorySpend.any(
+        (series) => series.id == TrendChartCatalog.uncategorizedSeriesId,
+      ),
+      isTrue,
+    );
+  });
 }
 
 BankTransaction _txn({

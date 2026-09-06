@@ -103,15 +103,15 @@ class const CategoriesBurnPane({
         if (rule.categoryId == category.id) rule,
     ];
 
+    final builtInCaption = category.builtInCaption;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(category.name, style: EText.section),
-        const SizedBox(height: ELayout.spaceXs),
-        Text(
-          category.isFlow ? 'Cash flow · excluded from burn' : 'Burn component',
-          style: EText.caption,
-        ),
+        if (builtInCaption != null) ...[
+          const SizedBox(height: ELayout.spaceXs),
+          Text(builtInCaption, style: EText.caption),
+        ],
         const SizedBox(height: ELayout.spaceLg),
         Text(
           'This month',
@@ -154,7 +154,7 @@ class const CategoriesBurnPane({
                 : '${categoryRules.length} rules',
             style: EText.body.medium,
           ),
-          for (final rule in categoryRules.take(5))
+          for (final rule in categoryRules)
             Text(_ruleCaption(rule), style: EText.caption),
         ],
         const SizedBox(height: ELayout.spaceLg),

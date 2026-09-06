@@ -5,7 +5,6 @@ import 'package:spend_trends/domain/account_kind.dart';
 import 'package:spend_trends/domain/trend_spend_rate.dart';
 import 'package:spend_trends/features/trends/category_trend_distribution_legend.dart';
 import 'package:spend_trends/features/trends/category_trend_series.dart';
-import 'package:spend_trends/features/trends/trend_chart_catalog.dart';
 import 'package:spend_trends/features/trends/trend_legend_swatch.dart';
 import 'package:spend_trends/theme/finance_colors.dart';
 
@@ -28,19 +27,11 @@ class const CategoryTrendSeriesLegend({
 
     final metaSeries = [
       for (final series in seriesList)
-        if (_isMetaLegendSeries(
-          series,
-          useDistributionLegend: useDistributionLegend,
-        ))
-          series,
+        if (series.isMetaLegend) series,
     ];
     final rankedSeries = [
       for (final series in seriesList)
-        if (!_isMetaLegendSeries(
-          series,
-          useDistributionLegend: useDistributionLegend,
-        ))
-          series,
+        if (!series.isMetaLegend) series,
     ];
 
     final useNetWorthTable =
@@ -146,20 +137,6 @@ class const CategoryTrendSeriesLegend({
     return false;
   }
 
-  static bool _isMetaLegendSeries(
-    CategoryTrendSeries series, {
-    required bool useDistributionLegend,
-  }) {
-    if (series.isAllSpend) return !useDistributionLegend;
-    if (series.id == TrendChartCatalog.netWorthSeriesId) return true;
-    if (series.id == TrendChartCatalog.housingAffordabilitySeriesId) {
-      return true;
-    }
-    if (series.id == TrendChartCatalog.uncategorizedSeriesId) {
-      return true;
-    }
-    return series.isOtherCategory;
-  }
 }
 
 class const TrendLegendChip({
@@ -199,6 +176,10 @@ class const TrendLegendChip({
           TextSpan(text: series.name, style: nameStyle),
           TextSpan(text: ' · ', style: nameStyle),
           TextSpan(text: '$amountLabel$rateSuffix', style: amountStyle),
+          if (series.legendCaption != null) ...[
+            TextSpan(text: ' · ', style: nameStyle),
+            TextSpan(text: series.legendCaption, style: nameStyle),
+          ],
         ],
       ),
       maxLines: 1,

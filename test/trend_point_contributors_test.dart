@@ -70,7 +70,6 @@ void main() {
         transactions: transactions,
         categories: const [dining],
         groups: const [],
-        chartSeriesList: bundle.categorySpend,
       );
 
       expect(topContributors, hasLength(5));
@@ -104,7 +103,6 @@ void main() {
         transactions: transactions,
         categories: const [dining],
         groups: const [],
-        chartSeriesList: bundle.categorySpend,
         limit: 100,
       );
       final contributionSum = allContributors.fold<double>(
@@ -191,7 +189,6 @@ void main() {
       transactions: transactions,
       categories: const [housing],
       groups: const [],
-      chartSeriesList: bundle.categorySpend,
     );
 
     expect(topContributors, isNotEmpty);
@@ -238,7 +235,6 @@ void main() {
         transactions: transactions,
         categories: const [],
         groups: const [],
-        chartSeriesList: bundle.cashFlows,
       ),
       isEmpty,
     );

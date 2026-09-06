@@ -17,7 +17,7 @@ class PaceLineSamples._({
     required CategoryTrendPlot plot,
   }) {
     final points = series.points;
-    final layout = plot.layout;
+    final layout = plot.chart;
     final scale = plot.scale;
     final offsets = <Offset>[];
     final percentileRanks = <double>[];
@@ -124,7 +124,7 @@ class PaceLineSamples._({
   void paintPercentileRankAsFillOpacity(Canvas canvas, CategoryTrendPlot plot) {
     if (offsets.length < 2) return;
 
-    final baselineY = plot.scale.yForCents(0, plot.layout);
+    final baselineY = plot.scale.yForCents(0, plot.chart);
     final positions = <Offset>[];
     final colors = <Color>[];
     for (var sampleIndex = 0; sampleIndex < offsets.length; sampleIndex++) {

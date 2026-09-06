@@ -16,6 +16,8 @@ class const BankInstitutionHeader({
 
 class _BankInstitutionHeaderState()
     extends ConsumerState<BankInstitutionHeader> {
+  static const _nameEditSlack = 50.0;
+
   late final TextEditingController _nameController;
   late final FocusNode _focusNode;
   bool _editing = false;
@@ -53,15 +55,36 @@ class _BankInstitutionHeaderState()
 
   @override
   Widget build(BuildContext context) {
-    final titleStyle = EText.caption.copyWith(
+    final titleStyle = EText.body.large.copyWith(
       fontWeight: FontWeight.w600,
+      height: 1.25,
+      letterSpacing: -0.2,
       color: widget.accentColor,
     );
     if (!_canRename) {
       return Text(widget.displayName, style: titleStyle);
     }
-    if (_editing) {
-      return TextField(
+    final typed = _nameController.text.trim();
+    final width = ETextField.widthForText(
+      typed.isNotEmpty ? typed : widget.displayName,
+      style: titleStyle,
+      extra: _nameEditSlack,
+    );
+    if (_editing) return _renameField(titleStyle, width);
+    return GestureDetector(
+      onTap: _beginEditing,
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        width: width,
+        child: Text(widget.displayName, style: titleStyle),
+      ),
+    );
+  }
+
+  Widget _renameField(TextStyle titleStyle, double width) {
+    return SizedBox(
+      width: width,
+      child: TextField(
         controller: _nameController,
         focusNode: _focusNode,
         style: titleStyle,
@@ -81,13 +104,9 @@ class _BankInstitutionHeaderState()
           ),
         ),
         enabled: !_saving,
+        onChanged: (_) => setState(() {}),
         onSubmitted: (_) => _commitRename(),
-      );
-    }
-    return GestureDetector(
-      onTap: _beginEditing,
-      behavior: HitTestBehavior.opaque,
-      child: Text(widget.displayName, style: titleStyle),
+      ),
     );
   }
 

@@ -1,23 +1,52 @@
 import 'package:spend_trends/domain/category.dart';
+import 'package:spend_trends/domain/category_group.dart';
 
 /// Built-in categories with stable ids.
 ///
-/// [income] / [transfer] are cash-flow (excluded from spend totals).
+/// [income] / [investments] count as income (excluded from spend totals).
+/// [transfer] is excluded from spend totals and stays ungrouped.
 /// [housing] is a built-in spend category (kept in spend Trends / month rows)
 /// so its color and future housing-specific behavior stay consistent.
 enum SpecialCategory({
   required final String id,
   required final String name,
   required final int sortOrder,
+  final bool countsAsIncome = false,
+  final String? defaultGroupId,
 }) {
   housing(id: 'cat_housing', name: 'Housing', sortOrder: 3),
-  income(id: 'cat_income', name: 'Income', sortOrder: 1000),
-  transfer(id: 'cat_transfer', name: 'Transfer', sortOrder: 1001);
+  income(
+    id: 'cat_income',
+    name: 'Income',
+    sortOrder: 1000,
+    countsAsIncome: true,
+    defaultGroupId: 'grp_income',
+  ),
+  transfer(id: 'cat_transfer', name: 'Transfer', sortOrder: 1001),
+  investments(
+    id: 'cat_investments',
+    name: 'Investments',
+    sortOrder: 1002,
+    countsAsIncome: true,
+    defaultGroupId: 'grp_income',
+  );
+
+  static const incomeGroupId = 'grp_income';
+  static const incomeGroupName = 'Income';
+  static const incomeGroupSortOrder = 2;
 
   static final ids = {for (final special in values) special.id};
 
-  /// Income + Transfer only — excluded from spend series and month rows.
-  static final flowIds = {income.id, transfer.id};
+  /// Income + Investments + Transfer — excluded from spend series and month rows.
+  static final flowIds = {
+    for (final special in values)
+      if (special.countsAsIncome || special == transfer) special.id,
+  };
+
+  static final incomeIds = {
+    for (final special in values)
+      if (special.countsAsIncome) special.id,
+  };
 
   static final _idsByNormalizedName = {
     for (final special in values)
@@ -25,6 +54,13 @@ enum SpecialCategory({
   };
 
   static final housingName = CategoryName(housing.name);
+  static final investmentsName = CategoryName(investments.name);
+
+  static CategoryGroup get incomeGroup => const CategoryGroup(
+    id: incomeGroupId,
+    name: incomeGroupName,
+    sortOrder: incomeGroupSortOrder,
+  );
 
   static bool isSpecialId(String? categoryId) =>
       categoryId != null && ids.contains(categoryId);
@@ -37,12 +73,20 @@ enum SpecialCategory({
   static bool isHousingName(String? name) =>
       name != null && CategoryName(name).matches(housingName);
 
-  static bool isIncomeId(String? categoryId) => categoryId == income.id;
+  static bool isIncomeId(String? categoryId) =>
+      categoryId != null && incomeIds.contains(categoryId);
+
+  static bool isInvestmentsName(String? name) =>
+      name != null && CategoryName(name).matches(investmentsName);
 
   static bool isTransferId(String? categoryId) => categoryId == transfer.id;
 
-  static bool isReservedName(String name) =>
-      _idsByNormalizedName.containsKey(CategoryName(name).normalized);
+  static bool isIncomeGroupId(String? groupId) => groupId == incomeGroupId;
+
+  static bool isReservedName(String name) => idForReservedName(name) != null;
+
+  static String? idForReservedName(String name) =>
+      _idsByNormalizedName[CategoryName(name).normalized];
 
   /// Maps Copilot / legacy `transaction_type` values onto a cash-flow category.
   static SpecialCategory? fromTransactionType(String? transactionType) {
@@ -57,6 +101,7 @@ enum SpecialCategory({
     name: name,
     sortOrder: sortOrder,
     archived: archived,
+    groupId: defaultGroupId,
   );
 }
 
@@ -64,11 +109,19 @@ extension SpendCategorySpecial on SpendCategory {
   bool get isHousing =>
       SpecialCategory.isHousingId(id) || SpecialCategory.isHousingName(name);
 
-  bool get isFlow => SpecialCategory.isFlowId(id);
+  bool get isFlow => SpecialCategory.isFlowId(id) || isIncome || isTransfer;
 
-  bool get isIncome => SpecialCategory.isIncomeId(id);
+  bool get isIncome =>
+      SpecialCategory.isIncomeId(id) || SpecialCategory.isInvestmentsName(name);
 
   bool get isTransfer => SpecialCategory.isTransferId(id);
+
+  String? get builtInCaption {
+    if (isIncome) return 'Built-in · income';
+    if (isTransfer) return 'Built-in · transfer';
+    if (isHousing) return 'Built-in · housing';
+    return null;
+  }
 
   /// Built-in catch bucket (`cat_other` or display name "Other").
   bool get isOther =>

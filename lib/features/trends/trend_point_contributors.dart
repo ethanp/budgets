@@ -24,7 +24,6 @@ class TrendPointContributors._() {
     required List<BankTransaction> transactions,
     required List<SpendCategory> categories,
     required List<CategoryGroup> groups,
-    required List<CategoryTrendSeries> chartSeriesList,
     int limit = topCount,
   }) {
     if (series.guide || _isGuideSeriesId(series.id)) return const [];
@@ -72,7 +71,6 @@ class TrendPointContributors._() {
       seriesId: series.id,
       categories: categories,
       groups: groups,
-      chartSeriesList: chartSeriesList,
     );
     if (membership == null) return const [];
 
@@ -127,18 +125,12 @@ class TrendPointContributors._() {
     required String seriesId,
     required List<SpendCategory> categories,
     required List<CategoryGroup> groups,
-    required List<CategoryTrendSeries> chartSeriesList,
   }) {
     if (seriesId == TrendChartCatalog.allSpendSeriesId) {
       return const _SeriesMembership.categorySpend(categoryIds: null);
     }
     if (seriesId == TrendChartCatalog.uncategorizedSeriesId) {
-      final backedIds = _seriesBackedCategoryIds(
-        chartSeriesList: chartSeriesList,
-        categories: categories,
-        groups: groups,
-      );
-      return _SeriesMembership.uncategorized(backedCategoryIds: backedIds);
+      return const _SeriesMembership.uncategorized();
     }
     if (seriesId == TrendChartCatalog.incomeSeriesId) {
       return const _SeriesMembership.income();
@@ -166,30 +158,6 @@ class TrendPointContributors._() {
     if (seriesId.startsWith('__')) return null;
     return _SeriesMembership.categorySpend(categoryIds: {seriesId});
   }
-
-  static Set<String> _seriesBackedCategoryIds({
-    required List<CategoryTrendSeries> chartSeriesList,
-    required List<SpendCategory> categories,
-    required List<CategoryGroup> groups,
-  }) {
-    final groupIds = {for (final group in groups) group.id};
-    final backed = <String>{};
-    for (final series in chartSeriesList) {
-      if (series.id.startsWith(TrendChartCatalog.groupSeriesIdPrefix)) {
-        final groupId = series.id.substring(
-          TrendChartCatalog.groupSeriesIdPrefix.length,
-        );
-        if (!groupIds.contains(groupId)) continue;
-        for (final category in categories) {
-          if (category.groupId == groupId) backed.add(category.id);
-        }
-        continue;
-      }
-      if (series.id.startsWith('__')) continue;
-      backed.add(series.id);
-    }
-    return backed;
-  }
 }
 
 enum _MembershipKind() {
@@ -204,16 +172,11 @@ enum _MembershipKind() {
 class const _SeriesMembership._({
   required final _MembershipKind kind,
   final Set<String>? categoryIds,
-  final Set<String>? backedCategoryIds,
 }) {
   const new categorySpend({required Set<String>? categoryIds})
     : this._(kind: _MembershipKind.categorySpend, categoryIds: categoryIds);
 
-  const new uncategorized({required Set<String> backedCategoryIds})
-    : this._(
-        kind: _MembershipKind.uncategorized,
-        backedCategoryIds: backedCategoryIds,
-      );
+  const new uncategorized() : this._(kind: _MembershipKind.uncategorized);
 
   const new income() : this._(kind: _MembershipKind.income);
 
@@ -233,9 +196,7 @@ class const _SeriesMembership._({
         return categoryId != null && categoryIds!.contains(categoryId);
       case _MembershipKind.uncategorized:
         if (transaction.excluded || transaction.isZeroAmount) return false;
-        if (SpecialCategory.isFlowId(categoryId)) return false;
-        if (categoryId == null) return true;
-        return !backedCategoryIds!.contains(categoryId);
+        return transaction.isUncategorized;
       case _MembershipKind.income:
         if (!transaction.isInflow && !transaction.isOutflow) return false;
         if (SpecialCategory.isTransferId(categoryId)) return false;

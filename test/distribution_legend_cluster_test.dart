@@ -20,29 +20,48 @@ void main() {
     );
     final housing = _series(id: 'cat_housing', name: 'Housing');
 
-    final allSpend = _series(
-      id: TrendChartCatalog.allSpendSeriesId,
-      name: 'All',
-    );
     final clusters = DistributionLegendCluster.fromSeries([
       wants,
       dining,
       travel,
       housing,
-      allSpend,
     ]);
 
-    expect(clusters, hasLength(3));
-    expect(clusters.first.rollup.id, TrendChartCatalog.allSpendSeriesId);
-    expect(clusters.first.canExpand, isFalse);
-    expect(clusters[1].rollup.id, 'group:wants');
-    expect(clusters[1].canExpand, isTrue);
+    expect(clusters, hasLength(2));
+    expect(clusters.first.rollup.id, 'group:wants');
+    expect(clusters.first.canExpand, isTrue);
     expect(
-      clusters[1].members.map((series) => series.id),
+      clusters.first.members.map((series) => series.id),
       ['cat_dining', 'cat_travel'],
     );
     expect(clusters.last.rollup.id, 'cat_housing');
     expect(clusters.last.canExpand, isFalse);
+  });
+
+  test('left legend is totals and guides, not Other', () {
+    expect(
+      _series(
+        id: TrendChartCatalog.allSpendSeriesId,
+        name: 'All spending',
+      ).isMetaLegend,
+      isTrue,
+    );
+    expect(
+      _series(
+        id: TrendChartCatalog.housingAffordabilitySeriesId,
+        name: '30% of income',
+      ).isMetaLegend,
+      isTrue,
+    );
+    expect(
+      _series(
+        id: TrendChartCatalog.uncategorizedSeriesId,
+        name: 'Uncategorized',
+      ).isMetaLegend,
+      isTrue,
+    );
+    expect(_series(id: 'cat_other', name: 'Other').isMetaLegend, isFalse);
+    expect(_series(id: 'cat_housing', name: 'Housing').isMetaLegend, isFalse);
   });
 }
 

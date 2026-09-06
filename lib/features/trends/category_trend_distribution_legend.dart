@@ -233,8 +233,7 @@ class _CategoryTrendDistributionLegendState()
         series: series,
         pair: pairsBySeriesId[series.id],
         scale: scale,
-        isHidden: !series.isAllSpend &&
-            widget.hiddenSeriesIds.contains(series.id),
+        isHidden: widget.hiddenSeriesIds.contains(series.id),
         canExpand: canExpand,
         isExpanded: isExpanded,
         formatAnnualized: _formatAnnualized,

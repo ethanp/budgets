@@ -94,7 +94,7 @@ class const CategorySpendTrendBuilder({
 
     final allSpendSeries = _paceSeries(
       id: TrendChartCatalog.allSpendSeriesId,
-      name: 'All',
+      name: 'All spending',
       lineColor: TrendChartCatalog.allSpendLineColor,
       dotted: true,
       dailyCents: spendMaps.totalByDay,
@@ -102,16 +102,13 @@ class const CategorySpendTrendBuilder({
 
     final housingAffordabilitySeries = _housingAffordabilitySeries();
     final partitioned = _partitionCategories();
-    final rankedAndOther = _rankedGroupAndCategorySeries(partitioned);
-    final uncategorizedSeries = _uncategorizedSeries(
-      representedCategoryIds: rankedAndOther.representedCategoryIds,
-    );
+    final rankedSeries = _rankedGroupAndCategorySeries(partitioned);
+    final uncategorizedSeries = _uncategorizedSeries();
 
     return [
       allSpendSeries,
       ?housingAffordabilitySeries,
-      ...rankedAndOther.rankedSeries,
-      ?rankedAndOther.otherSeries,
+      ...rankedSeries,
       ?uncategorizedSeries,
     ];
   }
@@ -152,13 +149,11 @@ class const CategorySpendTrendBuilder({
     );
   }
 
-  _RankedSpendSeries _rankedGroupAndCategorySeries(
+  List<CategoryTrendSeries> _rankedGroupAndCategorySeries(
     _CategoryPartition partitioned,
   ) {
     final seriesBlocks = <List<CategoryTrendSeries>>[];
-    CategoryTrendSeries? otherSeries;
     var paletteIndex = 0;
-    final representedCategoryIds = <String>{};
 
     for (final group in groups) {
       final members = partitioned.membersByGroupId[group.id];
@@ -170,7 +165,6 @@ class const CategorySpendTrendBuilder({
         final memberDaily = spendMaps.byCategoryId[member.id];
         if (memberDaily == null || memberDaily.isEmpty) continue;
         _mergeDailyMaps(groupDaily, memberDaily);
-        representedCategoryIds.add(member.id);
 
         final memberIsHousing = member.isHousing;
         final builtMember = _paceSeries(
@@ -221,14 +215,8 @@ class const CategorySpendTrendBuilder({
       if (!categorySeries.hasMeaningfulTrend) {
         continue;
       }
-      representedCategoryIds.add(category.id);
       if (pinnedColor == null) paletteIndex++;
-
-      if (category.isOther) {
-        otherSeries = categorySeries;
-      } else {
-        seriesBlocks.add([categorySeries]);
-      }
+      seriesBlocks.add([categorySeries]);
     }
 
     seriesBlocks.sort(
@@ -237,30 +225,17 @@ class const CategorySpendTrendBuilder({
       ),
     );
 
-    return _RankedSpendSeries(
-      rankedSeries: [for (final block in seriesBlocks) ...block],
-      otherSeries: otherSeries,
-      representedCategoryIds: representedCategoryIds,
-    );
+    return [for (final block in seriesBlocks) ...block];
   }
 
-  CategoryTrendSeries? _uncategorizedSeries({
-    required Set<String> representedCategoryIds,
-  }) {
-    final uncategorizedDaily = <DateTime, double>{};
-    _mergeDailyMaps(uncategorizedDaily, spendMaps.uncategorizedByDay);
-    for (final entry in spendMaps.byCategoryId.entries) {
-      if (representedCategoryIds.contains(entry.key)) continue;
-      if (flowCategoryIds.contains(entry.key)) continue;
-      _mergeDailyMaps(uncategorizedDaily, entry.value);
-    }
-    if (uncategorizedDaily.isEmpty) return null;
+  CategoryTrendSeries? _uncategorizedSeries() {
+    if (spendMaps.uncategorizedByDay.isEmpty) return null;
 
     final built = _paceSeries(
       id: TrendChartCatalog.uncategorizedSeriesId,
       name: 'Uncategorized',
       lineColor: TrendChartCatalog.uncategorizedLineColor,
-      dailyCents: uncategorizedDaily,
+      dailyCents: spendMaps.uncategorizedByDay,
     );
     return built.hasMeaningfulTrend ? built : null;
   }
@@ -304,10 +279,4 @@ class const CategorySpendTrendBuilder({
 class const _CategoryPartition({
   required final Map<String, List<SpendCategory>> membersByGroupId,
   required final List<SpendCategory> ungroupedCategories,
-});
-
-class const _RankedSpendSeries({
-  required final List<CategoryTrendSeries> rankedSeries,
-  required final CategoryTrendSeries? otherSeries,
-  required final Set<String> representedCategoryIds,
 });

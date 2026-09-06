@@ -28,9 +28,14 @@ class const BuildTrendsCharts() {
         if (!transaction.postedAt.isBefore(historyStart)) transaction,
     ];
 
+    final spendExcludedIds = {
+      ...SpecialCategory.flowIds,
+      for (final category in categories)
+        if (category.isFlow) category.id,
+    };
     final spendMaps = CategorySpendDailyMaps.fromTransactions(
       transactions: inRangeTransactions,
-      flowCategoryIds: SpecialCategory.flowIds,
+      flowCategoryIds: spendExcludedIds,
     );
     final cashFlowMaps = CashFlowDailyMaps.fromTransactions(
       inRangeTransactions,
@@ -61,7 +66,7 @@ class const BuildTrendsCharts() {
               incomeByDay: cashFlowMaps.incomeByDay,
               categories: categories,
               groups: groups,
-              flowCategoryIds: SpecialCategory.flowIds,
+              flowCategoryIds: spendExcludedIds,
               chartDates: chartRange.dates,
               historyFloor: chartRange.start,
             ).build()

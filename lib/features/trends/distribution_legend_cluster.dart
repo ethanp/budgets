@@ -20,19 +20,12 @@ class const DistributionLegendCluster({
       }
       membersByGroupSeriesId.putIfAbsent(groupSeriesId, () => []).add(series);
     }
-    final allSpendClusters = <DistributionLegendCluster>[];
-    final rankedClusters = <DistributionLegendCluster>[];
-    for (final rollup in rollups) {
-      final cluster = DistributionLegendCluster(
-        rollup: rollup,
-        members: membersByGroupSeriesId[rollup.id] ?? const [],
-      );
-      if (rollup.isAllSpend) {
-        allSpendClusters.add(cluster);
-        continue;
-      }
-      rankedClusters.add(cluster);
-    }
-    return [...allSpendClusters, ...rankedClusters];
+    return [
+      for (final rollup in rollups)
+        DistributionLegendCluster(
+          rollup: rollup,
+          members: membersByGroupSeriesId[rollup.id] ?? const [],
+        ),
+    ];
   }
 }

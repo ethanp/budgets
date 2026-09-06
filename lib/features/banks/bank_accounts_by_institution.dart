@@ -28,18 +28,24 @@ class BankAccountsByInstitution._() {
       for (final key in sortedKeys)
         BankInstitutionGroup(
           displayName: byKey[key]!.first.institutionDisplayName,
-          accounts: [...byKey[key]!]
-            ..sort(
-              (left, right) => left.displayName.compareTo(right.displayName),
-            ),
+          accounts: [...byKey[key]!]..sort(_byAbsoluteBalanceDescending),
         ),
     ];
+  }
+
+  static int _byAbsoluteBalanceDescending(Account left, Account right) {
+    final byMagnitude = right.balanceCents.abs().compareTo(
+      left.balanceCents.abs(),
+    );
+    if (byMagnitude != 0) return byMagnitude;
+    return left.displayName.compareTo(right.displayName);
   }
 
   static double amountColumnWidth(List<Account> accounts) {
     var widest = 0.0;
     for (final account in accounts) {
-      final amountStyle = !account.countsTowardNetWorth || account.balanceCents == 0
+      final amountStyle =
+          !account.countsTowardNetWorth || account.balanceCents == 0
           ? EText.body.medium.copyWith(color: EColors.textMuted)
           : EText.body.medium.copyWith(fontWeight: FontWeight.w600);
       final width = account.balanceCaption.laidOutWidth(amountStyle);

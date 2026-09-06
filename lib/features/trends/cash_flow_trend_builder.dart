@@ -106,12 +106,14 @@ class const CashFlowTrendBuilder({
         id: TrendChartCatalog.savingsSeriesId,
         name: 'Savings',
         lineColor: TrendChartCatalog.savingsLineColor,
+        legendCaption: 'Income − Spending',
         dailyCents: savingsByDay,
       ),
       _paceSeries(
         id: TrendChartCatalog.fireSavingsGuideSeriesId,
         name: '25% of income',
         lineColor: TrendChartCatalog.fireSavingsGuideLineColor,
+        legendCaption: 'FIRE guide',
         guide: true,
         dailyCents: fireSavingsGuideByDay,
       ),
@@ -132,6 +134,7 @@ class const CashFlowTrendBuilder({
     required Map<DateTime, double> dailyCents,
     bool guide = false,
     bool percentileAreaFill = false,
+    String? legendCaption,
   }) {
     return AnnualPaceSmoother.standard.seriesFromDailyMap(
       id: id,
@@ -139,6 +142,7 @@ class const CashFlowTrendBuilder({
       lineColor: lineColor,
       guide: guide,
       percentileAreaFill: percentileAreaFill,
+      legendCaption: legendCaption,
       dailyCents: dailyCents,
       chartDates: chartDates,
       historyFloor: historyFloor,

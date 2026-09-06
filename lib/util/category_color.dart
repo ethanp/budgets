@@ -40,7 +40,10 @@ class CategoryColor._() {
       return housing;
     }
     if (categoryId == null || categoryId.isEmpty) return uncategorized;
-    if (SpecialCategory.isIncomeId(categoryId)) return income;
+    if (SpecialCategory.isIncomeId(categoryId) ||
+        SpecialCategory.isInvestmentsName(categoryName)) {
+      return income;
+    }
     if (SpecialCategory.isTransferId(categoryId)) return transfer;
     final trimmedGroupId = groupId?.trim();
     if (trimmedGroupId != null && trimmedGroupId.isNotEmpty) {

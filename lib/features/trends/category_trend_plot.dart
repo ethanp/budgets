@@ -1,15 +1,15 @@
 import 'dart:math' as math;
 
+import 'package:ethan_ui/ethan_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:spend_trends/domain/life_event.dart';
 import 'package:spend_trends/domain/stay_chain.dart';
 import 'package:spend_trends/features/trends/category_trend_series.dart';
-import 'package:spend_trends/features/trends/chart_date_layout.dart';
 import 'package:spend_trends/features/trends/trend_value_scale.dart';
 
 /// Laid-out Trends chart: date axis, value scale, and drawable series.
 class CategoryTrendPlot._({
-  required final ChartDateLayout layout,
+  required final EChartPlot chart,
   required final TrendValueScale scale,
   required final List<CategoryTrendSeries> drawableSeries,
   final int? housingLane,
@@ -39,13 +39,15 @@ class CategoryTrendPlot._({
         : null;
     final jobLane = jobChain != null && !jobChain.isEmpty ? nextLane++ : null;
     final lifeEventLane = lifeEvents.isNotEmpty ? nextLane++ : null;
+    final highestSmoothedCents = _highestSmoothedCents(drawableSeries);
     return CategoryTrendPlot._(
-      layout: _dateRangeLayout(
+      chart: _dateRangeLayout(
         size,
         drawableSeries,
         overlayLaneCount: nextLane,
+        highestSmoothedCents: highestSmoothedCents,
       ),
-      scale: _niceScaleForSmoothedMax(drawableSeries),
+      scale: TrendValueScale.niceForMax(highestSmoothedCents),
       drawableSeries: drawableSeries,
       housingLane: housingLane,
       jobLane: jobLane,
@@ -53,10 +55,21 @@ class CategoryTrendPlot._({
     );
   }
 
-  static ChartDateLayout _dateRangeLayout(
+  static double _highestSmoothedCents(List<CategoryTrendSeries> drawableSeries) {
+    var highest = 0.0;
+    for (final series in drawableSeries) {
+      for (final point in series.points) {
+        highest = math.max(highest, point.smoothedCents);
+      }
+    }
+    return highest;
+  }
+
+  static EChartPlot _dateRangeLayout(
     Size size,
     List<CategoryTrendSeries> drawableSeries, {
     required int overlayLaneCount,
+    required double highestSmoothedCents,
   }) {
     final firstDate = drawableSeries
         .map((series) => series.points.first.date)
@@ -64,7 +77,7 @@ class CategoryTrendPlot._({
     final lastDate = drawableSeries
         .map((series) => series.points.last.date)
         .reduce((earlier, later) => earlier.isAfter(later) ? earlier : later);
-    return ChartDateLayout(
+    return EChartPlot(
       size: size,
       leftPadding: leftPadding,
       rightPadding: rightPadding,
@@ -72,22 +85,14 @@ class CategoryTrendPlot._({
           ? _plotTopInset
           : overlayLaneCount * overlayLaneHeight,
       bottomPadding: bottomPadding,
-      minDate: firstDate,
-      maxDate: lastDate,
+      start: firstDate,
+      end: lastDate,
+      valueScale: EChartValueScale.nice(
+        highestSmoothedCents,
+        fallbackMax: 10000,
+      ),
     );
   }
 
-  static TrendValueScale _niceScaleForSmoothedMax(
-    List<CategoryTrendSeries> drawableSeries,
-  ) {
-    var highest = 0.0;
-    for (final series in drawableSeries) {
-      for (final point in series.points) {
-        highest = math.max(highest, point.smoothedCents);
-      }
-    }
-    return TrendValueScale.niceForMax(highest);
-  }
-
-  DateTime dateForX(double x) => layout.dateForX(x);
+  DateTime dateForX(double x) => chart.dateForX(x);
 }

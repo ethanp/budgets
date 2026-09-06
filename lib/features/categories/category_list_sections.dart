@@ -1,9 +1,8 @@
 import 'package:spend_trends/domain/category.dart';
 import 'package:spend_trends/domain/category_group.dart';
 import 'package:spend_trends/domain/month_summary.dart';
-import 'package:spend_trends/domain/special_category.dart';
 
-/// One block on the Categories list: a named group, Ungrouped, or Cash flow.
+/// One block on the Categories list: a named group or Ungrouped.
 class const CategoryListSection({
   required final String title,
   required final List<SpendCategory> categories,
@@ -13,7 +12,7 @@ class const CategoryListSection({
   final CategoryGroup? group,
 });
 
-/// Groups → Ungrouped → Cash flow; members sorted by this-month spend desc.
+/// Groups → Ungrouped; members sorted by this-month spend desc.
 class CategoryListSections._(final List<CategoryListSection> sections) {
   factory from({
     required List<SpendCategory> categories,
@@ -23,13 +22,8 @@ class CategoryListSections._(final List<CategoryListSection> sections) {
     final groupsById = {for (final group in groups) group.id: group};
     final membersByGroupId = <String, List<SpendCategory>>{};
     final ungrouped = <SpendCategory>[];
-    final flow = <SpendCategory>[];
 
     for (final category in categories) {
-      if (category.isFlow) {
-        flow.add(category);
-        continue;
-      }
       final groupId = category.groupId;
       if (groupId != null && groupsById.containsKey(groupId)) {
         membersByGroupId.putIfAbsent(groupId, () => []).add(category);
@@ -61,17 +55,6 @@ class CategoryListSections._(final List<CategoryListSection> sections) {
           title: 'Ungrouped',
           categories: ungrouped,
           monthTotalCents: _monthTotal(ungrouped, rowsById),
-        ),
-      );
-    }
-
-    if (flow.isNotEmpty) {
-      flow.sort((left, right) => left.sortOrder.compareTo(right.sortOrder));
-      sections.add(
-        CategoryListSection(
-          title: 'Cash flow',
-          categories: flow,
-          monthTotalCents: 0,
         ),
       );
     }

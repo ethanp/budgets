@@ -22,8 +22,8 @@ BoxDecoration appTintedCardDecoration({
 /// Compact horizontal fact columns — title capped with ellipsis; amount hugs.
 ///
 /// Does not stretch title and amount to opposite edges of a wide window.
-/// Pass the same [amountWidth] across sibling rows so amounts align inside a
-/// narrow browse pane.
+/// Pass the same [titleWidth] and [amountWidth] across sibling rows so cards
+/// share one width (the widest label) and amounts stay aligned.
 class const AppCompactFactRow({
   required final String title,
   final Widget? leading,
@@ -31,6 +31,7 @@ class const AppCompactFactRow({
   final Widget? amount,
   final double? amountWidth,
   final Widget? trailing,
+  final double? titleWidth,
   final double titleMaxWidth = 260,
   final Color? tintColor,
   final bool selected = false,
@@ -53,7 +54,9 @@ class const AppCompactFactRow({
             const SizedBox(width: ELayout.spaceMd),
           ],
           ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: titleMaxWidth),
+            constraints: titleWidth == null
+                ? BoxConstraints(maxWidth: titleMaxWidth)
+                : BoxConstraints.tightFor(width: titleWidth),
             child: _titleColumn(),
           ),
           if (amount != null) ...[

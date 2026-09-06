@@ -117,7 +117,7 @@ class _BanksSourceSectionState() extends ConsumerState<BanksSourceSection> {
     final busy = actionState.busy;
     final controller = ref.read(banksControllerProvider.notifier);
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         BankAccountsList(
           status: status,

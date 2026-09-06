@@ -2,6 +2,7 @@ import 'package:ethan_ui/ethan_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spend_trends/domain/category_group.dart';
+import 'package:spend_trends/domain/special_category.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/widgets/app_primary_button.dart';
 import 'package:spend_trends/widgets/app_sheet_panel.dart';
@@ -32,6 +33,8 @@ class _GroupEditorSheetState() extends ConsumerState<GroupEditorSheet> {
   String? _error;
 
   bool get _isEditing => widget.group != null;
+
+  bool get _isIncomeGroup => SpecialCategory.isIncomeGroupId(widget.group?.id);
 
   @override
   void initState() {
@@ -75,7 +78,7 @@ class _GroupEditorSheetState() extends ConsumerState<GroupEditorSheet> {
               onPressed: _save,
               child: Text(_isEditing ? 'Save' : 'Create'),
             ),
-            if (_isEditing) ...[
+            if (_isEditing && !_isIncomeGroup) ...[
               const SizedBox(height: ELayout.spaceSm),
               TextButton(
                 onPressed: _busy ? null : _confirmDelete,
