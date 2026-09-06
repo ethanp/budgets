@@ -9,6 +9,7 @@ import 'package:spend_trends/features/owned_assets/owned_asset_row.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/widgets/app_browse_split_shell.dart';
 import 'package:spend_trends/widgets/app_primary_button.dart';
+import 'package:spend_trends/widgets/help_tooltip.dart';
 
 /// Banks section: manually tracked home / vehicle / other asset values.
 class const OwnedAssetsSection({
@@ -40,12 +41,16 @@ class const OwnedAssetsSection({
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Owned assets', style: EText.section),
-        const SizedBox(height: ELayout.spaceXs),
-        Text(
-          'Home, vehicle, and other values in net worth. '
-          'Update a value to record a snapshot on that date.',
-          style: EText.caption,
+        Row(
+          children: [
+            Text('Owned assets', style: EText.section),
+            const SizedBox(width: ELayout.spaceXs),
+            const HelpTooltip(
+              message:
+                  'Home, vehicle, and other values in net worth. '
+                  'Update a value to record a snapshot on that date.',
+            ),
+          ],
         ),
         const SizedBox(height: ELayout.spaceMd),
         if (ownedAssets.isEmpty)

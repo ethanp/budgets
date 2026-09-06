@@ -47,6 +47,11 @@ class OwnedAssetWithValuations({
     return valuations.first.valuedOn;
   }
 
+  DateTime? get firstValuedOn {
+    if (valuations.isEmpty) return null;
+    return valuations.last.valuedOn;
+  }
+
   /// Latest snapshot on or before [day]; 0 before the first valuation.
   int valueCentsOn(DateTime day) {
     final target = day.startOfDay;

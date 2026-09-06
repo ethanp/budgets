@@ -4,6 +4,8 @@ import 'package:spend_trends/domain/owned_asset.dart';
 import 'package:spend_trends/domain/owned_asset_kind.dart';
 import 'package:spend_trends/domain/transaction.dart';
 import 'package:spend_trends/features/trends/build_trends_charts.dart';
+import 'package:spend_trends/features/trends/centered_moving_average.dart';
+import 'package:spend_trends/features/trends/net_worth_component_history.dart';
 import 'package:spend_trends/features/trends/net_worth_trend.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -448,6 +450,93 @@ void main() {
     );
   });
 
+  test('SimpleFIN prior loan drops out of current net worth', () {
+    final day0 = DateTime(2024, 1, 1);
+    final day1 = DateTime(2024, 1, 2);
+    final day2 = DateTime(2024, 1, 3);
+    final chartDates = [day0, day1, day2];
+    const currentServicer = Account(
+      id: 'carrington',
+      externalId: 'ACT-carrington',
+      name: 'Account (2056)',
+      currency: 'USD',
+      balanceCents: -52768012,
+      status: AccountStatus.ok,
+      kind: AccountKind.loans,
+    );
+    const priorServicer = Account(
+      id: 'valon',
+      externalId: 'ACT-valon',
+      name: 'Mortgage 4561',
+      currency: 'USD',
+      balanceCents: -52820000,
+      status: AccountStatus.ok,
+      kind: AccountKind.loans,
+      belongsToAccountId: 'carrington',
+    );
+    expect(
+      NetWorthTrend.currentCents(
+        accounts: [currentServicer, priorServicer],
+        ownedAssets: const [],
+      ),
+      currentServicer.balanceCents,
+    );
+
+    final transactions = [
+      BankTransaction(
+        id: 'valon-payment',
+        accountId: 'valon',
+        externalId: 'v1',
+        postedAt: day1,
+        amountCents: 50000,
+        rawDescription: 'Mortgage',
+        normalizedMerchant: 'VALON',
+        pending: false,
+      ),
+    ];
+    expect(
+      NetWorthTrend.dailyCents(
+        accounts: [currentServicer, priorServicer],
+        transactions: transactions,
+        chartDates: chartDates,
+      ),
+      [
+        0.0,
+        currentServicer.balanceCents.toDouble(),
+        currentServicer.balanceCents.toDouble(),
+      ],
+    );
+    expect(
+      NetWorthTrend.accountDailyCents(
+        account: currentServicer,
+        transactions: transactions,
+        chartDates: chartDates,
+      ),
+      [0.0, 0.0, currentServicer.balanceCents.toDouble()],
+    );
+
+    final series = NetWorthTrend.series(
+      accounts: [currentServicer, priorServicer],
+      transactions: transactions,
+      chartDates: [
+        for (var dayOffset = 0; dayOffset < 10; dayOffset++)
+          day0.add(Duration(days: dayOffset)),
+      ],
+    );
+    expect(
+      series.any(
+        (entry) => entry.id == TrendChartCatalog.accountSeriesId('valon'),
+      ),
+      isFalse,
+    );
+    expect(
+      series.any(
+        (entry) => entry.id == TrendChartCatalog.accountSeriesId('carrington'),
+      ),
+      isTrue,
+    );
+  });
+
   test('owned assets add to daily net worth and step on re-valuation', () {
     final day0 = DateTime(2024, 1, 1);
     final chartDates = [
@@ -565,4 +654,347 @@ void main() {
       closeTo(1800000, 0.01),
     );
   });
+
+  test('afternoon balanceAsOf on the last chart day still lists a 529', () {
+    final lastDay = DateTime(2024, 3, 1);
+    final chartDates = [
+      for (var dayOffset = 0; dayOffset < 10; dayOffset++)
+        lastDay.subtract(Duration(days: 9 - dayOffset)),
+    ];
+    final plan529 = Account(
+      id: '529',
+      externalId: 'ext-529',
+      name: 'Schwab 529 Plan ...-01 (01)',
+      currency: 'USD',
+      balanceCents: 6173889,
+      balanceAsOf: DateTime(2024, 3, 1, 9, 16, 43),
+      status: AccountStatus.ok,
+      kind: AccountKind.investment,
+    );
+    const pie = Account(
+      id: 'pie',
+      externalId: 'ext-pie',
+      name: 'Pie',
+      currency: 'USD',
+      balanceCents: 121670815,
+      status: AccountStatus.ok,
+      kind: AccountKind.investment,
+    );
+
+    final series = NetWorthTrend.series(
+      accounts: [pie, plan529],
+      transactions: const [],
+      chartDates: chartDates,
+    );
+    final planSeries = series.firstWhere(
+      (entry) => entry.id == TrendChartCatalog.accountSeriesId('529'),
+    );
+    expect(planSeries.name, contains('529'));
+    expect(planSeries.legendGroup, 'Investment');
+    expect(planSeries.points.last.rollingCents, closeTo(6173889, 0.01));
+    expect(planSeries.points.last.smoothedCents, closeTo(6173889, 0.01));
+  });
+
+  test(
+    'a loan first known on the last day keeps its full raw and smoothed tip',
+    () {
+      final lastDay = DateTime(2024, 3, 1);
+      final chartDates = [
+        for (var dayOffset = 0; dayOffset < 60; dayOffset++)
+          lastDay.subtract(Duration(days: 59 - dayOffset)),
+      ];
+      final mortgage = Account(
+        id: 'mortgage',
+        externalId: 'ext-mortgage',
+        name: 'Lancefield',
+        currency: 'USD',
+        balanceCents: -36015288,
+        balanceAsOf: lastDay,
+        status: AccountStatus.ok,
+        kind: AccountKind.loans,
+      );
+      final plan529 = Account(
+        id: '529',
+        externalId: 'ext-529',
+        name: '529 Plan',
+        currency: 'USD',
+        balanceCents: 6173889,
+        balanceAsOf: lastDay,
+        status: AccountStatus.ok,
+        kind: AccountKind.investment,
+      );
+
+      final series = NetWorthTrend.series(
+        accounts: [mortgage, plan529],
+        transactions: const [],
+        chartDates: chartDates,
+      );
+      final mortgageSeries = series.firstWhere(
+        (entry) => entry.id == TrendChartCatalog.accountSeriesId('mortgage'),
+      );
+      final planSeries = series.firstWhere(
+        (entry) => entry.id == TrendChartCatalog.accountSeriesId('529'),
+      );
+      final total = series.firstWhere(
+        (entry) => entry.id == TrendChartCatalog.netWorthSeriesId,
+      );
+
+      expect(mortgageSeries.points[58].rollingCents, 0);
+      expect(mortgageSeries.points[58].smoothedCents, 0);
+      expect(mortgageSeries.points.last.rollingCents, closeTo(36015288, 0.01));
+      expect(mortgageSeries.points.last.smoothedCents, closeTo(36015288, 0.01));
+      expect(planSeries.points.last.rollingCents, closeTo(6173889, 0.01));
+      expect(planSeries.points.last.smoothedCents, closeTo(6173889, 0.01));
+      expect(
+        total.points.last.rollingCents,
+        closeTo(-36015288 + 6173889, 0.01),
+      );
+      expect(
+        total.points.last.smoothedCents,
+        closeTo(-36015288 + 6173889, 0.01),
+      );
+    },
+  );
+
+  test(
+    'established account history still uses the three-pass 43-day smoother',
+    () {
+      final start = DateTime(2024, 1, 1);
+      final chartDates = [
+        for (var dayOffset = 0; dayOffset < 60; dayOffset++)
+          start.add(Duration(days: dayOffset)),
+      ];
+      const checking = Account(
+        id: 'checking',
+        externalId: 'ext-checking',
+        name: 'Checking',
+        currency: 'USD',
+        balanceCents: 60000,
+        status: AccountStatus.ok,
+        kind: AccountKind.checking,
+      );
+      final transactions = [
+        for (var dayOffset = 0; dayOffset < 60; dayOffset++)
+          BankTransaction(
+            id: 't$dayOffset',
+            accountId: 'checking',
+            externalId: 'e$dayOffset',
+            postedAt: start.add(Duration(days: dayOffset)),
+            amountCents: 1000,
+            rawDescription: 'Pay',
+            normalizedMerchant: 'PAY',
+            pending: false,
+          ),
+      ];
+      final rawDaily = NetWorthTrend.accountDailyCents(
+        account: checking,
+        transactions: transactions,
+        chartDates: chartDates,
+      );
+      final expectedSmoothed = CenteredMovingAverage.standard.smoothValues(
+        rawDaily,
+      );
+
+      final series = NetWorthTrend.series(
+        accounts: [checking],
+        transactions: transactions,
+        chartDates: chartDates,
+      );
+      final checkingSeries = series.firstWhere(
+        (entry) => entry.id == TrendChartCatalog.accountSeriesId('checking'),
+      );
+      expect(checkingSeries.points.last.rollingCents, closeTo(60000, 0.01));
+      for (var dayIndex = 0; dayIndex < chartDates.length; dayIndex++) {
+        expect(
+          checkingSeries.points[dayIndex].smoothedCents,
+          closeTo(expectedSmoothed[dayIndex], 0.01),
+        );
+      }
+    },
+  );
+
+  test(
+    'total smoothed cents are the signed sum of component-smoothed cents',
+    () {
+      final lastDay = DateTime(2024, 3, 1);
+      final chartDates = [
+        for (var dayOffset = 0; dayOffset < 60; dayOffset++)
+          lastDay.subtract(Duration(days: 59 - dayOffset)),
+      ];
+      final checking = Account(
+        id: 'checking',
+        externalId: 'ext-checking',
+        name: 'Checking',
+        currency: 'USD',
+        balanceCents: 10000000,
+        balanceAsOf: DateTime(2024, 1, 2),
+        status: AccountStatus.ok,
+        kind: AccountKind.checking,
+      );
+      final mortgage = Account(
+        id: 'mortgage',
+        externalId: 'ext-mortgage',
+        name: 'Mortgage',
+        currency: 'USD',
+        balanceCents: -4000000,
+        balanceAsOf: lastDay,
+        status: AccountStatus.ok,
+        kind: AccountKind.loans,
+      );
+      final ownedAssets = [
+        OwnedAssetWithValuations(
+          asset: const OwnedAsset(
+            id: 'home',
+            name: 'Home',
+            kind: OwnedAssetKind.home,
+          ),
+          valuations: [
+            OwnedAssetValuation(
+              id: 'v1',
+              ownedAssetId: 'home',
+              valueCents: 20000000,
+              valuedOn: DateTime(2024, 1, 15),
+            ),
+          ],
+        ),
+      ];
+
+      final series = NetWorthTrend.series(
+        accounts: [checking, mortgage],
+        transactions: const [],
+        chartDates: chartDates,
+        ownedAssets: ownedAssets,
+      );
+      final total = series.firstWhere(
+        (entry) => entry.id == TrendChartCatalog.netWorthSeriesId,
+      );
+      expect(
+        total.latestRollingCents,
+        NetWorthTrend.currentCents(
+          accounts: [checking, mortgage],
+          ownedAssets: ownedAssets,
+        ),
+      );
+
+      final checkingSeries = series.firstWhere(
+        (entry) => entry.id == TrendChartCatalog.accountSeriesId('checking'),
+      );
+      final mortgageSeries = series.firstWhere(
+        (entry) => entry.id == TrendChartCatalog.accountSeriesId('mortgage'),
+      );
+      final homeSeries = series.firstWhere(
+        (entry) => entry.id == TrendChartCatalog.ownedAssetSeriesId('home'),
+      );
+      for (var dayIndex = 0; dayIndex < chartDates.length; dayIndex++) {
+        expect(
+          total.points[dayIndex].smoothedCents,
+          closeTo(
+            checkingSeries.points[dayIndex].smoothedCents -
+                mortgageSeries.points[dayIndex].smoothedCents +
+                homeSeries.points[dayIndex].smoothedCents,
+            0.01,
+          ),
+        );
+      }
+    },
+  );
+
+  test('component history smooths only the known suffix', () {
+    final history = NetWorthComponentHistory(
+      rawDailyCents: [0, 0, 0, 100000, 100000],
+      firstKnownDayIndex: 3,
+    );
+    expect(history.smoothedDailyCents.sublist(0, 3), [0, 0, 0]);
+    expect(history.smoothedDailyCents[3], 100000);
+    expect(history.smoothedDailyCents[4], 100000);
+  });
+
+  test(
+    'balance history series is omitted when only a same-day snapshot exists',
+    () {
+      const retirement = Account(
+        id: '401k',
+        externalId: 'ext-401k',
+        name: 'Sunrun 401k',
+        currency: 'USD',
+        balanceCents: 3831619,
+        status: AccountStatus.ok,
+        kind: AccountKind.investment,
+      );
+      expect(
+        NetWorthTrend.balanceHistorySeries(
+          account: retirement,
+          accounts: [retirement],
+          transactions: const [],
+          endDate: DateTime(2026, 9, 6),
+        ),
+        isNull,
+      );
+    },
+  );
+
+  test('balance history series starts on the first known day', () {
+    const checking = Account(
+      id: 'checking',
+      externalId: 'ext-checking',
+      name: 'Checking',
+      currency: 'USD',
+      balanceCents: 125000,
+      status: AccountStatus.ok,
+      kind: AccountKind.checking,
+    );
+    final firstPostedOn = DateTime(2026, 8, 1);
+    final series = NetWorthTrend.balanceHistorySeries(
+      account: checking,
+      accounts: [checking],
+      transactions: [
+        BankTransaction(
+          id: 't1',
+          accountId: checking.id,
+          externalId: 'e1',
+          postedAt: firstPostedOn,
+          amountCents: 5000,
+          rawDescription: 'Pay',
+          normalizedMerchant: 'PAY',
+          pending: false,
+        ),
+      ],
+      endDate: DateTime(2026, 9, 6),
+    );
+
+    expect(series, isNotNull);
+    expect(series!.points.first.date, firstPostedOn);
+    expect(series.points.last.rollingCents, 125000);
+    for (final point in series.points) {
+      expect(point.rollingCents, greaterThan(0));
+    }
+  });
+
+  test(
+    'balance history series holds a multi-day snapshot at the live balance',
+    () {
+      final knownFrom = DateTime(2026, 8, 1);
+      final retirement = Account(
+        id: '401k',
+        externalId: 'ext-401k',
+        name: 'Sunrun 401k',
+        currency: 'USD',
+        balanceCents: 3831619,
+        balanceAsOf: knownFrom,
+        status: AccountStatus.ok,
+        kind: AccountKind.investment,
+      );
+      final series = NetWorthTrend.balanceHistorySeries(
+        account: retirement,
+        accounts: [retirement],
+        transactions: const [],
+        endDate: DateTime(2026, 9, 6),
+      );
+
+      expect(series, isNotNull);
+      expect(series!.points.first.date, knownFrom);
+      expect(series.points.first.rollingCents, 3831619);
+      expect(series.points.last.rollingCents, 3831619);
+    },
+  );
 }

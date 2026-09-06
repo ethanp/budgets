@@ -5,6 +5,8 @@ import 'package:spend_trends/domain/account.dart';
 import 'package:spend_trends/domain/account_kind.dart';
 import 'package:spend_trends/domain/owned_asset.dart';
 
+import 'bank_account_detail_pane.dart';
+
 /// Banks right pane: net-worth overview or selected account detail.
 class const BanksNetWorthPane({
   required final List<Account> accounts,
@@ -22,12 +24,11 @@ class const BanksNetWorthPane({
         }
       }
     }
+    if (selected != null) return BankAccountDetailPane(account: selected);
 
     return ListView(
       padding: const EdgeInsets.all(ELayout.spaceLg),
-      children: [
-        if (selected == null) _netWorthOverview() else _accountDetail(selected),
-      ],
+      children: [_netWorthOverview()],
     );
   }
 
@@ -35,7 +36,7 @@ class const BanksNetWorthPane({
     var totalCents = 0;
     final countsByKind = <AccountKind, int>{};
     for (final account in accounts) {
-      if (account.hasLiveBalance) {
+      if (account.countsTowardNetWorth) {
         totalCents += account.balanceCents;
       }
       countsByKind.update(
@@ -100,29 +101,5 @@ class const BanksNetWorthPane({
     return '${accounts.length} '
         '${accounts.length == 1 ? 'account' : 'accounts'}'
         '$ownedAssetsCaption';
-  }
-
-  Widget _accountDetail(Account account) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(account.displayName, style: EText.section),
-        const SizedBox(height: ELayout.spaceXs),
-        Text(account.kind.legendLabel, style: EText.caption),
-        const SizedBox(height: ELayout.spaceLg),
-        Text(
-          'Balance',
-          style: EText.caption.copyWith(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: ELayout.spaceXs),
-        Text(account.balanceCaption, style: EText.title),
-        const SizedBox(height: ELayout.spaceMd),
-        Text(account.institutionDisplayName, style: EText.body.medium),
-        if (account.isCopilot) ...[
-          const SizedBox(height: ELayout.spaceXs),
-          Text('Copilot import', style: EText.caption),
-        ],
-      ],
-    );
   }
 }

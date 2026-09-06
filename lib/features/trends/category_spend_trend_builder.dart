@@ -94,7 +94,7 @@ class const CategorySpendTrendBuilder({
 
     final allSpendSeries = _paceSeries(
       id: TrendChartCatalog.allSpendSeriesId,
-      name: 'All spending',
+      name: 'All',
       lineColor: TrendChartCatalog.allSpendLineColor,
       dotted: true,
       dailyCents: spendMaps.totalByDay,
@@ -175,11 +175,12 @@ class const CategorySpendTrendBuilder({
         final memberIsHousing = member.isHousing;
         final builtMember = _paceSeries(
           id: member.id,
-          name: '${group.name} · ${member.name}',
+          name: member.name,
           lineColor: memberIsHousing
               ? CategoryColor.housing
               : CategoryColor.forCategory(member),
           dailyCents: memberDaily,
+          memberOfGroupSeriesId: TrendChartCatalog.groupSeriesId(group.id),
         );
         if (!builtMember.hasMeaningfulTrend) {
           continue;
@@ -271,6 +272,7 @@ class const CategorySpendTrendBuilder({
     required Map<DateTime, double> dailyCents,
     bool dotted = false,
     bool guide = false,
+    String? memberOfGroupSeriesId,
   }) {
     return AnnualPaceSmoother.standard.seriesFromDailyMap(
       id: id,
@@ -281,6 +283,7 @@ class const CategorySpendTrendBuilder({
       dailyCents: dailyCents,
       chartDates: chartDates,
       historyFloor: historyFloor,
+      memberOfGroupSeriesId: memberOfGroupSeriesId,
     );
   }
 

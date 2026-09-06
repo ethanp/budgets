@@ -9,10 +9,9 @@ class const CenteredMovingAverage({
   static const standard = CenteredMovingAverage();
 
   List<CategoryTrendPoint> smoothPoints(List<CategoryTrendPoint> rawPoints) {
-    var smoothedValues = rawPoints.mapL((point) => point.rollingCents);
-    for (var pass = 0; pass < passCount; pass++) {
-      smoothedValues = smooth(smoothedValues);
-    }
+    final smoothedValues = smoothValues(
+      rawPoints.mapL((point) => point.rollingCents),
+    );
     return rawPoints.mapLWithIndex(
       (rawPoint, pointIndex) => CategoryTrendPoint(
         date: rawPoint.date,
@@ -20,6 +19,14 @@ class const CenteredMovingAverage({
         smoothedCents: smoothedValues[pointIndex],
       ),
     );
+  }
+
+  List<double> smoothValues(List<double> values) {
+    var smoothedValues = values;
+    for (var pass = 0; pass < passCount; pass++) {
+      smoothedValues = smooth(smoothedValues);
+    }
+    return smoothedValues;
   }
 
   /// Full width shifts inward at tips so every output uses [2*half+1] samples

@@ -2,26 +2,23 @@ import 'package:ethan_ui/ethan_ui.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:spend_trends/domain/category.dart';
 import 'package:spend_trends/domain/category_group.dart';
 import 'package:spend_trends/domain/life_event.dart';
 import 'package:spend_trends/domain/stay_chain.dart';
 import 'package:spend_trends/domain/transaction.dart';
 import 'package:spend_trends/domain/trend_spend_rate.dart';
+import 'package:spend_trends/features/trends/category_trend_inspect_overlay.dart';
 import 'package:spend_trends/features/trends/category_trend_painter.dart';
-import 'package:spend_trends/features/trends/category_trend_point.dart';
+import 'package:spend_trends/features/trends/category_trend_plot.dart';
 import 'package:spend_trends/features/trends/category_trend_series.dart';
 import 'package:spend_trends/features/trends/category_trend_series_legend.dart';
-import 'package:spend_trends/features/trends/chart_date_layout.dart';
 import 'package:spend_trends/features/trends/trend_chart_catalog.dart';
 import 'package:spend_trends/features/trends/trend_point_contributors.dart';
 import 'package:spend_trends/features/trends/trend_point_contributors_sheet.dart';
-import 'package:spend_trends/features/trends/trend_value_scale.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/theme/finance_colors.dart';
-
-import 'dart:math' as math;
+import 'package:spend_trends/widgets/help_tooltip.dart';
 
 /// Labeled amount shown under a Trends chart title.
 class const ChartHeadlineFigure({
@@ -39,9 +36,10 @@ class const CategoryTrendChart({
   final List<LifeEvent> lifeEvents = const [],
   final StayChain? housingChain,
   final StayChain? jobChain,
-  final String subtitle =
-      'Annual pace · tap a line for top contributors · drag to inspect · '
+  final String? subtitle =
+      'Annual pace · tap a line for top contributors · hover to inspect · '
       'tap legend to show/hide · double-tap to solo',
+  final String? titleHelp,
   final Set<String> initiallyHiddenSeriesIds = const {},
 
   /// When true, shows the shared yr/mo/day control (only one chart should).
@@ -56,27 +54,39 @@ class const CategoryTrendChart({
 
   /// Optional labeled amounts under the title (e.g. current + smoothed NW).
   final List<ChartHeadlineFigure> headlineFigures = const [],
+  final double chartHeight = 560,
 }) extends ConsumerStatefulWidget {
   @override
   ConsumerState<CategoryTrendChart> createState() => _CategoryTrendChartState();
 }
 
 class _CategoryTrendChartState() extends ConsumerState<CategoryTrendChart> {
-  static const _tapSlop = 18.0;
-
   static final _headlineAmountStyle = EText.section.copyWith(fontSize: 22);
 
   late final Set<String> _hiddenSeriesIds = {
     ...widget.initiallyHiddenSeriesIds,
   };
-  Offset? _hoverPosition;
-  DateTime? _hoverDate;
-  Offset? _pointerDown;
-  bool _dragExceededSlop = false;
+  late List<CategoryTrendSeries> _visibleSeries = _filterVisibleSeries();
+  final ValueNotifier<CategoryTrendInspect?> _inspect = ValueNotifier(null);
 
-  List<CategoryTrendSeries> get _visibleSeries => widget.seriesList
-      .where((series) => !_hiddenSeriesIds.contains(series.id))
-      .toList();
+  @override
+  void didUpdateWidget(CategoryTrendChart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.seriesList != widget.seriesList) {
+      _visibleSeries = _filterVisibleSeries();
+    }
+  }
+
+  @override
+  void dispose() {
+    _inspect.dispose();
+    super.dispose();
+  }
+
+  List<CategoryTrendSeries> _filterVisibleSeries() => [
+    for (final series in widget.seriesList)
+      if (!_hiddenSeriesIds.contains(series.id)) series,
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -93,29 +103,40 @@ class _CategoryTrendChartState() extends ConsumerState<CategoryTrendChart> {
         children: [
           Row(
             children: [
-              Expanded(child: Text(widget.title, style: EText.section)),
-              if (widget.showSpendRateToggle) _spendRateToggle(spendRate),
+              Flexible(child: Text(widget.title, style: EText.section)),
+              if (widget.titleHelp != null) ...[
+                const SizedBox(width: ELayout.spaceXs),
+                HelpTooltip(message: widget.titleHelp!),
+              ],
+              if (widget.showSpendRateToggle) ...[
+                const Spacer(),
+                _spendRateToggle(spendRate),
+              ],
             ],
           ),
           if (widget.headlineFigures.isNotEmpty) ...[
             const SizedBox(height: ELayout.spaceSm),
             _headlineFigures(widget.headlineFigures),
           ],
-          const SizedBox(height: ELayout.spaceXs),
-          Text(widget.subtitle, style: EText.caption),
+          if (widget.subtitle != null) ...[
+            const SizedBox(height: ELayout.spaceXs),
+            Text(widget.subtitle!, style: EText.caption),
+          ],
           const SizedBox(height: ELayout.spaceMd),
           _chartArea(),
-          const SizedBox(height: ELayout.spaceSm),
-          _inspectCaption(spendRate),
           const SizedBox(height: ELayout.spaceMd),
-          CategoryTrendSeriesLegend(
-            seriesList: widget.seriesList,
-            hiddenSeriesIds: _hiddenSeriesIds,
-            spendRate: spendRate,
-            valueKind: widget.valueKind,
-            useDistributionLegend: widget.useDistributionLegend,
-            onSeriesToggled: _toggleSeries,
-            onSeriesSoloed: _soloSeries,
+          ValueListenableBuilder<CategoryTrendInspect?>(
+            valueListenable: _inspect,
+            builder: (context, inspect, _) => CategoryTrendSeriesLegend(
+              seriesList: widget.seriesList,
+              hiddenSeriesIds: _hiddenSeriesIds,
+              spendRate: spendRate,
+              valueKind: widget.valueKind,
+              useDistributionLegend: widget.useDistributionLegend,
+              inspectDate: inspect?.date,
+              onSeriesToggled: _toggleSeries,
+              onSeriesSoloed: _soloSeries,
+            ),
           ),
         ],
       ),
@@ -204,90 +225,71 @@ class _CategoryTrendChartState() extends ConsumerState<CategoryTrendChart> {
     );
   }
 
-  String _formatSeriesCents(int cents, TrendSpendRate spendRate) {
-    if (widget.valueKind == TrendValueKind.level) {
-      return formatCentsWholeDollars(cents);
-    }
-    return formatCentsWholeDollars(spendRate.displayCents(cents));
-  }
-
   Widget _chartArea() {
-    if (!_visibleSeries.any((series) => series.points.length >= 2)) {
+    if (!_visibleSeries.any((series) => series.canPlot)) {
       return SizedBox(
-        height: 560,
+        height: widget.chartHeight,
         child: Center(child: Text('Need more history', style: EText.caption)),
       );
     }
 
     return SizedBox(
-      height: 560,
+      height: widget.chartHeight,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          return GestureDetector(
-            onTapDown: (details) {
-              _pointerDown = details.localPosition;
-              _dragExceededSlop = false;
-              _updateHover(details.localPosition, constraints);
+          final plotSize = Size(constraints.maxWidth, constraints.maxHeight);
+          final plot = CategoryTrendPlot.from(
+            size: plotSize,
+            seriesList: _visibleSeries,
+            housingChain: widget.housingChain,
+            jobChain: widget.jobChain,
+            lifeEvents: widget.lifeEvents,
+          );
+          return MouseRegion(
+            onHover: (event) {
+              _inspect.value = CategoryTrendInspect(
+                date: plot.dateForX(event.localPosition.dx),
+              );
             },
-            onTapUp: (details) {
-              if (_dragExceededSlop || !widget.enableContributors) return;
-              _openContributorsAt(details.localPosition, constraints);
-            },
-            onPanUpdate: (details) {
-              final pointerDown = _pointerDown;
-              if (pointerDown != null &&
-                  (details.localPosition - pointerDown).distance > _tapSlop) {
-                _dragExceededSlop = true;
-              }
-              _updateHover(details.localPosition, constraints);
-            },
-            onPanEnd: (_) => _clearHover(),
-            child: CustomPaint(
-              size: Size(constraints.maxWidth, constraints.maxHeight),
-              painter: CategoryTrendPainter(
-                seriesList: _visibleSeries,
-                lifeEvents: widget.lifeEvents,
-                housingChain: widget.housingChain,
-                jobChain: widget.jobChain,
-                hoverPosition: _hoverPosition,
+            onExit: (_) => _inspect.value = null,
+            child: GestureDetector(
+              onTapUp: widget.enableContributors
+                  ? (details) =>
+                        _openContributorsAt(details.localPosition, plot)
+                  : null,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  RepaintBoundary(
+                    child: CustomPaint(
+                      isComplex: true,
+                      willChange: false,
+                      size: plotSize,
+                      painter: CategoryTrendPainter(
+                        seriesList: _visibleSeries,
+                        lifeEvents: widget.lifeEvents,
+                        housingChain: widget.housingChain,
+                        jobChain: widget.jobChain,
+                      ),
+                    ),
+                  ),
+                  ValueListenableBuilder<CategoryTrendInspect?>(
+                    valueListenable: _inspect,
+                    builder: (context, inspect, _) => CustomPaint(
+                      willChange: inspect != null,
+                      size: plotSize,
+                      painter: CategoryTrendInspectPainter(
+                        plot: plot,
+                        inspect: inspect,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           );
         },
       ),
-    );
-  }
-
-  Widget _inspectCaption(TrendSpendRate spendRate) {
-    final hoverDate = _hoverDate;
-    if (hoverDate == null) {
-      return Text(
-        widget.enableContributors
-            ? 'Drag to inspect all lines at a date · '
-                  'tap a line for top contributors'
-            : 'Drag to inspect at a date',
-        style: EText.caption,
-      );
-    }
-
-    final values = _visibleSeries
-        .map((series) {
-          final point = _nearestPoint(series.points, hoverDate);
-          final amount = point == null
-              ? '—'
-              : _formatSeriesCents(point.smoothedCents.round(), spendRate);
-          return '${series.name} $amount';
-        })
-        .join(' · ');
-
-    final rateSuffix = widget.valueKind == TrendValueKind.level
-        ? ''
-        : ' (${spendRate.shortLabel.trim()})';
-    return Text(
-      '${DateFormat.MMMd().format(hoverDate)} · $values$rateSuffix',
-      style: EText.caption,
-      maxLines: 4,
-      overflow: TextOverflow.ellipsis,
     );
   }
 
@@ -298,6 +300,7 @@ class _CategoryTrendChartState() extends ConsumerState<CategoryTrendChart> {
       } else {
         _hiddenSeriesIds.add(seriesId);
       }
+      _visibleSeries = _filterVisibleSeries();
     });
   }
 
@@ -308,15 +311,16 @@ class _CategoryTrendChartState() extends ConsumerState<CategoryTrendChart> {
         _hiddenSeriesIds
           ..clear()
           ..addAll(widget.initiallyHiddenSeriesIds);
-        return;
+      } else {
+        _hiddenSeriesIds
+          ..clear()
+          ..addAll(
+            widget.seriesList
+                .where((series) => series.id != seriesId)
+                .map((series) => series.id),
+          );
       }
-      _hiddenSeriesIds
-        ..clear()
-        ..addAll(
-          widget.seriesList
-              .where((series) => series.id != seriesId)
-              .map((series) => series.id),
-        );
+      _visibleSeries = _filterVisibleSeries();
     });
   }
 
@@ -332,27 +336,9 @@ class _CategoryTrendChartState() extends ConsumerState<CategoryTrendChart> {
     return true;
   }
 
-  void _updateHover(Offset position, BoxConstraints constraints) {
-    final hoverDate = _dateForPosition(position, constraints);
-    setState(() {
-      _hoverPosition = position;
-      _hoverDate = hoverDate;
-    });
-  }
-
-  void _clearHover() {
-    if (_hoverPosition == null && _hoverDate == null) return;
-    setState(() {
-      _hoverPosition = null;
-      _hoverDate = null;
-    });
-  }
-
-  void _openContributorsAt(Offset position, BoxConstraints constraints) {
-    final tapDate = _dateForPosition(position, constraints);
-    if (tapDate == null) return;
-
-    final series = _nearestVisibleSeries(position, constraints, tapDate);
+  void _openContributorsAt(Offset position, CategoryTrendPlot plot) {
+    final tapDate = plot.dateForX(position.dx);
+    final series = _nearestVisibleSeries(position, plot, tapDate);
     if (series == null) return;
 
     final contributors = TrendPointContributors.topForSeries(
@@ -365,7 +351,7 @@ class _CategoryTrendChartState() extends ConsumerState<CategoryTrendChart> {
     );
     if (contributors.isEmpty) return;
 
-    final tapPoint = _nearestPoint(series.points, tapDate);
+    final tapPoint = series.nearestPoint(tapDate);
     if (tapPoint == null) return;
 
     TrendPointContributorsSheet.show(
@@ -379,33 +365,24 @@ class _CategoryTrendChartState() extends ConsumerState<CategoryTrendChart> {
 
   CategoryTrendSeries? _nearestVisibleSeries(
     Offset position,
-    BoxConstraints constraints,
+    CategoryTrendPlot plot,
     DateTime tapDate,
   ) {
-    final drawable = _visibleSeries
-        .where(
-          (series) =>
-              series.points.length >= 2 &&
-              !series.guide &&
-              series.id != TrendChartCatalog.housingAffordabilitySeriesId &&
-              series.id != TrendChartCatalog.fireSavingsGuideSeriesId,
-        )
-        .toList();
-    if (drawable.isEmpty) return null;
+    if (position.dy < plot.layout.top || position.dy > plot.layout.bottom) {
+      return null;
+    }
 
-    final layout = _dateRangeLayout(
-      Size(constraints.maxWidth, constraints.maxHeight),
-      drawable,
-    );
-    if (position.dy < layout.top || position.dy > layout.bottom) return null;
-
-    final scale = _niceScaleForSmoothedMax(drawable);
     CategoryTrendSeries? nearestSeries;
     var nearestDistance = double.infinity;
-    for (final series in drawable) {
-      final point = _nearestPoint(series.points, tapDate);
+    for (final series in plot.drawableSeries) {
+      if (series.guide ||
+          series.id == TrendChartCatalog.housingAffordabilitySeriesId ||
+          series.id == TrendChartCatalog.fireSavingsGuideSeriesId) {
+        continue;
+      }
+      final point = series.nearestPoint(tapDate);
       if (point == null) continue;
-      final seriesY = scale.yForCents(point.smoothedCents, layout);
+      final seriesY = plot.scale.yForCents(point.smoothedCents, plot.layout);
       final distance = (seriesY - position.dy).abs();
       if (distance < nearestDistance) {
         nearestDistance = distance;
@@ -413,83 +390,5 @@ class _CategoryTrendChartState() extends ConsumerState<CategoryTrendChart> {
       }
     }
     return nearestSeries;
-  }
-
-  ChartDateLayout _dateRangeLayout(Size size, List<CategoryTrendSeries> drawable) {
-    final firstDate = drawable
-        .map((series) => series.points.first.date)
-        .reduce((earlier, later) => earlier.isBefore(later) ? earlier : later);
-    final lastDate = drawable
-        .map((series) => series.points.last.date)
-        .reduce((earlier, later) => earlier.isAfter(later) ? earlier : later);
-    return ChartDateLayout(
-      size: size,
-      leftPadding: CategoryTrendPainter.leftPadding,
-      rightPadding: CategoryTrendPainter.rightPadding,
-      topPadding: CategoryTrendPainter.overlayLanesHeight,
-      bottomPadding: 24,
-      minDate: firstDate,
-      maxDate: lastDate,
-    );
-  }
-
-  TrendValueScale _niceScaleForSmoothedMax(
-    List<CategoryTrendSeries> drawable,
-  ) {
-    var highest = 0.0;
-    for (final series in drawable) {
-      for (final point in series.points) {
-        highest = math.max(highest, point.smoothedCents);
-      }
-    }
-    return TrendValueScale.niceForMax(highest);
-  }
-
-  DateTime? _dateForPosition(Offset position, BoxConstraints constraints) {
-    final visible = _visibleSeries
-        .where((series) => series.points.length >= 2)
-        .toList();
-    if (visible.isEmpty) return null;
-
-    final firstDate = visible
-        .map((series) => series.points.first.date)
-        .reduce((earlier, later) => earlier.isBefore(later) ? earlier : later);
-    final lastDate = visible
-        .map((series) => series.points.last.date)
-        .reduce((earlier, later) => earlier.isAfter(later) ? earlier : later);
-
-    final chartWidth =
-        constraints.maxWidth -
-        CategoryTrendPainter.leftPadding -
-        CategoryTrendPainter.rightPadding;
-    if (chartWidth <= 0) return lastDate;
-
-    final chartX = (position.dx - CategoryTrendPainter.leftPadding).clamp(
-      0.0,
-      chartWidth,
-    );
-    final dateRangeSeconds = lastDate
-        .difference(firstDate)
-        .inSeconds
-        .toDouble();
-    if (dateRangeSeconds <= 0) return lastDate;
-
-    return firstDate.add(
-      Duration(seconds: ((chartX / chartWidth) * dateRangeSeconds).round()),
-    );
-  }
-
-  CategoryTrendPoint? _nearestPoint(
-    List<CategoryTrendPoint> points,
-    DateTime hoverDate,
-  ) {
-    if (points.isEmpty) return null;
-    return points.reduce(
-      (nearestPoint, point) =>
-          point.date.difference(hoverDate).inSeconds.abs() <
-              nearestPoint.date.difference(hoverDate).inSeconds.abs()
-          ? point
-          : nearestPoint,
-    );
   }
 }

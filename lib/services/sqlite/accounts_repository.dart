@@ -115,7 +115,8 @@ WHERE conn_name = ?
     );
   }
 
-  /// Assigns a Copilot account to a non-Copilot parent, or clears the link.
+  /// Marks [accountId] as a prior/history account of [belongsToAccountId],
+  /// or clears the link.
   Future<void> updateBelongsTo({
     required String accountId,
     required String? belongsToAccountId,
@@ -123,9 +124,6 @@ WHERE conn_name = ?
     final child = await findById(accountId);
     if (child == null) {
       throw StateError('Account $accountId not found.');
-    }
-    if (!child.isCopilot) {
-      throw StateError('Only Copilot accounts can belong to another account.');
     }
 
     if (belongsToAccountId != null) {
@@ -138,6 +136,16 @@ WHERE conn_name = ?
       }
       if (parent.isCopilot) {
         throw StateError('Parent must not be a Copilot account.');
+      }
+      if (parent.hasParent) {
+        throw StateError('Parent cannot already be a prior account.');
+      }
+      final dependent = await _powerSync.getOptional(
+        'SELECT id FROM accounts WHERE belongs_to_account_id = ? LIMIT 1',
+        [accountId],
+      );
+      if (dependent != null) {
+        throw StateError('Cannot nest a prior account under another.');
       }
     }
 

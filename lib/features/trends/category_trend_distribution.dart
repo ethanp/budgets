@@ -21,6 +21,16 @@ class const CategoryTrendDistribution({
   @override
   int get hashCode =>
       Object.hash(minCents, medianCents, averageCents, maxCents, currentCents);
+
+  CategoryTrendDistribution withCurrentCents(double currentCents) {
+    return CategoryTrendDistribution(
+      minCents: minCents,
+      medianCents: medianCents,
+      averageCents: averageCents,
+      maxCents: maxCents,
+      currentCents: currentCents,
+    );
+  }
 }
 
 /// All-time and recent-year distributions for one series.
@@ -29,6 +39,13 @@ class const CategoryTrendDistributionPair({
   required final CategoryTrendDistribution? pastYear,
 }) {
   bool get isEmpty => allTime == null && pastYear == null;
+
+  CategoryTrendDistributionPair withCurrentCents(double currentCents) {
+    return CategoryTrendDistributionPair(
+      allTime: allTime?.withCurrentCents(currentCents),
+      pastYear: pastYear?.withCurrentCents(currentCents),
+    );
+  }
 }
 
 /// Stats over smoothed values, skipping leading non-positive samples.

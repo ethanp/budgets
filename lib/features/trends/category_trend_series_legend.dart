@@ -18,6 +18,7 @@ class const CategoryTrendSeriesLegend({
   required final ValueChanged<String> onSeriesToggled,
   required final ValueChanged<String> onSeriesSoloed,
   final TrendValueKind valueKind = TrendValueKind.pace,
+  final DateTime? inspectDate,
 }) extends StatelessWidget {
   static const _sideBySideMinWidth = 560.0;
 
@@ -27,11 +28,19 @@ class const CategoryTrendSeriesLegend({
 
     final metaSeries = [
       for (final series in seriesList)
-        if (_isMetaLegendSeries(series)) series,
+        if (_isMetaLegendSeries(
+          series,
+          useDistributionLegend: useDistributionLegend,
+        ))
+          series,
     ];
     final rankedSeries = [
       for (final series in seriesList)
-        if (!_isMetaLegendSeries(series)) series,
+        if (!_isMetaLegendSeries(
+          series,
+          useDistributionLegend: useDistributionLegend,
+        ))
+          series,
     ];
 
     final useNetWorthTable =
@@ -52,6 +61,7 @@ class const CategoryTrendSeriesLegend({
             seriesList: rankedSeries,
             hiddenSeriesIds: hiddenSeriesIds,
             valueKind: valueKind,
+            inspectDate: inspectDate,
             onSeriesToggled: onSeriesToggled,
             onSeriesSoloed: onSeriesSoloed,
           )
@@ -60,6 +70,7 @@ class const CategoryTrendSeriesLegend({
             hiddenSeriesIds: hiddenSeriesIds,
             spendRate: spendRate,
             valueKind: valueKind,
+            inspectDate: inspectDate,
             onSeriesToggled: onSeriesToggled,
             onSeriesSoloed: onSeriesSoloed,
           );
@@ -71,6 +82,7 @@ class const CategoryTrendSeriesLegend({
         hiddenSeriesIds: hiddenSeriesIds,
         spendRate: spendRate,
         valueKind: valueKind,
+        inspectDate: inspectDate,
         fillAvailableWidth: true,
         onSeriesToggled: onSeriesToggled,
         onSeriesSoloed: onSeriesSoloed,
@@ -96,6 +108,7 @@ class const CategoryTrendSeriesLegend({
       hiddenSeriesIds: hiddenSeriesIds,
       spendRate: spendRate,
       valueKind: valueKind,
+      inspectDate: inspectDate,
       fillAvailableWidth: stackVertically,
       onSeriesToggled: onSeriesToggled,
       onSeriesSoloed: onSeriesSoloed,
@@ -133,8 +146,11 @@ class const CategoryTrendSeriesLegend({
     return false;
   }
 
-  static bool _isMetaLegendSeries(CategoryTrendSeries series) {
-    if (series.id == TrendChartCatalog.allSpendSeriesId) return true;
+  static bool _isMetaLegendSeries(
+    CategoryTrendSeries series, {
+    required bool useDistributionLegend,
+  }) {
+    if (series.isAllSpend) return !useDistributionLegend;
     if (series.id == TrendChartCatalog.netWorthSeriesId) return true;
     if (series.id == TrendChartCatalog.housingAffordabilitySeriesId) {
       return true;
@@ -153,13 +169,18 @@ class const TrendLegendChip({
   required final VoidCallback onActivated,
   required final VoidCallback onSoloActivated,
   final TrendValueKind valueKind = TrendValueKind.pace,
+  final DateTime? inspectDate,
   final bool expandLabel = true,
 }) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Level charts (net worth): show current rolling balance, not CMA tip —
     // the tip window averages prior days and drifts from today's Banks total.
-    final cents = _legendDisplayCents(series, valueKind: valueKind);
+    final cents = CategoryTrendLegendAmount(
+      series: series,
+      valueKind: valueKind,
+      inspectDate: inspectDate,
+    ).cents;
     final amountLabel = formatCentsWholeDollars(
       valueKind == TrendValueKind.level ? cents : spendRate.displayCents(cents),
     );
@@ -204,6 +225,7 @@ class const _MetaLegendColumn({
   required final Set<String> hiddenSeriesIds,
   required final TrendSpendRate spendRate,
   required final TrendValueKind valueKind,
+  required final DateTime? inspectDate,
   required final ValueChanged<String> onSeriesToggled,
   required final ValueChanged<String> onSeriesSoloed,
   final bool fillAvailableWidth = false,
@@ -220,6 +242,7 @@ class const _MetaLegendColumn({
             isHidden: hiddenSeriesIds.contains(metaSeries[index].id),
             spendRate: spendRate,
             valueKind: valueKind,
+            inspectDate: inspectDate,
             expandLabel: fillAvailableWidth,
             onActivated: () => onSeriesToggled(metaSeries[index].id),
             onSoloActivated: () => onSeriesSoloed(metaSeries[index].id),
@@ -247,6 +270,7 @@ class const _WrappingLegend({
   required final Set<String> hiddenSeriesIds,
   required final TrendSpendRate spendRate,
   required final TrendValueKind valueKind,
+  required final DateTime? inspectDate,
   required final ValueChanged<String> onSeriesToggled,
   required final ValueChanged<String> onSeriesSoloed,
 }) extends StatelessWidget {
@@ -262,6 +286,7 @@ class const _WrappingLegend({
             isHidden: hiddenSeriesIds.contains(series.id),
             spendRate: spendRate,
             valueKind: valueKind,
+            inspectDate: inspectDate,
             expandLabel: false,
             onActivated: () => onSeriesToggled(series.id),
             onSoloActivated: () => onSeriesSoloed(series.id),
@@ -288,6 +313,7 @@ class const _NetWorthLegendTable({
   required final List<CategoryTrendSeries> seriesList,
   required final Set<String> hiddenSeriesIds,
   required final TrendValueKind valueKind,
+  required final DateTime? inspectDate,
   required final ValueChanged<String> onSeriesToggled,
   required final ValueChanged<String> onSeriesSoloed,
 }) extends StatelessWidget {
@@ -353,7 +379,11 @@ class const _NetWorthLegendTable({
 
   TableRow _accountRow(CategoryTrendSeries series) {
     final isHidden = hiddenSeriesIds.contains(series.id);
-    final cents = _legendDisplayCents(series, valueKind: valueKind);
+    final cents = CategoryTrendLegendAmount(
+      series: series,
+      valueKind: valueKind,
+      inspectDate: inspectDate,
+    ).cents;
     return TableRow(
       children: [
         GestureDetector(
@@ -432,14 +462,14 @@ class const _NetWorthLegendTable({
   ) {
     final sorted = [...seriesList];
     sorted.sort((left, right) {
-      final leftCents = _legendDisplayCents(
-        left,
+      final leftCents = CategoryTrendLegendAmount(
+        series: left,
         valueKind: TrendValueKind.level,
-      ).abs();
-      final rightCents = _legendDisplayCents(
-        right,
+      ).cents.abs();
+      final rightCents = CategoryTrendLegendAmount(
+        series: right,
         valueKind: TrendValueKind.level,
-      ).abs();
+      ).cents.abs();
       return rightCents.compareTo(leftCents);
     });
     return sorted;
@@ -451,27 +481,33 @@ class const _LegendSectionGroup({
   required final List<CategoryTrendSeries> seriesList,
 });
 
-int _legendDisplayCents(
-  CategoryTrendSeries series, {
-  required TrendValueKind valueKind,
+/// Signed legend amount: latest when idle, nearest point when inspecting.
+class const CategoryTrendLegendAmount({
+  required final CategoryTrendSeries series,
+  required final TrendValueKind valueKind,
+  final DateTime? inspectDate,
 }) {
-  final raw = valueKind == TrendValueKind.level
-      ? series.latestRollingCents
-      : series.latestSmoothedCents;
-  final cents = raw.round();
-  // Net worth liabilities are plotted as abs magnitude (often with a dotted
-  // stroke). Restore a signed debt for legend amounts / colors.
-  if (valueKind == TrendValueKind.level && _isNetWorthLiability(series)) {
-    return -cents.abs();
+  int get cents {
+    final inspectDay = inspectDate;
+    final point = inspectDay == null ? null : series.nearestPoint(inspectDay);
+    final raw = valueKind == TrendValueKind.level
+        ? (point?.rollingCents ?? series.latestRollingCents)
+        : (point?.smoothedCents ?? series.latestSmoothedCents);
+    final cents = raw.round();
+    // Net worth liabilities are plotted as abs magnitude (often with a dotted
+    // stroke). Restore a signed debt for legend amounts / colors.
+    if (valueKind == TrendValueKind.level && _isLiability) {
+      return -cents.abs();
+    }
+    return cents;
   }
-  return cents;
-}
 
-bool _isNetWorthLiability(CategoryTrendSeries series) {
-  if (series.dotted) return true;
-  final group = series.legendGroup;
-  return group == AccountKind.creditCard.legendLabel ||
-      group == AccountKind.loans.legendLabel;
+  bool get _isLiability {
+    if (series.dotted) return true;
+    final group = series.legendGroup;
+    return group == AccountKind.creditCard.legendLabel ||
+        group == AccountKind.loans.legendLabel;
+  }
 }
 
 TextStyle _signedAmountStyle(int cents, {required bool isHidden}) {

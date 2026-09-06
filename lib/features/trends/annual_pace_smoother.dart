@@ -47,6 +47,7 @@ class const AnnualPaceSmoother({
     bool dotted = false,
     bool guide = false,
     bool percentileAreaFill = false,
+    String? memberOfGroupSeriesId,
   }) {
     return CategoryTrendSeries(
       id: id,
@@ -55,6 +56,7 @@ class const AnnualPaceSmoother({
       dotted: dotted,
       guide: guide,
       percentileAreaFill: percentileAreaFill,
+      memberOfGroupSeriesId: memberOfGroupSeriesId,
       points: pointsFromDailyMap(
         chartDates: chartDates,
         dailyCents: dailyCents,

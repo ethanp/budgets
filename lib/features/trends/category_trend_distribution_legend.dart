@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:spend_trends/domain/trend_spend_rate.dart';
 import 'package:spend_trends/features/trends/category_trend_distribution.dart';
 import 'package:spend_trends/features/trends/category_trend_series.dart';
+import 'package:spend_trends/features/trends/distribution_legend_cluster.dart';
 import 'package:spend_trends/features/trends/distribution_whisker_painter.dart';
 import 'package:spend_trends/features/trends/trend_legend_swatch.dart';
 import 'package:spend_trends/features/trends/trend_value_scale.dart';
@@ -17,24 +18,64 @@ class const CategoryTrendDistributionLegend({
   required final TrendSpendRate spendRate,
   required final ValueChanged<String> onSeriesToggled,
   required final ValueChanged<String> onSeriesSoloed,
-}) extends StatelessWidget {
-  static const _whiskerHeight = 108.0;
-  static const _labelBlockHeight = 66.0;
-  static const _columnWidth = 96.0;
-  static const _axisWidth = 44.0;
-  static const _columnGap = ELayout.spaceSm;
-  static const _gridOverhang = 12.0;
+  final DateTime? inspectDate,
+}) extends StatefulWidget {
+  static const whiskerHeight = 240.0;
+  static const labelBlockHeight = 66.0;
+  static const columnWidth = 96.0;
+  static const axisWidth = 44.0;
+  static const columnGap = ELayout.spaceSm;
+  static const expandDuration = Duration(milliseconds: 280);
+
+  @override
+  State<CategoryTrendDistributionLegend> createState() =>
+      _CategoryTrendDistributionLegendState();
+}
+
+class _CategoryTrendDistributionLegendState()
+    extends State<CategoryTrendDistributionLegend> {
+  String? _expandedGroupSeriesId;
 
   @override
   Widget build(BuildContext context) {
+    final clusters = DistributionLegendCluster.fromSeries(widget.seriesList);
+    final pairsBySeriesId = _pairsBySeriesId();
+    final scale = _sharedScale(pairsBySeriesId);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const DistributionWhiskerSymbolKey(),
+        const SizedBox(height: ELayout.spaceSm),
+        _whiskerChart(
+          clusters: clusters,
+          pairsBySeriesId: pairsBySeriesId,
+          scale: scale,
+        ),
+      ],
+    );
+  }
+
+  Map<String, CategoryTrendDistributionPair> _pairsBySeriesId() {
     final pairsBySeriesId = <String, CategoryTrendDistributionPair>{};
-    for (final series in seriesList) {
-      final pair = distributionPairForSmoothed(series.points);
+    for (final series in widget.seriesList) {
+      var pair = distributionPairForSmoothed(series.points);
+      final inspectDay = widget.inspectDate;
+      if (inspectDay != null) {
+        final inspectPoint = series.nearestPoint(inspectDay);
+        if (inspectPoint != null) {
+          pair = pair.withCurrentCents(inspectPoint.smoothedCents);
+        }
+      }
       if (!pair.isEmpty) {
         pairsBySeriesId[series.id] = pair;
       }
     }
+    return pairsBySeriesId;
+  }
 
+  TrendValueScale _sharedScale(
+    Map<String, CategoryTrendDistributionPair> pairsBySeriesId,
+  ) {
     var dataMaxCents = 0.0;
     for (final pair in pairsBySeriesId.values) {
       for (final distribution in [pair.allTime, pair.pastYear]) {
@@ -45,97 +86,179 @@ class const CategoryTrendDistributionLegend({
         );
       }
     }
-    final scale = TrendValueScale.niceForMax(dataMaxCents);
+    return TrendValueScale.niceForMax(dataMaxCents);
+  }
 
-    final columnsWidth = seriesList.isEmpty
-        ? 0.0
-        : seriesList.length * _columnWidth +
-              math.max(0, seriesList.length - 1) * _columnGap;
-    final gridWidth = columnsWidth + _gridOverhang;
-
-    return Column(
+  Widget _whiskerChart({
+    required List<DistributionLegendCluster> clusters,
+    required Map<String, CategoryTrendDistributionPair> pairsBySeriesId,
+    required TrendValueScale scale,
+  }) {
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const DistributionWhiskerSymbolKey(),
-        const SizedBox(height: ELayout.spaceSm),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              width: _axisWidth,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  const SizedBox(height: _labelBlockHeight),
-                  _DistributionAxisLabels(
-                    scale: scale,
-                    whiskerHeight: _whiskerHeight,
-                    formatTick: _formatAnnualized,
-                  ),
-                ],
+        SizedBox(
+          width: CategoryTrendDistributionLegend.axisWidth,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              const SizedBox(
+                height: CategoryTrendDistributionLegend.labelBlockHeight,
               ),
-            ),
-            const SizedBox(width: ELayout.spaceXs),
-            Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: SizedBox(
-                  width: gridWidth,
-                  child: Stack(
-                    children: [
-                      Positioned(
-                        top: _labelBlockHeight,
-                        left: 0,
-                        width: gridWidth,
-                        height: _whiskerHeight,
-                        child: CustomPaint(
-                          painter: DistributionWhiskerGridPainter(scale: scale),
-                        ),
-                      ),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          for (
-                            var index = 0;
-                            index < seriesList.length;
-                            index++
-                          ) ...[
-                            if (index > 0) const SizedBox(width: _columnGap),
-                            SizedBox(
-                              width: _columnWidth,
-                              child: _DistributionColumn(
-                                series: seriesList[index],
-                                pair: pairsBySeriesId[seriesList[index].id],
-                                scale: scale,
-                                isHidden: hiddenSeriesIds.contains(
-                                  seriesList[index].id,
-                                ),
-                                formatAnnualized: _formatAnnualized,
-                                pastYearTotalLabel: _pastYearTotalLabel(
-                                  seriesList[index],
-                                ),
-                                onActivated: () =>
-                                    onSeriesToggled(seriesList[index].id),
-                                onSoloActivated: () =>
-                                    onSeriesSoloed(seriesList[index].id),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ],
+              _DistributionAxisLabels(
+                scale: scale,
+                whiskerHeight: CategoryTrendDistributionLegend.whiskerHeight,
+                formatTick: _formatAnnualized,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: ELayout.spaceXs),
+        Expanded(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Stack(
+              children: [
+                Positioned(
+                  top: CategoryTrendDistributionLegend.labelBlockHeight,
+                  left: 0,
+                  right: 0,
+                  height: CategoryTrendDistributionLegend.whiskerHeight,
+                  child: CustomPaint(
+                    painter: DistributionWhiskerGridPainter(scale: scale),
                   ),
                 ),
-              ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    for (
+                      var clusterIndex = 0;
+                      clusterIndex < clusters.length;
+                      clusterIndex++
+                    ) ...[
+                      if (clusterIndex > 0)
+                        const SizedBox(
+                          width: CategoryTrendDistributionLegend.columnGap,
+                        ),
+                      _clusterColumns(
+                        clusters[clusterIndex],
+                        pairsBySeriesId: pairsBySeriesId,
+                        scale: scale,
+                      ),
+                    ],
+                  ],
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ],
     );
   }
 
+  Widget _clusterColumns(
+    DistributionLegendCluster cluster, {
+    required Map<String, CategoryTrendDistributionPair> pairsBySeriesId,
+    required TrendValueScale scale,
+  }) {
+    final isExpanded = _expandedGroupSeriesId == cluster.rollup.id;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _seriesColumn(
+          cluster.rollup,
+          pairsBySeriesId: pairsBySeriesId,
+          scale: scale,
+          canExpand: cluster.canExpand,
+          isExpanded: isExpanded,
+        ),
+        _expandingMemberColumns(
+          cluster,
+          pairsBySeriesId: pairsBySeriesId,
+          scale: scale,
+          isExpanded: isExpanded,
+        ),
+      ],
+    );
+  }
+
+  Widget _expandingMemberColumns(
+    DistributionLegendCluster cluster, {
+    required Map<String, CategoryTrendDistributionPair> pairsBySeriesId,
+    required TrendValueScale scale,
+    required bool isExpanded,
+  }) {
+    if (!cluster.canExpand) return const SizedBox.shrink();
+    return ClipRect(
+      child: TweenAnimationBuilder<double>(
+        tween: Tween<double>(end: isExpanded ? 1 : 0),
+        duration: CategoryTrendDistributionLegend.expandDuration,
+        curve: Curves.easeOutCubic,
+        builder: (context, widthFactor, child) {
+          return Align(
+            alignment: Alignment.centerLeft,
+            widthFactor: widthFactor,
+            child: child,
+          );
+        },
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final member in cluster.members) ...[
+              const SizedBox(width: CategoryTrendDistributionLegend.columnGap),
+              _seriesColumn(
+                member,
+                pairsBySeriesId: pairsBySeriesId,
+                scale: scale,
+                canExpand: false,
+                isExpanded: false,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _seriesColumn(
+    CategoryTrendSeries series, {
+    required Map<String, CategoryTrendDistributionPair> pairsBySeriesId,
+    required TrendValueScale scale,
+    required bool canExpand,
+    required bool isExpanded,
+  }) {
+    return SizedBox(
+      width: CategoryTrendDistributionLegend.columnWidth,
+      child: _DistributionColumn(
+        series: series,
+        pair: pairsBySeriesId[series.id],
+        scale: scale,
+        isHidden: !series.isAllSpend &&
+            widget.hiddenSeriesIds.contains(series.id),
+        canExpand: canExpand,
+        isExpanded: isExpanded,
+        formatAnnualized: _formatAnnualized,
+        pastYearTotalLabel: _pastYearTotalLabel(series),
+        onActivated: () => _activateSeries(series, canExpand: canExpand),
+        onSoloActivated: () => widget.onSeriesSoloed(series.id),
+      ),
+    );
+  }
+
+  void _activateSeries(CategoryTrendSeries series, {required bool canExpand}) {
+    if (canExpand) {
+      setState(() {
+        _expandedGroupSeriesId = _expandedGroupSeriesId == series.id
+            ? null
+            : series.id;
+      });
+      return;
+    }
+    widget.onSeriesToggled(series.id);
+  }
+
   String _formatAnnualized(int annualizedCents) {
-    return formatCentsWholeDollars(spendRate.displayCents(annualizedCents));
+    return formatCentsWholeDollars(widget.spendRate.displayCents(annualizedCents));
   }
 
   String _pastYearTotalLabel(CategoryTrendSeries series) {
@@ -182,6 +305,8 @@ class const _DistributionColumn({
   required final CategoryTrendDistributionPair? pair,
   required final TrendValueScale scale,
   required final bool isHidden,
+  required final bool canExpand,
+  required final bool isExpanded,
   required final String Function(int cents) formatAnnualized,
   required final String pastYearTotalLabel,
   required final VoidCallback onActivated,
@@ -207,7 +332,7 @@ class const _DistributionColumn({
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           SizedBox(
-            height: CategoryTrendDistributionLegend._labelBlockHeight,
+            height: CategoryTrendDistributionLegend.labelBlockHeight,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -228,6 +353,16 @@ class const _DistributionColumn({
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    if (canExpand)
+                      Icon(
+                        isExpanded
+                            ? Icons.expand_more
+                            : Icons.chevron_right,
+                        size: 16,
+                        color: isHidden
+                            ? EColors.textMuted
+                            : EColors.textSecondary,
+                      ),
                   ],
                 ),
                 Text(
@@ -286,7 +421,7 @@ class const _DistributionColumn({
             ),
           ),
           SizedBox(
-            height: CategoryTrendDistributionLegend._whiskerHeight,
+            height: CategoryTrendDistributionLegend.whiskerHeight,
             width: double.infinity,
             child: _buildWhiskerPair(),
           ),

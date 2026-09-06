@@ -59,7 +59,9 @@ class ChartDateLayout({
     final spanDays = maxDate.difference(minDate).inDays;
     if (spanDays <= 0) return [minDate];
 
-    // Multi-month charts: calendar quarters (Jan / Apr / Jul / Oct).
+    if (minDate.year != maxDate.year) {
+      return _subsampleTicksForWidth(_januaryYearTicks());
+    }
     if (spanDays > 90) {
       return _subsampleTicksForWidth(_quarterMonthTicks());
     }
@@ -101,7 +103,24 @@ class ChartDateLayout({
     return picked;
   }
 
-  /// Firsts of Jan, Apr, Jul, Oct that fall inside the chart range.
+  /// First of January for each year that intersects the chart range.
+  List<DateTime> _januaryYearTicks() {
+    final rangeStart = minDate.startOfDay;
+    final rangeEnd = maxDate.startOfDay;
+    var cursor = DateTime(rangeStart.year);
+    if (cursor.isBefore(rangeStart)) {
+      cursor = DateTime(cursor.year + 1);
+    }
+
+    final ticks = <DateTime>[];
+    while (!cursor.isAfter(rangeEnd)) {
+      ticks.add(cursor);
+      cursor = DateTime(cursor.year + 1);
+    }
+    return ticks;
+  }
+
+  /// Firsts of Jan, Apr, Jul, Oct that fall inside a single-year chart.
   List<DateTime> _quarterMonthTicks() {
     final rangeStart = minDate.startOfDay;
     final rangeEnd = maxDate.startOfDay;
@@ -128,6 +147,7 @@ class ChartDateLayout({
     const tickLength = 5.0;
 
     String formatLabel(DateTime date) {
+      if (minDate.year != maxDate.year) return '${date.year}';
       if (spanDays > 60) return _months[date.month];
       return '${date.month}/${date.day}';
     }
@@ -170,12 +190,8 @@ class ChartDateLayout({
     ];
   }
 
-  /// Year grid lines span the plot; labels sit at [yearLabelY] (date lane).
-  void drawYearBoundaries(
-    Canvas canvas, {
-    required double yearLabelY,
-    required TextStyle labelStyle,
-  }) {
+  /// Vertical guides at each January 1 that falls inside a multi-year span.
+  void paintYearBoundaryGuides(Canvas canvas) {
     final boundaryXs = yearBoundaryXs();
     if (boundaryXs.isEmpty) return;
 
@@ -183,23 +199,12 @@ class ChartDateLayout({
       ..color = EColors.textMuted.withValues(alpha: 0.3)
       ..strokeWidth = 1;
 
-    for (var index = 0; index < boundaryXs.length; index++) {
-      final boundaryX = boundaryXs[index];
-      final year = minDate.year + 1 + index;
+    for (final boundaryX in boundaryXs) {
       canvas.drawLine(
         Offset(boundaryX, top),
         Offset(boundaryX, bottom),
         linePaint,
       );
-
-      final textPainter = TextPainter(
-        text: TextSpan(
-          text: '$year',
-          style: labelStyle.copyWith(fontWeight: FontWeight.w600),
-        ),
-        textDirection: TextDirection.ltr,
-      )..layout();
-      textPainter.paint(canvas, Offset(boundaryX + 4, yearLabelY));
     }
   }
 }

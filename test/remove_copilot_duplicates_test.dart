@@ -106,6 +106,8 @@ void main() {
         belongsToAccountId: 'parent',
       );
       expect(child.hasParent, isTrue);
+      expect(child.countsTowardNetWorth, isFalse);
+      expect(parent.countsTowardNetWorth, isTrue);
       expect(RemoveCopilotDuplicates.accountMask(parent), isNull);
 
       final linkKeys = RemoveCopilotDuplicates.copilotLinkKeysForTest([

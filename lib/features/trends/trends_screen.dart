@@ -12,6 +12,7 @@ import 'package:spend_trends/domain/transaction.dart';
 import 'package:spend_trends/domain/trend_spend_rate.dart';
 import 'package:spend_trends/features/trends/category_trend_chart.dart';
 import 'package:spend_trends/features/trends/category_trend_series.dart';
+import 'package:spend_trends/features/trends/net_worth_trend.dart';
 import 'package:spend_trends/features/trends/trend_chart_catalog.dart';
 import 'package:spend_trends/features/trends/trends_chart_bundle.dart';
 import 'package:spend_trends/providers/spend_trends_providers.dart';
@@ -168,15 +169,10 @@ class const TrendsScreen() extends ConsumerWidget {
     final accounts = accountsAsync.asData?.value;
     final ownedAssets = ownedAssetsAsync.asData?.value;
     if (accounts == null || ownedAssets == null) return null;
-    var totalCents = 0;
-    for (final account in accounts.values) {
-      if (account.hasParent) continue;
-      totalCents += account.balanceCents;
-    }
-    for (final ownedAsset in ownedAssets) {
-      totalCents += ownedAsset.currentValueCents;
-    }
-    return totalCents;
+    return NetWorthTrend.currentCents(
+      accounts: accounts.values,
+      ownedAssets: ownedAssets,
+    );
   }
 
   static List<ChartHeadlineFigure> _netWorthHeadlines({

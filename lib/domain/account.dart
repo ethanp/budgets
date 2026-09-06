@@ -26,7 +26,8 @@ class const Account({
   /// Persisted account class (Checking, Investment, …); user-editable.
   final AccountKind kind = AccountKind.other,
 
-  /// Parent SimpleFIN (or other live) account for Copilot import history.
+  /// Live account this row is a prior version of (servicer handoff or
+  /// Copilot history folded into SimpleFIN).
   final String? belongsToAccountId,
 }) {
   /// Name shown throughout the app.
@@ -78,6 +79,10 @@ class const Account({
   String get balanceCaption => hasLiveBalance ? formatCents(balanceCents) : '—';
 
   bool get hasParent => belongsToAccountId != null;
+
+  /// Live root balances only. Linked prior accounts and Copilot rows fold
+  /// into a parent instead of adding a second balance.
+  bool get countsTowardNetWorth => hasLiveBalance && !hasParent;
 
   bool get isInvestment => kind == AccountKind.investment;
 

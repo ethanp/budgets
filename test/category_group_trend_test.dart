@@ -78,7 +78,11 @@ void main() {
     final dining = bundle.categorySpend.firstWhere(
       (series) => series.id == 'cat_dining',
     );
-    expect(dining.name, 'Wants · Dining');
+    expect(dining.name, 'Dining');
+    expect(
+      dining.memberOfGroupSeriesId,
+      TrendChartCatalog.groupSeriesId('grp_wants'),
+    );
     // Group rollup is listed before its member lines.
     expect(
       seriesIds.indexOf(TrendChartCatalog.groupSeriesId('grp_wants')),

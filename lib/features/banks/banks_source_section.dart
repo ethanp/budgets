@@ -9,6 +9,7 @@ import 'package:spend_trends/providers/spend_trends_providers.dart';
 import 'package:spend_trends/services/simplefin/simplefin_access_store.dart';
 import 'package:spend_trends/theme/finance_colors.dart';
 import 'package:spend_trends/widgets/app_primary_button.dart';
+import 'package:spend_trends/widgets/help_tooltip.dart';
 
 /// Everyday bank UI: connect, accounts, pull bank transactions.
 class const BanksSourceSection({
@@ -130,28 +131,33 @@ class _BanksSourceSectionState() extends ConsumerState<BanksSourceSection> {
           onOwnedAssetSelected: widget.onOwnedAssetSelected,
         ),
         const SizedBox(height: ELayout.spaceMd),
-        AppPrimaryButton(
-          busy: busy,
-          onPressed: () => ref
-              .read(banksPullLiveSessionProvider.notifier)
-              .runPull(
-                (onProgress) => controller.syncLatest(onProgress: onProgress),
+        Row(
+          children: [
+            AppPrimaryButton(
+              busy: busy,
+              onPressed: () => ref
+                  .read(banksPullLiveSessionProvider.notifier)
+                  .runPull(
+                    (onProgress) =>
+                        controller.syncLatest(onProgress: onProgress),
+                  ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.sync, size: 18),
+                  SizedBox(width: ELayout.spaceSm),
+                  Text('Pull bank transactions'),
+                ],
               ),
-          child: const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.sync, size: 18),
-              SizedBox(width: ELayout.spaceSm),
-              Text('Pull bank transactions'),
-            ],
-          ),
-        ),
-        const SizedBox(height: ELayout.spaceXs),
-        Text(
-          'Since the last SimpleFIN update. Window starts 2 days before that '
-          'pull so late posts aren\'t missed. Already-saved rows are updated, '
-          'not duplicated.',
-          style: EText.caption,
+            ),
+            const SizedBox(width: ELayout.spaceSm),
+            const HelpTooltip(
+              message:
+                  'Since the last SimpleFIN update. Window starts 2 days '
+                  'before that pull so late posts aren\'t missed. '
+                  'Already-saved rows are updated, not duplicated.',
+            ),
+          ],
         ),
       ],
     );

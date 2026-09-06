@@ -27,6 +27,7 @@ void main() {
 
     expect(owned.currentValueCents, 35000000);
     expect(owned.currentValuedOn, DateTime(2024, 6, 1));
+    expect(owned.firstValuedOn, DateTime(2022, 1, 1));
   });
 
   test('valueCentsOn is 0 before the first snapshot, then steps', () {

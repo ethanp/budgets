@@ -291,24 +291,26 @@ final currentYearMonthProvider = Provider<String>((ref) {
 final trendsChartBundleProvider = FutureProvider<TrendsChartBundle>((
   ref,
 ) async {
-  // Keep across tab switches; rebuilds when [spendDataChangedProvider] notifies.
-  ref.keepAlive();
-  ref.watch(spendDataChangedProvider);
-  final transactionsRepository = await ref.watch(
-    transactionsRepositoryProvider.future,
+  final List<BankTransaction> transactions = await ref.watch(
+    transactionsListProvider.future,
   );
-  final categoriesRepository = await ref.watch(
-    categoriesRepositoryProvider.future,
+  final List<SpendCategory> categories = await ref.watch(
+    categoriesListProvider.future,
   );
-  final accountsRepository = await ref.watch(accountsRepositoryProvider.future);
-  final ownedAssetsRepository = await ref.watch(
-    ownedAssetsRepositoryProvider.future,
+  final List<CategoryGroup> groups = await ref.watch(
+    categoryGroupsProvider.future,
+  );
+  final Map<String, Account> accounts = await ref.watch(
+    accountsMapProvider.future,
+  );
+  final List<OwnedAssetWithValuations> ownedAssets = await ref.watch(
+    ownedAssetsListProvider.future,
   );
   return const BuildTrendsCharts().build(
-    transactions: await transactionsRepository.listAll(),
-    categories: await categoriesRepository.listActive(),
-    groups: await categoriesRepository.listGroups(),
-    accounts: await accountsRepository.listAccounts(),
-    ownedAssets: await ownedAssetsRepository.listWithValuations(),
+    transactions: transactions,
+    categories: categories,
+    groups: groups,
+    accounts: accounts.values.toList(),
+    ownedAssets: ownedAssets,
   );
 });

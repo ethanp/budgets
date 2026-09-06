@@ -1,21 +1,19 @@
-import 'dart:math' as math;
-
 import 'package:ethan_ui/ethan_ui.dart';
 import 'package:ethan_utils/ethan_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:spend_trends/domain/life_event.dart';
 import 'package:spend_trends/domain/stay_chain.dart';
-import 'package:spend_trends/features/trends/category_trend_point.dart';
+import 'package:spend_trends/features/trends/category_trend_plot.dart';
 import 'package:spend_trends/features/trends/category_trend_series.dart';
-import 'package:spend_trends/features/trends/chart_date_layout.dart';
-import 'package:spend_trends/features/trends/trend_value_scale.dart';
+import 'package:spend_trends/features/trends/pace_line_samples.dart';
 import 'package:spend_trends/theme/draw/date_range_band.dart';
 import 'package:spend_trends/theme/finance_colors.dart';
 
-TextStyle get _chartAxisLabelStyle => EText.caption.copyWith(
-  fontWeight: FontWeight.w500,
-  color: EColors.textSecondary,
-  letterSpacing: 0.15,
+TextStyle get _chartAxisLabelStyle => EText.body.tiny.copyWith(
+  fontSize: 11,
+  fontWeight: FontWeight.w400,
+  color: EColors.textMuted,
+  letterSpacing: 0,
   height: 1.1,
 );
 
@@ -24,72 +22,24 @@ class CategoryTrendPainter({
   final List<LifeEvent> lifeEvents = const [],
   final StayChain? housingChain,
   final StayChain? jobChain,
-  final Offset? hoverPosition,
 }) extends CustomPainter {
-  static const leftPadding = 48.0;
-  static const rightPadding = 12.0;
-
-  /// date / housing / job / life-event rows above the plot.
-  /// Tall enough for a few within-lane label stacks when stays are close.
-  static const overlayLaneCount = 4;
-  static const overlayLaneHeight = 34.0;
-  static const overlayLanesHeight = overlayLaneCount * overlayLaneHeight;
-
-  static const dateLane = 0;
-  static const housingLane = 1;
-  static const jobLane = 2;
-  static const lifeEventLane = 3;
-
   @override
   void paint(Canvas canvas, Size size) {
-    final drawableSeries = seriesList
-        .where((series) => series.points.length >= 2)
-        .toList();
-    if (drawableSeries.isEmpty) return;
+    if (!seriesList.any((series) => series.canPlot)) return;
 
     _CategoryTrendChartFrame(
       canvas: canvas,
-      layout: _dateRangeLayout(size, drawableSeries),
-      scale: _niceScaleForSmoothedMax(drawableSeries),
-      drawableSeries: drawableSeries,
+      plot: CategoryTrendPlot.from(
+        size: size,
+        seriesList: seriesList,
+        housingChain: housingChain,
+        jobChain: jobChain,
+        lifeEvents: lifeEvents,
+      ),
       lifeEvents: lifeEvents,
       housingChain: housingChain,
       jobChain: jobChain,
-      hoverPosition: hoverPosition,
     ).paint();
-  }
-
-  ChartDateLayout _dateRangeLayout(
-    Size size,
-    List<CategoryTrendSeries> drawableSeries,
-  ) {
-    final firstDate = drawableSeries
-        .map((series) => series.points.first.date)
-        .reduce((earlier, later) => earlier.isBefore(later) ? earlier : later);
-    final lastDate = drawableSeries
-        .map((series) => series.points.last.date)
-        .reduce((earlier, later) => earlier.isAfter(later) ? earlier : later);
-    return ChartDateLayout(
-      size: size,
-      leftPadding: leftPadding,
-      rightPadding: rightPadding,
-      topPadding: overlayLanesHeight,
-      bottomPadding: 24,
-      minDate: firstDate,
-      maxDate: lastDate,
-    );
-  }
-
-  TrendValueScale _niceScaleForSmoothedMax(
-    List<CategoryTrendSeries> drawableSeries,
-  ) {
-    var highest = 0.0;
-    for (final series in drawableSeries) {
-      for (final point in series.points) {
-        highest = math.max(highest, point.smoothedCents);
-      }
-    }
-    return TrendValueScale.niceForMax(highest);
   }
 
   @override
@@ -97,20 +47,16 @@ class CategoryTrendPainter({
       seriesList != oldDelegate.seriesList ||
       lifeEvents != oldDelegate.lifeEvents ||
       housingChain != oldDelegate.housingChain ||
-      jobChain != oldDelegate.jobChain ||
-      hoverPosition != oldDelegate.hoverPosition;
+      jobChain != oldDelegate.jobChain;
 }
 
 /// One chart frame: canvas + date-range layout + value scale.
 class _CategoryTrendChartFrame({
   required final Canvas canvas,
-  required final ChartDateLayout layout,
-  required final TrendValueScale scale,
-  required final List<CategoryTrendSeries> drawableSeries,
+  required final CategoryTrendPlot plot,
   required final List<LifeEvent> lifeEvents,
   required final StayChain? housingChain,
   required final StayChain? jobChain,
-  required final Offset? hoverPosition,
 }) {
   static const _labelMaxWidth = 96.0;
   static const _labelStackStep = 11.0;
@@ -119,58 +65,51 @@ class _CategoryTrendChartFrame({
   static const _eraEdgeStroke = 1.0;
 
   double _laneTop(int laneIndex) =>
-      laneIndex * CategoryTrendPainter.overlayLaneHeight;
+      laneIndex * CategoryTrendPlot.overlayLaneHeight;
 
   double _laneBottom(int laneIndex) =>
-      _laneTop(laneIndex) + CategoryTrendPainter.overlayLaneHeight;
+      _laneTop(laneIndex) + CategoryTrendPlot.overlayLaneHeight;
 
   double _laneLabelY(int laneIndex) => _laneTop(laneIndex) + 2;
 
-  int _laneForKind(LifeChainKind kind) => switch (kind) {
-    LifeChainKind.housing => CategoryTrendPainter.housingLane,
-    LifeChainKind.job => CategoryTrendPainter.jobLane,
+  int? _laneForKind(LifeChainKind kind) => switch (kind) {
+    LifeChainKind.housing => plot.housingLane,
+    LifeChainKind.job => plot.jobLane,
   };
 
   void paint() {
     _paintDashedValueTicksAndDateLanes();
-    for (final series in drawableSeries) {
+    for (final series in plot.drawableSeries) {
+      final samples = PaceLineSamples.alongPlot(series: series, plot: plot);
       if (series.percentileAreaFill) {
-        _paintPercentileRankAsColumnFade(series);
+        samples.paintPercentileRankAsFillOpacity(canvas, plot);
       }
-    }
-    for (final series in drawableSeries) {
-      _strokeSmoothedPace(series);
+      samples.paintStroke(canvas);
     }
 
-    final chartMin = layout.minDate.startOfDay;
-    final chartMax = layout.maxDate.startOfDay;
-    final housingSegments = _visibleStaySegments(
-      housingChain,
-      chartMin: chartMin,
-      chartMax: chartMax,
-    );
-    final jobSegments = _visibleStaySegments(
-      jobChain,
-      chartMin: chartMin,
-      chartMax: chartMax,
-    );
-    final lifeEventsInRange = _visibleLifeEvents(
-      chartMin: chartMin,
-      chartMax: chartMax,
-    );
-
+    final chartMin = plot.layout.minDate.startOfDay;
+    final chartMax = plot.layout.maxDate.startOfDay;
     _paintAlternatingStayEras(
       kind: LifeChainKind.housing,
       chain: housingChain,
-      segments: housingSegments,
+      segments: _visibleStaySegments(
+        housingChain,
+        chartMin: chartMin,
+        chartMax: chartMax,
+      ),
     );
     _paintAlternatingStayEras(
       kind: LifeChainKind.job,
       chain: jobChain,
-      segments: jobSegments,
+      segments: _visibleStaySegments(
+        jobChain,
+        chartMin: chartMin,
+        chartMax: chartMax,
+      ),
     );
-    _paintLifeEventSpansAndPointTicks(lifeEventsInRange);
-    _paintInspectDateHairlineAndPaceRings();
+    _paintLifeEventSpansAndPointTicks(
+      _visibleLifeEvents(chartMin: chartMin, chartMax: chartMax),
+    );
     _paintValueTickLabels();
   }
 
@@ -178,215 +117,26 @@ class _CategoryTrendChartFrame({
     final gridPaint = Paint()
       ..color = EColors.border.withValues(alpha: 0.55)
       ..strokeWidth = 0.75
-      ..strokeCap = StrokeCap.round;
-    for (final tickCents in scale.tickCents) {
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+    final tickPath = Path();
+    for (final tickCents in plot.scale.tickCents) {
       if (tickCents <= 0) continue;
-      final lineY = scale.yForCents(tickCents, layout);
-      _strokeDashedValueTick(
-        start: Offset(layout.left, lineY),
-        endX: layout.right,
-        paint: gridPaint,
-      );
-    }
-    layout.strokeLeftAndBottomPlotEdges(canvas);
-    layout.drawYearBoundaries(
-      canvas,
-      yearLabelY: _laneLabelY(CategoryTrendPainter.dateLane),
-      labelStyle: _chartAxisLabelStyle,
-    );
-    layout.paintMonthOrDayTicks(canvas, labelStyle: _chartAxisLabelStyle);
-  }
-
-  /// Per pixel column (not per data point) so multi-year daily points still
-  /// fill — consecutive days are often sub-pixel on the x-axis.
-  void _paintPercentileRankAsColumnFade(CategoryTrendSeries series) {
-    final points = series.points;
-    if (points.length < 2) return;
-
-    final sortedValues = points.map((point) => point.smoothedCents).toList()
-      ..sort();
-    final baselineY = scale.yForCents(0, layout);
-    const columnWidth = 1.0;
-
-    for (
-      var columnX = layout.left;
-      columnX < layout.right;
-      columnX += columnWidth
-    ) {
-      final sampleDate = layout.dateForX(columnX + columnWidth / 2);
-      final sampleCents = _smoothedCentsAt(points, sampleDate);
-      if (sampleCents <= 0) continue;
-
-      final topY = scale.yForCents(sampleCents, layout);
-      if (baselineY - topY < 1) continue;
-
-      final percentile = _percentileRank(sortedValues, sampleCents);
-      final peakAlpha = 0.14 + 0.42 * percentile;
-      final columnRect = Rect.fromLTRB(
-        columnX,
-        topY,
-        columnX + columnWidth,
-        baselineY,
-      );
-      final fillPaint = Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            series.lineColor.withValues(alpha: peakAlpha),
-            series.lineColor.withValues(alpha: 0),
-          ],
-        ).createShader(columnRect);
-      canvas.drawRect(columnRect, fillPaint);
-    }
-  }
-
-  double _smoothedCentsAt(
-    List<CategoryTrendPoint> points,
-    DateTime sampleDate,
-  ) {
-    if (sampleDate.isBefore(points.first.date)) {
-      return points.first.smoothedCents;
-    }
-    if (sampleDate.isAfter(points.last.date)) {
-      return points.last.smoothedCents;
-    }
-
-    for (var pointIndex = 0; pointIndex < points.length - 1; pointIndex++) {
-      final leftPoint = points[pointIndex];
-      final rightPoint = points[pointIndex + 1];
-      if (sampleDate.isAfter(rightPoint.date)) continue;
-
-      final spanSeconds = rightPoint.date
-          .difference(leftPoint.date)
-          .inSeconds
-          .toDouble();
-      if (spanSeconds <= 0) return leftPoint.smoothedCents;
-      final t = sampleDate.difference(leftPoint.date).inSeconds / spanSeconds;
-      return leftPoint.smoothedCents +
-          (rightPoint.smoothedCents - leftPoint.smoothedCents) *
-              t.clamp(0.0, 1.0);
-    }
-    return points.last.smoothedCents;
-  }
-
-  /// Empirical percentile rank in [0, 1] for [value] among [sortedValues].
-  double _percentileRank(List<double> sortedValues, double value) {
-    if (sortedValues.isEmpty) return 0;
-    if (sortedValues.length == 1) return 0.5;
-
-    var countBelow = 0;
-    var countEqual = 0;
-    for (final sample in sortedValues) {
-      if (sample < value) {
-        countBelow++;
-      } else if (sample == value) {
-        countEqual++;
-      } else {
-        break;
-      }
-    }
-    return ((countBelow + 0.5 * countEqual) / sortedValues.length).clamp(
-      0.0,
-      1.0,
-    );
-  }
-
-  void _strokeSmoothedPace(CategoryTrendSeries series) {
-    final offsets = <Offset>[
-      for (final point in series.points)
-        Offset(
-          layout.xForDate(point.date),
-          scale.yForCents(point.smoothedCents, layout),
+      tickPath.addPath(
+        PaceLineSamples.dashedHorizontalPath(
+          start: Offset(
+            plot.layout.left,
+            plot.scale.yForCents(tickCents, plot.layout),
+          ),
+          endX: plot.layout.right,
         ),
-    ];
-    if (offsets.length < 2) return;
-
-    final linePaint = Paint()
-      ..color = series.lineColor
-      ..strokeWidth = series.guide
-          ? 1.25
-          : series.dotted
-          ? 2.5
-          : 2
-      ..style = PaintingStyle.stroke
-      ..strokeCap = series.guide ? StrokeCap.butt : StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-
-    if (series.guide) {
-      _strokeDashedPace(offsets, linePaint, dashLength: 8, gapLength: 10);
-      return;
+        Offset.zero,
+      );
     }
-    if (series.dotted) {
-      _strokeDashedPace(offsets, linePaint);
-      return;
-    }
-
-    final seriesPath = Path()..moveTo(offsets.first.dx, offsets.first.dy);
-    for (var offsetIndex = 1; offsetIndex < offsets.length; offsetIndex++) {
-      seriesPath.lineTo(offsets[offsetIndex].dx, offsets[offsetIndex].dy);
-    }
-    canvas.drawPath(seriesPath, linePaint);
-  }
-
-  void _strokeDashedValueTick({
-    required Offset start,
-    required double endX,
-    required Paint paint,
-    double dashLength = 4,
-    double gapLength = 3,
-  }) {
-    var x = start.dx;
-    var drawingDash = true;
-    while (x < endX) {
-      final next = math.min(x + (drawingDash ? dashLength : gapLength), endX);
-      if (drawingDash) {
-        canvas.drawLine(Offset(x, start.dy), Offset(next, start.dy), paint);
-      }
-      x = next;
-      drawingDash = !drawingDash;
-    }
-  }
-
-  void _strokeDashedPace(
-    List<Offset> offsets,
-    Paint linePaint, {
-    double dashLength = 5,
-    double gapLength = 4,
-  }) {
-    // Carry dash phase across segments — daily points are often sub-pixel, so
-    // resetting per segment paints a solid line.
-    var drawingDash = true;
-    var phaseRemaining = dashLength;
-    for (
-      var segmentIndex = 0;
-      segmentIndex < offsets.length - 1;
-      segmentIndex++
-    ) {
-      final start = offsets[segmentIndex];
-      final end = offsets[segmentIndex + 1];
-      final segment = end - start;
-      final segmentLength = segment.distance;
-      if (segmentLength <= 0) continue;
-      final direction = segment / segmentLength;
-      var drawn = 0.0;
-      while (drawn < segmentLength) {
-        final step = math.min(phaseRemaining, segmentLength - drawn);
-        if (drawingDash && step > 0.25) {
-          canvas.drawLine(
-            start + direction * drawn,
-            start + direction * (drawn + step),
-            linePaint,
-          );
-        }
-        drawn += step;
-        phaseRemaining -= step;
-        if (phaseRemaining <= 0) {
-          drawingDash = !drawingDash;
-          phaseRemaining = drawingDash ? dashLength : gapLength;
-        }
-      }
-    }
+    canvas.drawPath(tickPath, gridPaint);
+    plot.layout.strokeLeftAndBottomPlotEdges(canvas);
+    plot.layout.paintYearBoundaryGuides(canvas);
+    plot.layout.paintMonthOrDayTicks(canvas, labelStyle: _chartAxisLabelStyle);
   }
 
   List<ChainStaySegment> _visibleStaySegments(
@@ -429,10 +179,11 @@ class _CategoryTrendChartFrame({
   }) {
     if (segments.isEmpty) return;
     final laneIndex = _laneForKind(kind);
+    if (laneIndex == null) return;
     final fillTop = _laneTop(laneIndex);
     final fillBottom = _laneBottom(laneIndex);
     final baseLabelY = _laneLabelY(laneIndex);
-    final chartMax = layout.maxDate.startOfDay;
+    final chartMax = plot.layout.maxDate.startOfDay;
     final chainSegments = chain?.segments ?? const <ChainStaySegment>[];
     final eraIndexByStayId = {
       for (var eraIndex = 0; eraIndex < chainSegments.length; eraIndex++)
@@ -457,12 +208,12 @@ class _CategoryTrendChartFrame({
         ellipsis: '…',
       )..layout(maxWidth: _labelMaxWidth);
       final labelAnchorX = dateRangeLabelAnchorX(
-        layout: layout,
+        layout: plot.layout,
         rangeStart: segment.rangeStart,
       );
       final labelX = (labelAnchorX + 3).clamp(
-        layout.left,
-        layout.right - textPainter.width,
+        plot.layout.left,
+        plot.layout.right - textPainter.width,
       );
       labelLeftXs.add(labelX);
       labelWidths.add(textPainter.width);
@@ -485,7 +236,7 @@ class _CategoryTrendChartFrame({
         ..strokeWidth = _eraEdgeStroke;
 
       final geometry = dateRangeBandGeometry(
-        layout: layout,
+        layout: plot.layout,
         rangeStart: segment.rangeStart,
         rangeEnd: segment.effectiveEndOn(chartMax),
         showLeftEdge: true,
@@ -494,7 +245,7 @@ class _CategoryTrendChartFrame({
       if (geometry != null) {
         paintDateRangeBand(
           canvas,
-          layout: layout,
+          layout: plot.layout,
           geometry: geometry,
           edgePaint: edgePaint,
           fillColor: eraAccent,
@@ -502,8 +253,8 @@ class _CategoryTrendChartFrame({
           fillAlpha: 0.12,
           fillTop: fillTop,
           fillBottom: fillBottom,
-          edgeTop: layout.top,
-          edgeBottom: layout.bottom,
+          edgeTop: plot.layout.top,
+          edgeBottom: plot.layout.bottom,
         );
       }
 
@@ -574,10 +325,12 @@ class _CategoryTrendChartFrame({
 
   void _paintLifeEventSpansAndPointTicks(List<LifeEvent> markersInRange) {
     if (markersInRange.isEmpty) return;
-    final chartMax = layout.maxDate.startOfDay;
-    final fillTop = _laneTop(CategoryTrendPainter.lifeEventLane);
-    final fillBottom = _laneBottom(CategoryTrendPainter.lifeEventLane);
-    final baseLabelY = _laneLabelY(CategoryTrendPainter.lifeEventLane);
+    final lifeEventLane = plot.lifeEventLane;
+    if (lifeEventLane == null) return;
+    final chartMax = plot.layout.maxDate.startOfDay;
+    final fillTop = _laneTop(lifeEventLane);
+    final fillBottom = _laneBottom(lifeEventLane);
+    final baseLabelY = _laneLabelY(lifeEventLane);
 
     final bandFillPaint = Paint()
       ..color = FinanceColors.accentSecondary.withValues(alpha: 0.14)
@@ -587,7 +340,9 @@ class _CategoryTrendChartFrame({
       ..strokeWidth = _eraEdgeStroke;
     final linePaint = Paint()
       ..color = FinanceColors.accentSecondary.withValues(alpha: _eraEdgeAlpha)
-      ..strokeWidth = _eraEdgeStroke;
+      ..strokeWidth = _eraEdgeStroke
+      ..style = PaintingStyle.stroke;
+    final tickPath = Path();
 
     final labelLeftXs = <double>[];
     final labelWidths = <double>[];
@@ -607,12 +362,12 @@ class _CategoryTrendChartFrame({
         ellipsis: '…',
       )..layout(maxWidth: _labelMaxWidth);
       final labelAnchorX = dateRangeLabelAnchorX(
-        layout: layout,
+        layout: plot.layout,
         rangeStart: lifeEvent.startedOn,
       );
       final labelX = (labelAnchorX + 3).clamp(
-        layout.left,
-        layout.right - textPainter.width,
+        plot.layout.left,
+        plot.layout.right - textPainter.width,
       );
       labelLeftXs.add(labelX);
       labelWidths.add(textPainter.width);
@@ -630,19 +385,21 @@ class _CategoryTrendChartFrame({
     ) {
       final lifeEvent = markersInRange[markerIndex];
       final labelAnchorX = dateRangeLabelAnchorX(
-        layout: layout,
+        layout: plot.layout,
         rangeStart: lifeEvent.startedOn,
       );
 
       if (lifeEvent.isPoint) {
-        _strokeDashedLifeEventTick(
-          Offset(labelAnchorX, layout.top),
-          Offset(labelAnchorX, layout.bottom),
-          linePaint,
+        tickPath.addPath(
+          _dashedVerticalTickPath(
+            Offset(labelAnchorX, plot.layout.top),
+            Offset(labelAnchorX, plot.layout.bottom),
+          ),
+          Offset.zero,
         );
       } else {
         final geometry = dateRangeBandGeometry(
-          layout: layout,
+          layout: plot.layout,
           rangeStart: lifeEvent.startedOn,
           rangeEnd: lifeEvent.effectiveEndOn(chartMax),
           showLeftEdge: true,
@@ -651,14 +408,14 @@ class _CategoryTrendChartFrame({
         if (geometry != null) {
           paintDateRangeBand(
             canvas,
-            layout: layout,
+            layout: plot.layout,
             geometry: geometry,
             fillPaint: bandFillPaint,
             edgePaint: bandEdgePaint,
             fillTop: fillTop,
             fillBottom: fillBottom,
-            edgeTop: layout.top,
-            edgeBottom: layout.bottom,
+            edgeTop: plot.layout.top,
+            edgeBottom: plot.layout.bottom,
           );
         }
       }
@@ -669,91 +426,51 @@ class _CategoryTrendChartFrame({
         Offset(labelLeftXs[markerIndex], labelY),
       );
     }
+    canvas.drawPath(tickPath, linePaint);
   }
 
-  void _strokeDashedLifeEventTick(Offset start, Offset end, Paint paint) {
+  Path _dashedVerticalTickPath(Offset start, Offset end) {
     const dashLength = 4.0;
     const gapLength = 3.0;
     final height = end.dy - start.dy;
-    if (height <= 0) return;
+    final path = Path();
+    if (height <= 0) return path;
     var drawn = 0.0;
     var drawingDash = true;
     while (drawn < height) {
       final step = drawingDash ? dashLength : gapLength;
-      final next = math.min(drawn + step, height);
+      final next = drawn + step < height ? drawn + step : height;
       if (drawingDash) {
-        canvas.drawLine(
-          Offset(start.dx, start.dy + drawn),
-          Offset(start.dx, start.dy + next),
-          paint,
-        );
+        path
+          ..moveTo(start.dx, start.dy + drawn)
+          ..lineTo(start.dx, start.dy + next);
       }
       drawn = next;
       drawingDash = !drawingDash;
     }
-  }
-
-  void _paintInspectDateHairlineAndPaceRings() {
-    final position = hoverPosition;
-    if (position == null) return;
-
-    final hoverDate = layout.dateForX(position.dx);
-    final hoveredX = layout.xForDate(hoverDate);
-    final markerPaint = Paint()
-      ..color = EColors.textMuted.withValues(alpha: 0.6)
-      ..strokeWidth = 1;
-    canvas.drawLine(
-      Offset(hoveredX, layout.top),
-      Offset(hoveredX, layout.bottom),
-      markerPaint,
-    );
-
-    for (final series in drawableSeries) {
-      final point = _nearestPoint(series.points, hoverDate);
-      if (point == null) continue;
-      final ringPaint = Paint()
-        ..color = series.lineColor
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2;
-      canvas.drawCircle(
-        Offset(hoveredX, scale.yForCents(point.smoothedCents, layout)),
-        4,
-        ringPaint,
-      );
-    }
+    return path;
   }
 
   void _paintValueTickLabels() {
     final axisStyle = _chartAxisLabelStyle;
-    for (final tickCents in scale.tickCents) {
+    for (final tickCents in plot.scale.tickCents) {
       final label = formatAxisCents(tickCents);
       final textPainter = TextPainter(
         text: TextSpan(text: label, style: axisStyle),
         textDirection: TextDirection.ltr,
       )..layout();
       final labelY =
-          scale.yForCents(tickCents, layout) - textPainter.height / 2;
+          plot.scale.yForCents(tickCents, plot.layout) - textPainter.height / 2;
       textPainter.paint(
         canvas,
         Offset(
-          layout.left - textPainter.width - 4,
-          labelY.clamp(layout.top - 2, layout.bottom - textPainter.height),
+          plot.layout.left - textPainter.width - 4,
+          labelY.clamp(
+            plot.layout.top - 2,
+            plot.layout.bottom - textPainter.height,
+          ),
         ),
       );
     }
-  }
-
-  CategoryTrendPoint? _nearestPoint(
-    List<CategoryTrendPoint> points,
-    DateTime hoverDate,
-  ) {
-    if (points.isEmpty) return null;
-    return points.reduce(
-      (nearestPoint, point) =>
-          point.date.difference(hoverDate).inSeconds.abs() <
-              nearestPoint.date.difference(hoverDate).inSeconds.abs()
-          ? point
-          : nearestPoint,
-    );
   }
 }
